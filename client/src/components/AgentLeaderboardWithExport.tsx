@@ -4,7 +4,7 @@
  * Design: Professional data table with color-coded performance indicators and export buttons
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { AgentMetrics } from '@/lib/csvParser';
 import { exportAgentAsCSV, exportAgentAsPDF, exportAllAgentsAsCSV } from '@/lib/exportReports';
 import { Card } from '@/components/ui/card';
@@ -180,9 +180,8 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
           </TableHeader>
           <TableBody>
             {sortedAgents.map((agent, index) => (
-              <>
+              <React.Fragment key={agent.agentName}>
                 <TableRow
-                  key={agent.agentName}
                   className="hover:bg-muted/50 transition-colors"
                 >
                 <TableCell className="text-center font-display font-semibold text-primary">
@@ -282,7 +281,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </React.Fragment>
             ))}
           </TableBody>
         </Table>
