@@ -21,8 +21,10 @@ import {
   getPropertyTypeData,
   getGeographicData,
   getSalesOverTime,
+  calculateAgentMetrics,
   DotloopRecord,
   DashboardMetrics,
+  AgentMetrics,
 } from '@/lib/csvParser';
 import UploadZone from '@/components/UploadZone';
 import MetricCard from '@/components/MetricCard';
@@ -32,10 +34,12 @@ import LeadSourceChart from '@/components/charts/LeadSourceChart';
 import PropertyTypeChart from '@/components/charts/PropertyTypeChart';
 import GeographicChart from '@/components/charts/GeographicChart';
 import SalesTimelineChart from '@/components/charts/SalesTimelineChart';
+import AgentLeaderboard from '@/components/AgentLeaderboard';
 
 export default function Home() {
   const [records, setRecords] = useState<DotloopRecord[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [agentMetrics, setAgentMetrics] = useState<AgentMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFileUpload = async (file: File) => {
@@ -46,6 +50,8 @@ export default function Home() {
       setRecords(parsedRecords);
       const calculatedMetrics = calculateMetrics(parsedRecords);
       setMetrics(calculatedMetrics);
+      const agents = calculateAgentMetrics(parsedRecords);
+      setAgentMetrics(agents);
     } catch (error) {
       console.error('Error parsing file:', error);
       alert('Error parsing CSV file. Please ensure it is a valid Dotloop export.');
@@ -269,6 +275,13 @@ export default function Home() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Agent Leaderboard Section */}
+        {agentMetrics.length > 0 && (
+          <div className="mb-8">
+            <AgentLeaderboard agents={agentMetrics} />
+          </div>
+        )}
       </main>
     </div>
   );

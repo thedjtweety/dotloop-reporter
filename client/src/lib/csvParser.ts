@@ -50,6 +50,20 @@ export interface ChartData {
   percentage?: number;
 }
 
+export interface AgentMetrics {
+  agentName: string;
+  totalTransactions: number;
+  closedDeals: number;
+  closingRate: number;
+  totalCommission: number;
+  averageCommission: number;
+  totalSalesVolume: number;
+  averageSalesPrice: number;
+  averageDaysToClose: number;
+  activeListings: number;
+  underContract: number;
+}
+
 /**
  * Parse CSV string into records
  */
@@ -86,6 +100,95 @@ export function parseCSV(csvContent: string): DotloopRecord[] {
   }
 
   return records;
+}
+
+/**
+ * Calculate agent performance metrics
+ */
+export function calculateAgentMetrics(records: DotloopRecord[]): AgentMetrics[] {
+  const agentMap = new Map<string, any>();
+
+  records.forEach(record => {
+    // Handle multiple agents (comma-separated)
+    const agents = record.agents
+      ? record.agents.split(',').map(a => a.trim()).filter(a => a)
+      : [];
+
+    agents.forEach(agentName => {
+      if (!agentMap.has(agentName)) {
+        agentMap.set(agentName, {
+          agentName,
+          totalTransactions: 0,
+          closedDeals: 0,
+          totalCommission: 0,
+          totalSalesVolume: 0,
+          daysToCloseList: [],
+          activeListings: 0,
+          underContract: 0,
+        });
+      }
+
+      const agent = agentMap.get(agentName)!;
+      agent.totalTransactions++;
+
+      if (record.loopStatus === 'Closed') {
+        agent.closedDeals++;
+      } else if (record.loopStatus === 'Active Listings') {
+        agent.activeListings++;
+      } else if (record.loopStatus === 'Under Contract') {
+        agent.underContract++;
+      }
+
+      agent.totalCommission += record.commissionTotal || 0;
+      agent.totalSalesVolume += record.salePrice || record.price || 0;
+
+      // Calculate days to close
+      if (record.closingDate && record.createdDate) {
+        const created = new Date(record.createdDate);
+        const closing = new Date(record.closingDate);
+        if (!isNaN(created.getTime()) && !isNaN(closing.getTime())) {
+          const daysToClose = Math.ceil(
+            (closing.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)
+          );
+          if (daysToClose > 0) {
+            agent.daysToCloseList.push(daysToClose);
+          }
+        }
+      }
+    });
+  });
+
+  // Convert to array and calculate final metrics
+  return Array.from(agentMap.values())
+    .map(agent => ({
+      agentName: agent.agentName,
+      totalTransactions: agent.totalTransactions,
+      closedDeals: agent.closedDeals,
+      closingRate:
+        agent.totalTransactions > 0
+          ? (agent.closedDeals / agent.totalTransactions) * 100
+          : 0,
+      totalCommission: agent.totalCommission,
+      averageCommission:
+        agent.totalTransactions > 0
+          ? agent.totalCommission / agent.totalTransactions
+          : 0,
+      totalSalesVolume: agent.totalSalesVolume,
+      averageSalesPrice:
+        agent.totalTransactions > 0
+          ? agent.totalSalesVolume / agent.totalTransactions
+          : 0,
+      averageDaysToClose:
+        agent.daysToCloseList.length > 0
+          ? Math.round(
+              agent.daysToCloseList.reduce((a: number, b: number) => a + b, 0) /
+                agent.daysToCloseList.length
+            )
+          : 0,
+      activeListings: agent.activeListings,
+      underContract: agent.underContract,
+    }))
+    .sort((a: AgentMetrics, b: AgentMetrics) => b.totalCommission - a.totalCommission);
 }
 
 /**
