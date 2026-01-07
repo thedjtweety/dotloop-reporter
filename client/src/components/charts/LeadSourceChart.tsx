@@ -8,6 +8,7 @@ import { ChartData } from '@/lib/csvParser';
 
 interface LeadSourceChartProps {
   data: ChartData[];
+  onSliceClick?: (label: string) => void;
 }
 
 const COLORS = ['#1e3a5f', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -35,7 +36,7 @@ const CustomTooltip = ({ active, payload, total }: TooltipProps<number, string> 
   return null;
 };
 
-export default function LeadSourceChart({ data }: LeadSourceChartProps) {
+export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartProps) {
   if (data.length === 0) {
     return (
       <div className="h-80 flex items-center justify-center text-muted-foreground">
@@ -56,6 +57,8 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
           outerRadius={100}
           fill="#8884d8"
           dataKey="value"
+          onClick={(data) => onSliceClick && onSliceClick(data.label)}
+          className="cursor-pointer"
         >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

@@ -8,6 +8,7 @@ import { ChartData } from '@/lib/csvParser';
 
 interface GeographicChartProps {
   data: ChartData[];
+  onBarClick?: (label: string) => void;
 }
 
 const COLORS = ['#1e3a5f', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -34,7 +35,7 @@ const CustomTooltip = ({ active, payload, label, total }: TooltipProps<number, s
   return null;
 };
 
-export default function GeographicChart({ data }: GeographicChartProps) {
+export default function GeographicChart({ data, onBarClick }: GeographicChartProps) {
   if (data.length === 0) {
     return (
       <div className="h-80 flex items-center justify-center text-muted-foreground">
@@ -56,7 +57,13 @@ export default function GeographicChart({ data }: GeographicChartProps) {
         />
         <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} />
         <Tooltip content={<CustomTooltip total={data.reduce((acc, curr) => acc + curr.value, 0)} />} />
-        <Bar dataKey="value" fill="#1e3a5f" radius={[8, 8, 0, 0]}>
+        <Bar 
+          dataKey="value" 
+          fill="#1e3a5f" 
+          radius={[8, 8, 0, 0]}
+          onClick={(data) => onBarClick && onBarClick(data.label)}
+          className="cursor-pointer"
+        >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}

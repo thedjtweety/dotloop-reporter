@@ -35,12 +35,46 @@ import PropertyTypeChart from '@/components/charts/PropertyTypeChart';
 import GeographicChart from '@/components/charts/GeographicChart';
 import SalesTimelineChart from '@/components/charts/SalesTimelineChart';
 import AgentLeaderboardWithExport from '@/components/AgentLeaderboardWithExport';
+import DrillDownModal from '@/components/DrillDownModal';
 
 export default function Home() {
   const [records, setRecords] = useState<DotloopRecord[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [agentMetrics, setAgentMetrics] = useState<AgentMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Drill-down state
+  const [drillDownOpen, setDrillDownOpen] = useState(false);
+  const [drillDownTitle, setDrillDownTitle] = useState('');
+  const [drillDownTransactions, setDrillDownTransactions] = useState<DotloopRecord[]>([]);
+
+  const handleChartClick = (type: 'pipeline' | 'leadSource' | 'propertyType' | 'geographic', label: string) => {
+    let filtered: DotloopRecord[] = [];
+    let title = '';
+
+    switch (type) {
+      case 'pipeline':
+        title = `Pipeline: ${label}`;
+        filtered = records.filter(r => r.loopStatus === label);
+        break;
+      case 'leadSource':
+        title = `Lead Source: ${label}`;
+        filtered = records.filter(r => (r.leadSource || 'Unknown') === label);
+        break;
+      case 'propertyType':
+        title = `Property Type: ${label}`;
+        filtered = records.filter(r => (r.transactionType || 'Unknown') === label);
+        break;
+      case 'geographic':
+        title = `State: ${label}`;
+        filtered = records.filter(r => (r.state || 'Unknown') === label);
+        break;
+    }
+
+    setDrillDownTitle(title);
+    setDrillDownTransactions(filtered);
+    setDrillDownOpen(true);
+  };
 
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
@@ -232,7 +266,10 @@ export default function Home() {
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Pipeline Breakdown
                 </h2>
-                <PipelineChart data={getPipelineData(records)} />
+                <PipelineChart 
+                  data={getPipelineData(records)} 
+                  onBarClick={(label) => handleChartClick('pipeline', label)}
+                />
               </Card>
             </TabsContent>
 
@@ -250,7 +287,10 @@ export default function Home() {
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Lead Source Distribution
                 </h2>
-                <LeadSourceChart data={getLeadSourceData(records)} />
+                <LeadSourceChart 
+                  data={getLeadSourceData(records)} 
+                  onSliceClick={(label) => handleChartClick('leadSource', label)}
+                />
               </Card>
             </TabsContent>
 
@@ -259,7 +299,10 @@ export default function Home() {
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Property Type Breakdown
                 </h2>
-                <PropertyTypeChart data={getPropertyTypeData(records)} />
+                <PropertyTypeChart 
+                  data={getPropertyTypeData(records)} 
+                  onBarClick={(label) => handleChartClick('propertyType', label)}
+                />
               </Card>
             </TabsContent>
 
@@ -268,7 +311,10 @@ export default function Home() {
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Geographic Performance
                 </h2>
-                <GeographicChart data={getGeographicData(records)} />
+                <GeographicChart 
+                  data={getGeographicData(records)} 
+                  onBarClick={(label) => handleChartClick('geographic', label)}
+                />
               </Card>
             </TabsContent>
 
@@ -283,6 +329,13 @@ export default function Home() {
           </Tabs>
         </div>
       </main>
+
+      <DrillDownModal
+        isOpen={drillDownOpen}
+        onClose={() => setDrillDownOpen(false)}
+        title={drillDownTitle}
+        transactions={drillDownTransactions}
+      />
     </div>
   );
 }
