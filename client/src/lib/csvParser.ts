@@ -62,6 +62,10 @@ export interface AgentMetrics {
   averageDaysToClose: number;
   activeListings: number;
   underContract: number;
+  buySideCommission: number;
+  sellSideCommission: number;
+  buySidePercentage: number;
+  sellSidePercentage: number;
 }
 
 /**
@@ -125,6 +129,8 @@ export function calculateAgentMetrics(records: DotloopRecord[]): AgentMetrics[] 
           daysToCloseList: [],
           activeListings: 0,
           underContract: 0,
+          buySideCommission: 0,
+          sellSideCommission: 0,
         });
       }
 
@@ -141,6 +147,8 @@ export function calculateAgentMetrics(records: DotloopRecord[]): AgentMetrics[] 
 
       agent.totalCommission += record.commissionTotal || 0;
       agent.totalSalesVolume += record.salePrice || record.price || 0;
+      agent.buySideCommission += record.buySideCommission || 0;
+      agent.sellSideCommission += record.sellSideCommission || 0;
 
       // Calculate days to close
       if (record.closingDate && record.createdDate) {
@@ -187,6 +195,16 @@ export function calculateAgentMetrics(records: DotloopRecord[]): AgentMetrics[] 
           : 0,
       activeListings: agent.activeListings,
       underContract: agent.underContract,
+      buySideCommission: agent.buySideCommission,
+      sellSideCommission: agent.sellSideCommission,
+      buySidePercentage:
+        agent.totalCommission > 0
+          ? (agent.buySideCommission / agent.totalCommission) * 100
+          : 0,
+      sellSidePercentage:
+        agent.totalCommission > 0
+          ? (agent.sellSideCommission / agent.totalCommission) * 100
+          : 0,
     }))
     .sort((a: AgentMetrics, b: AgentMetrics) => b.totalCommission - a.totalCommission);
 }

@@ -162,6 +162,10 @@ export default function AgentLeaderboardWithExport({ agents }: AgentLeaderboardP
               <SortableHeader field="averageDaysToClose" label="Avg Days" />
               <SortableHeader field="activeListings" label="Active" />
               <SortableHeader field="underContract" label="Pending" />
+              <SortableHeader field="buySideCommission" label="Buy Side" />
+              <SortableHeader field="sellSideCommission" label="Sell Side" />
+              <SortableHeader field="buySidePercentage" label="Buy %" />
+              <SortableHeader field="sellSidePercentage" label="Sell %" />
               <TableHead className="w-32 text-center font-display font-semibold">
                 Actions
               </TableHead>
@@ -207,6 +211,22 @@ export default function AgentLeaderboardWithExport({ agents }: AgentLeaderboardP
                 </TableCell>
                 <TableCell className="text-center font-medium">
                   {agent.underContract}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  ${(agent.buySideCommission / 1000).toFixed(1)}K
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  ${(agent.sellSideCommission / 1000).toFixed(1)}K
+                </TableCell>
+                <TableCell className="text-center">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    {agent.buySidePercentage.toFixed(1)}%
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    {agent.sellSidePercentage.toFixed(1)}%
+                  </Badge>
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex gap-1 justify-center">
