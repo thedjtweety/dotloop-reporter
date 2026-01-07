@@ -101,9 +101,9 @@ export default function Home() {
         <header className="border-b border-border bg-card">
           <div className="container py-6">
             <div className="flex items-center gap-3 mb-2">
-              <HomeIcon className="w-8 h-8 text-primary" />
+              <img src="/dotloop-logo.png" alt="Dotloop Logo" className="h-10 w-auto" />
               <h1 className="text-3xl font-display font-bold text-foreground">
-                Dotloop Reporting Tool
+                Reporting Tool
               </h1>
             </div>
             <p className="text-muted-foreground">
@@ -128,10 +128,10 @@ export default function Home() {
       <header className="border-b border-border bg-card sticky top-0 z-10">
         <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <HomeIcon className="w-8 h-8 text-primary" />
+            <img src="/dotloop-logo.png" alt="Dotloop Logo" className="h-8 w-auto" />
             <div>
               <h1 className="text-2xl font-display font-bold text-foreground">
-                Dotloop Reporting Tool
+                Reporting Tool
               </h1>
               <p className="text-sm text-muted-foreground">
                 {records.length} transactions analyzed
