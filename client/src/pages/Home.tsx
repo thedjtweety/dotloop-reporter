@@ -34,7 +34,7 @@ import LeadSourceChart from '@/components/charts/LeadSourceChart';
 import PropertyTypeChart from '@/components/charts/PropertyTypeChart';
 import GeographicChart from '@/components/charts/GeographicChart';
 import SalesTimelineChart from '@/components/charts/SalesTimelineChart';
-import AgentLeaderboard from '@/components/AgentLeaderboard';
+import AgentLeaderboardWithExport from '@/components/AgentLeaderboardWithExport';
 
 export default function Home() {
   const [records, setRecords] = useState<DotloopRecord[]>([]);
@@ -279,7 +279,7 @@ export default function Home() {
         {/* Agent Leaderboard Section */}
         {agentMetrics.length > 0 && (
           <div className="mb-8">
-            <AgentLeaderboard agents={agentMetrics} />
+            <AgentLeaderboardWithExport agents={agentMetrics} />
           </div>
         )}
       </main>
