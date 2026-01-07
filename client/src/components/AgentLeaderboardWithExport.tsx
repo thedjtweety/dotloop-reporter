@@ -18,7 +18,9 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, TrendingUp, Download, FileText, Sheet } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowUpDown, TrendingUp, Download, FileText, Sheet, BarChart3 } from 'lucide-react';
+import AgentCommissionModal from './AgentCommissionModal';
 
 interface AgentLeaderboardProps {
   agents: AgentMetrics[];
@@ -230,6 +232,7 @@ export default function AgentLeaderboardWithExport({ agents }: AgentLeaderboardP
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex gap-1 justify-center">
+                    <AgentCommissionModal agent={agent} />
                     <Button
                       onClick={() => handleExportPDF(agent)}
                       variant="ghost"

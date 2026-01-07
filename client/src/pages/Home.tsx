@@ -208,6 +208,13 @@ export default function Home() {
           </Card>
         </div>
 
+        {/* Agent Leaderboard Section */}
+        {agentMetrics.length > 0 && (
+          <div className="mb-8">
+            <AgentLeaderboardWithExport agents={agentMetrics} />
+          </div>
+        )}
+
         {/* Charts Section */}
         <div className="mb-8">
           <Tabs defaultValue="pipeline" className="w-full">
@@ -275,13 +282,6 @@ export default function Home() {
             </TabsContent>
           </Tabs>
         </div>
-
-        {/* Agent Leaderboard Section */}
-        {agentMetrics.length > 0 && (
-          <div className="mb-8">
-            <AgentLeaderboardWithExport agents={agentMetrics} />
-          </div>
-        )}
       </main>
     </div>
   );
