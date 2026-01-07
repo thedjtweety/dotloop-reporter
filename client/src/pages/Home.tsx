@@ -211,7 +211,7 @@ export default function Home() {
         {/* Agent Leaderboard Section */}
         {agentMetrics.length > 0 && (
           <div className="mb-8">
-            <AgentLeaderboardWithExport agents={agentMetrics} />
+            <AgentLeaderboardWithExport agents={agentMetrics} records={records} />
           </div>
         )}
 

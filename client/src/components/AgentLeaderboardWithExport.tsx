@@ -21,17 +21,22 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowUpDown, TrendingUp, Download, FileText, Sheet, BarChart3 } from 'lucide-react';
 import AgentCommissionModal from './AgentCommissionModal';
+import AgentDetailsPanel from './AgentDetailsPanel';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { DotloopRecord } from '@/lib/csvParser';
 
 interface AgentLeaderboardProps {
   agents: AgentMetrics[];
+  records?: DotloopRecord[];
 }
 
 type SortField = keyof AgentMetrics;
 
-export default function AgentLeaderboardWithExport({ agents }: AgentLeaderboardProps) {
+export default function AgentLeaderboardWithExport({ agents, records = [] }: AgentLeaderboardProps) {
   const [sortField, setSortField] = useState<SortField>('totalCommission');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [exportingAgent, setExportingAgent] = useState<string | null>(null);
+  const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -175,10 +180,11 @@ export default function AgentLeaderboardWithExport({ agents }: AgentLeaderboardP
           </TableHeader>
           <TableBody>
             {sortedAgents.map((agent, index) => (
-              <TableRow
-                key={agent.agentName}
-                className="hover:bg-muted/50 transition-colors"
-              >
+              <>
+                <TableRow
+                  key={agent.agentName}
+                  className="hover:bg-muted/50 transition-colors"
+                >
                 <TableCell className="text-center font-display font-semibold text-primary">
                   #{index + 1}
                 </TableCell>
@@ -234,6 +240,19 @@ export default function AgentLeaderboardWithExport({ agents }: AgentLeaderboardP
                   <div className="flex gap-1 justify-center">
                     <AgentCommissionModal agent={agent} />
                     <Button
+                      onClick={() => setExpandedAgent(expandedAgent === agent.agentName ? null : agent.agentName)}
+                      variant="ghost"
+                      size="sm"
+                      title="View details"
+                      className="h-8 w-8 p-0"
+                    >
+                      {expandedAgent === agent.agentName ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
                       onClick={() => handleExportPDF(agent)}
                       variant="ghost"
                       size="sm"
@@ -255,7 +274,15 @@ export default function AgentLeaderboardWithExport({ agents }: AgentLeaderboardP
                     </Button>
                   </div>
                 </TableCell>
-              </TableRow>
+                </TableRow>
+                {expandedAgent === agent.agentName && (
+                  <TableRow className="bg-muted/20">
+                    <TableCell colSpan={16} className="p-0">
+                      <AgentDetailsPanel agent={agent} transactions={records} />
+                    </TableCell>
+                  </TableRow>
+                )}
+              </>
             ))}
           </TableBody>
         </Table>
