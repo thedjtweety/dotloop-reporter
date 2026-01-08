@@ -5,16 +5,17 @@
  */
 
 import { useState, useRef } from 'react';
-import { Upload, CheckCircle, FileSpreadsheet, ArrowRight } from 'lucide-react';
+import { Upload, CheckCircle, FileSpreadsheet, ArrowRight, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 interface UploadZoneProps {
   onFileUpload: (file: File) => void;
+  onDemoClick?: () => void;
   isLoading?: boolean;
 }
 
-export default function UploadZone({ onFileUpload, isLoading = false }: UploadZoneProps) {
+export default function UploadZone({ onFileUpload, onDemoClick, isLoading = false }: UploadZoneProps) {
   const [isDragActive, setIsDragActive] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -149,14 +150,33 @@ export default function UploadZone({ onFileUpload, isLoading = false }: UploadZo
                     or click to browse your computer
                   </p>
                 </div>
-                <Button 
-                  size="lg" 
-                  className="mt-4 bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40 transition-all duration-300 font-semibold text-lg px-8 py-6 h-auto"
-                >
-                  <span className="flex items-center gap-2">
-                    Select File <ArrowRight className="w-5 h-5" />
-                  </span>
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                  <Button 
+                    size="lg" 
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40 transition-all duration-300 font-semibold text-lg px-8 py-6 h-auto"
+                  >
+                    <span className="flex items-center gap-2">
+                      Select File <ArrowRight className="w-5 h-5" />
+                    </span>
+                  </Button>
+                  
+                  {onDemoClick && (
+                    <Button 
+                      size="lg" 
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDemoClick();
+                      }}
+                      className="bg-white/10 hover:bg-white/20 text-white border-white/20 hover:border-white/40 backdrop-blur-sm transition-all duration-300 font-semibold text-lg px-8 py-6 h-auto"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Play className="w-5 h-5 fill-current" />
+                        Try Demo
+                      </span>
+                    </Button>
+                  )}
+                </div>
                 <p className="text-xs text-slate-400 mt-4 font-medium tracking-wide uppercase">
                   Supports Dotloop Broker Exports
                 </p>

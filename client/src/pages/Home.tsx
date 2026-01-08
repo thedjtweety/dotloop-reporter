@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent, Settings } from 'lucide-react';
+import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent, Settings, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatPercentage, formatNumber } from '@/lib/formatUtils';
 import { Card } from '@/components/ui/card';
@@ -31,7 +31,10 @@ import {
 import { filterRecordsByDate, getPreviousPeriod } from '@/lib/dateUtils';
 import { cleanDate, cleanNumber, cleanPercentage, cleanText } from '@/lib/dataCleaning';
 import { findMatchingTemplate, saveTemplate } from '@/lib/importTemplates';
+import { generateSampleData } from '@/lib/sampleData';
 import UploadZone from '@/components/UploadZone';
+import TrustBar from '@/components/TrustBar';
+import RecentUploads, { RecentFile } from '@/components/RecentUploads';
 import MetricCard from '@/components/MetricCard';
 import ColumnMapping from '@/components/ColumnMapping';
 import FieldMapper, { ColumnMapping as FieldMapping } from '@/components/FieldMapper';
@@ -82,8 +85,9 @@ export default function Home() {
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [rawCsvData, setRawCsvData] = useState<any[]>([]);
   const [customMapping, setCustomMapping] = useState<FieldMapping>({});
+  const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
 
-  // Load saved mapping on mount
+  // Load saved mapping and recent files on mount
   useEffect(() => {
     const saved = localStorage.getItem('dotloop_field_mapping');
     if (saved) {
@@ -93,7 +97,62 @@ export default function Home() {
         console.error('Failed to parse saved mapping', e);
       }
     }
+
+    // Load recent files from localStorage
+    const savedFiles = localStorage.getItem('dotloop_recent_files');
+    if (savedFiles) {
+      try {
+        setRecentFiles(JSON.parse(savedFiles));
+      } catch (e) {
+        console.error('Failed to parse recent files', e);
+      }
+    }
   }, []);
+
+  const saveRecentFile = (name: string, records: DotloopRecord[]) => {
+    const newFile: RecentFile = {
+      id: crypto.randomUUID(),
+      name,
+      date: Date.now(),
+      recordCount: records.length,
+      data: records
+    };
+
+    const updated = [newFile, ...recentFiles].slice(0, 3); // Keep last 3
+    setRecentFiles(updated);
+    
+    try {
+      localStorage.setItem('dotloop_recent_files', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Failed to save recent file to localStorage', e);
+    }
+  };
+
+  const handleRecentSelect = (file: RecentFile) => {
+    setAllRecords(file.data);
+    setFilteredRecords(file.data);
+    setMetrics(calculateMetrics(file.data));
+    setAgentMetrics(calculateAgentMetrics(file.data));
+  };
+
+  const handleRecentDelete = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = recentFiles.filter(f => f.id !== id);
+    setRecentFiles(updated);
+    localStorage.setItem('dotloop_recent_files', JSON.stringify(updated));
+  };
+
+  const handleDemoMode = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      const sampleData = generateSampleData(150);
+      setAllRecords(sampleData);
+      setFilteredRecords(sampleData);
+      setMetrics(calculateMetrics(sampleData));
+      setAgentMetrics(calculateAgentMetrics(sampleData));
+      setIsLoading(false);
+    }, 1500);
+  };
 
   // Update metrics when date range or records change
   useEffect(() => {
@@ -205,7 +264,7 @@ export default function Home() {
 
       if (template) {
         // Auto-process with template
-        processWithMapping(headers, data, template.mapping);
+        processWithMapping(headers, data, template.mapping, file.name);
       } else {
         // Show mapping UI
         setPendingFile({ headers, data });
@@ -242,7 +301,7 @@ export default function Home() {
     setShowFieldMapper(false);
   };
 
-  const processWithMapping = (headers: string[], data: any[][], mapping: Record<string, string>) => {
+  const processWithMapping = (headers: string[], data: any[][], mapping: Record<string, string>, fileName: string = 'Uploaded File') => {
     const records: DotloopRecord[] = data.map(row => {
       const getValue = (key: string) => {
         const header = mapping[key];
@@ -342,27 +401,37 @@ export default function Home() {
 
   if (!metrics) {
     return (
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <header className="border-b border-border bg-card">
-          <div className="container py-6">
-            <div className="flex items-center gap-3 mb-2">
-              <img src="/dotloop-logo.png" alt="Dotloop Logo" className="h-10 w-auto" />
-              <h1 className="text-3xl font-display font-bold text-foreground">
-                Reporting Tool
-              </h1>
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="border-b border-border bg-card relative z-10">
+          <div className="container mx-auto px-4 py-4 flex items-center gap-3">
+            <div className="bg-[#0099ff] p-2 rounded-lg">
+              <img src="/images/dotloop-logo-white.svg" alt="Dotloop" className="h-6 w-auto brightness-0 invert" />
             </div>
-            <p className="text-muted-foreground">
-              Upload your Dotloop CSV export to generate comprehensive transaction reports and analytics
-            </p>
+            <h1 className="text-2xl font-display font-bold text-foreground">
+              Reporting Tool
+            </h1>
+            <div className="ml-auto flex items-center gap-4">
+              <ModeToggle />
+            </div>
           </div>
         </header>
 
-        {/* Upload Section */}
-        <main className="container py-12">
-          <div className="max-w-2xl mx-auto">
-            <UploadZone onFileUpload={handleFileUpload} isLoading={isLoading} />
+        <main className="flex-1 flex flex-col">
+          <div className="flex-1 container mx-auto px-4 py-12 flex flex-col items-center justify-center">
+            <UploadZone 
+              onFileUpload={handleFileUpload} 
+              onDemoClick={handleDemoMode}
+              isLoading={isLoading} 
+            />
+            
+            <RecentUploads 
+              files={recentFiles} 
+              onSelect={handleRecentSelect}
+              onDelete={handleRecentDelete}
+            />
           </div>
+          
+          <TrustBar />
         </main>
       </div>
     );
@@ -399,8 +468,8 @@ export default function Home() {
                 setDateRange(undefined);
               }}
             >
-                <HomeIcon className="w-4 h-4 mr-2" />
-              Upload New File
+                <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Upload
             </Button>
           </div>
         </div>
