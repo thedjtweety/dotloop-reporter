@@ -181,6 +181,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                 Agent Name
               </TableHead>
               <SortableHeader field="totalCommission" label="Total Commission" />
+              <SortableHeader field="companyDollar" label="Company $" />
               <SortableHeader
                 field="averageCommission"
                 label="Avg Commission"
@@ -241,6 +242,9 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                 </TableCell>
                 <TableCell className="font-semibold text-accent">
                   {formatCurrency(agent.totalCommission)}
+                </TableCell>
+                <TableCell className="font-medium text-blue-600 dark:text-blue-400">
+                  {formatCurrency(agent.companyDollar)}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {formatCurrency(agent.averageCommission)}
@@ -328,7 +332,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                 </TableRow>
                 {expandedAgent === agent.agentName && (
                   <TableRow className="bg-muted/20">
-                    <TableCell colSpan={16} className="p-0">
+                    <TableCell colSpan={17} className="p-0">
                       <AgentDetailsPanel agent={agent} transactions={records} />
                     </TableCell>
                   </TableRow>

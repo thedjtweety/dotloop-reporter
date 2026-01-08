@@ -30,6 +30,7 @@ export interface DotloopRecord {
   createdBy: string;
   buySideCommission: number;
   sellSideCommission: number;
+  companyDollar: number;
   [key: string]: any;
 }
 
@@ -82,6 +83,7 @@ export interface AgentMetrics {
   sellSideCommission: number;
   buySidePercentage: number;
   sellSidePercentage: number;
+  companyDollar: number;
 }
 
 /**
@@ -192,6 +194,7 @@ export function calculateAgentMetrics(records: DotloopRecord[]): AgentMetrics[] 
           underContract: 0,
           buySideCommission: 0,
           sellSideCommission: 0,
+          companyDollar: 0,
         });
       }
 
@@ -210,6 +213,7 @@ export function calculateAgentMetrics(records: DotloopRecord[]): AgentMetrics[] 
       agent.totalSalesVolume += record.salePrice || record.price || 0;
       agent.buySideCommission += record.buySideCommission || 0;
       agent.sellSideCommission += record.sellSideCommission || 0;
+      agent.companyDollar += record.companyDollar || 0;
 
       // Calculate days to close
       if (record.closingDate && record.createdDate) {
@@ -266,6 +270,7 @@ export function calculateAgentMetrics(records: DotloopRecord[]): AgentMetrics[] 
         agent.totalCommission > 0
           ? (agent.sellSideCommission / agent.totalCommission) * 100
           : 0,
+      companyDollar: agent.companyDollar,
     }))
     .sort((a: AgentMetrics, b: AgentMetrics) => b.totalCommission - a.totalCommission);
 }
@@ -344,6 +349,7 @@ function normalizeRecord(raw: any): DotloopRecord | null {
       createdBy: raw['Created By'] || raw['Agents'] || '',
       buySideCommission: parseCurrency(raw['Buy Side Commission'] || '0'),
       sellSideCommission: parseCurrency(raw['Sell Side Commission'] || '0'),
+      companyDollar: parseCurrency(raw['Company Dollar'] || raw['Net to Office'] || '0'),
     };
   } catch (error) {
     console.error('Error normalizing record:', error);

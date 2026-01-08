@@ -211,6 +211,7 @@ export default function Home() {
         sellSideCommission: cleanNumber(getValue('sellCommission')),
         buySidePercentage: 0,
         sellSidePercentage: 0,
+        companyDollar: cleanNumber(getValue('companyDollar')),
       };
     }).map(r => {
       // Calculate total commission if missing but splits exist
