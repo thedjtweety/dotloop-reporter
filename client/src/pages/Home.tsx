@@ -29,8 +29,11 @@ import {
   AgentMetrics,
 } from '@/lib/csvParser';
 import { filterRecordsByDate, getPreviousPeriod } from '@/lib/dateUtils';
+import { cleanDate, cleanNumber, cleanPercentage, cleanText } from '@/lib/dataCleaning';
+import { findMatchingTemplate, saveTemplate } from '@/lib/importTemplates';
 import UploadZone from '@/components/UploadZone';
 import MetricCard from '@/components/MetricCard';
+import ColumnMapping from '@/components/ColumnMapping';
 import { DatePickerWithRange } from '@/components/DateRangePicker';
 import PipelineChart from '@/components/charts/PipelineChart';
 import FinancialChart from '@/components/charts/FinancialChart';
@@ -53,6 +56,10 @@ export default function Home() {
   const [drillDownOpen, setDrillDownOpen] = useState(false);
   const [drillDownTitle, setDrillDownTitle] = useState('');
   const [drillDownTransactions, setDrillDownTransactions] = useState<DotloopRecord[]>([]);
+
+  // Import Wizard State
+  const [showMapping, setShowMapping] = useState(false);
+  const [pendingFile, setPendingFile] = useState<{ headers: string[], data: any[][] } | null>(null);
 
   // Update metrics when date range or records change
   useEffect(() => {
@@ -105,16 +112,121 @@ export default function Home() {
     setIsLoading(true);
     try {
       const text = await file.text();
-      const parsedRecords = parseCSV(text);
-      setAllRecords(parsedRecords);
-      // Initial metrics calculation will be handled by useEffect
+      
+      // Basic parse to check structure
+      const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length < 1) throw new Error('Empty file');
+      
+      // Parse first line to get headers
+      // Simple CSV split handling quotes
+      const parseLine = (line: string) => {
+        const fields = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          if (line[i] === '"') {
+            if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
+            else { inQuotes = !inQuotes; }
+          } else if (line[i] === ',' && !inQuotes) {
+            fields.push(current); current = '';
+          } else { current += line[i]; }
+        }
+        fields.push(current);
+        return fields;
+      };
+
+      const headers = parseLine(lines[0]).map(h => h.trim());
+      const data = lines.slice(1).map(line => parseLine(line));
+
+      // Check for saved template
+      const template = findMatchingTemplate(headers);
+      
+      if (template) {
+        // Auto-process with template
+        processWithMapping(headers, data, template.mapping);
+      } else {
+        // Show mapping UI
+        setPendingFile({ headers, data });
+        setShowMapping(true);
+      }
     } catch (error) {
       console.error('Error parsing file:', error);
-      alert('Error parsing CSV file. Please ensure it is a valid Dotloop export.');
+      alert('Error parsing CSV file. Please ensure it is a valid CSV export.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  const processWithMapping = (headers: string[], data: any[][], mapping: Record<string, string>) => {
+    const records: DotloopRecord[] = data.map(row => {
+      const getValue = (key: string) => {
+        const header = mapping[key];
+        const index = headers.indexOf(header);
+        return index >= 0 ? row[index] : '';
+      };
+
+      return {
+        loopId: crypto.randomUUID(), // Generate ID if missing
+        loopName: cleanText(getValue('address')), // Use address as name fallback
+        loopStatus: cleanText(getValue('status')),
+        createdDate: cleanDate(getValue('createdDate') || getValue('listingDate')),
+        closingDate: cleanDate(getValue('closingDate')),
+        listingDate: cleanDate(getValue('listingDate')),
+        offerDate: '',
+        address: cleanText(getValue('address')),
+        price: cleanNumber(getValue('price')),
+        propertyType: cleanText(getValue('propertyType')) || 'Residential',
+        bedrooms: 0,
+        bathrooms: 0,
+        squareFootage: 0,
+        yearBuilt: 0,
+        city: '',
+        state: '',
+        county: '',
+        leadSource: cleanText(getValue('leadSource')),
+        earnestMoney: 0,
+        salePrice: cleanNumber(getValue('price')),
+        commissionRate: 0,
+        commissionTotal: cleanNumber(getValue('commission')),
+        agents: cleanText(getValue('agentName')),
+        createdBy: cleanText(getValue('agentName')),
+        buySideCommission: 0, // Could map if available
+        sellSideCommission: 0,
+        buySidePercentage: 0,
+        sellSidePercentage: 0,
+      };
+    }).filter(r => r.address && r.price > 0); // Basic validation
+
+    setAllRecords(records);
+    setShowMapping(false);
+    setPendingFile(null);
+  };
+
+  const handleMappingConfirm = (mapping: Record<string, string>) => {
+    if (pendingFile) {
+      // Save as template
+      saveTemplate('Custom Import', mapping);
+      processWithMapping(pendingFile.headers, pendingFile.data, mapping);
+    }
+  };
+
+  if (showMapping && pendingFile) {
+    return (
+      <div className="min-h-screen bg-background py-12">
+        <div className="container">
+          <ColumnMapping 
+            headers={pendingFile.headers} 
+            sampleData={pendingFile.data.slice(0, 5)}
+            onConfirm={handleMappingConfirm}
+            onCancel={() => {
+              setShowMapping(false);
+              setPendingFile(null);
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (!metrics) {
     return (
