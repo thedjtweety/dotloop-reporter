@@ -54,6 +54,8 @@ import SalesTimelineChart from '@/components/charts/SalesTimelineChart';
 import AgentLeaderboardWithExport from '@/components/AgentLeaderboardWithExport';
 import DrillDownModal from '@/components/DrillDownModal';
 import DataHealthCheck from '@/components/DataHealthCheck';
+import CommissionPlansManager from '@/components/CommissionPlansManager';
+import AgentAssignment from '@/components/AgentAssignment';
 
 export default function Home() {
   const [allRecords, setAllRecords] = useState<DotloopRecord[]>([]);
@@ -503,7 +505,7 @@ export default function Home() {
         {/* Charts Section */}
         <div className="mb-8">
           <Tabs defaultValue="pipeline" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-8 mb-6">
+            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 mb-6">
               <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
               <TabsTrigger value="leadsource">Lead Source</TabsTrigger>
@@ -512,6 +514,7 @@ export default function Home() {
               <TabsTrigger value="financial">Financial</TabsTrigger>
               <TabsTrigger value="insights">Insights</TabsTrigger>
               <TabsTrigger value="health">Data Health</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
             <TabsContent value="pipeline" className="space-y-4">
@@ -636,6 +639,15 @@ export default function Home() {
 
             <TabsContent value="health" className="space-y-4">
               <DataHealthCheck records={filteredRecords} />
+            </TabsContent>
+
+            <TabsContent value="settings" className="space-y-8">
+              <Card className="p-6 bg-card border border-border">
+                <CommissionPlansManager />
+              </Card>
+              <Card className="p-6 bg-card border border-border">
+                <AgentAssignment records={allRecords} />
+              </Card>
             </TabsContent>
           </Tabs>
         </div>

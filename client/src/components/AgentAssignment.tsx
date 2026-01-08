@@ -1,0 +1,161 @@
+import { useState, useEffect } from 'react';
+import { 
+  CommissionPlan, 
+  AgentPlanAssignment, 
+  getCommissionPlans, 
+  getAgentAssignments, 
+  saveAgentAssignments 
+} from '@/lib/commission';
+import { DotloopRecord } from '@/lib/csvParser';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+
+interface AgentAssignmentProps {
+  records: DotloopRecord[]; // Used to extract unique agent names
+}
+
+export default function AgentAssignment({ records }: AgentAssignmentProps) {
+  const [plans, setPlans] = useState<CommissionPlan[]>([]);
+  const [assignments, setAssignments] = useState<AgentPlanAssignment[]>([]);
+  const [agents, setAgents] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    setPlans(getCommissionPlans());
+    setAssignments(getAgentAssignments());
+
+    // Extract unique agents from records
+    const uniqueAgents = new Set<string>();
+    records.forEach(r => {
+      if (r.agents) {
+        r.agents.split(',').forEach(a => uniqueAgents.add(a.trim()));
+      }
+    });
+    setAgents(Array.from(uniqueAgents).sort());
+  }, [records]);
+
+  const handleAssignPlan = (agentName: string, planId: string) => {
+    const newAssignments = assignments.filter(a => a.agentName !== agentName);
+    if (planId !== 'none') {
+      newAssignments.push({
+        agentName,
+        planId,
+        startDate: new Date().toISOString().split('T')[0]
+      });
+    }
+    setAssignments(newAssignments);
+    saveAgentAssignments(newAssignments);
+  };
+
+  const getAgentPlanId = (agentName: string) => {
+    return assignments.find(a => a.agentName === agentName)?.planId || 'none';
+  };
+
+  const filteredAgents = agents.filter(a => 
+    a.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-medium">Agent Assignments</h3>
+          <p className="text-sm text-muted-foreground">Assign commission plans to your agents.</p>
+        </div>
+        <div className="relative w-64">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search agents..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+      </div>
+
+      <div className="border rounded-md">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Agent Name</TableHead>
+              <TableHead>Assigned Plan</TableHead>
+              <TableHead>Plan Details</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAgents.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                  No agents found. Upload a CSV to populate this list.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredAgents.map((agent) => {
+                const currentPlanId = getAgentPlanId(agent);
+                const currentPlan = plans.find(p => p.id === currentPlanId);
+
+                return (
+                  <TableRow key={agent}>
+                    <TableCell className="font-medium">{agent}</TableCell>
+                    <TableCell className="w-[300px]">
+                      <Select
+                        value={currentPlanId}
+                        onValueChange={(val) => handleAssignPlan(agent, val)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a plan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No Plan Assigned</SelectItem>
+                          {plans.map((plan) => (
+                            <SelectItem key={plan.id} value={plan.id}>
+                              {plan.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      {currentPlan ? (
+                        <div className="flex gap-2">
+                          <Badge variant="outline">
+                            {currentPlan.splitPercentage}/{100 - currentPlan.splitPercentage}
+                          </Badge>
+                          {currentPlan.capAmount > 0 && (
+                            <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 border-emerald-200">
+                              ${currentPlan.capAmount / 1000}k Cap
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground italic">
+                          --
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
