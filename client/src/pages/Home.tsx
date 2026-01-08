@@ -398,8 +398,8 @@ export default function Home() {
       <div className="min-h-screen bg-background flex flex-col">
         <header className="border-b border-border bg-card relative z-10">
           <div className="container mx-auto px-4 py-4 flex items-center gap-3">
-            <div className="bg-[#0099ff] p-2 rounded-lg">
-              <img src="/images/dotloop-logo-white.svg" alt="Dotloop" className="h-6 w-auto brightness-0 invert" />
+            <div className="bg-white p-1 rounded-lg">
+              <img src="/images/dotloop-logo.png" alt="Dotloop" className="h-8 w-auto object-contain" />
             </div>
             <h1 className="text-2xl font-display font-bold text-foreground">
               Reporting Tool
