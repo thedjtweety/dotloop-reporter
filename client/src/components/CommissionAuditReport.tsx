@@ -1,0 +1,145 @@
+import { useState, useEffect } from 'react';
+import { DotloopRecord } from '@/lib/csvParser';
+import { calculateCommissionAudit, AgentYTD, AuditResult } from '@/lib/commissionCalculator';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+
+interface CommissionAuditReportProps {
+  records: DotloopRecord[];
+}
+
+export default function CommissionAuditReport({ records }: CommissionAuditReportProps) {
+  const [ytdStats, setYtdStats] = useState<AgentYTD[]>([]);
+  const [auditResults, setAuditResults] = useState<AuditResult[]>([]);
+
+  useEffect(() => {
+    if (records.length > 0) {
+      const { ytdStats, auditResults } = calculateCommissionAudit(records);
+      setYtdStats(ytdStats);
+      setAuditResults(auditResults);
+    }
+  }, [records]);
+
+  const formatCurrency = (val: number) => 
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+
+  return (
+    <div className="space-y-6">
+      <Tabs defaultValue="ytd" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="ytd">YTD Cap Tracker</TabsTrigger>
+          <TabsTrigger value="audit">Commission Audit Log</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="ytd" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {ytdStats.map((stat) => (
+              <Card key={stat.agentName} className={stat.isCapped ? "border-emerald-500/50 bg-emerald-50/10" : ""}>
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-base">{stat.agentName}</CardTitle>
+                      <CardDescription>{stat.planName} {stat.teamName ? `• ${stat.teamName}` : ''}</CardDescription>
+                    </div>
+                    {stat.isCapped && (
+                      <Badge className="bg-emerald-500 hover:bg-emerald-600">CAPPED</Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Company Dollar Paid</span>
+                      <span className="font-medium">{formatCurrency(stat.ytdCompanyDollar)}</span>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Progress to Cap</span>
+                        <span>{stat.percentToCap.toFixed(1)}%</span>
+                      </div>
+                      <Progress value={stat.percentToCap} className="h-2" indicatorClassName={stat.isCapped ? "bg-emerald-500" : ""} />
+                      <div className="flex justify-between text-xs text-muted-foreground pt-1">
+                        <span>$0</span>
+                        <span>Cap: {formatCurrency(stat.capAmount)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {ytdStats.length === 0 && (
+              <div className="col-span-full text-center py-12 text-muted-foreground">
+                No agent data found. Ensure agents are assigned to plans in Settings.
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="audit" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Transaction Audit Log</CardTitle>
+              <CardDescription>
+                Comparing calculated splits (based on your rules) vs. actual CSV data.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Loop Name</TableHead>
+                      <TableHead>Agent</TableHead>
+                      <TableHead className="text-right">Actual Co. $</TableHead>
+                      <TableHead className="text-right">Expected Co. $</TableHead>
+                      <TableHead className="text-right">Diff</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Notes</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {auditResults.map((res, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell className="whitespace-nowrap">{res.closingDate}</TableCell>
+                        <TableCell className="max-w-[200px] truncate" title={res.loopName}>{res.loopName}</TableCell>
+                        <TableCell>{res.agentName}</TableCell>
+                        <TableCell className="text-right font-mono">{formatCurrency(res.actualCompanyDollar)}</TableCell>
+                        <TableCell className="text-right font-mono text-muted-foreground">{formatCurrency(res.expectedCompanyDollar)}</TableCell>
+                        <TableCell className={`text-right font-mono font-medium ${
+                          res.status === 'match' ? 'text-muted-foreground' : 
+                          res.status === 'underpaid' ? 'text-emerald-600' : 'text-red-600'
+                        }`}>
+                          {res.difference > 0 ? '+' : ''}{formatCurrency(res.difference)}
+                        </TableCell>
+                        <TableCell>
+                          {res.status === 'match' && <Badge variant="outline" className="text-muted-foreground"><CheckCircle2 className="w-3 h-3 mr-1"/> Match</Badge>}
+                          {res.status === 'underpaid' && <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Broker +</Badge>}
+                          {res.status === 'overpaid' && <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200"><AlertCircle className="w-3 h-3 mr-1"/> Check</Badge>}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate" title={res.notes}>
+                          {res.notes}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

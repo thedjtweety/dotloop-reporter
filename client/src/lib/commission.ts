@@ -8,9 +8,17 @@ export interface CommissionPlan {
   royaltyCap?: number; // Optional cap on royalty (e.g., 3000)
 }
 
+export interface Team {
+  id: string;
+  name: string;
+  leadAgent: string;
+  teamSplitPercentage: number; // Percentage taken by team (e.g., 50%)
+}
+
 export interface AgentPlanAssignment {
   agentName: string;
   planId: string;
+  teamId?: string; // Optional: link to a team
   startDate?: string; // Optional: when did they start this plan?
 }
 
@@ -42,6 +50,7 @@ export const DEFAULT_PLANS: CommissionPlan[] = [
 // Storage Keys
 const PLANS_KEY = 'dotloop_commission_plans';
 const ASSIGNMENTS_KEY = 'dotloop_agent_assignments';
+const TEAMS_KEY = 'dotloop_teams';
 
 // Helpers
 export function getCommissionPlans(): CommissionPlan[] {
@@ -60,6 +69,15 @@ export function getAgentAssignments(): AgentPlanAssignment[] {
 
 export function saveAgentAssignments(assignments: AgentPlanAssignment[]) {
   localStorage.setItem(ASSIGNMENTS_KEY, JSON.stringify(assignments));
+}
+
+export function getTeams(): Team[] {
+  const stored = localStorage.getItem(TEAMS_KEY);
+  return stored ? JSON.parse(stored) : [];
+}
+
+export function saveTeams(teams: Team[]) {
+  localStorage.setItem(TEAMS_KEY, JSON.stringify(teams));
 }
 
 export function getPlanForAgent(agentName: string): CommissionPlan | undefined {

@@ -55,7 +55,9 @@ import AgentLeaderboardWithExport from '@/components/AgentLeaderboardWithExport'
 import DrillDownModal from '@/components/DrillDownModal';
 import DataHealthCheck from '@/components/DataHealthCheck';
 import CommissionPlansManager from '@/components/CommissionPlansManager';
+import TeamManager from '@/components/TeamManager';
 import AgentAssignment from '@/components/AgentAssignment';
+import CommissionAuditReport from '@/components/CommissionAuditReport';
 
 export default function Home() {
   const [allRecords, setAllRecords] = useState<DotloopRecord[]>([]);
@@ -512,6 +514,7 @@ export default function Home() {
               <TabsTrigger value="property">Property Type</TabsTrigger>
               <TabsTrigger value="geographic">Geographic</TabsTrigger>
               <TabsTrigger value="financial">Financial</TabsTrigger>
+              <TabsTrigger value="audit">Comm. Audit</TabsTrigger>
               <TabsTrigger value="insights">Insights</TabsTrigger>
               <TabsTrigger value="health">Data Health</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -641,9 +644,16 @@ export default function Home() {
               <DataHealthCheck records={filteredRecords} />
             </TabsContent>
 
+            <TabsContent value="audit" className="space-y-4">
+              <CommissionAuditReport records={filteredRecords} />
+            </TabsContent>
+
             <TabsContent value="settings" className="space-y-8">
               <Card className="p-6 bg-card border border-border">
                 <CommissionPlansManager />
+              </Card>
+              <Card className="p-6 bg-card border border-border">
+                <TeamManager />
               </Card>
               <Card className="p-6 bg-card border border-border">
                 <AgentAssignment records={allRecords} />
