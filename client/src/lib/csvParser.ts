@@ -31,6 +31,8 @@ export interface DotloopRecord {
   buySideCommission: number;
   sellSideCommission: number;
   companyDollar: number;
+  referralSource: string;
+  referralPercentage: number;
   [key: string]: any;
 }
 
@@ -331,7 +333,7 @@ function normalizeRecord(raw: any): DotloopRecord | null {
       listingDate: raw['Listing Date'] || raw['Listing Information / Listing Date'] || '',
       offerDate: raw['Offer Date'] || '',
       address: raw['Address'] || raw['Property Address / Full Address'] || '',
-      price: parseCurrency(raw['Price'] || raw['Financials / Purchase/Sale Price'] || '0'),
+      price: parseCurrency(raw['Price'] || raw['Financials / Purchase/Sale Price'] || raw['Listing Information / Current Price'] || '0'),
       propertyType: raw['Property / Type'] || 'Residential', // Default
       bedrooms: parseInt(raw['Property / Bedrooms'] || '0') || 0,
       bathrooms: parseInt(raw['Property / Bathrooms'] || '0') || 0,
@@ -350,6 +352,8 @@ function normalizeRecord(raw: any): DotloopRecord | null {
       buySideCommission: parseCurrency(raw['Buy Side Commission'] || '0'),
       sellSideCommission: parseCurrency(raw['Sell Side Commission'] || '0'),
       companyDollar: parseCurrency(raw['Company Dollar'] || raw['Net to Office'] || '0'),
+      referralSource: raw['Referral / Referral Source'] || raw['Referral Source'] || '',
+      referralPercentage: parsePercent(raw['Referral / Referral %'] || raw['Referral %'] || '0'),
     };
   } catch (error) {
     console.error('Error normalizing record:', error);

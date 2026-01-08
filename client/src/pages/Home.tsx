@@ -223,6 +223,8 @@ export default function Home() {
         buySidePercentage: 0,
         sellSidePercentage: 0,
         companyDollar: cleanNumber(getValue('companyDollar')),
+        referralSource: cleanText(getValue('referralSource')),
+        referralPercentage: cleanNumber(getValue('referralPercentage')),
       };
     }).map(r => {
       // Calculate total commission if missing but splits exist

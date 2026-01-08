@@ -20,6 +20,8 @@ export const REQUIRED_FIELDS = [
   { key: 'propertyType', label: 'Property Type', required: false, type: 'text' },
   { key: 'listingDate', label: 'Listing Date', required: false, type: 'date' },
   { key: 'createdDate', label: 'Created Date', required: false, type: 'date' },
+  { key: 'referralSource', label: 'Referral Source', required: false, type: 'text' },
+  { key: 'referralPercentage', label: 'Referral %', required: false, type: 'number' },
 ];
 
 interface ColumnMappingProps {
@@ -56,6 +58,8 @@ export default function ColumnMapping({ headers, sampleData, onConfirm, onCancel
         if (field.key === 'closingDate' && (headerLower.includes('close') || headerLower.includes('closing'))) return true;
         if (field.key === 'address' && (headerLower.includes('address') || headerLower.includes('loop name'))) return true;
         if (field.key === 'status' && (headerLower.includes('status') || headerLower.includes('loop status'))) return true;
+        if (field.key === 'referralSource' && (headerLower.includes('referral source') || headerLower.includes('source'))) return true;
+        if (field.key === 'referralPercentage' && (headerLower.includes('referral %') || headerLower.includes('referral percentage'))) return true;
         
         return false;
       });
