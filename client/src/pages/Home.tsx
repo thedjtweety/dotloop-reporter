@@ -135,8 +135,23 @@ export default function Home() {
         return fields;
       };
 
-      const headers = parseLine(lines[0]).map(h => h.trim());
-      const data = lines.slice(1).map(line => parseLine(line));
+      let headers = parseLine(lines[0]).map(h => h.trim());
+      let data = lines.slice(1).map(line => parseLine(line));
+
+      // Detect if first row is data (headless CSV)
+      // Heuristic: Check if "headers" contain dates or numbers, or if they don't look like typical column names
+      const isHeadless = headers.some(h => 
+        !isNaN(parseFloat(h)) || // Is a number
+        h.includes('/') || // Looks like a date
+        h.length > 50 // Too long for a header
+      );
+
+      if (isHeadless) {
+        // Treat first row as data
+        data = [headers, ...data];
+        // Generate synthetic headers
+        headers = headers.map((_, i) => `Column ${i + 1}`);
+      }
 
       // Check for saved template
       const template = findMatchingTemplate(headers);
