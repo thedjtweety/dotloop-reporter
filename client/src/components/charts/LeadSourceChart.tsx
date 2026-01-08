@@ -17,7 +17,7 @@ const CustomTooltip = ({ active, payload, total }: TooltipProps<number, string> 
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const value = payload[0].value as number;
-    const percentage = ((value / total) * 100).toFixed(1);
+    const percentage = ((value / total) * 100).toFixed(2);
     
     return (
       <div className="bg-background border border-border p-3 rounded-lg shadow-lg">
@@ -53,7 +53,7 @@ export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartP
           cx="50%"
           cy="50%"
           labelLine={false}
-          label={({ label, percentage }) => `${label}: ${percentage}%`}
+          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(2)}%`}
           outerRadius={100}
           fill="#8884d8"
           dataKey="value"
