@@ -32,6 +32,7 @@ import { filterRecordsByDate, getPreviousPeriod } from '@/lib/dateUtils';
 import { cleanDate, cleanNumber, cleanPercentage, cleanText } from '@/lib/dataCleaning';
 import { findMatchingTemplate, saveTemplate } from '@/lib/importTemplates';
 import { generateSampleData } from '@/lib/sampleData';
+import { getRecentFiles, saveRecentFile, deleteRecentFile } from '@/lib/storage';
 import UploadZone from '@/components/UploadZone';
 import TrustBar from '@/components/TrustBar';
 import RecentUploads, { RecentFile } from '@/components/RecentUploads';
@@ -109,22 +110,14 @@ export default function Home() {
     }
   }, []);
 
-  const saveRecentFile = (name: string, records: DotloopRecord[]) => {
-    const newFile: RecentFile = {
-      id: crypto.randomUUID(),
-      name,
-      date: Date.now(),
-      recordCount: records.length,
-      data: records
-    };
 
-    const updated = [newFile, ...recentFiles].slice(0, 3); // Keep last 3
-    setRecentFiles(updated);
-    
+
+  const handleSaveRecent = async (name: string, records: DotloopRecord[]) => {
     try {
-      localStorage.setItem('dotloop_recent_files', JSON.stringify(updated));
+      const updated = await saveRecentFile(name, records);
+      setRecentFiles(updated);
     } catch (e) {
-      console.warn('Failed to save recent file to localStorage', e);
+      console.error('Failed to save recent file', e);
     }
   };
 
@@ -358,6 +351,7 @@ export default function Home() {
     setAllRecords(records);
     setShowMapping(false);
     setPendingFile(null);
+    handleSaveRecent(fileName, records);
   };
 
   const handleMappingConfirm = (mapping: Record<string, string>) => {
