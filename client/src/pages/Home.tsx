@@ -38,6 +38,7 @@ import { DatePickerWithRange } from '@/components/DateRangePicker';
 import PipelineChart from '@/components/charts/PipelineChart';
 import FinancialChart from '@/components/charts/FinancialChart';
 import CommissionBreakdownChart from '@/components/CommissionBreakdownChart';
+import RevenueDistributionChart from '@/components/charts/RevenueDistributionChart';
 import BuySellTrendChart from '@/components/charts/BuySellTrendChart';
 import AgentMixChart from '@/components/charts/AgentMixChart';
 import LeadSourceChart from '@/components/charts/LeadSourceChart';
@@ -513,9 +514,19 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <BuySellTrendChart data={filteredRecords} />
-                <AgentMixChart agents={agentMetrics} />
+              <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1">
+                  <RevenueDistributionChart 
+                    totalCommission={metrics.totalCommission}
+                    companyDollar={filteredRecords.reduce((sum, r) => sum + r.companyDollar, 0)}
+                  />
+                </div>
+                <div className="lg:col-span-1">
+                  <BuySellTrendChart data={filteredRecords} />
+                </div>
+                <div className="lg:col-span-1">
+                  <AgentMixChart agents={agentMetrics} />
+                </div>
               </div>
             </TabsContent>
           </Tabs>
