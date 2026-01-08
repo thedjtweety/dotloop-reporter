@@ -28,6 +28,8 @@ export interface DotloopRecord {
   commissionTotal: number;
   agents: string;
   createdBy: string;
+  buySideCommission: number;
+  sellSideCommission: number;
   [key: string]: any;
 }
 
@@ -87,19 +89,64 @@ export interface AgentMetrics {
  */
 export function parseCSV(csvContent: string): DotloopRecord[] {
   const lines = csvContent.split('\n').filter(line => line.trim());
-  if (lines.length < 2) return [];
+  if (lines.length < 1) return [];
 
-  // Parse header line properly
-  const headerLine = lines[0];
-  const headers = parseCSVLine(headerLine).map(h => h.trim());
+  // Check if first line is a header or data
+  const firstLine = lines[0];
+  const firstLineFields = parseCSVLine(firstLine);
+  
+  // Heuristic: If first line contains "Price", "Date", "Address", etc., it's a header.
+  // If it contains specific names, dates (e.g. "6/21/2017"), or numbers, it's data.
+  const isHeader = firstLineFields.some(f => 
+    ['Agent Name', 'Loop Name', 'Price', 'Closing Date', 'Address', 'Lead Source'].some(h => 
+      f.toLowerCase().includes(h.toLowerCase())
+    )
+  );
+
+  let headers: string[] = [];
+  let startIndex = 0;
+
+  if (isHeader) {
+    headers = firstLineFields.map(h => h.trim());
+    startIndex = 1;
+  } else {
+    // Default mapping for headless CSV (ReportBuilding.csv format)
+    // Based on analysis: 
+    // 0: Agent Name, 1: Address, 2: Lead Source, 3: Listing Date, 4: Price, 5: Status, 
+    // 6: Contract Date, 7: Closing Date, 8: Review Status, 9: Comm Split?, 10: Side, 
+    // 11: Total Comm, 12: Rate, 13: Buy Comm, 14: Sell Comm, 15: Buy %, 16: Sell %
+    headers = [
+      'Agents',           // 0
+      'Address',          // 1
+      'Lead Source',      // 2
+      'Listing Date',     // 3
+      'Price',            // 4
+      'Loop Status',      // 5
+      'Offer Date',       // 6
+      'Closing Date',     // 7
+      'Review Status',    // 8
+      'Commission Split', // 9
+      'Transaction Side', // 10
+      'Total Commission', // 11
+      'Commission Rate',  // 12
+      'Buy Side Commission', // 13
+      'Sell Side Commission', // 14
+      'Buy Side %',       // 15
+      'Sell Side %'       // 16
+    ];
+    startIndex = 0; // Start parsing from the first line
+  }
+
   const records: DotloopRecord[] = [];
 
-  for (let i = 1; i < lines.length; i++) {
+  for (let i = startIndex; i < lines.length; i++) {
     const line = lines[i];
     if (!line.trim()) continue;
 
+    // Skip lines that look like empty commas (e.g. ",,,,,,,,,")
+    if (line.replace(/,/g, '').trim().length === 0) continue;
+
     try {
-      // Handle quoted fields with commas
       const fields = parseCSVLine(line);
       const record: any = {};
 
@@ -151,7 +198,7 @@ export function calculateAgentMetrics(records: DotloopRecord[]): AgentMetrics[] 
       const agent = agentMap.get(agentName)!;
       agent.totalTransactions++;
 
-      if (record.loopStatus === 'Closed') {
+      if (record.loopStatus === 'Closed' || record.loopStatus === 'Sold') {
         agent.closedDeals++;
       } else if (record.loopStatus === 'Active Listings') {
         agent.activeListings++;
@@ -258,17 +305,29 @@ function parseCSVLine(line: string): string[] {
  */
 function normalizeRecord(raw: any): DotloopRecord | null {
   try {
+    // Helper to clean currency strings
+    const parseCurrency = (val: string) => {
+      if (!val) return 0;
+      return parseFloat(val.replace(/[$,\s]/g, '')) || 0;
+    };
+
+    // Helper to clean percentage strings
+    const parsePercent = (val: string) => {
+      if (!val) return 0;
+      return parseFloat(val.replace(/[%,\s]/g, '')) || 0;
+    };
+
     return {
       loopId: raw['Loop ID'] || '',
-      loopName: raw['Loop Name'] || '',
+      loopName: raw['Loop Name'] || raw['Address'] || '', // Fallback to address if no loop name
       loopStatus: raw['Loop Status'] || '',
-      createdDate: raw['Created Date'] || '',
+      createdDate: raw['Created Date'] || raw['Listing Date'] || '', // Fallback for headless
       closingDate: raw['Closing Date'] || raw['Contract Dates / Closing Date'] || '',
       listingDate: raw['Listing Date'] || raw['Listing Information / Listing Date'] || '',
       offerDate: raw['Offer Date'] || '',
       address: raw['Address'] || raw['Property Address / Full Address'] || '',
-      price: parseFloat(raw['Price'] || raw['Financials / Purchase/Sale Price'] || '0') || 0,
-      propertyType: raw['Property / Type'] || '',
+      price: parseCurrency(raw['Price'] || raw['Financials / Purchase/Sale Price'] || '0'),
+      propertyType: raw['Property / Type'] || 'Residential', // Default
       bedrooms: parseInt(raw['Property / Bedrooms'] || '0') || 0,
       bathrooms: parseInt(raw['Property / Bathrooms'] || '0') || 0,
       squareFootage: parseInt(raw['Property / Square Footage'] || '0') || 0,
@@ -276,13 +335,15 @@ function normalizeRecord(raw: any): DotloopRecord | null {
       city: raw['Property Address / City'] || '',
       state: raw['Property Address / State/Prov'] || '',
       county: raw['Property Address / County'] || '',
-      leadSource: raw['Lead Source / Lead Source'] || raw['Referral / LEAD SOURCE'] || '',
-      earnestMoney: parseFloat(raw['Financials / Earnest Money Amount'] || '0') || 0,
-      salePrice: parseFloat(raw['Financials / Purchase/Sale Price'] || '0') || 0,
-      commissionRate: parseFloat(raw['Financials / Sale Commission Rate'] || '0') || 0,
-      commissionTotal: parseFloat(raw['Financials / Sale Commission Total'] || '0') || 0,
+      leadSource: raw['Lead Source'] || raw['Lead Source / Lead Source'] || raw['Referral / LEAD SOURCE'] || '',
+      earnestMoney: parseCurrency(raw['Financials / Earnest Money Amount'] || '0'),
+      salePrice: parseCurrency(raw['Financials / Purchase/Sale Price'] || raw['Price'] || '0'),
+      commissionRate: parsePercent(raw['Commission Rate'] || raw['Financials / Sale Commission Rate'] || '0'),
+      commissionTotal: parseCurrency(raw['Total Commission'] || raw['Financials / Sale Commission Total'] || '0'),
       agents: raw['Agents'] || raw['Created By'] || '',
-      createdBy: raw['Created By'] || '',
+      createdBy: raw['Created By'] || raw['Agents'] || '',
+      buySideCommission: parseCurrency(raw['Buy Side Commission'] || '0'),
+      sellSideCommission: parseCurrency(raw['Sell Side Commission'] || '0'),
     };
   } catch (error) {
     console.error('Error normalizing record:', error);
@@ -331,167 +392,229 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
       else if (status.includes('closed') || status.includes('sold')) statusCounts.closed++;
       else if (status.includes('archived')) statusCounts.archived++;
 
-      totalSalesVolume += record.salePrice || record.price || 0;
-      totalCommission += record.commissionTotal || 0;
+      // Only count volume/commission for closed/sold deals
+      if (status.includes('closed') || status.includes('sold')) {
+        totalSalesVolume += record.salePrice || record.price || 0;
+        totalCommission += record.commissionTotal || 0;
 
-      // Calculate days to close
-      if (record.createdDate && record.closingDate) {
-        const created = new Date(record.createdDate);
-        const closing = new Date(record.closingDate);
-        if (!isNaN(created.getTime()) && !isNaN(closing.getTime())) {
-          const days = Math.floor((closing.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
-          if (days >= 0) daysToCloseValues.push(days);
+        if (record.closingDate && record.createdDate) {
+          const created = new Date(record.createdDate);
+          const closing = new Date(record.closingDate);
+          if (!isNaN(created.getTime()) && !isNaN(closing.getTime())) {
+            const days = Math.ceil((closing.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+            if (days > 0) daysToCloseValues.push(days);
+          }
         }
       }
     });
 
-    const closedCount = statusCounts.closed;
-    const averageDaysToClose = daysToCloseValues.length > 0
-      ? Math.round(daysToCloseValues.reduce((a, b) => a + b, 0) / daysToCloseValues.length)
+    const totalTransactions = recs.length;
+    const averagePrice = statusCounts.closed > 0 ? totalSalesVolume / statusCounts.closed : 0;
+    const averageDaysToClose = daysToCloseValues.length > 0 
+      ? Math.round(daysToCloseValues.reduce((a, b) => a + b, 0) / daysToCloseValues.length) 
       : 0;
+    const closingRate = totalTransactions > 0 ? (statusCounts.closed / totalTransactions) * 100 : 0;
 
     return {
-      totalTransactions: recs.length,
+      totalTransactions,
       activeListings: statusCounts.activeListings,
       underContract: statusCounts.underContract,
-      closed: closedCount,
+      closed: statusCounts.closed,
       archived: statusCounts.archived,
       totalSalesVolume,
-      averagePrice: Math.round(totalSalesVolume / recs.length),
+      averagePrice,
       totalCommission,
       averageDaysToClose,
-      closingRate: recs.length > 0 ? Math.round((closedCount / recs.length) * 100) : 0,
+      closingRate,
     };
   };
 
-  const metrics = calculateBaseMetrics(records);
-
-  if (previousRecords) {
+  const currentMetrics = calculateBaseMetrics(records);
+  
+  // Calculate trends if previous records exist
+  let trends;
+  if (previousRecords && previousRecords.length > 0) {
     const prevMetrics = calculateBaseMetrics(previousRecords);
-    return {
-      ...metrics,
-      trends: {
-        totalTransactions: calculateTrend(metrics.totalTransactions, prevMetrics.totalTransactions),
-        totalVolume: calculateTrend(metrics.totalSalesVolume, prevMetrics.totalSalesVolume),
-        avgCommission: calculateTrend(metrics.totalCommission / (metrics.totalTransactions || 1), prevMetrics.totalCommission / (prevMetrics.totalTransactions || 1)),
-        avgSalePrice: calculateTrend(metrics.averagePrice, prevMetrics.averagePrice),
-        avgDaysToClose: calculateTrend(metrics.averageDaysToClose, prevMetrics.averageDaysToClose),
-        closingRate: calculateTrend(metrics.closingRate, prevMetrics.closingRate)
-      }
+    
+    trends = {
+      totalTransactions: calculateTrend(currentMetrics.totalTransactions, prevMetrics.totalTransactions),
+      totalVolume: calculateTrend(currentMetrics.totalSalesVolume, prevMetrics.totalSalesVolume),
+      avgCommission: calculateTrend(
+        currentMetrics.totalTransactions > 0 ? currentMetrics.totalCommission / currentMetrics.totalTransactions : 0,
+        prevMetrics.totalTransactions > 0 ? prevMetrics.totalCommission / prevMetrics.totalTransactions : 0
+      ),
+      avgSalePrice: calculateTrend(currentMetrics.averagePrice, prevMetrics.averagePrice),
+      avgDaysToClose: calculateTrend(currentMetrics.averageDaysToClose, prevMetrics.averageDaysToClose),
+      closingRate: calculateTrend(currentMetrics.closingRate, prevMetrics.closingRate),
     };
   }
 
-  return metrics;
+  return {
+    ...currentMetrics,
+    trends
+  };
 }
 
 /**
- * Get pipeline breakdown by status
- */
-export function getPipelineData(records: DotloopRecord[]): ChartData[] {
-  const statusCounts: { [key: string]: number } = {};
-
-  records.forEach(record => {
-    const status = record.loopStatus || 'Unknown';
-    statusCounts[status] = (statusCounts[status] || 0) + 1;
-  });
-
-  return Object.entries(statusCounts).map(([label, value]) => ({
-    label,
-    value,
-    percentage: Math.round((value / records.length) * 100),
-  }));
-}
-
-/**
- * Get lead source breakdown
+ * Get data for Lead Source chart
  */
 export function getLeadSourceData(records: DotloopRecord[]): ChartData[] {
-  const leadCounts: { [key: string]: number } = {};
-
+  const sourceMap = new Map<string, number>();
+  
   records.forEach(record => {
     const source = record.leadSource || 'Unknown';
-    leadCounts[source] = (leadCounts[source] || 0) + 1;
+    sourceMap.set(source, (sourceMap.get(source) || 0) + 1);
   });
 
-  return Object.entries(leadCounts)
+  const total = records.length;
+  
+  return Array.from(sourceMap.entries())
     .map(([label, value]) => ({
       label,
       value,
-      percentage: Math.round((value / records.length) * 100),
+      percentage: total > 0 ? (value / total) * 100 : 0
     }))
-    .sort((a, b) => b.value - a.value);
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10); // Top 10 sources
 }
 
 /**
- * Get property type breakdown
+ * Get data for Property Type chart
  */
 export function getPropertyTypeData(records: DotloopRecord[]): ChartData[] {
-  const typeCounts: { [key: string]: number } = {};
-
+  const typeMap = new Map<string, number>();
+  
   records.forEach(record => {
     const type = record.propertyType || 'Unknown';
-    typeCounts[type] = (typeCounts[type] || 0) + 1;
+    typeMap.set(type, (typeMap.get(type) || 0) + 1);
   });
 
-  return Object.entries(typeCounts)
+  const total = records.length;
+
+  return Array.from(typeMap.entries())
     .map(([label, value]) => ({
       label,
       value,
-      percentage: Math.round((value / records.length) * 100),
+      percentage: total > 0 ? (value / total) * 100 : 0
     }))
     .sort((a, b) => b.value - a.value);
 }
 
 /**
- * Get geographic breakdown by state
+ * Get data for Geographic chart (by City)
  */
 export function getGeographicData(records: DotloopRecord[]): ChartData[] {
-  const stateCounts: { [key: string]: number } = {};
-
+  const cityMap = new Map<string, number>();
+  
   records.forEach(record => {
-    const state = record.state || 'Unknown';
-    stateCounts[state] = (stateCounts[state] || 0) + 1;
+    const city = record.city || 'Unknown';
+    cityMap.set(city, (cityMap.get(city) || 0) + 1);
   });
 
-  return Object.entries(stateCounts)
+  const total = records.length;
+
+  return Array.from(cityMap.entries())
     .map(([label, value]) => ({
       label,
       value,
-      percentage: Math.round((value / records.length) * 100),
+      percentage: total > 0 ? (value / total) * 100 : 0
     }))
-    .sort((a, b) => b.value - a.value);
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10); // Top 10 cities
 }
 
 /**
- * Get sales performance over time (by month)
+ * Get Sales Over Time data (Monthly)
  */
 export function getSalesOverTime(records: DotloopRecord[]): ChartData[] {
-  const monthData: { [key: string]: number } = {};
+  const monthMap = new Map<string, { count: number; volume: number }>();
+  
+  // Sort records by closing date
+  const sortedRecords = [...records]
+    .filter(r => r.closingDate)
+    .sort((a, b) => new Date(a.closingDate).getTime() - new Date(b.closingDate).getTime());
 
-  records.forEach(record => {
-    const dateStr = record.closingDate || record.createdDate;
-    if (dateStr) {
-      const date = new Date(dateStr);
-      if (!isNaN(date.getTime())) {
-        const monthKey = date.toLocaleString('default', { year: 'numeric', month: 'short' });
-        monthData[monthKey] = (monthData[monthKey] || 0) + 1;
+  if (sortedRecords.length === 0) return [];
+
+  // Generate all months in range
+  const start = new Date(sortedRecords[0].closingDate);
+  const end = new Date(sortedRecords[sortedRecords.length - 1].closingDate);
+  
+  const current = new Date(start.getFullYear(), start.getMonth(), 1);
+  const endDate = new Date(end.getFullYear(), end.getMonth(), 1);
+
+  while (current <= endDate) {
+    const key = current.toLocaleString('default', { month: 'short', year: '2-digit' });
+    monthMap.set(key, { count: 0, volume: 0 });
+    current.setMonth(current.getMonth() + 1);
+  }
+
+  // Fill data
+  sortedRecords.forEach(record => {
+    const date = new Date(record.closingDate);
+    if (!isNaN(date.getTime())) {
+      const key = date.toLocaleString('default', { month: 'short', year: '2-digit' });
+      if (monthMap.has(key)) {
+        const data = monthMap.get(key)!;
+        data.count++;
+        data.volume += record.salePrice || record.price || 0;
       }
     }
   });
 
-  const sortedData = Object.entries(monthData)
+  // Calculate moving average (3-month)
+  const data = Array.from(monthMap.entries()).map(([label, { count, volume }]) => ({
+    label,
+    value: count, // Or volume, depending on what we want to show. Usually transaction count bars.
+    volume // Keep volume for tooltips if needed
+  }));
+
+  return data.map((item, index, array) => {
+    // Calculate 3-month moving average
+    let sum = 0;
+    let count = 0;
+    for (let i = Math.max(0, index - 2); i <= index; i++) {
+      sum += array[i].value;
+      count++;
+    }
+    return {
+      ...item,
+      movingAverage: count > 0 ? sum / count : 0
+    };
+  });
+}
+
+/**
+ * Get Pipeline data (by Loop Status)
+ */
+export function getPipelineData(records: DotloopRecord[]): ChartData[] {
+  const statusMap = new Map<string, number>();
+  
+  records.forEach(record => {
+    // Normalize status
+    let status = record.loopStatus || 'Unknown';
+    
+    // Group similar statuses if needed, or keep raw
+    if (status.toLowerCase().includes('sold') || status.toLowerCase().includes('closed')) {
+      status = 'Closed';
+    } else if (status.toLowerCase().includes('active')) {
+      status = 'Active';
+    } else if (status.toLowerCase().includes('contract') || status.toLowerCase().includes('pending')) {
+      status = 'Under Contract';
+    } else if (status.toLowerCase().includes('archived')) {
+      status = 'Archived';
+    }
+    
+    statusMap.set(status, (statusMap.get(status) || 0) + 1);
+  });
+
+  const total = records.length;
+
+  return Array.from(statusMap.entries())
     .map(([label, value]) => ({
       label,
       value,
+      percentage: total > 0 ? (value / total) * 100 : 0
     }))
-    .sort((a, b) => new Date(a.label).getTime() - new Date(b.label).getTime());
-
-  // Calculate 3-period moving average
-  return sortedData.map((item, index, array) => {
-    if (index < 2) {
-      return { ...item, movingAverage: undefined };
-    }
-    const sum = array[index].value + array[index - 1].value + array[index - 2].value;
-    return { ...item, movingAverage: Math.round((sum / 3) * 10) / 10 };
-  });
+    .sort((a, b) => b.value - a.value);
 }
