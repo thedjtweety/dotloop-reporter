@@ -19,7 +19,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowUpDown, TrendingUp, Download, FileText, Sheet, BarChart3 } from 'lucide-react';
+import { ArrowUpDown, TrendingUp, Download, FileText, Sheet, BarChart3, Medal } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
 import AgentCommissionModal from './AgentCommissionModal';
 import AgentDetailsPanel from './AgentDetailsPanel';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -185,10 +187,36 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                   className="hover:bg-muted/50 transition-colors"
                 >
                 <TableCell className="text-center font-display font-semibold text-primary">
-                  #{index + 1}
+                  {index === 0 ? (
+                    <div className="flex justify-center">
+                      <Medal className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                    </div>
+                  ) : index === 1 ? (
+                    <div className="flex justify-center">
+                      <Medal className="w-5 h-5 text-gray-400 fill-gray-400" />
+                    </div>
+                  ) : index === 2 ? (
+                    <div className="flex justify-center">
+                      <Medal className="w-5 h-5 text-amber-700 fill-amber-700" />
+                    </div>
+                  ) : (
+                    `#${index + 1}`
+                  )}
                 </TableCell>
                 <TableCell className="font-medium text-foreground">
-                  {agent.agentName}
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {agent.agentName
+                          .split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .substring(0, 2)
+                          .toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {agent.agentName}
+                  </div>
                 </TableCell>
                 <TableCell className="font-semibold text-accent">
                   ${(agent.totalCommission / 1000).toFixed(1)}K
@@ -203,9 +231,12 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                   {agent.closedDeals}
                 </TableCell>
                 <TableCell className="text-center">
-                  <Badge className={getPerformanceBadge(agent.closingRate)}>
-                    {agent.closingRate.toFixed(1)}%
-                  </Badge>
+                  <div className="flex flex-col items-center gap-1">
+                    <Badge className={getPerformanceBadge(agent.closingRate)}>
+                      {agent.closingRate.toFixed(1)}%
+                    </Badge>
+                    <Progress value={agent.closingRate} className="h-1.5 w-16" />
+                  </div>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   ${(agent.averageSalesPrice / 1000).toFixed(0)}K
