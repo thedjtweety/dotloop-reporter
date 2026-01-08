@@ -166,7 +166,10 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
       {/* Winners Podium */}
       {agents.length >= 3 && showPodium && (
         <div className="px-6 pt-6">
-          <WinnersPodium agents={[...agents].sort((a, b) => b.totalCommission - a.totalCommission)} />
+          <WinnersPodium 
+            agents={[...agents].sort((a, b) => b.totalCommission - a.totalCommission)} 
+            transactions={records}
+          />
         </div>
       )}
 
