@@ -38,6 +38,8 @@ import { DatePickerWithRange } from '@/components/DateRangePicker';
 import PipelineChart from '@/components/charts/PipelineChart';
 import FinancialChart from '@/components/charts/FinancialChart';
 import CommissionBreakdownChart from '@/components/CommissionBreakdownChart';
+import BuySellTrendChart from '@/components/charts/BuySellTrendChart';
+import AgentMixChart from '@/components/charts/AgentMixChart';
 import LeadSourceChart from '@/components/charts/LeadSourceChart';
 import PropertyTypeChart from '@/components/charts/PropertyTypeChart';
 import GeographicChart from '@/components/charts/GeographicChart';
@@ -81,7 +83,7 @@ export default function Home() {
     setAgentMetrics(calculateAgentMetrics(currentRecords));
   }, [allRecords, dateRange]);
 
-  const handleChartClick = (type: 'pipeline' | 'leadSource' | 'propertyType' | 'geographic', label: string) => {
+  const handleChartClick = (type: 'pipeline' | 'leadSource' | 'propertyType' | 'geographic' | 'commission', label: string) => {
     let filtered: DotloopRecord[] = [];
     let title = '';
 
@@ -101,6 +103,14 @@ export default function Home() {
       case 'geographic':
         title = `State: ${label}`;
         filtered = filteredRecords.filter(r => (r.state || 'Unknown') === label);
+        break;
+      case 'commission':
+        title = `Commission Type: ${label}`;
+        if (label === 'Buy Side') {
+          filtered = filteredRecords.filter(r => r.buySideCommission > 0);
+        } else if (label === 'Sell Side') {
+          filtered = filteredRecords.filter(r => r.sellSideCommission > 0);
+        }
         break;
     }
 
@@ -497,8 +507,13 @@ export default function Home() {
                   <CommissionBreakdownChart 
                     buySide={agentMetrics.reduce((sum, agent) => sum + agent.buySideCommission, 0)}
                     sellSide={agentMetrics.reduce((sum, agent) => sum + agent.sellSideCommission, 0)}
+                    onSliceClick={(label) => handleChartClick('commission', label)}
                   />
                 </div>
+              </div>
+              <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <BuySellTrendChart data={filteredRecords} />
+                <AgentMixChart agents={agentMetrics} />
               </div>
             </TabsContent>
           </Tabs>

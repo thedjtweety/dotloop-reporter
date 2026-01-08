@@ -6,9 +6,10 @@ import { formatCurrency, formatPercentage } from '@/lib/formatUtils';
 interface CommissionBreakdownChartProps {
   buySide: number;
   sellSide: number;
+  onSliceClick?: (label: string) => void;
 }
 
-export default function CommissionBreakdownChart({ buySide, sellSide }: CommissionBreakdownChartProps) {
+export default function CommissionBreakdownChart({ buySide, sellSide, onSliceClick }: CommissionBreakdownChartProps) {
   const total = buySide + sellSide;
   
   const data = [
@@ -62,6 +63,8 @@ export default function CommissionBreakdownChart({ buySide, sellSide }: Commissi
                 outerRadius={80}
                 paddingAngle={5}
                 dataKey="value"
+                onClick={(data) => onSliceClick?.(data.name)}
+                className="cursor-pointer"
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
