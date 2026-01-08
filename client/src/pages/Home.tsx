@@ -60,6 +60,7 @@ import AgentAssignment from '@/components/AgentAssignment';
 import CommissionAuditReport from '@/components/CommissionAuditReport';
 import DataValidationReport from '@/components/DataValidationReport';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ModeToggle } from '@/components/ModeToggle';
 
 export default function Home() {
   const [allRecords, setAllRecords] = useState<DotloopRecord[]>([]);
@@ -384,6 +385,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <ModeToggle />
             <DatePickerWithRange date={dateRange} setDate={setDateRange} />
             <Button variant="outline" onClick={() => setShowFieldMapper(true)}>
               <Settings className="w-4 h-4 mr-2" />
