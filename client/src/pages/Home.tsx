@@ -37,6 +37,7 @@ import ColumnMapping from '@/components/ColumnMapping';
 import { DatePickerWithRange } from '@/components/DateRangePicker';
 import PipelineChart from '@/components/charts/PipelineChart';
 import FinancialChart from '@/components/charts/FinancialChart';
+import CommissionBreakdownChart from '@/components/CommissionBreakdownChart';
 import LeadSourceChart from '@/components/charts/LeadSourceChart';
 import PropertyTypeChart from '@/components/charts/PropertyTypeChart';
 import GeographicChart from '@/components/charts/GeographicChart';
@@ -485,12 +486,20 @@ export default function Home() {
             </TabsContent>
 
             <TabsContent value="financial" className="space-y-4">
-              <Card className="p-6 bg-card border border-border">
-                <h2 className="text-xl font-display font-bold text-foreground mb-4">
-                  Financial Summary
-                </h2>
-                <FinancialChart metrics={metrics} />
-              </Card>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card className="p-6 bg-card border border-border lg:col-span-2">
+                  <h2 className="text-xl font-display font-bold text-foreground mb-4">
+                    Financial Summary
+                  </h2>
+                  <FinancialChart metrics={metrics} />
+                </Card>
+                <div className="lg:col-span-1">
+                  <CommissionBreakdownChart 
+                    buySide={agentMetrics.reduce((sum, agent) => sum + agent.buySideCommission, 0)}
+                    sellSide={agentMetrics.reduce((sum, agent) => sum + agent.sellSideCommission, 0)}
+                  />
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
