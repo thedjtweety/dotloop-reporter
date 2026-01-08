@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent } from 'lucide-react';
+import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatPercentage, formatNumber } from '@/lib/formatUtils';
 import { Card } from '@/components/ui/card';
@@ -321,6 +321,10 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-4">
             <DatePickerWithRange date={dateRange} setDate={setDateRange} />
+            <Button variant="outline" onClick={() => setShowFieldMapper(true)}>
+              <Settings className="w-4 h-4 mr-2" />
+              Map Fields
+            </Button>
             <Button
               variant="outline"
               onClick={() => {

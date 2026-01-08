@@ -315,8 +315,20 @@ function parseCSVLine(line: string): string[] {
 /**
  * Normalize raw CSV record to standard format
  */
-function normalizeRecord(raw: any): DotloopRecord | null {
+export function normalizeRecord(raw: any, mapping?: Record<string, string>): DotloopRecord | null {
   try {
+    // Helper to get value from mapping or fallback to raw keys
+    const getValue = (key: string, fallbacks: string[] = []) => {
+      if (mapping && mapping[key]) {
+        return raw[mapping[key]];
+      }
+      // If no mapping, try fallbacks
+      for (const fallback of fallbacks) {
+        if (raw[fallback] !== undefined && raw[fallback] !== '') return raw[fallback];
+      }
+      return undefined;
+    };
+
     // Helper to clean currency strings
     const parseCurrency = (val: string) => {
       if (!val) return 0;
@@ -330,40 +342,40 @@ function normalizeRecord(raw: any): DotloopRecord | null {
     };
 
     return {
-      loopId: raw['Loop ID'] || '',
-      loopName: raw['Loop Name'] || raw['Address'] || '', // Fallback to address if no loop name
-      loopStatus: raw['Loop Status'] || '',
-      createdDate: raw['Created Date'] || raw['Listing Date'] || '', // Fallback for headless
-      closingDate: raw['Closing Date'] || raw['Contract Dates / Closing Date'] || '',
-      listingDate: raw['Listing Date'] || raw['Listing Information / Listing Date'] || '',
-      offerDate: raw['Offer Date'] || '',
-      address: raw['Address'] || raw['Property Address / Full Address'] || '',
-      price: parseCurrency(raw['Price'] || raw['Financials / Purchase/Sale Price'] || raw['Listing Information / Current Price'] || '0'),
-      propertyType: (raw['Property / Type'] && raw['Property / Type'].trim() !== '') ? raw['Property / Type'] : 'Residential',
-      bedrooms: parseInt(raw['Property / Bedrooms'] || '0') || 0,
-      bathrooms: parseInt(raw['Property / Bathrooms'] || '0') || 0,
-      squareFootage: parseInt(raw['Property / Square Footage'] || '0') || 0,
-      city: raw['Property Address / City'] || '',
-      state: raw['Property Address / State/Prov'] || '',
-      county: raw['Property Address / County'] || '',
-      leadSource: raw['Lead Source'] || raw['Lead Source / Lead Source'] || raw['Referral / LEAD SOURCE'] || raw['Referral / Referral Source'] || '',
-      earnestMoney: parseCurrency(raw['Financials / Earnest Money Amount'] || '0'),
-      salePrice: parseCurrency(raw['Financials / Purchase/Sale Price'] || raw['Price'] || '0'),
-      commissionRate: parsePercent(raw['Commission Rate'] || raw['Financials / Sale Commission Rate'] || '0'),
-      commissionTotal: parseCurrency(raw['Total Commission'] || raw['Financials / Sale Commission Total'] || '0'),
-      agents: raw['Agents'] || raw['Created By'] || '',
-      createdBy: raw['Created By'] || raw['Agents'] || '',
-      buySideCommission: parseCurrency(raw['Buy Side Commission'] || '0'),
-      sellSideCommission: parseCurrency(raw['Sell Side Commission'] || '0'),
-      companyDollar: parseCurrency(raw['Company Dollar'] || raw['Net to Office'] || '0'),
-      referralSource: raw['Referral / Referral Source'] || raw['Referral Source'] || '',
-      referralPercentage: parsePercent(raw['Referral / Referral %'] || raw['Referral %'] || '0'),
-      complianceStatus: raw['Compliance Status'] || raw['Review Status'] || 'No Status',
-      tags: (raw['Tags'] || '').split('|').filter((t: string) => t.trim()),
-      originalPrice: parseCurrency(raw['Listing Information / Original Price'] || raw['Original Price'] || '0'),
-      yearBuilt: parseInt(raw['Property / Year Built'] || '0') || 0,
-      lotSize: parseInt(raw['Property / Lot Size'] || '0') || 0,
-      subdivision: raw['Geographic Description / Subdivision'] || '',
+      loopId: getValue('loopId', ['Loop ID']) || '',
+      loopName: getValue('loopName', ['Loop Name', 'Address']) || '',
+      loopStatus: getValue('loopStatus', ['Loop Status']) || '',
+      createdDate: getValue('createdDate', ['Created Date', 'Listing Date']) || '',
+      closingDate: getValue('closingDate', ['Closing Date', 'Contract Dates / Closing Date']) || '',
+      listingDate: getValue('listingDate', ['Listing Date', 'Listing Information / Listing Date']) || '',
+      offerDate: getValue('offerDate', ['Offer Date']) || '',
+      address: getValue('address', ['Address', 'Property Address / Full Address']) || '',
+      price: parseCurrency(getValue('price', ['Price', 'Financials / Purchase/Sale Price', 'Listing Information / Current Price']) || '0'),
+      propertyType: getValue('propertyType', ['Property / Type']) || 'Residential',
+      bedrooms: parseInt(getValue('bedrooms', ['Property / Bedrooms']) || '0') || 0,
+      bathrooms: parseInt(getValue('bathrooms', ['Property / Bathrooms']) || '0') || 0,
+      squareFootage: parseInt(getValue('squareFootage', ['Property / Square Footage']) || '0') || 0,
+      city: getValue('city', ['Property Address / City']) || '',
+      state: getValue('state', ['Property Address / State/Prov']) || '',
+      county: getValue('county', ['Property Address / County']) || '',
+      leadSource: getValue('leadSource', ['Lead Source', 'Lead Source / Lead Source', 'Referral / LEAD SOURCE', 'Referral / Referral Source']) || '',
+      earnestMoney: parseCurrency(getValue('earnestMoney', ['Financials / Earnest Money Amount']) || '0'),
+      salePrice: parseCurrency(getValue('price', ['Financials / Purchase/Sale Price', 'Price']) || '0'),
+      commissionRate: parsePercent(getValue('commissionRate', ['Commission Rate', 'Financials / Sale Commission Rate']) || '0'),
+      commissionTotal: parseCurrency(getValue('commissionTotal', ['Total Commission', 'Financials / Sale Commission Total']) || '0'),
+      agents: getValue('agents', ['Agents', 'Created By']) || '',
+      createdBy: getValue('createdBy', ['Created By', 'Agents']) || '',
+      buySideCommission: parseCurrency(getValue('buySideCommission', ['Buy Side Commission']) || '0'),
+      sellSideCommission: parseCurrency(getValue('sellSideCommission', ['Sell Side Commission']) || '0'),
+      companyDollar: parseCurrency(getValue('companyDollar', ['Company Dollar', 'Net to Office']) || '0'),
+      referralSource: getValue('referralSource', ['Referral / Referral Source', 'Referral Source']) || '',
+      referralPercentage: parsePercent(getValue('referralPercentage', ['Referral / Referral %', 'Referral %']) || '0'),
+      complianceStatus: getValue('complianceStatus', ['Compliance Status', 'Review Status']) || 'No Status',
+      tags: (getValue('tags', ['Tags']) || '').split('|').filter((t: string) => t.trim()),
+      originalPrice: parseCurrency(getValue('originalPrice', ['Listing Information / Original Price', 'Original Price']) || '0'),
+      yearBuilt: parseInt(getValue('yearBuilt', ['Property / Year Built']) || '0') || 0,
+      lotSize: parseInt(getValue('lotSize', ['Property / Lot Size']) || '0') || 0,
+      subdivision: getValue('subdivision', ['Geographic Description / Subdivision']) || '',
     };
   } catch (error) {
     console.error('Error normalizing record:', error);
