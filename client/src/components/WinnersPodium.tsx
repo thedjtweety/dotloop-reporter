@@ -45,7 +45,7 @@ export default function WinnersPodium({ agents }: WinnersPodiumProps) {
         variants={container}
         initial="hidden"
         animate="show"
-        className="flex justify-center items-end gap-4 md:gap-8 h-64"
+        className="flex justify-center items-end gap-4 md:gap-8 pt-12"
       >
         {/* Second Place */}
         <motion.div variants={item} className="flex flex-col items-center w-1/3 max-w-[200px]">
