@@ -17,7 +17,6 @@ export interface DotloopRecord {
   bedrooms: number;
   bathrooms: number;
   squareFootage: number;
-  yearBuilt: number;
   city: string;
   state: string;
   county: string;
@@ -33,6 +32,12 @@ export interface DotloopRecord {
   companyDollar: number;
   referralSource: string;
   referralPercentage: number;
+  complianceStatus: string;
+  tags: string[];
+  originalPrice: number;
+  yearBuilt: number;
+  lotSize: number;
+  subdivision: string;
   [key: string]: any;
 }
 
@@ -338,7 +343,6 @@ function normalizeRecord(raw: any): DotloopRecord | null {
       bedrooms: parseInt(raw['Property / Bedrooms'] || '0') || 0,
       bathrooms: parseInt(raw['Property / Bathrooms'] || '0') || 0,
       squareFootage: parseInt(raw['Property / Square Footage'] || '0') || 0,
-      yearBuilt: parseInt(raw['Property / Year Built'] || '0') || 0,
       city: raw['Property Address / City'] || '',
       state: raw['Property Address / State/Prov'] || '',
       county: raw['Property Address / County'] || '',
@@ -354,6 +358,12 @@ function normalizeRecord(raw: any): DotloopRecord | null {
       companyDollar: parseCurrency(raw['Company Dollar'] || raw['Net to Office'] || '0'),
       referralSource: raw['Referral / Referral Source'] || raw['Referral Source'] || '',
       referralPercentage: parsePercent(raw['Referral / Referral %'] || raw['Referral %'] || '0'),
+      complianceStatus: raw['Compliance Status'] || raw['Review Status'] || 'No Status',
+      tags: (raw['Tags'] || '').split('|').filter((t: string) => t.trim()),
+      originalPrice: parseCurrency(raw['Listing Information / Original Price'] || raw['Original Price'] || '0'),
+      yearBuilt: parseInt(raw['Property / Year Built'] || '0') || 0,
+      lotSize: parseInt(raw['Property / Lot Size'] || '0') || 0,
+      subdivision: raw['Geographic Description / Subdivision'] || '',
     };
   } catch (error) {
     console.error('Error normalizing record:', error);

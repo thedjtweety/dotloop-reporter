@@ -41,6 +41,10 @@ import CommissionBreakdownChart from '@/components/CommissionBreakdownChart';
 import RevenueDistributionChart from '@/components/charts/RevenueDistributionChart';
 import BuySellTrendChart from '@/components/charts/BuySellTrendChart';
 import AgentMixChart from '@/components/charts/AgentMixChart';
+import ComplianceChart from '@/components/charts/ComplianceChart';
+import TagsChart from '@/components/charts/TagsChart';
+import PropertyInsightsChart from '@/components/charts/PropertyInsightsChart';
+import PriceReductionChart from '@/components/charts/PriceReductionChart';
 import LeadSourceChart from '@/components/charts/LeadSourceChart';
 import PropertyTypeChart from '@/components/charts/PropertyTypeChart';
 import GeographicChart from '@/components/charts/GeographicChart';
@@ -208,7 +212,6 @@ export default function Home() {
         bedrooms: 0,
         bathrooms: 0,
         squareFootage: 0,
-        yearBuilt: 0,
         city: '',
         state: '',
         county: '',
@@ -226,6 +229,12 @@ export default function Home() {
         companyDollar: cleanNumber(getValue('companyDollar')),
         referralSource: cleanText(getValue('referralSource')),
         referralPercentage: cleanNumber(getValue('referralPercentage')),
+        complianceStatus: 'No Status',
+        tags: [],
+        originalPrice: cleanNumber(getValue('price')),
+        yearBuilt: 0,
+        lotSize: 0,
+        subdivision: '',
       };
     }).map(r => {
       // Calculate total commission if missing but splits exist
@@ -439,6 +448,7 @@ export default function Home() {
               <TabsTrigger value="property">Property Type</TabsTrigger>
               <TabsTrigger value="geographic">Geographic</TabsTrigger>
               <TabsTrigger value="financial">Financial</TabsTrigger>
+              <TabsTrigger value="insights">Insights</TabsTrigger>
             </TabsList>
 
             <TabsContent value="pipeline" className="space-y-4">
@@ -527,6 +537,37 @@ export default function Home() {
                 <div className="lg:col-span-1">
                   <AgentMixChart agents={agentMetrics} />
                 </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="insights" className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="p-6 bg-card border border-border">
+                  <h2 className="text-xl font-display font-bold text-foreground mb-4">
+                    Compliance Status
+                  </h2>
+                  <ComplianceChart data={filteredRecords} />
+                </Card>
+                <Card className="p-6 bg-card border border-border">
+                  <h2 className="text-xl font-display font-bold text-foreground mb-4">
+                    Tag Analysis
+                  </h2>
+                  <TagsChart data={filteredRecords} />
+                </Card>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="p-6 bg-card border border-border">
+                  <h2 className="text-xl font-display font-bold text-foreground mb-4">
+                    Price vs. Year Built
+                  </h2>
+                  <PropertyInsightsChart data={filteredRecords} />
+                </Card>
+                <Card className="p-6 bg-card border border-border">
+                  <h2 className="text-xl font-display font-bold text-foreground mb-4">
+                    List vs. Sale Price
+                  </h2>
+                  <PriceReductionChart data={filteredRecords} />
+                </Card>
               </div>
             </TabsContent>
           </Tabs>
