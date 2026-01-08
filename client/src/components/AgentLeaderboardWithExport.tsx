@@ -26,6 +26,7 @@ import AgentCommissionModal from './AgentCommissionModal';
 import AgentDetailsPanel from './AgentDetailsPanel';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
+import WinnersPodium from './WinnersPodium';
 
 interface AgentLeaderboardProps {
   agents: AgentMetrics[];
@@ -148,6 +149,13 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
           Click column headers to sort. Download individual reports using the action buttons.
         </p>
       </div>
+
+      {/* Winners Podium */}
+      {agents.length >= 3 && (
+        <div className="px-6 pt-6">
+          <WinnersPodium agents={[...agents].sort((a, b) => b.totalCommission - a.totalCommission)} />
+        </div>
+      )}
 
       <div className="overflow-x-auto">
         <Table>
