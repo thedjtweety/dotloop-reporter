@@ -3,6 +3,7 @@ import { AgentMetrics } from '@/lib/csvParser';
 import { Trophy, Medal, Star } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
+import { formatCurrency } from '@/lib/formatUtils';
 
 interface WinnersPodiumProps {
   agents: AgentMetrics[];
@@ -56,7 +57,7 @@ export default function WinnersPodium({ agents }: WinnersPodiumProps) {
             </Avatar>
             <div className="text-center">
               <p className="font-bold text-gray-700 truncate w-full">{second.agentName}</p>
-              <p className="text-sm text-gray-500 font-medium">${(second.totalCommission / 1000).toFixed(1)}K</p>
+              <p className="text-sm text-gray-500 font-medium">{formatCurrency(second.totalCommission)}</p>
             </div>
           </div>
           <div className="w-full h-32 bg-gradient-to-t from-gray-200 to-gray-100 rounded-t-lg border-t-4 border-gray-300 flex flex-col items-center justify-start pt-4 shadow-md relative overflow-hidden">
@@ -84,7 +85,7 @@ export default function WinnersPodium({ agents }: WinnersPodiumProps) {
             <div className="text-center">
               <p className="font-bold text-gray-800 text-lg truncate w-full">{first.agentName}</p>
               <p className="text-sm text-yellow-600 font-bold bg-yellow-100 px-2 py-0.5 rounded-full">
-                ${(first.totalCommission / 1000).toFixed(1)}K
+                {formatCurrency(first.totalCommission)}
               </p>
             </div>
           </div>
@@ -105,7 +106,7 @@ export default function WinnersPodium({ agents }: WinnersPodiumProps) {
             </Avatar>
             <div className="text-center">
               <p className="font-bold text-gray-700 truncate w-full">{third.agentName}</p>
-              <p className="text-sm text-gray-500 font-medium">${(third.totalCommission / 1000).toFixed(1)}K</p>
+              <p className="text-sm text-gray-500 font-medium">{formatCurrency(third.totalCommission)}</p>
             </div>
           </div>
           <div className="w-full h-24 bg-gradient-to-t from-amber-100 to-amber-50 rounded-t-lg border-t-4 border-amber-600 flex flex-col items-center justify-start pt-4 shadow-md relative overflow-hidden">

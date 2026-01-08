@@ -27,6 +27,7 @@ import AgentDetailsPanel from './AgentDetailsPanel';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import WinnersPodium from './WinnersPodium';
+import { formatCurrency, formatPercentage } from '@/lib/formatUtils';
 
 interface AgentLeaderboardProps {
   agents: AgentMetrics[];
@@ -239,10 +240,10 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                   </div>
                 </TableCell>
                 <TableCell className="font-semibold text-accent">
-                  ${(agent.totalCommission / 1000).toFixed(1)}K
+                  {formatCurrency(agent.totalCommission)}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  ${(agent.averageCommission / 1000).toFixed(1)}K
+                  {formatCurrency(agent.averageCommission)}
                 </TableCell>
                 <TableCell className="text-center font-medium">
                   {agent.totalTransactions}
@@ -253,13 +254,13 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                 <TableCell className="text-center">
                   <div className="flex flex-col items-center gap-1">
                     <Badge className={getPerformanceBadge(agent.closingRate)}>
-                      {agent.closingRate.toFixed(1)}%
+                      {formatPercentage(agent.closingRate)}
                     </Badge>
                     <Progress value={agent.closingRate} className="h-1.5 w-16" />
                   </div>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  ${(agent.averageSalesPrice / 1000).toFixed(0)}K
+                  {formatCurrency(agent.averageSalesPrice)}
                 </TableCell>
                 <TableCell className="text-center text-muted-foreground">
                   {agent.averageDaysToClose} days
@@ -271,19 +272,19 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                   {agent.underContract}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  ${(agent.buySideCommission / 1000).toFixed(1)}K
+                  {formatCurrency(agent.buySideCommission)}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  ${(agent.sellSideCommission / 1000).toFixed(1)}K
+                  {formatCurrency(agent.sellSideCommission)}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                    {agent.buySidePercentage.toFixed(1)}%
+                    {formatPercentage(agent.buySidePercentage)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    {agent.sellSidePercentage.toFixed(1)}%
+                    {formatPercentage(agent.sellSidePercentage)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center">

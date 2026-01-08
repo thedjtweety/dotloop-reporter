@@ -7,6 +7,7 @@ import { ReactNode } from 'react';
 import { Card } from '@/components/ui/card';
 import { ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 import { MetricTrend } from '@/lib/csvParser';
+import { formatPercentage } from '@/lib/formatUtils';
 
 interface MetricCardProps {
   title: string;
@@ -51,7 +52,7 @@ export default function MetricCard({
                 {trend.direction === 'up' && <ArrowUpRight className="w-3 h-3 mr-1" />}
                 {trend.direction === 'down' && <ArrowDownRight className="w-3 h-3 mr-1" />}
                 {trend.direction === 'neutral' && <Minus className="w-3 h-3 mr-1" />}
-                {trend.value}%
+                {formatPercentage(trend.value)}
               </div>
               <p className="text-xs text-muted-foreground">vs previous period</p>
             </div>

@@ -11,6 +11,7 @@
 import { useState, useEffect } from 'react';
 import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { formatCurrency, formatPercentage, formatNumber } from '@/lib/formatUtils';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DateRange } from 'react-day-picker';
@@ -189,15 +190,15 @@ export default function Home() {
           />
           <MetricCard
             title="Total Sales Volume"
-            value={`$${(metrics.totalSalesVolume / 1000000).toFixed(2)}M`}
-            subtitle={`Avg: $${metrics.averagePrice.toLocaleString()}`}
+            value={formatCurrency(metrics.totalSalesVolume)}
+            subtitle={`Avg: ${formatCurrency(metrics.averagePrice)}`}
             icon={<DollarSign className="w-5 h-5" />}
             color="accent"
             trend={metrics.trends?.totalVolume}
           />
           <MetricCard
             title="Closing Rate"
-            value={`${metrics.closingRate}%`}
+            value={formatPercentage(metrics.closingRate)}
             subtitle={`${metrics.closed} closed deals`}
             icon={<TrendingUp className="w-5 h-5" />}
             color="accent"
