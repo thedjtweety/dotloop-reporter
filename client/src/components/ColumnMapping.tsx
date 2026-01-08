@@ -46,8 +46,10 @@ export default function ColumnMapping({ headers, sampleData, onConfirm, onCancel
         // Common variations
         if (field.key === 'price' && (headerLower.includes('price') || headerLower.includes('amount') || headerLower.includes('volume'))) return true;
         if (field.key === 'commission' && (headerLower.includes('commission') || headerLower.includes('comm'))) return true;
-        if (field.key === 'agentName' && (headerLower.includes('agent') || headerLower.includes('member'))) return true;
+        if (field.key === 'agentName' && (headerLower.includes('agent') || headerLower.includes('member') || headerLower.includes('created by'))) return true;
         if (field.key === 'closingDate' && (headerLower.includes('close') || headerLower.includes('closing'))) return true;
+        if (field.key === 'address' && (headerLower.includes('address') || headerLower.includes('loop name'))) return true;
+        if (field.key === 'status' && (headerLower.includes('status') || headerLower.includes('loop status'))) return true;
         
         return false;
       });

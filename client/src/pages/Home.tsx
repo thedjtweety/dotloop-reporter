@@ -139,12 +139,14 @@ export default function Home() {
       let data = lines.slice(1).map(line => parseLine(line));
 
       // Detect if first row is data (headless CSV)
-      // Heuristic: Check if "headers" contain dates or numbers, or if they don't look like typical column names
-      const isHeadless = headers.some(h => 
-        !isNaN(parseFloat(h)) || // Is a number
-        h.includes('/') || // Looks like a date
-        h.length > 50 // Too long for a header
-      );
+      // Heuristic: Check if "headers" contain dates or numbers
+      // Only trigger if > 50% of columns look like data, to avoid false positives on weird headers
+      const dataLikeColumns = headers.filter(h => 
+        (!isNaN(parseFloat(h)) && h.length < 20) || // Is a number (and not a long ID)
+        (h.includes('/') && h.length < 20) // Looks like a date
+      ).length;
+
+      const isHeadless = dataLikeColumns > headers.length * 0.5;
 
       if (isHeadless) {
         // Treat first row as data
