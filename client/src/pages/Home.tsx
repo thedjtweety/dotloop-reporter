@@ -53,6 +53,7 @@ import GeographicChart from '@/components/charts/GeographicChart';
 import SalesTimelineChart from '@/components/charts/SalesTimelineChart';
 import AgentLeaderboardWithExport from '@/components/AgentLeaderboardWithExport';
 import DrillDownModal from '@/components/DrillDownModal';
+import DataHealthCheck from '@/components/DataHealthCheck';
 
 export default function Home() {
   const [allRecords, setAllRecords] = useState<DotloopRecord[]>([]);
@@ -502,7 +503,7 @@ export default function Home() {
         {/* Charts Section */}
         <div className="mb-8">
           <Tabs defaultValue="pipeline" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 mb-6">
+            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-8 mb-6">
               <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
               <TabsTrigger value="leadsource">Lead Source</TabsTrigger>
@@ -510,6 +511,7 @@ export default function Home() {
               <TabsTrigger value="geographic">Geographic</TabsTrigger>
               <TabsTrigger value="financial">Financial</TabsTrigger>
               <TabsTrigger value="insights">Insights</TabsTrigger>
+              <TabsTrigger value="health">Data Health</TabsTrigger>
             </TabsList>
 
             <TabsContent value="pipeline" className="space-y-4">
@@ -630,6 +632,10 @@ export default function Home() {
                   <PriceReductionChart data={filteredRecords} />
                 </Card>
               </div>
+            </TabsContent>
+
+            <TabsContent value="health" className="space-y-4">
+              <DataHealthCheck records={filteredRecords} />
             </TabsContent>
           </Tabs>
         </div>
