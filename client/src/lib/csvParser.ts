@@ -61,6 +61,7 @@ export interface ChartData {
   label: string;
   value: number;
   percentage?: number;
+  movingAverage?: number;
 }
 
 export interface AgentMetrics {
@@ -478,10 +479,19 @@ export function getSalesOverTime(records: DotloopRecord[]): ChartData[] {
     }
   });
 
-  return Object.entries(monthData)
+  const sortedData = Object.entries(monthData)
     .map(([label, value]) => ({
       label,
       value,
     }))
     .sort((a, b) => new Date(a.label).getTime() - new Date(b.label).getTime());
+
+  // Calculate 3-period moving average
+  return sortedData.map((item, index, array) => {
+    if (index < 2) {
+      return { ...item, movingAverage: undefined };
+    }
+    const sum = array[index].value + array[index - 1].value + array[index - 2].value;
+    return { ...item, movingAverage: Math.round((sum / 3) * 10) / 10 };
+  });
 }

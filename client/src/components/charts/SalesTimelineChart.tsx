@@ -3,7 +3,7 @@
  * Displays sales performance over time using a line chart
  */
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { ChartData } from '@/lib/csvParser';
 
 interface SalesTimelineChartProps {
@@ -21,7 +21,7 @@ export default function SalesTimelineChart({ data }: SalesTimelineChartProps) {
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 60 }}>
+      <ComposedChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 60 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         <XAxis
           dataKey="label"
@@ -37,17 +37,28 @@ export default function SalesTimelineChart({ data }: SalesTimelineChartProps) {
             border: '1px solid #e5e7eb',
             borderRadius: '0.5rem',
           }}
-          formatter={(value) => [value, 'Transactions']}
+          formatter={(value: number, name: string) => [
+            value, 
+            name === 'value' ? 'Transactions' : '3-Month Moving Avg'
+          ]}
+        />
+        <Legend verticalAlign="top" height={36} />
+        <Bar 
+          dataKey="value" 
+          fill="#1e3a5f" 
+          radius={[4, 4, 0, 0]} 
+          name="Transactions"
+          barSize={40}
         />
         <Line
           type="monotone"
-          dataKey="value"
-          stroke="#1e3a5f"
+          dataKey="movingAverage"
+          stroke="#10b981"
           strokeWidth={3}
-          dot={{ fill: '#10b981', r: 6 }}
-          activeDot={{ r: 8 }}
+          dot={false}
+          name="3-Month Moving Avg"
         />
-      </LineChart>
+      </ComposedChart>
     </ResponsiveContainer>
   );
 }
