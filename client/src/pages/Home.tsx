@@ -58,6 +58,8 @@ import CommissionPlansManager from '@/components/CommissionPlansManager';
 import TeamManager from '@/components/TeamManager';
 import AgentAssignment from '@/components/AgentAssignment';
 import CommissionAuditReport from '@/components/CommissionAuditReport';
+import DataValidationReport from '@/components/DataValidationReport';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default function Home() {
   const [allRecords, setAllRecords] = useState<DotloopRecord[]>([]);
@@ -533,48 +535,56 @@ export default function Home() {
             </TabsContent>
 
             <TabsContent value="timeline" className="space-y-4">
-              <Card className="p-6 bg-card border border-border">
-                <h2 className="text-xl font-display font-bold text-foreground mb-4">
-                  Sales Timeline
-                </h2>
-                <SalesTimelineChart data={getSalesOverTime(filteredRecords)} />
-              </Card>
+              <ErrorBoundary>
+                <Card className="p-6 bg-card border border-border">
+                  <h2 className="text-xl font-display font-bold text-foreground mb-4">
+                    Sales Timeline
+                  </h2>
+                  <SalesTimelineChart data={getSalesOverTime(filteredRecords)} />
+                </Card>
+              </ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="leadsource" className="space-y-4">
-              <Card className="p-6 bg-card border border-border">
-                <h2 className="text-xl font-display font-bold text-foreground mb-4">
-                  Lead Source Distribution
-                </h2>
-                <LeadSourceChart 
-                  data={getLeadSourceData(filteredRecords)} 
-                  onSliceClick={(label) => handleChartClick('leadSource', label)}
-                />
-              </Card>
+              <ErrorBoundary>
+                <Card className="p-6 bg-card border border-border">
+                  <h2 className="text-xl font-display font-bold text-foreground mb-4">
+                    Lead Source Distribution
+                  </h2>
+                  <LeadSourceChart 
+                    data={getLeadSourceData(filteredRecords)} 
+                    onSliceClick={(label) => handleChartClick('leadSource', label)}
+                  />
+                </Card>
+              </ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="property" className="space-y-4">
-              <Card className="p-6 bg-card border border-border">
-                <h2 className="text-xl font-display font-bold text-foreground mb-4">
-                  Property Type Breakdown
-                </h2>
-                <PropertyTypeChart 
-                  data={getPropertyTypeData(filteredRecords)} 
-                  onBarClick={(label) => handleChartClick('propertyType', label)}
-                />
-              </Card>
+              <ErrorBoundary>
+                <Card className="p-6 bg-card border border-border">
+                  <h2 className="text-xl font-display font-bold text-foreground mb-4">
+                    Property Type Breakdown
+                  </h2>
+                  <PropertyTypeChart 
+                    data={getPropertyTypeData(filteredRecords)} 
+                    onBarClick={(label) => handleChartClick('propertyType', label)}
+                  />
+                </Card>
+              </ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="geographic" className="space-y-4">
-              <Card className="p-6 bg-card border border-border">
-                <h2 className="text-xl font-display font-bold text-foreground mb-4">
-                  Geographic Performance
-                </h2>
-                <GeographicChart 
-                  data={getGeographicData(filteredRecords)} 
-                  onBarClick={(label) => handleChartClick('geographic', label)}
-                />
-              </Card>
+              <ErrorBoundary>
+                <Card className="p-6 bg-card border border-border">
+                  <h2 className="text-xl font-display font-bold text-foreground mb-4">
+                    Geographic Performance
+                  </h2>
+                  <GeographicChart 
+                    data={getGeographicData(filteredRecords)} 
+                    onBarClick={(label) => handleChartClick('geographic', label)}
+                  />
+                </Card>
+              </ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="financial" className="space-y-4">

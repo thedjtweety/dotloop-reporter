@@ -319,13 +319,26 @@ export function normalizeRecord(raw: any, mapping?: Record<string, string>): Dot
   try {
     // Helper to get value from mapping or fallback to raw keys
     const getValue = (key: string, fallbacks: string[] = []) => {
+      // 1. Try explicit mapping
       if (mapping && mapping[key]) {
         return raw[mapping[key]];
       }
-      // If no mapping, try fallbacks
+      
+      // 2. Try exact fallbacks
       for (const fallback of fallbacks) {
         if (raw[fallback] !== undefined && raw[fallback] !== '') return raw[fallback];
       }
+
+      // 3. Fuzzy Match: Try to find a key that *contains* the fallback (case-insensitive)
+      // Only do this if we haven't found a value yet
+      const rawKeys = Object.keys(raw);
+      for (const fallback of fallbacks) {
+        const fuzzyKey = rawKeys.find(k => k.toLowerCase().includes(fallback.toLowerCase()));
+        if (fuzzyKey && raw[fuzzyKey] !== undefined && raw[fuzzyKey] !== '') {
+          return raw[fuzzyKey];
+        }
+      }
+
       return undefined;
     };
 
