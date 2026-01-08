@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Save, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Save, Edit2, X } from 'lucide-react';
+import { Deduction } from '@/lib/commission';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,7 @@ export default function CommissionPlansManager() {
       postCapSplit: Number(currentPlan.postCapSplit || 100),
       royaltyPercentage: Number(currentPlan.royaltyPercentage || 0),
       royaltyCap: Number(currentPlan.royaltyCap || 0),
+      deductions: currentPlan.deductions || [],
     };
 
     let updatedPlans;
@@ -65,13 +67,40 @@ export default function CommissionPlansManager() {
     setIsDialogOpen(true);
   };
 
+  const addDeduction = () => {
+    const newDeduction: Deduction = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: '',
+      amount: 0,
+      type: 'fixed',
+      frequency: 'per_transaction'
+    };
+    setCurrentPlan({
+      ...currentPlan,
+      deductions: [...(currentPlan.deductions || []), newDeduction]
+    });
+  };
+
+  const updateDeduction = (id: string, field: keyof Deduction, value: any) => {
+    const updatedDeductions = (currentPlan.deductions || []).map(d => 
+      d.id === id ? { ...d, [field]: value } : d
+    );
+    setCurrentPlan({ ...currentPlan, deductions: updatedDeductions });
+  };
+
+  const removeDeduction = (id: string) => {
+    const updatedDeductions = (currentPlan.deductions || []).filter(d => d.id !== id);
+    setCurrentPlan({ ...currentPlan, deductions: updatedDeductions });
+  };
+
   const openNewDialog = () => {
     setCurrentPlan({
       splitPercentage: 80,
       capAmount: 18000,
       postCapSplit: 100,
       royaltyPercentage: 0,
-      royaltyCap: 0
+      royaltyCap: 0,
+      deductions: []
     });
     setIsEditing(false);
     setIsDialogOpen(true);
@@ -161,6 +190,63 @@ export default function CommissionPlansManager() {
                   </div>
                 </div>
               </div>
+
+              <div className="border-t pt-4 mt-2">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="text-sm font-medium">Standard Deductions</h4>
+                  <Button type="button" variant="outline" size="sm" onClick={addDeduction} className="h-7 text-xs">
+                    <Plus className="h-3 w-3 mr-1" /> Add Fee
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  {(currentPlan.deductions || []).map((deduction) => (
+                    <div key={deduction.id} className="flex gap-2 items-start">
+                      <div className="grid gap-1 flex-1">
+                        <Input 
+                          placeholder="Fee Name (e.g. Tech Fee)" 
+                          className="h-8 text-sm"
+                          value={deduction.name}
+                          onChange={(e) => updateDeduction(deduction.id, 'name', e.target.value)}
+                        />
+                      </div>
+                      <div className="grid gap-1 w-24">
+                        <Input 
+                          type="number" 
+                          placeholder="Amount" 
+                          className="h-8 text-sm"
+                          value={deduction.amount}
+                          onChange={(e) => updateDeduction(deduction.id, 'amount', Number(e.target.value))}
+                        />
+                      </div>
+                      <div className="grid gap-1 w-24">
+                         <select 
+                            className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                            value={deduction.type}
+                            onChange={(e) => updateDeduction(deduction.id, 'type', e.target.value)}
+                         >
+                           <option value="fixed">$ Fixed</option>
+                           <option value="percentage">% GCI</option>
+                         </select>
+                      </div>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeDeduction(deduction.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  {(currentPlan.deductions || []).length === 0 && (
+                    <p className="text-xs text-muted-foreground italic text-center py-2">
+                      No deductions configured.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
@@ -207,6 +293,19 @@ export default function CommissionPlansManager() {
                     <span>Cap: ${plan.royaltyCap?.toLocaleString()}</span>
                   </div>
                 ) : null}
+                {plan.deductions && plan.deductions.length > 0 && (
+                  <div className="pt-2 border-t mt-2">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Deductions:</p>
+                    <div className="space-y-1">
+                      {plan.deductions.map(d => (
+                        <div key={d.id} className="flex justify-between text-xs text-muted-foreground">
+                          <span>{d.name}</span>
+                          <span>{d.type === 'fixed' ? `$${d.amount}` : `${d.amount}%`}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

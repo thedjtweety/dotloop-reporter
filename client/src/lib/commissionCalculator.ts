@@ -23,6 +23,8 @@ export interface TransactionSnapshot {
   grossCommission: number;
   teamSplitAmount: number;
   brokerageSplitAmount: number;
+  deductionsAmount: number;
+  deductionsBreakdown: { name: string; amount: number }[];
   agentNetCommission: number;
   ytdBefore: number;
   ytdAfter: number;
@@ -166,13 +168,34 @@ export function calculateCommissionAudit(records: DotloopRecord[]): { ytdStats: 
         }
 
         expectedCompanyDollar = brokerageSplit;
-        const agentNet = agentGCI - brokerageSplit;
+        let agentNet = agentGCI - brokerageSplit;
+
+        // Apply Deductions
+        let totalDeductions = 0;
+        const deductionsBreakdown: { name: string; amount: number }[] = [];
+        
+        if (plan.deductions) {
+          plan.deductions.forEach(d => {
+            let amount = 0;
+            if (d.type === 'fixed') {
+              amount = d.amount;
+            } else if (d.type === 'percentage') {
+              amount = gciPerAgent * (d.amount / 100);
+            }
+            totalDeductions += amount;
+            deductionsBreakdown.push({ name: d.name, amount });
+          });
+        }
+        
+        agentNet -= totalDeductions;
         
         // Snapshot for Statement
         snapshot = {
           grossCommission: gciPerAgent,
           teamSplitAmount,
           brokerageSplitAmount: brokerageSplit,
+          deductionsAmount: totalDeductions,
+          deductionsBreakdown,
           agentNetCommission: agentNet,
           ytdBefore: currentYTD,
           ytdAfter: currentYTD + brokerageSplit,

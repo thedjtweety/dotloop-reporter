@@ -74,6 +74,17 @@ export default function CommissionStatement({ auditResult, onClose }: Commission
               <span>- {formatCurrency(snapshot.brokerageSplitAmount)}</span>
             </div>
 
+            {snapshot.deductionsBreakdown && snapshot.deductionsBreakdown.length > 0 && (
+              <div className="space-y-1 pt-1">
+                {snapshot.deductionsBreakdown.map((d, i) => (
+                  <div key={i} className="flex justify-between items-center text-red-600 text-sm">
+                    <span>Less: {d.name}</span>
+                    <span>- {formatCurrency(d.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <Separator className="my-2" />
 
             <div className="flex justify-between items-center bg-muted/50 p-3 rounded-md">

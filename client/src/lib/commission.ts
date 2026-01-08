@@ -1,3 +1,11 @@
+export interface Deduction {
+  id: string;
+  name: string; // e.g., "Tech Fee", "E&O Insurance"
+  amount: number; // Fixed amount (e.g., 50)
+  type: 'fixed' | 'percentage'; // Percentage of GCI or Fixed $
+  frequency: 'per_transaction'; // For now, just per transaction
+}
+
 export interface CommissionPlan {
   id: string;
   name: string;
@@ -6,6 +14,7 @@ export interface CommissionPlan {
   postCapSplit: number; // Agent's share after cap (usually 100)
   royaltyPercentage?: number; // Optional franchise fee (e.g., 6%)
   royaltyCap?: number; // Optional cap on royalty (e.g., 3000)
+  deductions?: Deduction[]; // List of standard deductions
 }
 
 export interface Team {
