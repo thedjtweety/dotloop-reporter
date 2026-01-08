@@ -32,7 +32,7 @@ export default function WinnersPodium({ agents }: WinnersPodiumProps) {
 
   return (
     <div className="w-full bg-gradient-to-b from-blue-50/50 to-transparent rounded-xl p-8 mb-8">
-      <div className="text-center mb-8">
+      <div className="text-center mb-12">
         <h3 className="text-2xl font-display font-bold text-primary flex items-center justify-center gap-2">
           <Trophy className="w-6 h-6 text-yellow-500 fill-yellow-500" />
           Top Performers
