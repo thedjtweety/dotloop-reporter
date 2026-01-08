@@ -4,6 +4,8 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface CommissionStatementProps {
   auditResult: AuditResult;
@@ -31,7 +33,7 @@ export default function CommissionStatement({ auditResult, onClose }: Commission
             <span className="text-lg">×</span>
           </Button>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6" id="commission-statement-content">
           {/* Header Info */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
@@ -114,8 +116,19 @@ export default function CommissionStatement({ auditResult, onClose }: Commission
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => window.print()}>
-              <Download className="w-4 h-4 mr-2" /> Print / PDF
+            <Button variant="outline" onClick={async () => {
+              const element = document.getElementById('commission-statement-content');
+              if (element) {
+                const canvas = await html2canvas(element, { scale: 2 });
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save(`Statement_${agentName}_${closingDate}.pdf`);
+              }
+            }}>
+              <Download className="w-4 h-4 mr-2" /> Download PDF
             </Button>
             <Button onClick={onClose}>Close</Button>
           </div>

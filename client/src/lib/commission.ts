@@ -32,6 +32,15 @@ export interface AgentPlanAssignment {
   anniversaryDate?: string; // "MM-DD" format (e.g., "03-15") for cap reset
 }
 
+export interface TransactionAdjustment {
+  recordId: string; // Links to loopId
+  agentName: string;
+  description: string; // e.g., "Staging Fee"
+  amount: number; // Positive = Deduction, Negative = Credit (or just assume deduction?)
+  // Let's assume positive is a deduction from agent (cost), negative is a credit to agent.
+  // Actually, let's keep it simple: "Expense" implies deduction.
+}
+
 // Default Plans
 export const DEFAULT_PLANS: CommissionPlan[] = [
   {
@@ -61,6 +70,7 @@ export const DEFAULT_PLANS: CommissionPlan[] = [
 const PLANS_KEY = 'dotloop_commission_plans';
 const ASSIGNMENTS_KEY = 'dotloop_agent_assignments';
 const TEAMS_KEY = 'dotloop_teams';
+const ADJUSTMENTS_KEY = 'dotloop_transaction_adjustments';
 
 // Helpers
 export function getCommissionPlans(): CommissionPlan[] {
@@ -88,6 +98,15 @@ export function getTeams(): Team[] {
 
 export function saveTeams(teams: Team[]) {
   localStorage.setItem(TEAMS_KEY, JSON.stringify(teams));
+}
+
+export function getTransactionAdjustments(): TransactionAdjustment[] {
+  const stored = localStorage.getItem(ADJUSTMENTS_KEY);
+  return stored ? JSON.parse(stored) : [];
+}
+
+export function saveTransactionAdjustments(adjustments: TransactionAdjustment[]) {
+  localStorage.setItem(ADJUSTMENTS_KEY, JSON.stringify(adjustments));
 }
 
 export function getPlanForAgent(agentName: string): CommissionPlan | undefined {

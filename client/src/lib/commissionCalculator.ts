@@ -5,7 +5,8 @@ import {
   AgentPlanAssignment, 
   getCommissionPlans, 
   getTeams, 
-  getAgentAssignments 
+  getAgentAssignments,
+  getTransactionAdjustments
 } from './commission';
 
 export interface AgentYTD {
@@ -93,6 +94,7 @@ export function calculateCommissionAudit(records: DotloopRecord[]): { ytdStats: 
   const plans = getCommissionPlans();
   const teams = getTeams();
   const assignments = getAgentAssignments();
+  const adjustments = getTransactionAdjustments();
 
   // Sort records by closing date to process chronologically
   const sortedRecords = [...records].sort((a, b) => 
@@ -174,6 +176,7 @@ export function calculateCommissionAudit(records: DotloopRecord[]): { ytdStats: 
         let totalDeductions = 0;
         const deductionsBreakdown: { name: string; amount: number }[] = [];
         
+        // 1. Standard Plan Deductions
         if (plan.deductions) {
           plan.deductions.forEach(d => {
             let amount = 0;
@@ -186,6 +189,16 @@ export function calculateCommissionAudit(records: DotloopRecord[]): { ytdStats: 
             deductionsBreakdown.push({ name: d.name, amount });
           });
         }
+
+        // 2. One-Off Transaction Adjustments
+        const recordAdjustments = adjustments.filter(adj => 
+          adj.recordId === record.loopId && adj.agentName === agentName
+        );
+        
+        recordAdjustments.forEach(adj => {
+          totalDeductions += adj.amount;
+          deductionsBreakdown.push({ name: adj.description, amount: adj.amount });
+        });
         
         agentNet -= totalDeductions;
         
