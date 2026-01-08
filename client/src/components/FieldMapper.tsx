@@ -15,6 +15,7 @@ export interface ColumnMapping {
 interface FieldMapperProps {
   headers: string[];
   initialMapping?: ColumnMapping;
+  samples?: Record<string, string>;
   onSave: (mapping: ColumnMapping) => void;
   onCancel: () => void;
 }
@@ -78,7 +79,7 @@ const FIELD_GROUPS = {
   }
 };
 
-export default function FieldMapper({ headers, initialMapping = {}, onSave, onCancel }: FieldMapperProps) {
+export default function FieldMapper({ headers, initialMapping = {}, samples = {}, onSave, onCancel }: FieldMapperProps) {
   const [mapping, setMapping] = useState<ColumnMapping>(initialMapping);
   const [activeTab, setActiveTab] = useState('core');
 
@@ -165,7 +166,12 @@ export default function FieldMapper({ headers, initialMapping = {}, onSave, onCa
                           </SelectItem>
                           {headers.map((header) => (
                             <SelectItem key={header} value={header}>
-                              {header}
+                              <span className="font-medium">{header}</span>
+                              {samples[header] && (
+                                <span className="ml-2 text-xs text-muted-foreground truncate max-w-[200px] inline-block align-bottom">
+                                  (e.g. "{samples[header].length > 30 ? samples[header].substring(0, 30) + '...' : samples[header]}")
+                                </span>
+                              )}
                             </SelectItem>
                           ))}
                         </SelectContent>
