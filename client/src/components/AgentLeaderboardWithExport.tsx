@@ -19,7 +19,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowUpDown, TrendingUp, Download, FileText, Sheet, BarChart3, Medal } from 'lucide-react';
+import { ArrowUpDown, TrendingUp, Download, FileText, Sheet, BarChart3, Medal, Trophy } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import AgentCommissionModal from './AgentCommissionModal';
@@ -40,6 +40,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [exportingAgent, setExportingAgent] = useState<string | null>(null);
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
+  const [showPodium, setShowPodium] = useState(true);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -135,15 +136,26 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
               Agent Performance Leaderboard
             </h2>
           </div>
-          <Button
-            onClick={handleExportAllCSV}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Export All
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowPodium(!showPodium)}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <Trophy className={`w-4 h-4 ${showPodium ? 'text-yellow-500' : 'text-muted-foreground'}`} />
+              {showPodium ? 'Hide Podium' : 'Show Podium'}
+            </Button>
+            <Button
+              onClick={handleExportAllCSV}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Export All
+            </Button>
+          </div>
         </div>
         <p className="text-sm text-muted-foreground">
           Click column headers to sort. Download individual reports using the action buttons.
@@ -151,7 +163,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
       </div>
 
       {/* Winners Podium */}
-      {agents.length >= 3 && (
+      {agents.length >= 3 && showPodium && (
         <div className="px-6 pt-6">
           <WinnersPodium agents={[...agents].sort((a, b) => b.totalCommission - a.totalCommission)} />
         </div>
