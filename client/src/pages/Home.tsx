@@ -207,11 +207,17 @@ export default function Home() {
         commissionTotal: cleanNumber(getValue('commission')),
         agents: cleanText(getValue('agentName')),
         createdBy: cleanText(getValue('agentName')),
-        buySideCommission: 0, // Could map if available
-        sellSideCommission: 0,
+        buySideCommission: cleanNumber(getValue('buyCommission')),
+        sellSideCommission: cleanNumber(getValue('sellCommission')),
         buySidePercentage: 0,
         sellSidePercentage: 0,
       };
+    }).map(r => {
+      // Calculate total commission if missing but splits exist
+      if (r.commissionTotal === 0 && (r.buySideCommission > 0 || r.sellSideCommission > 0)) {
+        r.commissionTotal = r.buySideCommission + r.sellSideCommission;
+      }
+      return r;
     }).filter(r => r.address && r.price > 0); // Basic validation
 
     setAllRecords(records);

@@ -19,7 +19,7 @@ function parseLine(line: string) {
 const text = fs.readFileSync('/home/ubuntu/upload/2025final.csv', 'utf-8');
 const lines = text.split('\n').filter(l => l.trim());
 const headers = parseLine(lines[0]);
-const row = parseLine(lines[1]); // First data row
+const row = parseLine(lines[2]); // Second data row
 
 console.log('Mapping for first row:');
 headers.forEach((h, i) => {

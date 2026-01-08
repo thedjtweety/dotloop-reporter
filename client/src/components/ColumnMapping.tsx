@@ -13,6 +13,8 @@ export const REQUIRED_FIELDS = [
   { key: 'closingDate', label: 'Closing Date', required: true, type: 'date' },
   { key: 'status', label: 'Status', required: true, type: 'text' },
   { key: 'commission', label: 'Total Commission', required: false, type: 'currency' },
+  { key: 'buyCommission', label: 'Buy Side Commission', required: false, type: 'currency' },
+  { key: 'sellCommission', label: 'Sell Side Commission', required: false, type: 'currency' },
   { key: 'leadSource', label: 'Lead Source', required: false, type: 'text' },
   { key: 'propertyType', label: 'Property Type', required: false, type: 'text' },
   { key: 'listingDate', label: 'Listing Date', required: false, type: 'date' },
@@ -45,7 +47,9 @@ export default function ColumnMapping({ headers, sampleData, onConfirm, onCancel
         
         // Common variations
         if (field.key === 'price' && (headerLower.includes('current price') || headerLower.includes('purchase price') || headerLower.includes('price'))) return true;
-        if (field.key === 'commission' && (headerLower.includes('commission') || headerLower.includes('comm'))) return true;
+        if (field.key === 'commission' && (headerLower.includes('total commission') || headerLower.includes('sale commission total') || headerLower === 'commission')) return true;
+        if (field.key === 'buyCommission' && (headerLower.includes('buy side') && headerLower.includes('commission'))) return true;
+        if (field.key === 'sellCommission' && (headerLower.includes('sell side') && headerLower.includes('commission'))) return true;
         if (field.key === 'agentName' && (headerLower.includes('agent') || headerLower.includes('member') || headerLower.includes('created by'))) return true;
         if (field.key === 'closingDate' && (headerLower.includes('close') || headerLower.includes('closing'))) return true;
         if (field.key === 'address' && (headerLower.includes('address') || headerLower.includes('loop name'))) return true;
