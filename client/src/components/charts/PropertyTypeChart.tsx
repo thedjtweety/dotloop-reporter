@@ -16,7 +16,7 @@ const COLORS = ['#10b981', '#1e3a5f', '#f59e0b', '#ef4444', '#8b5cf6'];
 const CustomTooltip = ({ active, payload, label, total }: TooltipProps<number, string> & { total: number }) => {
   if (active && payload && payload.length) {
     const value = payload[0].value as number;
-    const percentage = ((value / total) * 100).toFixed(1);
+    const percentage = ((value / total) * 100).toFixed(2);
     
     return (
       <div className="bg-background border border-border p-3 rounded-lg shadow-lg">
