@@ -8,6 +8,8 @@ import { AgentMetrics } from '@/lib/csvParser';
 import { DotloopRecord } from '@/lib/csvParser';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BarChart3, List } from 'lucide-react';
 import TransactionTable from './TransactionTable';
 
 interface AgentDetailsPanelProps {
@@ -36,59 +38,86 @@ export default function AgentDetailsPanel({
 
 
   return (
-    <div className="space-y-8 p-8 bg-muted/10 rounded-xl border border-border/50 shadow-inner">
-      {/* Performance Summary */}
-      <div>
-        <h3 className="text-xl font-display font-bold text-foreground mb-6 flex items-center gap-2">
-          <span className="w-1 h-6 bg-primary rounded-full"></span>
-          Performance Overview
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="p-5 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+    <Tabs defaultValue="overview" className="w-full">
+      <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsTrigger value="overview" className="flex items-center gap-2">
+          <BarChart3 className="w-4 h-4" />
+          Overview
+        </TabsTrigger>
+        <TabsTrigger value="transactions" className="flex items-center gap-2">
+          <List className="w-4 h-4" />
+          Transactions
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="overview" className="space-y-6">
+        <div className="grid grid-cols-2 gap-4">
+          <Card className="p-4 border-l-4 border-l-primary">
+            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
               Total Deals
             </div>
             <div className="text-3xl font-bold text-foreground">
               {agentTransactions.length}
             </div>
-          </div>
-          <div className="p-5 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+          </Card>
+          <Card className="p-4 border-l-4 border-l-emerald-500">
+            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
               Closed
             </div>
             <div className="text-3xl font-bold text-emerald-600">
               {transactionsByStatus.closed.length}
             </div>
-          </div>
-          <div className="p-5 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+          </Card>
+          <Card className="p-4 border-l-4 border-l-blue-500">
+            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
               Active
             </div>
             <div className="text-3xl font-bold text-blue-600">
               {transactionsByStatus.active.length}
             </div>
-          </div>
-          <div className="p-5 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
-              Under Contract
+          </Card>
+          <Card className="p-4 border-l-4 border-l-amber-500">
+            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
+              Pending
             </div>
             <div className="text-3xl font-bold text-amber-600">
               {transactionsByStatus.underContract.length}
             </div>
-          </div>
+          </Card>
         </div>
-      </div>
 
-      {/* Recent Transactions */}
-      <div>
-        <h3 className="text-xl font-display font-bold text-foreground mb-6 flex items-center gap-2">
-          <span className="w-1 h-6 bg-accent rounded-full"></span>
-          Transaction History
-        </h3>
-        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-          <TransactionTable transactions={agentTransactions} limit={10} />
+        <div className="grid grid-cols-1 gap-4">
+          <Card className="p-4">
+            <h4 className="text-sm font-semibold text-muted-foreground mb-3">Financial Performance</h4>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                <span className="text-sm font-medium">Total GCI</span>
+                <span className="text-lg font-bold text-primary">
+                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(agent.totalCommission)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                <span className="text-sm font-medium">Avg Sale Price</span>
+                <span className="text-lg font-bold">
+                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(agent.averageSalesPrice)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                <span className="text-sm font-medium">Closing Rate</span>
+                <Badge variant={agent.closingRate >= 50 ? "default" : "secondary"}>
+                  {agent.closingRate.toFixed(1)}%
+                </Badge>
+              </div>
+            </div>
+          </Card>
         </div>
-      </div>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="transactions">
+        <Card className="border-none shadow-none">
+          <TransactionTable transactions={agentTransactions} limit={50} />
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 }

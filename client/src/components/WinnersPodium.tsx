@@ -4,7 +4,7 @@ import { Trophy, Medal, Star } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
 import { formatCurrency } from '@/lib/formatUtils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import AgentDetailsPanel from './AgentDetailsPanel';
 
 interface WinnersPodiumProps {
@@ -167,18 +167,18 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
         </motion.div>
       </motion.div>
 
-      <Dialog open={!!selectedAgent} onOpenChange={(open) => !open && setSelectedAgent(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-display font-bold flex items-center gap-3">
+      <Sheet open={!!selectedAgent} onOpenChange={(open) => !open && setSelectedAgent(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+          <SheetHeader className="mb-6">
+            <SheetTitle className="text-2xl font-display font-bold flex items-center gap-3">
               <Avatar className="w-10 h-10 border-2 border-primary">
                 <AvatarFallback className="bg-primary/10 text-primary">
                   {selectedAgent?.agentName.split(' ').map(n => n[0]).join('').substring(0, 2)}
                 </AvatarFallback>
               </Avatar>
               {selectedAgent?.agentName}
-            </DialogTitle>
-          </DialogHeader>
+            </SheetTitle>
+          </SheetHeader>
           
           {selectedAgent && (
             <AgentDetailsPanel 
@@ -186,8 +186,8 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
               transactions={transactions} 
             />
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
