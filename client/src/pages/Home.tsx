@@ -75,6 +75,18 @@ export default function Home() {
   const [rawCsvData, setRawCsvData] = useState<any[]>([]);
   const [customMapping, setCustomMapping] = useState<FieldMapping>({});
 
+  // Load saved mapping on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('dotloop_field_mapping');
+    if (saved) {
+      try {
+        setCustomMapping(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse saved mapping', e);
+      }
+    }
+  }, []);
+
   // Update metrics when date range or records change
   useEffect(() => {
     if (allRecords.length === 0) return;

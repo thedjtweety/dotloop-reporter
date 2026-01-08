@@ -358,7 +358,7 @@ export function normalizeRecord(raw: any, mapping?: Record<string, string>): Dot
       city: getValue('city', ['Property Address / City']) || '',
       state: getValue('state', ['Property Address / State/Prov']) || '',
       county: getValue('county', ['Property Address / County']) || '',
-      leadSource: getValue('leadSource', ['Lead Source', 'Lead Source / Lead Source', 'Referral / LEAD SOURCE', 'Referral / Referral Source', 'Referral / LEAD SOURCE']) || '',
+      leadSource: getValue('leadSource', ['Lead Source / Lead Source', 'Lead Source', 'Referral / LEAD SOURCE', 'Referral / Referral Source']) || '',
       earnestMoney: parseCurrency(getValue('earnestMoney', ['Financials / Earnest Money Amount']) || '0'),
       salePrice: parseCurrency(getValue('price', ['Financials / Purchase/Sale Price', 'Price']) || '0'),
       commissionRate: parsePercent(getValue('commissionRate', ['Commission Rate', 'Financials / Sale Commission Rate']) || '0'),
