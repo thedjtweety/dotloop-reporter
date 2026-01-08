@@ -34,7 +34,9 @@ import { findMatchingTemplate, saveTemplate } from '@/lib/importTemplates';
 import UploadZone from '@/components/UploadZone';
 import MetricCard from '@/components/MetricCard';
 import ColumnMapping from '@/components/ColumnMapping';
+import FieldMapper, { ColumnMapping as FieldMapping } from '@/components/FieldMapper';
 import { DatePickerWithRange } from '@/components/DateRangePicker';
+import { normalizeRecord } from '@/lib/csvParser';
 import PipelineChart from '@/components/charts/PipelineChart';
 import FinancialChart from '@/components/charts/FinancialChart';
 import CommissionBreakdownChart from '@/components/CommissionBreakdownChart';
@@ -67,7 +69,11 @@ export default function Home() {
 
   // Import Wizard State
   const [showMapping, setShowMapping] = useState(false);
+  const [showFieldMapper, setShowFieldMapper] = useState(false);
   const [pendingFile, setPendingFile] = useState<{ headers: string[], data: any[][] } | null>(null);
+  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [rawCsvData, setRawCsvData] = useState<any[]>([]);
+  const [customMapping, setCustomMapping] = useState<FieldMapping>({});
 
   // Update metrics when date range or records change
   useEffect(() => {
@@ -170,10 +176,13 @@ export default function Home() {
         // Generate synthetic headers
         headers = headers.map((_, i) => `Column ${i + 1}`);
       }
+      // Store raw data for re-mapping
+      setCsvHeaders(headers);
+      setRawCsvData(data);
 
       // Check for saved template
       const template = findMatchingTemplate(headers);
-      
+
       if (template) {
         // Auto-process with template
         processWithMapping(headers, data, template.mapping);
@@ -188,6 +197,29 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleFieldMappingSave = (mapping: FieldMapping) => {
+    setCustomMapping(mapping);
+    localStorage.setItem('dotloop_field_mapping', JSON.stringify(mapping));
+    
+    // Re-process data with new mapping
+    if (rawCsvData.length > 0) {
+      // Convert raw array data back to object for normalizeRecord if needed
+      // Assuming rawCsvData is array of arrays, we need to map it to objects using headers
+      const dataAsObjects = rawCsvData.map(row => {
+        const obj: any = {};
+        csvHeaders.forEach((header, index) => {
+          obj[header] = row[index];
+        });
+        return obj;
+      });
+
+      const normalized = dataAsObjects.map(r => normalizeRecord(r, mapping)).filter(Boolean) as DotloopRecord[];
+      setAllRecords(normalized);
+      setFilteredRecords(normalized);
+    }
+    setShowFieldMapper(false);
   };
 
   const processWithMapping = (headers: string[], data: any[][], mapping: Record<string, string>) => {
@@ -256,6 +288,19 @@ export default function Home() {
       processWithMapping(pendingFile.headers, pendingFile.data, mapping);
     }
   };
+
+  if (showFieldMapper) {
+    return (
+      <div className="min-h-screen bg-background p-8">
+        <FieldMapper 
+          headers={csvHeaders}
+          initialMapping={customMapping}
+          onSave={handleFieldMappingSave}
+          onCancel={() => setShowFieldMapper(false)}
+        />
+      </div>
+    );
+  }
 
   if (showMapping && pendingFile) {
     return (
