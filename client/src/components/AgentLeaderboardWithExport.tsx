@@ -173,26 +173,23 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
         </div>
       )}
 
-      <div className="overflow-x-auto">
-        <Table>
+      <div className="relative overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent pb-4">
+        <Table className="min-w-[1200px]">
           <TableHeader>
-            <TableRow className="bg-muted/30 hover:bg-muted/30">
-              <TableHead className="w-12 text-center font-display font-semibold">
+            <TableRow className="bg-muted/30 hover:bg-muted/30 border-b border-border/50">
+              <TableHead className="w-16 text-center font-display font-bold text-muted-foreground uppercase tracking-wider text-xs py-4">
                 Rank
               </TableHead>
-              <TableHead className="font-display font-semibold">
+              <TableHead className="font-display font-bold text-muted-foreground uppercase tracking-wider text-xs min-w-[200px]">
                 Agent Name
               </TableHead>
-              <SortableHeader field="totalCommission" label="Total Commission" />
+              <SortableHeader field="totalCommission" label="Total GCI" />
               <SortableHeader field="companyDollar" label="Company $" />
-              <SortableHeader
-                field="averageCommission"
-                label="Avg Commission"
-              />
-              <SortableHeader field="totalTransactions" label="Transactions" />
+              <SortableHeader field="averageCommission" label="Avg GCI" />
+              <SortableHeader field="totalTransactions" label="Deals" />
               <SortableHeader field="closedDeals" label="Closed" />
               <SortableHeader field="closingRate" label="Close Rate" />
-              <SortableHeader field="averageSalesPrice" label="Avg Sale Price" />
+              <SortableHeader field="averageSalesPrice" label="Avg Price" />
               <SortableHeader field="averageDaysToClose" label="Avg Days" />
               <SortableHeader field="activeListings" label="Active" />
               <SortableHeader field="underContract" label="Pending" />
@@ -200,7 +197,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
               <SortableHeader field="sellSideCommission" label="Sell Side" />
               <SortableHeader field="buySidePercentage" label="Buy %" />
               <SortableHeader field="sellSidePercentage" label="Sell %" />
-              <TableHead className="w-32 text-center font-display font-semibold">
+              <TableHead className="w-32 text-center font-display font-bold text-muted-foreground uppercase tracking-wider text-xs sticky right-0 bg-card shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]">
                 Actions
               </TableHead>
             </TableRow>
@@ -294,12 +291,12 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                     {formatPercentage(agent.sellSidePercentage)}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="text-center sticky right-0 bg-card shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]">
                   <div className="flex gap-1 justify-center">
                     <AgentCommissionModal agent={agent} />
                     <Button
                       onClick={() => setExpandedAgent(expandedAgent === agent.agentName ? null : agent.agentName)}
-                      variant="ghost"
+                      variant={expandedAgent === agent.agentName ? "secondary" : "ghost"}
                       size="sm"
                       title="View details"
                       className="h-8 w-8 p-0"
