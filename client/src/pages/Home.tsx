@@ -8,11 +8,12 @@
  * - Interactive charts for pipeline, financial, and geographic analysis
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DateRange } from 'react-day-picker';
 import {
   parseCSV,
   calculateMetrics,
@@ -26,8 +27,10 @@ import {
   DashboardMetrics,
   AgentMetrics,
 } from '@/lib/csvParser';
+import { filterRecordsByDate, getPreviousPeriod } from '@/lib/dateUtils';
 import UploadZone from '@/components/UploadZone';
 import MetricCard from '@/components/MetricCard';
+import { DatePickerWithRange } from '@/components/DateRangePicker';
 import PipelineChart from '@/components/charts/PipelineChart';
 import FinancialChart from '@/components/charts/FinancialChart';
 import LeadSourceChart from '@/components/charts/LeadSourceChart';
@@ -38,15 +41,36 @@ import AgentLeaderboardWithExport from '@/components/AgentLeaderboardWithExport'
 import DrillDownModal from '@/components/DrillDownModal';
 
 export default function Home() {
-  const [records, setRecords] = useState<DotloopRecord[]>([]);
+  const [allRecords, setAllRecords] = useState<DotloopRecord[]>([]);
+  const [filteredRecords, setFilteredRecords] = useState<DotloopRecord[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [agentMetrics, setAgentMetrics] = useState<AgentMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   
   // Drill-down state
   const [drillDownOpen, setDrillDownOpen] = useState(false);
   const [drillDownTitle, setDrillDownTitle] = useState('');
   const [drillDownTransactions, setDrillDownTransactions] = useState<DotloopRecord[]>([]);
+
+  // Update metrics when date range or records change
+  useEffect(() => {
+    if (allRecords.length === 0) return;
+
+    let currentRecords = allRecords;
+    let previousRecords: DotloopRecord[] | undefined;
+
+    if (dateRange?.from && dateRange?.to) {
+      currentRecords = filterRecordsByDate(allRecords, { from: dateRange.from, to: dateRange.to });
+      
+      const prevRange = getPreviousPeriod({ from: dateRange.from, to: dateRange.to });
+      previousRecords = filterRecordsByDate(allRecords, prevRange);
+    }
+
+    setFilteredRecords(currentRecords);
+    setMetrics(calculateMetrics(currentRecords, previousRecords));
+    setAgentMetrics(calculateAgentMetrics(currentRecords));
+  }, [allRecords, dateRange]);
 
   const handleChartClick = (type: 'pipeline' | 'leadSource' | 'propertyType' | 'geographic', label: string) => {
     let filtered: DotloopRecord[] = [];
@@ -55,19 +79,19 @@ export default function Home() {
     switch (type) {
       case 'pipeline':
         title = `Pipeline: ${label}`;
-        filtered = records.filter(r => r.loopStatus === label);
+        filtered = filteredRecords.filter(r => r.loopStatus === label);
         break;
       case 'leadSource':
         title = `Lead Source: ${label}`;
-        filtered = records.filter(r => (r.leadSource || 'Unknown') === label);
+        filtered = filteredRecords.filter(r => (r.leadSource || 'Unknown') === label);
         break;
       case 'propertyType':
         title = `Property Type: ${label}`;
-        filtered = records.filter(r => (r.transactionType || 'Unknown') === label);
+        filtered = filteredRecords.filter(r => (r.transactionType || 'Unknown') === label);
         break;
       case 'geographic':
         title = `State: ${label}`;
-        filtered = records.filter(r => (r.state || 'Unknown') === label);
+        filtered = filteredRecords.filter(r => (r.state || 'Unknown') === label);
         break;
     }
 
@@ -81,11 +105,8 @@ export default function Home() {
     try {
       const text = await file.text();
       const parsedRecords = parseCSV(text);
-      setRecords(parsedRecords);
-      const calculatedMetrics = calculateMetrics(parsedRecords);
-      setMetrics(calculatedMetrics);
-      const agents = calculateAgentMetrics(parsedRecords);
-      setAgentMetrics(agents);
+      setAllRecords(parsedRecords);
+      // Initial metrics calculation will be handled by useEffect
     } catch (error) {
       console.error('Error parsing file:', error);
       alert('Error parsing CSV file. Please ensure it is a valid Dotloop export.');
@@ -134,20 +155,24 @@ export default function Home() {
                 Reporting Tool
               </h1>
               <p className="text-sm text-muted-foreground">
-                {records.length} transactions analyzed
+                {filteredRecords.length} transactions analyzed
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setRecords([]);
-              setMetrics(null);
-            }}
-          >
-              <HomeIcon className="w-4 h-4 mr-2" />
-            Upload New File
-          </Button>
+          <div className="flex items-center gap-4">
+            <DatePickerWithRange date={dateRange} setDate={setDateRange} />
+            <Button
+              variant="outline"
+              onClick={() => {
+                setAllRecords([]);
+                setMetrics(null);
+                setDateRange(undefined);
+              }}
+            >
+                <HomeIcon className="w-4 h-4 mr-2" />
+              Upload New File
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -160,6 +185,7 @@ export default function Home() {
             value={metrics.totalTransactions}
             icon={<HomeIcon className="w-5 h-5" />}
             color="primary"
+            trend={metrics.trends?.totalTransactions}
           />
           <MetricCard
             title="Total Sales Volume"
@@ -167,6 +193,7 @@ export default function Home() {
             subtitle={`Avg: $${metrics.averagePrice.toLocaleString()}`}
             icon={<DollarSign className="w-5 h-5" />}
             color="accent"
+            trend={metrics.trends?.totalVolume}
           />
           <MetricCard
             title="Closing Rate"
@@ -174,12 +201,14 @@ export default function Home() {
             subtitle={`${metrics.closed} closed deals`}
             icon={<TrendingUp className="w-5 h-5" />}
             color="accent"
+            trend={metrics.trends?.closingRate}
           />
           <MetricCard
             title="Avg Days to Close"
             value={metrics.averageDaysToClose}
             icon={<Calendar className="w-5 h-5" />}
             color="primary"
+            trend={metrics.trends?.avgDaysToClose}
           />
         </div>
 
@@ -245,7 +274,7 @@ export default function Home() {
         {/* Agent Leaderboard Section */}
         {agentMetrics.length > 0 && (
           <div className="mb-8">
-            <AgentLeaderboardWithExport agents={agentMetrics} records={records} />
+            <AgentLeaderboardWithExport agents={agentMetrics} records={filteredRecords} />
           </div>
         )}
 
@@ -267,7 +296,7 @@ export default function Home() {
                   Pipeline Breakdown
                 </h2>
                 <PipelineChart 
-                  data={getPipelineData(records)} 
+                  data={getPipelineData(filteredRecords)} 
                   onBarClick={(label) => handleChartClick('pipeline', label)}
                 />
               </Card>
@@ -278,7 +307,7 @@ export default function Home() {
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Sales Timeline
                 </h2>
-                <SalesTimelineChart data={getSalesOverTime(records)} />
+                <SalesTimelineChart data={getSalesOverTime(filteredRecords)} />
               </Card>
             </TabsContent>
 
@@ -288,7 +317,7 @@ export default function Home() {
                   Lead Source Distribution
                 </h2>
                 <LeadSourceChart 
-                  data={getLeadSourceData(records)} 
+                  data={getLeadSourceData(filteredRecords)} 
                   onSliceClick={(label) => handleChartClick('leadSource', label)}
                 />
               </Card>
@@ -300,7 +329,7 @@ export default function Home() {
                   Property Type Breakdown
                 </h2>
                 <PropertyTypeChart 
-                  data={getPropertyTypeData(records)} 
+                  data={getPropertyTypeData(filteredRecords)} 
                   onBarClick={(label) => handleChartClick('propertyType', label)}
                 />
               </Card>
@@ -312,7 +341,7 @@ export default function Home() {
                   Geographic Performance
                 </h2>
                 <GeographicChart 
-                  data={getGeographicData(records)} 
+                  data={getGeographicData(filteredRecords)} 
                   onBarClick={(label) => handleChartClick('geographic', label)}
                 />
               </Card>

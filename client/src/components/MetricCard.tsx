@@ -5,6 +5,8 @@
 
 import { ReactNode } from 'react';
 import { Card } from '@/components/ui/card';
+import { ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
+import { MetricTrend } from '@/lib/csvParser';
 
 interface MetricCardProps {
   title: string;
@@ -12,6 +14,7 @@ interface MetricCardProps {
   subtitle?: string;
   icon: ReactNode;
   color?: 'primary' | 'accent' | 'secondary';
+  trend?: MetricTrend;
 }
 
 export default function MetricCard({
@@ -20,6 +23,7 @@ export default function MetricCard({
   subtitle,
   icon,
   color = 'primary',
+  trend,
 }: MetricCardProps) {
   const colorClasses = {
     primary: 'bg-blue-50 text-primary',
@@ -37,7 +41,21 @@ export default function MetricCard({
           <p className="text-3xl font-display font-bold text-foreground">
             {value}
           </p>
-          {subtitle && (
+          {trend ? (
+            <div className="flex items-center gap-2 mt-2">
+              <div className={`flex items-center text-xs font-medium ${
+                trend.direction === 'up' ? 'text-green-600' : 
+                trend.direction === 'down' ? 'text-red-600' : 
+                'text-muted-foreground'
+              }`}>
+                {trend.direction === 'up' && <ArrowUpRight className="w-3 h-3 mr-1" />}
+                {trend.direction === 'down' && <ArrowDownRight className="w-3 h-3 mr-1" />}
+                {trend.direction === 'neutral' && <Minus className="w-3 h-3 mr-1" />}
+                {trend.value}%
+              </div>
+              <p className="text-xs text-muted-foreground">vs previous period</p>
+            </div>
+          ) : subtitle && (
             <p className="text-xs text-muted-foreground mt-2">
               {subtitle}
             </p>

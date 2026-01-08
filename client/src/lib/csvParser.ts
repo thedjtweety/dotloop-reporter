@@ -31,6 +31,11 @@ export interface DotloopRecord {
   [key: string]: any;
 }
 
+export interface MetricTrend {
+  value: number;
+  direction: 'up' | 'down' | 'neutral';
+}
+
 export interface DashboardMetrics {
   totalTransactions: number;
   activeListings: number;
@@ -42,6 +47,14 @@ export interface DashboardMetrics {
   totalCommission: number;
   averageDaysToClose: number;
   closingRate: number;
+  trends?: {
+    totalTransactions: MetricTrend;
+    totalVolume: MetricTrend;
+    avgCommission: MetricTrend;
+    avgSalePrice: MetricTrend;
+    avgDaysToClose: MetricTrend;
+    closingRate: MetricTrend;
+  };
 }
 
 export interface ChartData {
@@ -279,72 +292,95 @@ function normalizeRecord(raw: any): DotloopRecord | null {
 /**
  * Calculate dashboard metrics from records
  */
-export function calculateMetrics(records: DotloopRecord[]): DashboardMetrics {
-  if (records.length === 0) {
-    return {
-      totalTransactions: 0,
+import { calculateTrend } from './dateUtils';
+
+export function calculateMetrics(records: DotloopRecord[], previousRecords?: DotloopRecord[]): DashboardMetrics {
+  const calculateBaseMetrics = (recs: DotloopRecord[]) => {
+    if (recs.length === 0) {
+      return {
+        totalTransactions: 0,
+        activeListings: 0,
+        underContract: 0,
+        closed: 0,
+        archived: 0,
+        totalSalesVolume: 0,
+        averagePrice: 0,
+        totalCommission: 0,
+        averageDaysToClose: 0,
+        closingRate: 0,
+      };
+    }
+
+    const statusCounts = {
       activeListings: 0,
       underContract: 0,
       closed: 0,
       archived: 0,
-      totalSalesVolume: 0,
-      averagePrice: 0,
-      totalCommission: 0,
-      averageDaysToClose: 0,
-      closingRate: 0,
+    };
+
+    let totalSalesVolume = 0;
+    let totalCommission = 0;
+    let daysToCloseValues: number[] = [];
+
+    recs.forEach(record => {
+      const status = record.loopStatus?.toLowerCase() || '';
+
+      if (status.includes('active')) statusCounts.activeListings++;
+      else if (status.includes('contract')) statusCounts.underContract++;
+      else if (status.includes('closed') || status.includes('sold')) statusCounts.closed++;
+      else if (status.includes('archived')) statusCounts.archived++;
+
+      totalSalesVolume += record.salePrice || record.price || 0;
+      totalCommission += record.commissionTotal || 0;
+
+      // Calculate days to close
+      if (record.createdDate && record.closingDate) {
+        const created = new Date(record.createdDate);
+        const closing = new Date(record.closingDate);
+        if (!isNaN(created.getTime()) && !isNaN(closing.getTime())) {
+          const days = Math.floor((closing.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+          if (days >= 0) daysToCloseValues.push(days);
+        }
+      }
+    });
+
+    const closedCount = statusCounts.closed;
+    const averageDaysToClose = daysToCloseValues.length > 0
+      ? Math.round(daysToCloseValues.reduce((a, b) => a + b, 0) / daysToCloseValues.length)
+      : 0;
+
+    return {
+      totalTransactions: recs.length,
+      activeListings: statusCounts.activeListings,
+      underContract: statusCounts.underContract,
+      closed: closedCount,
+      archived: statusCounts.archived,
+      totalSalesVolume,
+      averagePrice: Math.round(totalSalesVolume / recs.length),
+      totalCommission,
+      averageDaysToClose,
+      closingRate: recs.length > 0 ? Math.round((closedCount / recs.length) * 100) : 0,
+    };
+  };
+
+  const metrics = calculateBaseMetrics(records);
+
+  if (previousRecords) {
+    const prevMetrics = calculateBaseMetrics(previousRecords);
+    return {
+      ...metrics,
+      trends: {
+        totalTransactions: calculateTrend(metrics.totalTransactions, prevMetrics.totalTransactions),
+        totalVolume: calculateTrend(metrics.totalSalesVolume, prevMetrics.totalSalesVolume),
+        avgCommission: calculateTrend(metrics.totalCommission / (metrics.totalTransactions || 1), prevMetrics.totalCommission / (prevMetrics.totalTransactions || 1)),
+        avgSalePrice: calculateTrend(metrics.averagePrice, prevMetrics.averagePrice),
+        avgDaysToClose: calculateTrend(metrics.averageDaysToClose, prevMetrics.averageDaysToClose),
+        closingRate: calculateTrend(metrics.closingRate, prevMetrics.closingRate)
+      }
     };
   }
 
-  const statusCounts = {
-    activeListings: 0,
-    underContract: 0,
-    closed: 0,
-    archived: 0,
-  };
-
-  let totalSalesVolume = 0;
-  let totalCommission = 0;
-  let daysToCloseValues: number[] = [];
-
-  records.forEach(record => {
-    const status = record.loopStatus?.toLowerCase() || '';
-
-    if (status.includes('active')) statusCounts.activeListings++;
-    else if (status.includes('contract')) statusCounts.underContract++;
-    else if (status.includes('closed') || status.includes('sold')) statusCounts.closed++;
-    else if (status.includes('archived')) statusCounts.archived++;
-
-    totalSalesVolume += record.salePrice || record.price || 0;
-    totalCommission += record.commissionTotal || 0;
-
-    // Calculate days to close
-    if (record.createdDate && record.closingDate) {
-      const created = new Date(record.createdDate);
-      const closing = new Date(record.closingDate);
-      if (!isNaN(created.getTime()) && !isNaN(closing.getTime())) {
-        const days = Math.floor((closing.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
-        if (days >= 0) daysToCloseValues.push(days);
-      }
-    }
-  });
-
-  const closedCount = statusCounts.closed;
-  const averageDaysToClose = daysToCloseValues.length > 0
-    ? Math.round(daysToCloseValues.reduce((a, b) => a + b, 0) / daysToCloseValues.length)
-    : 0;
-
-  return {
-    totalTransactions: records.length,
-    activeListings: statusCounts.activeListings,
-    underContract: statusCounts.underContract,
-    closed: closedCount,
-    archived: statusCounts.archived,
-    totalSalesVolume,
-    averagePrice: Math.round(totalSalesVolume / records.length),
-    totalCommission,
-    averageDaysToClose,
-    closingRate: records.length > 0 ? Math.round((closedCount / records.length) * 100) : 0,
-  };
+  return metrics;
 }
 
 /**
