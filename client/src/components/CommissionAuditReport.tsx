@@ -46,7 +46,12 @@ export default function CommissionAuditReport({ records }: CommissionAuditReport
   useEffect(() => {
     if (records.length > 0) {
       const { ytdStats, auditResults } = calculateCommissionAudit(records);
-      setYtdStats(ytdStats);
+      
+      // Filter YTD stats to only show agents present in the current records
+      const activeAgents = new Set(records.map(r => r.agentName));
+      const filteredYtdStats = ytdStats.filter(stat => activeAgents.has(stat.agentName));
+      
+      setYtdStats(filteredYtdStats);
       setAuditResults(auditResults);
     }
   }, [records, isAdjustmentOpen]); // Re-calc when dialog closes (and adjustments saved)
