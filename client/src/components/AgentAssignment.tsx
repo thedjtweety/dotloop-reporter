@@ -101,6 +101,27 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
     saveAgentAssignments(newAssignments);
   };
 
+  const handleAnniversaryChange = (agentName: string, date: string) => {
+    const existing = assignments.find(a => a.agentName === agentName);
+    const newAssignments = assignments.filter(a => a.agentName !== agentName);
+    
+    if (existing) {
+      newAssignments.push({
+        ...existing,
+        anniversaryDate: date
+      });
+    } else {
+      newAssignments.push({
+        agentName,
+        planId: 'none',
+        anniversaryDate: date,
+        startDate: new Date().toISOString().split('T')[0]
+      });
+    }
+    setAssignments(newAssignments);
+    saveAgentAssignments(newAssignments);
+  };
+
   const getAgentPlanId = (agentName: string) => {
     return assignments.find(a => a.agentName === agentName)?.planId || 'none';
   };
@@ -109,7 +130,11 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
     return assignments.find(a => a.agentName === agentName)?.teamId || 'none';
   };
 
-  const filteredAgents = agents.filter(a => 
+  const getAgentAnniversary = (agentName: string) => {
+    return assignments.find(a => a.agentName === agentName)?.anniversaryDate || '';
+  };
+
+  const filteredAgents = agents.filter(a =>
     a.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -138,6 +163,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
               <TableHead>Agent Name</TableHead>
               <TableHead>Commission Plan</TableHead>
               <TableHead>Team</TableHead>
+              <TableHead>Anniversary</TableHead>
               <TableHead>Details</TableHead>
             </TableRow>
           </TableHeader>
@@ -193,6 +219,16 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
                           ))}
                         </SelectContent>
                       </Select>
+                    </TableCell>
+                    <TableCell className="w-[150px]">
+                      <Input 
+                        type="text" 
+                        placeholder="MM-DD" 
+                        className="w-24"
+                        value={getAgentAnniversary(agent)}
+                        onChange={(e) => handleAnniversaryChange(agent, e.target.value)}
+                        maxLength={5}
+                      />
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-2">

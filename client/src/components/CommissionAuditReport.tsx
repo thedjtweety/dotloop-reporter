@@ -13,7 +13,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, XCircle, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import CommissionStatement from './CommissionStatement';
 
 interface CommissionAuditReportProps {
   records: DotloopRecord[];
@@ -22,6 +24,7 @@ interface CommissionAuditReportProps {
 export default function CommissionAuditReport({ records }: CommissionAuditReportProps) {
   const [ytdStats, setYtdStats] = useState<AgentYTD[]>([]);
   const [auditResults, setAuditResults] = useState<AuditResult[]>([]);
+  const [selectedAudit, setSelectedAudit] = useState<AuditResult | null>(null);
 
   useEffect(() => {
     if (records.length > 0) {
@@ -107,6 +110,7 @@ export default function CommissionAuditReport({ records }: CommissionAuditReport
                       <TableHead className="text-right">Diff</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Notes</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -131,6 +135,13 @@ export default function CommissionAuditReport({ records }: CommissionAuditReport
                         <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate" title={res.notes}>
                           {res.notes}
                         </TableCell>
+                        <TableCell>
+                          {res.snapshot && (
+                            <Button variant="ghost" size="icon" onClick={() => setSelectedAudit(res)} title="View Statement">
+                              <FileText className="h-4 w-4 text-blue-600" />
+                            </Button>
+                          )}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -140,6 +151,13 @@ export default function CommissionAuditReport({ records }: CommissionAuditReport
           </Card>
         </TabsContent>
       </Tabs>
+
+      {selectedAudit && (
+        <CommissionStatement 
+          auditResult={selectedAudit} 
+          onClose={() => setSelectedAudit(null)} 
+        />
+      )}
     </div>
   );
 }

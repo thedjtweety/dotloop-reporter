@@ -20,6 +20,7 @@ export interface AgentPlanAssignment {
   planId: string;
   teamId?: string; // Optional: link to a team
   startDate?: string; // Optional: when did they start this plan?
+  anniversaryDate?: string; // "MM-DD" format (e.g., "03-15") for cap reset
 }
 
 // Default Plans
