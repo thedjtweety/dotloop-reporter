@@ -16,14 +16,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ZAxis, Cell } from 'recharts';
 
 const PerformanceMatrix = ({ agents }: { agents: AgentMetrics[] }) => {
-  // Filter out agents with 0 volume or 0 days to close to keep chart clean
+  // Allow agents with 0 volume (internal deals) and 0 days to close
   const data = agents
-    .filter(a => a.totalSalesVolume > 0 && a.averageDaysToClose > 0)
+    .filter(a => a.totalTransactions > 0) // Only filter out agents with NO transactions
     .map(a => ({
       name: a.agentName,
       x: a.averageDaysToClose,
-      y: a.totalSalesVolume,
-      z: a.totalTransactions, // Bubble size
+      y: a.totalTransactions, // Use Transactions instead of Volume for Y-axis
+      z: a.totalSalesVolume, // Bubble size (can be 0)
     }));
 
   return (
@@ -58,10 +58,9 @@ const PerformanceMatrix = ({ agents }: { agents: AgentMetrics[] }) => {
           <YAxis 
             type="number" 
             dataKey="y" 
-            name="Volume" 
-            unit="$" 
-            tickFormatter={(value) => `$${value / 1000}k`}
-            label={{ value: 'Total Volume', angle: -90, position: 'left' }}
+            name="Transactions" 
+            unit="" 
+            label={{ value: 'Total Transactions', angle: -90, position: 'left' }}
           />
           <ZAxis type="number" dataKey="z" range={[50, 400]} name="Transactions" />
           <Tooltip 
@@ -72,9 +71,9 @@ const PerformanceMatrix = ({ agents }: { agents: AgentMetrics[] }) => {
                 return (
                   <div className="bg-popover border border-border p-3 rounded shadow-lg">
                     <p className="font-bold mb-1">{data.name}</p>
-                    <p className="text-sm text-muted-foreground">Volume: {formatCurrency(data.y)}</p>
+                    <p className="text-sm text-muted-foreground">Transactions: {data.y}</p>
                     <p className="text-sm text-muted-foreground">Speed: {data.x} days</p>
-                    <p className="text-sm text-muted-foreground">Deals: {data.z}</p>
+                    <p className="text-sm text-muted-foreground">Volume: {formatCurrency(data.z)}</p>
                   </div>
                 );
               }
