@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { CheckCircle2, Clock, Archive, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Clock, Archive, AlertCircle, ExternalLink } from 'lucide-react';
 
 interface TransactionTableProps {
   transactions: DotloopRecord[];
@@ -71,6 +71,7 @@ export default function TransactionTable({ transactions, limit }: TransactionTab
             <TableHead className="font-semibold">Price</TableHead>
             <TableHead className="font-semibold">Commission</TableHead>
             <TableHead className="font-semibold">Created Date</TableHead>
+            <TableHead className="font-semibold w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -98,6 +99,19 @@ export default function TransactionTable({ transactions, limit }: TransactionTab
                 {transaction.createdDate
                   ? new Date(transaction.createdDate).toLocaleDateString()
                   : 'N/A'}
+              </TableCell>
+              <TableCell>
+                {transaction.loopViewUrl && (
+                  <a
+                    href={transaction.loopViewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                    title="View in Dotloop"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                )}
               </TableCell>
             </TableRow>
           ))}

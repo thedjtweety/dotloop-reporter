@@ -5,6 +5,7 @@
 
 export interface DotloopRecord {
   loopId: string;
+  loopViewUrl: string;
   loopName: string;
   loopStatus: string;
   createdDate: string;
@@ -334,8 +335,8 @@ export function normalizeRecord(raw: any, mapping?: Record<string, string>): Dot
       // Only do this if we haven't found a value yet
       const rawKeys = Object.keys(raw);
       for (const fallback of fallbacks) {
-        const fuzzyKey = rawKeys.find(k => k.toLowerCase().includes(fallback.toLowerCase()));
-        if (fuzzyKey) return raw[fuzzyKey];
+        const match = rawKeys.find(k => k.toLowerCase().includes(fallback.toLowerCase()));
+        if (match && raw[match] !== undefined && raw[match] !== '') return raw[match];
       }
 
       return undefined;
@@ -357,8 +358,13 @@ export function normalizeRecord(raw: any, mapping?: Record<string, string>): Dot
     const loopName = getValue('loopName', ['Loop Name', 'Address']) || '';
     const address = getValue('address', ['Address', 'Property Address / Full Address']) || loopName;
 
+    // Extract Loop ID and construct URL
+    const loopId = getValue('loopId', ['Loop ID', 'Loop View']) || '';
+    const loopViewUrl = loopId ? `https://www.dotloop.com/loop/${loopId}/view` : '';
+
     return {
-      loopId: getValue('loopId', ['Loop ID']) || '',
+      loopId,
+      loopViewUrl,
       loopName: loopName,
       loopStatus: getValue('loopStatus', ['Loop Status']) || '',
       createdDate: getValue('createdDate', ['Created Date', 'Listing Date']) || '',

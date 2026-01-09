@@ -81,8 +81,10 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
     const totalCommission = status === 'Sold' ? price * commissionRate : 0;
     const isBuySide = Math.random() > 0.5;
     
+    const loopId = crypto.randomUUID();
     records.push({
-      loopId: crypto.randomUUID(),
+      loopId,
+      loopViewUrl: `https://www.dotloop.com/loop/${loopId}/view`,
       loopName: `${streetNum} ${streetName} St, ${city}, TX`,
       loopStatus: status,
       createdDate: formatDate(createdDate),

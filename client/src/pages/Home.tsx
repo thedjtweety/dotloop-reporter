@@ -373,8 +373,10 @@ export default function Home() {
         return '';
       };
 
+      const loopId = getValue('loopId', ['Loop ID', 'Loop View']) || crypto.randomUUID();
       return {
-        loopId: getValue('loopId', ['Loop ID']) || crypto.randomUUID(),
+        loopId,
+        loopViewUrl: loopId && !loopId.includes('-') ? `https://www.dotloop.com/loop/${loopId}/view` : '',
         loopName: cleanText(getValue('loopName', ['Loop Name', 'Address'])),
         loopStatus: cleanText(getValue('status', ['Loop Status', 'Status'])),
         createdDate: cleanDate(getValue('createdDate', ['Created Date', 'Listing Date'])),
