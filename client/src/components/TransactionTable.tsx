@@ -71,7 +71,6 @@ export default function TransactionTable({ transactions, limit }: TransactionTab
             <TableHead className="font-semibold">Price</TableHead>
             <TableHead className="font-semibold">Commission</TableHead>
             <TableHead className="font-semibold">Created Date</TableHead>
-            <TableHead className="font-semibold w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -84,7 +83,20 @@ export default function TransactionTable({ transactions, limit }: TransactionTab
                 </div>
               </TableCell>
               <TableCell className="text-sm text-foreground">
-                <div className="font-medium">{transaction.loopName}</div>
+                <div className="flex items-center gap-2">
+                  <div className="font-medium">{transaction.loopName}</div>
+                  {transaction.loopViewUrl && (
+                    <a
+                      href={transaction.loopViewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                      title="View in Dotloop"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
                 <div className="text-xs text-muted-foreground">
                   {transaction.address}
                 </div>
@@ -99,19 +111,6 @@ export default function TransactionTable({ transactions, limit }: TransactionTab
                 {transaction.createdDate
                   ? new Date(transaction.createdDate).toLocaleDateString()
                   : 'N/A'}
-              </TableCell>
-              <TableCell>
-                {transaction.loopViewUrl && (
-                  <a
-                    href={transaction.loopViewUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                    title="View in Dotloop"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                )}
               </TableCell>
             </TableRow>
           ))}
