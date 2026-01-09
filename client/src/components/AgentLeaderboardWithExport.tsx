@@ -18,16 +18,15 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowUpDown, TrendingUp, Download, FileText, Sheet, BarChart3, Medal, Trophy } from 'lucide-react';
+import { ArrowUpDown, TrendingUp, Download, FileText, Sheet as SheetIcon, Medal, Trophy, Eye } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import AgentCommissionModal from './AgentCommissionModal';
 import AgentDetailsPanel from './AgentDetailsPanel';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import WinnersPodium from './WinnersPodium';
 import { formatCurrency, formatPercentage } from '@/lib/formatUtils';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 interface AgentLeaderboardProps {
   agents: AgentMetrics[];
@@ -40,7 +39,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
   const [sortField, setSortField] = useState<SortField>('totalCommission');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [exportingAgent, setExportingAgent] = useState<string | null>(null);
-  const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<AgentMetrics | null>(null);
   const [showPodium, setShowPodium] = useState(true);
 
   const handleSort = (field: SortField) => {
@@ -295,17 +294,13 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                   <div className="flex gap-1 justify-center">
                     <AgentCommissionModal agent={agent} />
                     <Button
-                      onClick={() => setExpandedAgent(expandedAgent === agent.agentName ? null : agent.agentName)}
-                      variant={expandedAgent === agent.agentName ? "secondary" : "ghost"}
+                      onClick={() => setSelectedAgent(agent)}
+                      variant={selectedAgent?.agentName === agent.agentName ? "secondary" : "ghost"}
                       size="sm"
                       title="View details"
                       className="h-8 w-8 p-0"
                     >
-                      {expandedAgent === agent.agentName ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
+                      <Eye className="w-4 h-4" />
                     </Button>
                     <Button
                       onClick={() => handleExportPDF(agent)}
@@ -325,18 +320,11 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                       disabled={exportingAgent === agent.agentName}
                       className="h-8 w-8 p-0"
                     >
-                      <Sheet className="w-4 h-4" />
+                      <SheetIcon className="w-4 h-4" />
                     </Button>
                   </div>
                 </TableCell>
                 </TableRow>
-                {expandedAgent === agent.agentName && (
-                  <TableRow className="bg-muted/20">
-                    <TableCell colSpan={17} className="p-0">
-                      <AgentDetailsPanel agent={agent} transactions={records} />
-                    </TableCell>
-                  </TableRow>
-                )}
               </React.Fragment>
             ))}
           </TableBody>
@@ -349,6 +337,29 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
           . Download individual reports for performance reviews and team meetings.
         </p>
       </div>
+
+      {/* Agent Details Sheet */}
+      <Sheet open={!!selectedAgent} onOpenChange={(open) => !open && setSelectedAgent(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-3xl overflow-hidden flex flex-col">
+          <SheetHeader className="mb-6">
+            <SheetTitle className="text-2xl font-display font-bold flex items-center gap-3">
+              <Avatar className="w-10 h-10 border-2 border-primary">
+                <AvatarFallback className="bg-primary/10 text-primary">
+                  {selectedAgent?.agentName.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                </AvatarFallback>
+              </Avatar>
+              {selectedAgent?.agentName}
+            </SheetTitle>
+          </SheetHeader>
+          
+          {selectedAgent && (
+            <AgentDetailsPanel 
+              agent={selectedAgent} 
+              transactions={records} 
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </Card>
   );
 }
