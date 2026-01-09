@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Map as MapIcon, Layout, Users, Activity, TrendingUp, DollarSign, Home as HomeIcon } from 'lucide-react';
-import { DotloopRecord, DashboardMetrics, AgentMetrics, calculateMetrics, calculateAgentMetrics } from '@/lib/csvParser';
+import { DotloopRecord, DashboardMetrics, AgentMetrics, calculateMetrics } from '@/lib/csvParser';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
 import { MapView } from '@/components/Map';
@@ -140,9 +140,9 @@ const KanbanBoard = ({ records }: { records: DotloopRecord[] }) => {
                       <Badge variant="outline" className="text-[10px]">{record.propertyType || 'Residential'}</Badge>
                       <span className="text-xs font-mono text-muted-foreground">{record.closingDate || record.listingDate}</span>
                     </div>
-                    <h4 className="font-semibold text-sm line-clamp-1 mb-1">{record.address}</h4>
+                    <h4 className="font-semibold text-sm line-clamp-1 mb-1">{record.loopName || record.address}</h4>
                     <div className="flex justify-between items-center text-xs text-muted-foreground">
-                      <span>{record.agents.split(',')[0]}</span>
+                      <span>{record.createdBy}</span>
                       <span className="font-medium text-foreground">{formatCurrency(record.price)}</span>
                     </div>
                   </Card>
@@ -214,6 +214,83 @@ const AgentCards = ({ agents }: { agents: AgentMetrics[] }) => {
 };
 
 // --- Activity Heatmap Component ---
+// --- Helper: Calculate Consultant Metrics ---
+function calculateConsultantMetrics(records: DotloopRecord[]): AgentMetrics[] {
+  const agentMap = new Map<string, any>();
+
+  records.forEach(record => {
+    // Use "createdBy" as the consultant name
+    const agentName = record.createdBy || 'Unknown Consultant';
+
+    if (!agentMap.has(agentName)) {
+      agentMap.set(agentName, {
+        agentName,
+        totalTransactions: 0,
+        closedDeals: 0,
+        totalCommission: 0,
+        totalSalesVolume: 0,
+        daysToCloseList: [],
+        activeListings: 0,
+        underContract: 0,
+        buySideCommission: 0,
+        sellSideCommission: 0,
+        companyDollar: 0,
+      });
+    }
+
+    const agent = agentMap.get(agentName)!;
+    agent.totalTransactions++;
+
+    if (record.loopStatus === 'Closed' || record.loopStatus === 'Sold') {
+      agent.closedDeals++;
+    } else if (record.loopStatus === 'Active Listings') {
+      agent.activeListings++;
+    } else if (record.loopStatus === 'Under Contract') {
+      agent.underContract++;
+    }
+
+    agent.totalCommission += record.commissionTotal || 0;
+    agent.totalSalesVolume += record.salePrice || record.price || 0;
+
+    // Calculate days to close
+    if (record.closingDate && record.createdDate) {
+      const created = new Date(record.createdDate);
+      const closing = new Date(record.closingDate);
+      if (!isNaN(created.getTime()) && !isNaN(closing.getTime())) {
+        const daysToClose = Math.ceil(
+          (closing.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        if (daysToClose > 0) {
+          agent.daysToCloseList.push(daysToClose);
+        }
+      }
+    }
+  });
+
+  return Array.from(agentMap.values())
+    .map(agent => ({
+      agentName: agent.agentName,
+      totalTransactions: agent.totalTransactions,
+      closedDeals: agent.closedDeals,
+      closingRate: agent.totalTransactions > 0 ? (agent.closedDeals / agent.totalTransactions) * 100 : 0,
+      totalCommission: agent.totalCommission,
+      averageCommission: agent.totalTransactions > 0 ? agent.totalCommission / agent.totalTransactions : 0,
+      totalSalesVolume: agent.totalSalesVolume,
+      averageSalesPrice: agent.totalTransactions > 0 ? agent.totalSalesVolume / agent.totalTransactions : 0,
+      averageDaysToClose: agent.daysToCloseList.length > 0
+        ? Math.round(agent.daysToCloseList.reduce((a: number, b: number) => a + b, 0) / agent.daysToCloseList.length)
+        : 0,
+      activeListings: agent.activeListings,
+      underContract: agent.underContract,
+      buySideCommission: agent.buySideCommission,
+      sellSideCommission: agent.sellSideCommission,
+      buySidePercentage: 0,
+      sellSidePercentage: 0,
+      companyDollar: agent.companyDollar,
+    }))
+    .sort((a: AgentMetrics, b: AgentMetrics) => b.totalTransactions - a.totalTransactions); // Sort by volume/transactions
+}
+
 const ActivityTimeline = ({ records }: { records: DotloopRecord[] }) => {
   // Group by month
   const monthlyData = records.reduce((acc, record) => {
@@ -293,7 +370,9 @@ export default function CreativeDashboard() {
         const parsedRecords = JSON.parse(storedData);
         setRecords(parsedRecords);
         setMetrics(calculateMetrics(parsedRecords));
-        setAgentMetrics(calculateAgentMetrics(parsedRecords));
+        // Custom metric calculation for Consultant Hub using "Created By" as agent
+        const consultantMetrics = calculateConsultantMetrics(parsedRecords);
+        setAgentMetrics(consultantMetrics);
       } catch (e) {
         console.error('Failed to load data', e);
       }
