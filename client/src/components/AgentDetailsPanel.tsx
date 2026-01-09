@@ -4,12 +4,14 @@
  * Design: Clean, organized panel with transaction list and metrics
  */
 
+import { useState } from 'react';
 import { AgentMetrics } from '@/lib/csvParser';
 import { DotloopRecord } from '@/lib/csvParser';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, List } from 'lucide-react';
+import { BarChart3, List, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import TransactionTable from './TransactionTable';
 import AgentOnePager from './AgentOnePager';
 
@@ -22,11 +24,21 @@ export default function AgentDetailsPanel({
   agent,
   transactions,
 }: AgentDetailsPanelProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
+
   // Filter transactions for this agent
   const agentTransactions = transactions.filter(t => {
     const agents = t.agents ? t.agents.split(',').map(a => a.trim()) : [];
     return agents.includes(agent.agentName);
   });
+
+  // Filter transactions based on search term
+  const filteredTransactions = agentTransactions.filter(t => 
+    t.loopName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.loopStatus.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (t.transactionType || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Group transactions by status
   const transactionsByStatus = {
@@ -47,20 +59,35 @@ export default function AgentDetailsPanel({
           <AgentOnePager agent={agent} />
         </div>
         
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="transactions" className="flex items-center gap-2">
-              <List className="w-4 h-4" />
-              Transactions
-            </TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex items-center gap-4 mb-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="overview" className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="transactions" className="flex items-center gap-2">
+                <List className="w-4 h-4" />
+                Transactions
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Search Bar - Only visible in Transactions tab */}
+          {activeTab === 'transactions' && (
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input 
+                placeholder="Search transactions by address, status, or type..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          )}
 
           {/* Scrollable Content Section */}
-          <div className="flex-1 overflow-y-auto mt-4 pr-1" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+          <div className="flex-1 overflow-y-auto pr-1" style={{ maxHeight: 'calc(100vh - 280px)' }}>
             <TabsContent value="overview" className="space-y-6 mt-0">
               <div className="grid grid-cols-2 gap-4">
                 <Card className="p-4 border-l-4 border-l-primary">
@@ -126,7 +153,10 @@ export default function AgentDetailsPanel({
 
             <TabsContent value="transactions" className="mt-0">
               <Card className="border-none shadow-none">
-                <TransactionTable transactions={agentTransactions} limit={50} />
+                <div className="mb-2 text-sm text-muted-foreground">
+                  Showing {filteredTransactions.length} of {agentTransactions.length} transactions
+                </div>
+                <TransactionTable transactions={filteredTransactions} limit={100} />
               </Card>
             </TabsContent>
           </div>
