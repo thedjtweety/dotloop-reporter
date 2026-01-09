@@ -12,64 +12,90 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-// --- Map View Component ---
-const TransactionMap = ({ records }: { records: DotloopRecord[] }) => {
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+// --- Performance Matrix Component ---
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ZAxis, Cell } from 'recharts';
 
-  const handleMapReady = (map: google.maps.Map) => {
-    mapRef.current = map;
-    
-    // Geocode and plot records (limit to first 50 for demo performance, or implement clustering)
-    // In a real app, we'd batch geocode or use pre-geocoded data.
-    // For this demo, we'll simulate plotting by using random offsets from a center if no lat/lng
-    // But since we have the Map component, let's try to use the Geocoder for a few visible ones.
-    
-    const geocoder = new google.maps.Geocoder();
-    const bounds = new google.maps.LatLngBounds();
-    
-    // Filter for valid addresses
-    const validRecords = records.filter(r => r.address && r.address.length > 5).slice(0, 20); // Limit for API rate safety in demo
-
-    validRecords.forEach((record, index) => {
-      // Stagger requests to avoid rate limits
-      setTimeout(() => {
-        geocoder.geocode({ address: record.address }, (results, status) => {
-          if (status === 'OK' && results && results[0]) {
-            const position = results[0].geometry.location;
-            
-            const marker = new google.maps.marker.AdvancedMarkerElement({
-              map,
-              position,
-              title: `${record.address} - ${record.loopStatus}`,
-            });
-            
-            markersRef.current.push(marker);
-            bounds.extend(position);
-            
-            if (index === validRecords.length - 1) {
-              map.fitBounds(bounds);
-            }
-          }
-        });
-      }, index * 300);
-    });
-  };
+const PerformanceMatrix = ({ agents }: { agents: AgentMetrics[] }) => {
+  // Filter out agents with 0 volume or 0 days to close to keep chart clean
+  const data = agents
+    .filter(a => a.totalSalesVolume > 0 && a.averageDaysToClose > 0)
+    .map(a => ({
+      name: a.agentName,
+      x: a.averageDaysToClose,
+      y: a.totalSalesVolume,
+      z: a.totalTransactions, // Bubble size
+    }));
 
   return (
-    <div className="h-[600px] w-full rounded-xl overflow-hidden shadow-2xl border border-border/50 relative">
-      <MapView 
-        className="h-full w-full"
-        initialZoom={10}
-        onMapReady={handleMapReady}
-      />
-      <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-md p-4 rounded-lg shadow-lg border border-border max-w-xs">
-        <h3 className="font-bold text-sm mb-2">Map Insights</h3>
-        <p className="text-xs text-muted-foreground">
-          Visualizing top {Math.min(records.length, 20)} recent transactions. 
-          Use this map to identify territory hotspots and coverage gaps.
-        </p>
+    <div className="h-[600px] w-full rounded-xl bg-card border border-border p-6 shadow-sm">
+      <div className="mb-6 flex justify-between items-end">
+        <div>
+          <h3 className="text-xl font-display font-bold">Consultant Efficiency Matrix</h3>
+          <p className="text-muted-foreground">Comparing Deal Velocity (Speed) vs. Total Volume</p>
+        </div>
+        <div className="flex gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+            <span>High Volume, Fast</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+            <span>High Volume, Slow</span>
+          </div>
+        </div>
       </div>
+
+      <ResponsiveContainer width="100%" height="85%">
+        <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+          <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+          <XAxis 
+            type="number" 
+            dataKey="x" 
+            name="Days to Close" 
+            unit=" days" 
+            label={{ value: 'Avg Days to Close (Lower is Faster)', position: 'bottom', offset: 0 }}
+          />
+          <YAxis 
+            type="number" 
+            dataKey="y" 
+            name="Volume" 
+            unit="$" 
+            tickFormatter={(value) => `$${value / 1000}k`}
+            label={{ value: 'Total Volume', angle: -90, position: 'left' }}
+          />
+          <ZAxis type="number" dataKey="z" range={[50, 400]} name="Transactions" />
+          <Tooltip 
+            cursor={{ strokeDasharray: '3 3' }}
+            content={({ active, payload }) => {
+              if (active && payload && payload.length) {
+                const data = payload[0].payload;
+                return (
+                  <div className="bg-popover border border-border p-3 rounded shadow-lg">
+                    <p className="font-bold mb-1">{data.name}</p>
+                    <p className="text-sm text-muted-foreground">Volume: {formatCurrency(data.y)}</p>
+                    <p className="text-sm text-muted-foreground">Speed: {data.x} days</p>
+                    <p className="text-sm text-muted-foreground">Deals: {data.z}</p>
+                  </div>
+                );
+              }
+              return null;
+            }}
+          />
+          <Scatter name="Consultants" data={data} fill="#8884d8">
+            {data.map((entry, index) => {
+              // Color logic: 
+              // Fast (< 30 days) = Green
+              // Slow (> 60 days) = Red
+              // High Volume (> $1M) = Gold
+              let color = '#3b82f6'; // Default Blue
+              if (entry.x < 30) color = '#10b981'; // Fast (Green)
+              else if (entry.x > 60) color = '#f59e0b'; // Slow (Amber)
+              
+              return <Cell key={`cell-${index}`} fill={color} />;
+            })}
+          </Scatter>
+        </ScatterChart>
+      </ResponsiveContainer>
     </div>
   );
 };
@@ -158,20 +184,22 @@ const AgentCards = ({ agents }: { agents: AgentMetrics[] }) => {
               
               <div className="grid grid-cols-2 gap-4 py-4 border-t border-border/50">
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Volume</p>
-                  <p className="font-bold text-lg">{formatCurrency(agent.totalSalesVolume)}</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Efficiency</p>
+                  <p className={`font-bold text-lg ${agent.averageDaysToClose < 30 ? 'text-emerald-500' : 'text-foreground'}`}>
+                    {agent.averageDaysToClose} days
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Units</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Deals</p>
                   <p className="font-bold text-lg">{agent.totalTransactions}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Avg Price</p>
-                  <p className="font-medium">{formatCurrency(agent.averageSalesPrice)}</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Volume</p>
+                  <p className="font-medium">{formatCurrency(agent.totalSalesVolume)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Speed</p>
-                  <p className="font-medium">{agent.averageDaysToClose} days</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Avg Deal</p>
+                  <p className="font-medium">{formatCurrency(agent.averageSalesPrice)}</p>
                 </div>
               </div>
             </div>
@@ -287,7 +315,7 @@ export default function CreativeDashboard() {
           </Button>
           <div>
             <h1 className="text-3xl font-display font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Territory Command Center
+              Consultant Performance Hub
             </h1>
             <p className="text-muted-foreground">
               Visualizing {metrics.totalTransactions} transactions across your market
@@ -304,14 +332,14 @@ export default function CreativeDashboard() {
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full max-w-2xl grid-cols-4 mx-auto bg-muted/50 p-1 rounded-full">
-          <TabsTrigger value="map" className="rounded-full data-[state=active]:bg-background">
-            <MapIcon className="w-4 h-4 mr-2" /> Map
+          <TabsTrigger value="performance" className="rounded-full data-[state=active]:bg-background">
+            <TrendingUp className="w-4 h-4 mr-2" /> Performance
           </TabsTrigger>
           <TabsTrigger value="kanban" className="rounded-full data-[state=active]:bg-background">
             <Layout className="w-4 h-4 mr-2" /> Pipeline
           </TabsTrigger>
-          <TabsTrigger value="agents" className="rounded-full data-[state=active]:bg-background">
-            <Users className="w-4 h-4 mr-2" /> Agents
+          <TabsTrigger value="consultants" className="rounded-full data-[state=active]:bg-background">
+            <Users className="w-4 h-4 mr-2" /> Consultants
           </TabsTrigger>
           <TabsTrigger value="activity" className="rounded-full data-[state=active]:bg-background">
             <Activity className="w-4 h-4 mr-2" /> Activity
@@ -319,9 +347,9 @@ export default function CreativeDashboard() {
         </TabsList>
 
         <div className="grid grid-cols-1 gap-6">
-          <TabsContent value="map" className="mt-0">
+          <TabsContent value="performance" className="mt-0">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <TransactionMap records={records} />
+              <PerformanceMatrix agents={agentMetrics} />
             </motion.div>
           </TabsContent>
 
@@ -331,7 +359,7 @@ export default function CreativeDashboard() {
             </motion.div>
           </TabsContent>
 
-          <TabsContent value="agents" className="mt-0">
+          <TabsContent value="consultants" className="mt-0">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               <AgentCards agents={agentMetrics} />
             </motion.div>
