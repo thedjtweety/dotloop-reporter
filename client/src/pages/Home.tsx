@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent, Settings, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatPercentage, formatNumber } from '@/lib/formatUtils';
@@ -68,6 +69,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ModeToggle } from '@/components/ModeToggle';
 
 export default function Home() {
+  const [location, setLocation] = useLocation();
   const [allRecords, setAllRecords] = useState<DotloopRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<DotloopRecord[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -354,6 +356,13 @@ export default function Home() {
     setShowMapping(false);
     setPendingFile(null);
     handleSaveRecent(fileName, records);
+
+    // Check for volume-only data (no commission) and redirect to Creative Dashboard
+    const hasFinancialData = records.some(r => r.commissionTotal > 0 || r.companyDollar > 0);
+    if (!hasFinancialData) {
+      localStorage.setItem('creative_dashboard_data', JSON.stringify(records));
+      setLocation('/creative');
+    }
   };
 
   const handleMappingConfirm = (mapping: Record<string, string>) => {
