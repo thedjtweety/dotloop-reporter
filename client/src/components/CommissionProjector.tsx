@@ -98,43 +98,39 @@ export default function CommissionProjector({ records }: CommissionProjectorProp
           </p>
         </div>
 
-        {/* Projections Grid */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">30 Days</p>
-            <p className="text-2xl font-bold text-foreground">
-              {formatCurrency(projections.p30 * riskFactor)}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {projections.count30} deals
-            </p>
+        {/* Projections List */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center border-b border-border/50 pb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500/40" />
+              <span className="text-sm font-medium text-muted-foreground">30 Days</span>
+            </div>
+            <div className="text-right">
+              <div className="text-lg font-bold text-foreground">{formatCurrency(projections.p30 * riskFactor)}</div>
+              <div className="text-xs text-muted-foreground">{projections.count30} deals</div>
+            </div>
           </div>
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">60 Days</p>
-            <p className="text-2xl font-bold text-foreground">
-              {formatCurrency(projections.p60 * riskFactor)}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {projections.count60} deals
-            </p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">90 Days</p>
-            <p className="text-2xl font-bold text-foreground">
-              {formatCurrency(projections.p90 * riskFactor)}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {projections.count90} deals
-            </p>
-          </div>
-        </div>
 
-        <div className="pt-2 border-t border-border/50">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Total Pipeline Value (90d)</span>
-            <span className="font-bold text-emerald-500 text-lg">
-              {formatCurrency(projections.p90 * riskFactor)}
-            </span>
+          <div className="flex justify-between items-center border-b border-border/50 pb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500/70" />
+              <span className="text-sm font-medium text-muted-foreground">60 Days</span>
+            </div>
+            <div className="text-right">
+              <div className="text-lg font-bold text-foreground">{formatCurrency(projections.p60 * riskFactor)}</div>
+              <div className="text-xs text-muted-foreground">{projections.count60} deals</div>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-sm font-medium text-muted-foreground">90 Days</span>
+            </div>
+            <div className="text-right">
+              <div className="text-lg font-bold text-foreground">{formatCurrency(projections.p90 * riskFactor)}</div>
+              <div className="text-xs text-muted-foreground">{projections.count90} deals</div>
+            </div>
           </div>
         </div>
       </CardContent>
