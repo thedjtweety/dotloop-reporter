@@ -602,7 +602,7 @@ export default function Home() {
               <TabsTrigger value="property">Property Type</TabsTrigger>
               <TabsTrigger value="geographic">Geographic</TabsTrigger>
               <TabsTrigger value="financial">Financial</TabsTrigger>
-              <TabsTrigger value="audit">Comm. Audit</TabsTrigger>
+              <TabsTrigger value="audit" className="text-red-600 data-[state=active]:text-red-700 data-[state=active]:bg-red-50">Commission Audit</TabsTrigger>
               <TabsTrigger value="insights">Insights</TabsTrigger>
               <TabsTrigger value="health">Data Health</TabsTrigger>
               <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold flex gap-1 items-center">
