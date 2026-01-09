@@ -57,6 +57,7 @@ export interface DashboardMetrics {
   totalCommission: number;
   averageDaysToClose: number;
   closingRate: number;
+  hasFinancialData: boolean; // New flag to indicate if financial data is present
   trends?: {
     totalTransactions: MetricTrend;
     totalVolume: MetricTrend;
@@ -334,9 +335,7 @@ export function normalizeRecord(raw: any, mapping?: Record<string, string>): Dot
       const rawKeys = Object.keys(raw);
       for (const fallback of fallbacks) {
         const fuzzyKey = rawKeys.find(k => k.toLowerCase().includes(fallback.toLowerCase()));
-        if (fuzzyKey && raw[fuzzyKey] !== undefined && raw[fuzzyKey] !== '') {
-          return raw[fuzzyKey];
-        }
+        if (fuzzyKey) return raw[fuzzyKey];
       }
 
       return undefined;
@@ -354,15 +353,19 @@ export function normalizeRecord(raw: any, mapping?: Record<string, string>): Dot
       return parseFloat(val.replace(/[%,\s]/g, '')) || 0;
     };
 
+    // Fallback logic for Address: If Address is missing, use Loop Name
+    const loopName = getValue('loopName', ['Loop Name', 'Address']) || '';
+    const address = getValue('address', ['Address', 'Property Address / Full Address']) || loopName;
+
     return {
       loopId: getValue('loopId', ['Loop ID']) || '',
-      loopName: getValue('loopName', ['Loop Name', 'Address']) || '',
+      loopName: loopName,
       loopStatus: getValue('loopStatus', ['Loop Status']) || '',
       createdDate: getValue('createdDate', ['Created Date', 'Listing Date']) || '',
       closingDate: getValue('closingDate', ['Closing Date', 'Contract Dates / Closing Date']) || '',
       listingDate: getValue('listingDate', ['Listing Date', 'Listing Information / Listing Date']) || '',
       offerDate: getValue('offerDate', ['Offer Date']) || '',
-      address: getValue('address', ['Address', 'Property Address / Full Address']) || '',
+      address: address,
       price: parseCurrency(getValue('price', ['Price', 'Financials / Purchase/Sale Price', 'Listing Information / Current Price']) || '0'),
       propertyType: getValue('propertyType', ['Property / Type', 'Property Type']) || 'Residential',
       bedrooms: parseInt(getValue('bedrooms', ['Property / Bedrooms']) || '0') || 0,
@@ -415,6 +418,7 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
         totalCommission: 0,
         averageDaysToClose: 0,
         closingRate: 0,
+        hasFinancialData: false,
       };
     }
 
@@ -459,6 +463,9 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
       ? Math.round(daysToCloseValues.reduce((a, b) => a + b, 0) / daysToCloseValues.length) 
       : 0;
     const closingRate = totalTransactions > 0 ? (statusCounts.closed / totalTransactions) * 100 : 0;
+    
+    // Check if any record has commission data > 0
+    const hasFinancialData = recs.some(r => (r.commissionTotal || 0) > 0 || (r.companyDollar || 0) > 0);
 
     return {
       totalTransactions,
@@ -471,6 +478,7 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
       totalCommission,
       averageDaysToClose,
       closingRate,
+      hasFinancialData,
     };
   };
 

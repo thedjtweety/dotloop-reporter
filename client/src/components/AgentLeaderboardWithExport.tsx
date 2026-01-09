@@ -42,6 +42,9 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
   const [selectedAgent, setSelectedAgent] = useState<AgentMetrics | null>(null);
   const [showPodium, setShowPodium] = useState(true);
 
+  // Check if financial data exists
+  const hasFinancialData = agents.some(a => a.totalCommission > 0 || a.companyDollar > 0);
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -182,9 +185,9 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
               <TableHead className="font-display font-bold text-muted-foreground uppercase tracking-wider text-xs min-w-[200px]">
                 Agent Name
               </TableHead>
-              <SortableHeader field="totalCommission" label="Total GCI" />
-              <SortableHeader field="companyDollar" label="Company $" />
-              <SortableHeader field="averageCommission" label="Avg GCI" />
+              {hasFinancialData && <SortableHeader field="totalCommission" label="Total GCI" />}
+              {hasFinancialData && <SortableHeader field="companyDollar" label="Company $" />}
+              {hasFinancialData && <SortableHeader field="averageCommission" label="Avg GCI" />}
               <SortableHeader field="totalTransactions" label="Deals" />
               <SortableHeader field="closedDeals" label="Closed" />
               <SortableHeader field="closingRate" label="Close Rate" />
@@ -192,10 +195,10 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
               <SortableHeader field="averageDaysToClose" label="Avg Days" />
               <SortableHeader field="activeListings" label="Active" />
               <SortableHeader field="underContract" label="Pending" />
-              <SortableHeader field="buySideCommission" label="Buy Side" />
-              <SortableHeader field="sellSideCommission" label="Sell Side" />
-              <SortableHeader field="buySidePercentage" label="Buy %" />
-              <SortableHeader field="sellSidePercentage" label="Sell %" />
+              {hasFinancialData && <SortableHeader field="buySideCommission" label="Buy Side" />}
+              {hasFinancialData && <SortableHeader field="sellSideCommission" label="Sell Side" />}
+              {hasFinancialData && <SortableHeader field="buySidePercentage" label="Buy %" />}
+              {hasFinancialData && <SortableHeader field="sellSidePercentage" label="Sell %" />}
               <TableHead className="w-32 text-center font-display font-bold text-muted-foreground uppercase tracking-wider text-xs sticky right-0 bg-card shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]">
                 Actions
               </TableHead>
@@ -239,15 +242,21 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                     {agent.agentName}
                   </div>
                 </TableCell>
-                <TableCell className="font-semibold text-accent">
-                  {formatCurrency(agent.totalCommission)}
-                </TableCell>
-                <TableCell className="font-medium text-blue-600 dark:text-blue-400">
-                  {formatCurrency(agent.companyDollar)}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatCurrency(agent.averageCommission)}
-                </TableCell>
+                {hasFinancialData && (
+                  <TableCell className="font-semibold text-accent">
+                    {formatCurrency(agent.totalCommission)}
+                  </TableCell>
+                )}
+                {hasFinancialData && (
+                  <TableCell className="font-medium text-blue-600 dark:text-blue-400">
+                    {formatCurrency(agent.companyDollar)}
+                  </TableCell>
+                )}
+                {hasFinancialData && (
+                  <TableCell className="text-muted-foreground">
+                    {formatCurrency(agent.averageCommission)}
+                  </TableCell>
+                )}
                 <TableCell className="text-center font-medium">
                   {agent.totalTransactions}
                 </TableCell>
@@ -274,25 +283,33 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                 <TableCell className="text-center font-medium">
                   {agent.underContract}
                 </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatCurrency(agent.buySideCommission)}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatCurrency(agent.sellSideCommission)}
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                    {formatPercentage(agent.buySidePercentage)}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    {formatPercentage(agent.sellSidePercentage)}
-                  </Badge>
-                </TableCell>
+                {hasFinancialData && (
+                  <TableCell className="text-muted-foreground">
+                    {formatCurrency(agent.buySideCommission)}
+                  </TableCell>
+                )}
+                {hasFinancialData && (
+                  <TableCell className="text-muted-foreground">
+                    {formatCurrency(agent.sellSideCommission)}
+                  </TableCell>
+                )}
+                {hasFinancialData && (
+                  <TableCell className="text-center">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      {formatPercentage(agent.buySidePercentage)}
+                    </Badge>
+                  </TableCell>
+                )}
+                {hasFinancialData && (
+                  <TableCell className="text-center">
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      {formatPercentage(agent.sellSidePercentage)}
+                    </Badge>
+                  </TableCell>
+                )}
                 <TableCell className="text-center sticky right-0 bg-card shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]">
                   <div className="flex gap-1 justify-center">
-                    <AgentCommissionModal agent={agent} />
+                    {hasFinancialData && <AgentCommissionModal agent={agent} />}
                     <Button
                       onClick={() => setSelectedAgent(agent)}
                       variant={selectedAgent?.agentName === agent.agentName ? "secondary" : "ghost"}
