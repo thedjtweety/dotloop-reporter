@@ -10,8 +10,18 @@
 
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent, Settings, ArrowLeft } from 'lucide-react';
+import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent, Settings, ArrowLeft, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatCurrency, formatPercentage, formatNumber } from '@/lib/formatUtils';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -91,6 +101,8 @@ export default function Home() {
   const [customMapping, setCustomMapping] = useState<FieldMapping>({});
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
   const [activeTab, setActiveTab] = useState('pipeline');
+  const [showConsultantConfirm, setShowConsultantConfirm] = useState(false);
+  const [consultantRedirectData, setConsultantRedirectData] = useState<DotloopRecord[] | null>(null);
 
   // Load saved mapping and recent files on mount
   useEffect(() => {
@@ -368,9 +380,17 @@ export default function Home() {
       headerString.includes('net to office');
 
     if (!hasFinancialColumns) {
-      localStorage.setItem('creative_dashboard_data', JSON.stringify(records));
+      setConsultantRedirectData(records);
+      setShowConsultantConfirm(true);
+    }
+  };
+
+  const handleConsultantRedirect = () => {
+    if (consultantRedirectData) {
+      localStorage.setItem('creative_dashboard_data', JSON.stringify(consultantRedirectData));
       setLocation('/creative');
     }
+    setShowConsultantConfirm(false);
   };
 
   const handleMappingConfirm = (mapping: Record<string, string>) => {
@@ -446,6 +466,29 @@ export default function Home() {
           
           <TrustBar />
         </main>
+
+        <AlertDialog open={showConsultantConfirm} onOpenChange={setShowConsultantConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-primary" />
+                Consultant Report Detected
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This file appears to be a Consultant/Volume-only report (missing commission data).
+                Would you like to view it in the specialized <strong>Consultant Performance Hub</strong>?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowConsultantConfirm(false)}>
+                Stay on Standard Report
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={handleConsultantRedirect}>
+                Switch to Consultant Hub
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
