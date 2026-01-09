@@ -312,46 +312,57 @@ export default function Home() {
 
   const processWithMapping = (headers: string[], data: any[][], mapping: Record<string, string>, fileName: string = 'Uploaded File') => {
     const records: DotloopRecord[] = data.map(row => {
-      const getValue = (key: string) => {
+      const getValue = (key: string, fallbacks: string[] = []) => {
+        // 1. Try explicit mapping
         const header = mapping[key];
-        const index = headers.indexOf(header);
-        return index >= 0 ? row[index] : '';
+        if (header) {
+          const index = headers.indexOf(header);
+          if (index >= 0) return row[index];
+        }
+
+        // 2. Try exact fallbacks (if no mapping or mapping failed)
+        for (const fallback of fallbacks) {
+          const index = headers.indexOf(fallback);
+          if (index >= 0) return row[index];
+        }
+        
+        return '';
       };
 
       return {
-        loopId: crypto.randomUUID(), // Generate ID if missing
-        loopName: cleanText(getValue('loopName')) || (headers.indexOf('Loop Name') >= 0 ? row[headers.indexOf('Loop Name')] : cleanText(getValue('address'))),
-        loopStatus: cleanText(getValue('status')),
-        createdDate: cleanDate(getValue('createdDate') || getValue('listingDate')),
-        closingDate: cleanDate(getValue('closingDate')),
-        listingDate: cleanDate(getValue('listingDate')),
-        offerDate: '',
-        address: cleanText(getValue('address')),
-        price: cleanNumber(getValue('price')),
-        propertyType: cleanText(getValue('propertyType')) || 'Residential',
+        loopId: getValue('loopId', ['Loop ID']) || crypto.randomUUID(),
+        loopName: cleanText(getValue('loopName', ['Loop Name', 'Address'])),
+        loopStatus: cleanText(getValue('status', ['Loop Status', 'Status'])),
+        createdDate: cleanDate(getValue('createdDate', ['Created Date', 'Listing Date'])),
+        closingDate: cleanDate(getValue('closingDate', ['Closing Date', 'Contract Dates / Closing Date'])),
+        listingDate: cleanDate(getValue('listingDate', ['Listing Date', 'Listing Information / Listing Date'])),
+        offerDate: cleanDate(getValue('offerDate', ['Offer Date'])),
+        address: cleanText(getValue('address', ['Address', 'Property Address / Full Address'])),
+        price: cleanNumber(getValue('price', ['Price', 'Financials / Purchase/Sale Price', 'Listing Information / Current Price'])),
+        propertyType: cleanText(getValue('propertyType', ['Property / Type', 'Property Type'])) || 'Residential',
         bedrooms: 0,
         bathrooms: 0,
         squareFootage: 0,
-        city: '',
-        state: '',
-        county: '',
-        leadSource: cleanText(getValue('leadSource')),
-        earnestMoney: 0,
-        salePrice: cleanNumber(getValue('price')),
-        commissionRate: 0,
-        commissionTotal: cleanNumber(getValue('commission')),
-        agents: cleanText(getValue('agentName')),
-        createdBy: (headers.indexOf('Created By') >= 0 ? row[headers.indexOf('Created By')] : cleanText(getValue('agentName'))),
-        buySideCommission: cleanNumber(getValue('buyCommission')),
-        sellSideCommission: cleanNumber(getValue('sellCommission')),
+        city: cleanText(getValue('city', ['Property Address / City'])),
+        state: cleanText(getValue('state', ['Property Address / State/Prov'])),
+        county: cleanText(getValue('county', ['Property Address / County'])),
+        leadSource: cleanText(getValue('leadSource', ['Lead Source / Lead Source', 'Lead Source'])),
+        earnestMoney: cleanNumber(getValue('earnestMoney', ['Financials / Earnest Money Amount'])),
+        salePrice: cleanNumber(getValue('price', ['Financials / Purchase/Sale Price', 'Price'])),
+        commissionRate: cleanNumber(getValue('commissionRate', ['Financials / Sale Commission Rate'])),
+        commissionTotal: cleanNumber(getValue('commission', ['Total Commission', 'Financials / Sale Commission Total'])),
+        agents: cleanText(getValue('agentName', ['Agents', 'Agent Name'])),
+        createdBy: cleanText(getValue('createdBy', ['Created By', 'Agents'])),
+        buySideCommission: cleanNumber(getValue('buyCommission', ['Buy Side Commission', 'Financials / Sale Commission Split $ - Buy Side'])),
+        sellSideCommission: cleanNumber(getValue('sellCommission', ['Sell Side Commission', 'Financials / Sale Commission Split $ - Sell Side'])),
         buySidePercentage: 0,
         sellSidePercentage: 0,
-        companyDollar: cleanNumber(getValue('companyDollar')),
-        referralSource: cleanText(getValue('referralSource')),
-        referralPercentage: cleanNumber(getValue('referralPercentage')),
-        complianceStatus: 'No Status',
-        tags: [],
-        originalPrice: cleanNumber(getValue('price')),
+        companyDollar: cleanNumber(getValue('companyDollar', ['Company Dollar', 'Net to Office'])),
+        referralSource: cleanText(getValue('referralSource', ['Referral / Referral Source'])),
+        referralPercentage: cleanNumber(getValue('referralPercentage', ['Referral / Referral %'])),
+        complianceStatus: cleanText(getValue('complianceStatus', ['Compliance Status', 'Review Status'])) || 'No Status',
+        tags: (getValue('tags', ['Tags']) || '').split('|').filter((t: string) => t.trim()),
+        originalPrice: cleanNumber(getValue('originalPrice', ['Listing Information / Original Price'])),
         yearBuilt: 0,
         lotSize: 0,
         subdivision: '',
