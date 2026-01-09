@@ -88,6 +88,7 @@ export default function Home() {
   const [rawCsvData, setRawCsvData] = useState<any[]>([]);
   const [customMapping, setCustomMapping] = useState<FieldMapping>({});
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
+  const [activeTab, setActiveTab] = useState('pipeline');
 
   // Load saved mapping and recent files on mount
   useEffect(() => {
@@ -405,9 +406,18 @@ export default function Home() {
             <h1 className="text-2xl font-display font-bold text-foreground">
               Reporting Tool
             </h1>
-            <div className="ml-auto flex items-center gap-4">
-              <ModeToggle />
-            </div>
+                <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="hidden md:flex gap-2 border-primary/50 hover:bg-primary/10 hover:border-primary text-primary font-medium"
+                  onClick={() => setActiveTab('settings')}
+                >
+                  <Settings className="w-4 h-4" />
+                  Commission Settings
+                </Button>
+                <ModeToggle />
+              </div>
           </div>
         </header>
 
@@ -579,7 +589,7 @@ export default function Home() {
 
         {/* Charts Section */}
         <div className="mb-8">
-          <Tabs defaultValue="pipeline" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 mb-6">
               <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
@@ -590,7 +600,9 @@ export default function Home() {
               <TabsTrigger value="audit">Comm. Audit</TabsTrigger>
               <TabsTrigger value="insights">Insights</TabsTrigger>
               <TabsTrigger value="health">Data Health</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold flex gap-1 items-center">
+                <Settings className="w-3 h-3" /> Settings
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="pipeline" className="space-y-4">
