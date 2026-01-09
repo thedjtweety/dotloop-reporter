@@ -16,6 +16,7 @@ interface MetricCardProps {
   icon: ReactNode;
   color?: 'primary' | 'accent' | 'secondary';
   trend?: MetricTrend;
+  onClick?: () => void;
 }
 
 export default function MetricCard({
@@ -25,6 +26,7 @@ export default function MetricCard({
   icon,
   color = 'primary',
   trend,
+  onClick,
 }: MetricCardProps) {
   const colorClasses = {
     primary: 'bg-blue-50 text-primary',
@@ -33,7 +35,10 @@ export default function MetricCard({
   };
 
   return (
-    <Card className="p-6 bg-card border border-border hover:shadow-md transition-shadow duration-200">
+    <Card 
+      className={`p-6 bg-card border border-border hover:shadow-md transition-all duration-200 ${onClick ? 'cursor-pointer hover:border-primary/50 active:scale-[0.99]' : ''}`}
+      onClick={onClick}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm text-muted-foreground font-medium mb-2">

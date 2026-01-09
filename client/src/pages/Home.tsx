@@ -182,6 +182,50 @@ export default function Home() {
     setAgentMetrics(calculateAgentMetrics(currentRecords));
   }, [allRecords, dateRange]);
 
+  const handleMetricClick = (type: 'total' | 'volume' | 'closing' | 'days' | 'active' | 'contract' | 'closed' | 'archived') => {
+    let filtered: DotloopRecord[] = [];
+    let title = '';
+
+    switch (type) {
+      case 'total':
+        title = 'All Transactions';
+        filtered = filteredRecords;
+        break;
+      case 'volume':
+        title = 'Sales Volume Breakdown';
+        filtered = filteredRecords.filter(r => (r.salePrice || r.price) > 0).sort((a, b) => (b.salePrice || b.price) - (a.salePrice || a.price));
+        break;
+      case 'closing':
+        title = 'Closed Deals';
+        filtered = filteredRecords.filter(r => r.loopStatus?.toLowerCase().includes('closed') || r.loopStatus?.toLowerCase().includes('sold'));
+        break;
+      case 'days':
+        title = 'Days to Close Analysis';
+        filtered = filteredRecords.filter(r => r.loopStatus?.toLowerCase().includes('closed') || r.loopStatus?.toLowerCase().includes('sold'));
+        break;
+      case 'active':
+        title = 'Active Listings';
+        filtered = filteredRecords.filter(r => r.loopStatus?.toLowerCase().includes('active'));
+        break;
+      case 'contract':
+        title = 'Under Contract';
+        filtered = filteredRecords.filter(r => r.loopStatus?.toLowerCase().includes('contract') || r.loopStatus?.toLowerCase().includes('pending'));
+        break;
+      case 'closed':
+        title = 'Closed Deals';
+        filtered = filteredRecords.filter(r => r.loopStatus?.toLowerCase().includes('closed') || r.loopStatus?.toLowerCase().includes('sold'));
+        break;
+      case 'archived':
+        title = 'Archived Loops';
+        filtered = filteredRecords.filter(r => r.loopStatus?.toLowerCase().includes('archived'));
+        break;
+    }
+
+    setDrillDownTitle(title);
+    setDrillDownTransactions(filtered);
+    setDrillDownOpen(true);
+  };
+
   const handleChartClick = (type: 'pipeline' | 'leadSource' | 'propertyType' | 'geographic' | 'commission', label: string) => {
     let filtered: DotloopRecord[] = [];
     let title = '';
@@ -567,6 +611,7 @@ export default function Home() {
               icon={<HomeIcon className="w-5 h-5" />}
               color="primary"
               trend={metrics.trends?.totalTransactions}
+              onClick={() => handleMetricClick('total')}
             />
             <MetricCard
               title="Total Sales Volume"
@@ -575,6 +620,7 @@ export default function Home() {
               icon={<DollarSign className="w-5 h-5" />}
               color="accent"
               trend={metrics.trends?.totalVolume}
+              onClick={() => handleMetricClick('volume')}
             />
             <MetricCard
               title="Closing Rate"
@@ -583,6 +629,7 @@ export default function Home() {
               icon={<TrendingUp className="w-5 h-5" />}
               color="accent"
               trend={metrics.trends?.closingRate}
+              onClick={() => handleMetricClick('closing')}
             />
             <MetricCard
               title="Avg Days to Close"
@@ -590,6 +637,7 @@ export default function Home() {
               icon={<Calendar className="w-5 h-5" />}
               color="primary"
               trend={metrics.trends?.avgDaysToClose}
+              onClick={() => handleMetricClick('days')}
             />
           </div>
           {metrics?.hasFinancialData && (
@@ -601,7 +649,10 @@ export default function Home() {
 
         {/* Status Overview Row */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="p-4">
+          <Card 
+            className="p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:border-primary/50 active:scale-[0.99]"
+            onClick={() => handleMetricClick('active')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground font-medium">Active Listings</p>
@@ -615,7 +666,10 @@ export default function Home() {
             </div>
           </Card>
 
-          <Card className="p-4">
+          <Card 
+            className="p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:border-amber-500/50 active:scale-[0.99]"
+            onClick={() => handleMetricClick('contract')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground font-medium">Under Contract</p>
@@ -629,7 +683,10 @@ export default function Home() {
             </div>
           </Card>
 
-          <Card className="p-4">
+          <Card 
+            className="p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:border-green-500/50 active:scale-[0.99]"
+            onClick={() => handleMetricClick('closed')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground font-medium">Closed</p>
@@ -643,7 +700,10 @@ export default function Home() {
             </div>
           </Card>
 
-          <Card className="p-4">
+          <Card 
+            className="p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:border-gray-400/50 active:scale-[0.99]"
+            onClick={() => handleMetricClick('archived')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground font-medium">Archived</p>
