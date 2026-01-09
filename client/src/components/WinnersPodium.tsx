@@ -168,7 +168,7 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
       </motion.div>
 
       <Sheet open={!!selectedAgent} onOpenChange={(open) => !open && setSelectedAgent(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:max-w-3xl overflow-hidden flex flex-col">
           <SheetHeader className="mb-6">
             <SheetTitle className="text-2xl font-display font-bold flex items-center gap-3">
               <Avatar className="w-10 h-10 border-2 border-primary">
