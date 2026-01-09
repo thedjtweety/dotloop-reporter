@@ -320,7 +320,7 @@ export default function Home() {
 
       return {
         loopId: crypto.randomUUID(), // Generate ID if missing
-        loopName: cleanText(getValue('address')), // Use address as name fallback
+        loopName: cleanText(getValue('loopName')) || (headers.indexOf('Loop Name') >= 0 ? row[headers.indexOf('Loop Name')] : cleanText(getValue('address'))),
         loopStatus: cleanText(getValue('status')),
         createdDate: cleanDate(getValue('createdDate') || getValue('listingDate')),
         closingDate: cleanDate(getValue('closingDate')),
@@ -341,7 +341,7 @@ export default function Home() {
         commissionRate: 0,
         commissionTotal: cleanNumber(getValue('commission')),
         agents: cleanText(getValue('agentName')),
-        createdBy: cleanText(getValue('agentName')),
+        createdBy: (headers.indexOf('Created By') >= 0 ? row[headers.indexOf('Created By')] : cleanText(getValue('agentName'))),
         buySideCommission: cleanNumber(getValue('buyCommission')),
         sellSideCommission: cleanNumber(getValue('sellCommission')),
         buySidePercentage: 0,
