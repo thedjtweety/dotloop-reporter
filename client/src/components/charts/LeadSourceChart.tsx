@@ -52,9 +52,11 @@ export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartP
           data={data}
           cx="50%"
           cy="50%"
-          labelLine={false}
-          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(2)}%`}
+          labelLine={true}
+          label={({ name, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
           outerRadius={100}
+          innerRadius={60}
+          paddingAngle={2}
           fill="#8884d8"
           dataKey="value"
           onClick={(data) => onSliceClick && onSliceClick(data.label)}
@@ -65,6 +67,17 @@ export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartP
           ))}
         </Pie>
         <Tooltip content={<CustomTooltip total={data.reduce((acc, curr) => acc + curr.value, 0)} />} />
+        <Legend 
+          layout="vertical" 
+          verticalAlign="middle" 
+          align="right"
+          formatter={(value, entry: any) => {
+            const { payload } = entry;
+            const total = data.reduce((acc, curr) => acc + curr.value, 0);
+            const percent = ((payload.value / total) * 100).toFixed(1);
+            return <span className="text-sm font-medium ml-2">{value} <span className="text-muted-foreground">({percent}%)</span></span>;
+          }}
+        />
       </PieChart>
     </ResponsiveContainer>
   );
