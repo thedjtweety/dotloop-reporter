@@ -53,7 +53,7 @@ export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartP
           cx="50%"
           cy="50%"
           labelLine={true}
-          label={({ name, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
+          label={({ payload, percent }) => `${payload.label} (${(percent * 100).toFixed(1)}%)`}
           outerRadius={80}
           innerRadius={50}
           paddingAngle={2}
@@ -76,7 +76,7 @@ export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartP
             const { payload } = entry;
             const total = data.reduce((acc, curr) => acc + curr.value, 0);
             const percent = ((payload.value / total) * 100).toFixed(1);
-            return <span className="text-sm font-medium ml-2 mr-4">{value} <span className="text-muted-foreground">({percent}%)</span></span>;
+            return <span className="text-sm font-medium ml-2 mr-4">{payload.label} <span className="text-muted-foreground">({percent}%)</span></span>;
           }}
         />
       </PieChart>
