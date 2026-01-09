@@ -407,15 +407,6 @@ export default function Home() {
               Reporting Tool
             </h1>
                 <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="hidden md:flex gap-2 border-primary/50 hover:bg-primary/10 hover:border-primary text-primary font-medium"
-                  onClick={() => setActiveTab('settings')}
-                >
-                  <Settings className="w-4 h-4" />
-                  Commission Settings
-                </Button>
                 <ModeToggle />
               </div>
           </div>
@@ -459,6 +450,15 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="hidden md:flex gap-2 border-primary/50 hover:bg-primary/10 hover:border-primary text-primary font-medium"
+              onClick={() => setActiveTab('settings')}
+            >
+              <Settings className="w-4 h-4" />
+              Commission Settings
+            </Button>
             <ModeToggle />
             <DatePickerWithRange date={dateRange} setDate={setDateRange} />
             <Button variant="outline" onClick={() => setShowFieldMapper(true)}>
@@ -590,7 +590,7 @@ export default function Home() {
         {/* Charts Section */}
         <div className="mb-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 mb-6">
+            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-10 mb-6 h-auto">
               <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
               <TabsTrigger value="leadsource">Lead Source</TabsTrigger>
