@@ -283,7 +283,7 @@ export default function CreativeDashboard() {
   const [records, setRecords] = useState<DotloopRecord[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [agentMetrics, setAgentMetrics] = useState<AgentMetrics[]>([]);
-  const [activeTab, setActiveTab] = useState('map');
+  const [activeTab, setActiveTab] = useState('performance');
 
   useEffect(() => {
     // Load data from localStorage (passed from Home)
