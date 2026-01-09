@@ -35,6 +35,7 @@ import { generateSampleData } from '@/lib/sampleData';
 import { getRecentFiles, saveRecentFile, deleteRecentFile } from '@/lib/storage';
 import UploadZone from '@/components/UploadZone';
 import TrustBar from '@/components/TrustBar';
+import CommissionProjector from '@/components/CommissionProjector';
 import RecentUploads, { RecentFile } from '@/components/RecentUploads';
 import MetricCard from '@/components/MetricCard';
 import ColumnMapping from '@/components/ColumnMapping';
@@ -472,37 +473,42 @@ export default function Home() {
       {/* Main Dashboard */}
       <main className="container py-8">
         {/* Top Metrics Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <MetricCard
-            title="Total Transactions"
-            value={metrics.totalTransactions}
-            icon={<HomeIcon className="w-5 h-5" />}
-            color="primary"
-            trend={metrics.trends?.totalTransactions}
-          />
-          <MetricCard
-            title="Total Sales Volume"
-            value={formatCurrency(metrics.totalSalesVolume)}
-            subtitle={`Avg: ${formatCurrency(metrics.averagePrice)}`}
-            icon={<DollarSign className="w-5 h-5" />}
-            color="accent"
-            trend={metrics.trends?.totalVolume}
-          />
-          <MetricCard
-            title="Closing Rate"
-            value={formatPercentage(metrics.closingRate)}
-            subtitle={`${metrics.closed} closed deals`}
-            icon={<TrendingUp className="w-5 h-5" />}
-            color="accent"
-            trend={metrics.trends?.closingRate}
-          />
-          <MetricCard
-            title="Avg Days to Close"
-            value={metrics.averageDaysToClose}
-            icon={<Calendar className="w-5 h-5" />}
-            color="primary"
-            trend={metrics.trends?.avgDaysToClose}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <MetricCard
+              title="Total Transactions"
+              value={metrics.totalTransactions}
+              icon={<HomeIcon className="w-5 h-5" />}
+              color="primary"
+              trend={metrics.trends?.totalTransactions}
+            />
+            <MetricCard
+              title="Total Sales Volume"
+              value={formatCurrency(metrics.totalSalesVolume)}
+              subtitle={`Avg: ${formatCurrency(metrics.averagePrice)}`}
+              icon={<DollarSign className="w-5 h-5" />}
+              color="accent"
+              trend={metrics.trends?.totalVolume}
+            />
+            <MetricCard
+              title="Closing Rate"
+              value={formatPercentage(metrics.closingRate)}
+              subtitle={`${metrics.closed} closed deals`}
+              icon={<TrendingUp className="w-5 h-5" />}
+              color="accent"
+              trend={metrics.trends?.closingRate}
+            />
+            <MetricCard
+              title="Avg Days to Close"
+              value={metrics.averageDaysToClose}
+              icon={<Calendar className="w-5 h-5" />}
+              color="primary"
+              trend={metrics.trends?.avgDaysToClose}
+            />
+          </div>
+          <div className="lg:col-span-1">
+            <CommissionProjector records={filteredRecords} />
+          </div>
         </div>
 
         {/* Status Overview Row */}

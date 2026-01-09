@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart3, List } from 'lucide-react';
 import TransactionTable from './TransactionTable';
+import AgentOnePager from './AgentOnePager';
 
 interface AgentDetailsPanelProps {
   agent: AgentMetrics;
@@ -38,8 +39,12 @@ export default function AgentDetailsPanel({
 
 
   return (
-    <Tabs defaultValue="overview" className="w-full">
-      <TabsList className="grid w-full grid-cols-2 mb-6">
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <AgentOnePager agent={agent} />
+      </div>
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
         <TabsTrigger value="overview" className="flex items-center gap-2">
           <BarChart3 className="w-4 h-4" />
           Overview
@@ -118,6 +123,7 @@ export default function AgentDetailsPanel({
           <TransactionTable transactions={agentTransactions} limit={50} />
         </Card>
       </TabsContent>
-    </Tabs>
+      </Tabs>
+    </div>
   );
 }
