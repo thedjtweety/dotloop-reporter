@@ -358,8 +358,16 @@ export default function Home() {
     handleSaveRecent(fileName, records);
 
     // Check for volume-only data (no commission) and redirect to Creative Dashboard
-    const hasFinancialData = records.some(r => r.commissionTotal > 0 || r.companyDollar > 0);
-    if (!hasFinancialData) {
+    // Logic: If the CSV *headers* contain commission-related keywords, it's a Real Estate report (even if values are 0).
+    // If headers are completely missing commission columns, it's likely the Consultant/Volume-only report.
+    const headerString = headers.join(' ').toLowerCase();
+    const hasFinancialColumns = 
+      headerString.includes('commission') || 
+      headerString.includes('company dollar') || 
+      headerString.includes('split') ||
+      headerString.includes('net to office');
+
+    if (!hasFinancialColumns) {
       localStorage.setItem('creative_dashboard_data', JSON.stringify(records));
       setLocation('/creative');
     }
