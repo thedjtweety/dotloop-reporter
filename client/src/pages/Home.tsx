@@ -454,7 +454,12 @@ export default function Home() {
               variant="outline" 
               size="sm" 
               className="hidden md:flex gap-2 border-primary/50 hover:bg-primary/10 hover:border-primary text-primary font-medium"
-              onClick={() => setActiveTab('settings')}
+              onClick={() => {
+                setActiveTab('settings');
+                setTimeout(() => {
+                  document.getElementById('commission-plans-section')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }}
             >
               <Settings className="w-4 h-4" />
               Commission Settings
@@ -742,7 +747,7 @@ export default function Home() {
             </TabsContent>
 
             <TabsContent value="settings" className="space-y-8">
-              <Card className="p-6 bg-card border border-border">
+              <Card id="commission-plans-section" className="p-6 bg-card border border-border">
                 <CommissionPlansManager />
               </Card>
               <Card className="p-6 bg-card border border-border">
