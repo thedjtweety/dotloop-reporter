@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Save, Edit2, X } from 'lucide-react';
+import { Plus, Trash2, Save, Edit2, X, Settings } from 'lucide-react';
 import { Deduction } from '@/lib/commission';
 import {
   Dialog,
@@ -115,8 +115,8 @@ export default function CommissionPlansManager() {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={openNewDialog} className="gap-2">
-              <Plus className="h-4 w-4" /> Add Plan
+            <Button onClick={openNewDialog} className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 font-bold px-6 py-2 border-2 border-primary-foreground/20">
+              <Settings className="h-4 w-4" /> Commission Plan Settings
             </Button>
           </DialogTrigger>
           <DialogContent>
