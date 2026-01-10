@@ -1,19 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { DotloopRecord } from '@/lib/csvParser';
-import { analyzeDataHealth, DataIssue } from '@/lib/dataHealth';
+import { analyzeDataHealth, HealthIssue } from '@/lib/dataHealth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { AlertTriangle, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { AlertTriangle, CheckCircle, XCircle, AlertCircle, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Button } from '@/components/ui/button';
+import DrillDownModal from './DrillDownModal';
 
 interface DataHealthCheckProps {
   records: DotloopRecord[];
@@ -21,6 +14,7 @@ interface DataHealthCheckProps {
 
 export default function DataHealthCheck({ records }: DataHealthCheckProps) {
   const report = useMemo(() => analyzeDataHealth(records), [records]);
+  const [selectedIssue, setSelectedIssue] = useState<HealthIssue | null>(null);
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return 'text-emerald-500';
@@ -33,6 +27,15 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
     if (score >= 70) return 'bg-amber-500';
     return 'bg-red-500';
   };
+
+  const handleFixClick = (issue: HealthIssue) => {
+    setSelectedIssue(issue);
+  };
+
+  const filteredRecords = useMemo(() => {
+    if (!selectedIssue) return [];
+    return records.filter(selectedIssue.filter);
+  }, [selectedIssue, records]);
 
   return (
     <div className="space-y-6">
@@ -64,49 +67,36 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-card">
+        <Card className="border-border bg-card md:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Records Analyzed
+              Analysis Summary
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{report.totalRecords}</div>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant="outline" className="border-emerald-500/20 text-emerald-500 bg-emerald-500/10">
-                {report.healthyRecords} Healthy
-              </Badge>
-              <Badge variant="outline" className="border-red-500/20 text-red-500 bg-red-500/10">
-                {report.issues.length} Issues
-              </Badge>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-2xl font-bold text-foreground">{report.totalRecords}</div>
+                <div className="text-xs text-muted-foreground">Total Records Analyzed</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-foreground">{report.issues.length}</div>
+                <div className="text-xs text-muted-foreground">Issues Detected</div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Top Missing Fields
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {Object.entries(report.missingFieldCounts)
-                .sort(([, a], [, b]) => b - a)
-                .slice(0, 3)
-                .map(([field, count]) => (
-                  count > 0 && (
-                    <div key={field} className="flex justify-between items-center text-sm">
-                      <span className="capitalize text-muted-foreground">
-                        {field.replace(/([A-Z])/g, ' $1').trim()}
-                      </span>
-                      <span className="font-medium text-foreground">{count}</span>
-                    </div>
-                  )
-                ))}
-              {Object.values(report.missingFieldCounts).every(c => c === 0) && (
-                <div className="text-sm text-muted-foreground italic">No missing fields found</div>
-              )}
+            <div className="mt-4 flex gap-2">
+               {report.issues.filter(i => i.type === 'critical').length > 0 && (
+                 <Badge variant="destructive" className="flex items-center gap-1">
+                   <AlertCircle className="h-3 w-3" /> 
+                   {report.issues.filter(i => i.type === 'critical').length} Critical Issues
+                 </Badge>
+               )}
+               {report.issues.filter(i => i.type === 'warning').length > 0 && (
+                 <Badge variant="secondary" className="flex items-center gap-1 text-amber-500 bg-amber-500/10 border-amber-500/20">
+                   <AlertTriangle className="h-3 w-3" />
+                   {report.issues.filter(i => i.type === 'warning').length} Warnings
+                 </Badge>
+               )}
             </div>
           </CardContent>
         </Card>
@@ -115,9 +105,9 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
       {/* Detailed Issues List */}
       <Card className="border-border bg-card">
         <CardHeader>
-          <CardTitle>Data Quality Issues</CardTitle>
+          <CardTitle>Action Items</CardTitle>
           <CardDescription>
-            Review transactions with missing information to improve report accuracy.
+            Fix these issues to improve report accuracy.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -130,49 +120,45 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
               </p>
             </div>
           ) : (
-            <ScrollArea className="h-[400px] rounded-md border border-border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Transaction</TableHead>
-                    <TableHead>Severity</TableHead>
-                    <TableHead>Missing Fields</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {report.issues.map((issue) => (
-                    <TableRow key={issue.recordId}>
-                      <TableCell className="font-medium text-foreground">
-                        {issue.loopName}
-                      </TableCell>
-                      <TableCell>
-                        {issue.severity === 'critical' ? (
-                          <Badge variant="destructive" className="flex w-fit items-center gap-1">
-                            <AlertCircle className="h-3 w-3" /> Critical
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="flex w-fit items-center gap-1 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20">
-                            <AlertTriangle className="h-3 w-3" /> Warning
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {issue.missingFields.map((field) => (
-                            <Badge key={field} variant="outline" className="text-xs">
-                              {field}
-                            </Badge>
-                          ))}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
+            <div className="space-y-4">
+              {report.issues.map((issue) => (
+                <div key={issue.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border bg-muted/30 gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      {issue.type === 'critical' ? (
+                        <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-5">Critical</Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-5 text-amber-500 bg-amber-500/10 border-amber-500/20">Warning</Badge>
+                      )}
+                      <h4 className="font-medium text-foreground">{issue.title}</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{issue.description}</p>
+                    <p className="text-xs font-medium text-accent">Impact: {issue.impact}</p>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="shrink-0 gap-2"
+                    onClick={() => handleFixClick(issue)}
+                  >
+                    View {issue.affectedCount} Records <ArrowRight className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Drill Down Modal for Fixing Issues */}
+      {selectedIssue && (
+        <DrillDownModal
+          isOpen={!!selectedIssue}
+          onClose={() => setSelectedIssue(null)}
+          title={`Fix: ${selectedIssue.title}`}
+          transactions={filteredRecords}
+        />
+      )}
     </div>
   );
 }
