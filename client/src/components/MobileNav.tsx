@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Settings, Upload, BarChart2, Users, FileText, PieChart } from 'lucide-react';
+import { Menu, Settings, Upload, BarChart2, Users, FileText, PieChart, Map, Activity, DollarSign } from 'lucide-react';
 import { ModeToggle } from '@/components/ModeToggle';
 
 interface MobileNavProps {
@@ -24,6 +24,36 @@ export default function MobileNav({
   const handleTabClick = (tab: string) => {
     onTabChange(tab);
     setOpen(false);
+    
+    // Scroll to tabs section
+    setTimeout(() => {
+      const tabsElement = document.querySelector('[role="tablist"]');
+      if (tabsElement) {
+        tabsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
+
+  const handleAgentClick = () => {
+    setOpen(false);
+    // Scroll to agent leaderboard section
+    setTimeout(() => {
+      // We need to find the agent leaderboard section. 
+      // Since it doesn't have an ID, we'll look for the text or class
+      const headings = Array.from(document.querySelectorAll('h2'));
+      const agentHeading = headings.find(h => h.textContent?.includes('Agent Leaderboard'));
+      
+      if (agentHeading) {
+        agentHeading.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        // Fallback to scrolling to the container before charts
+        const tabsElement = document.querySelector('[role="tablist"]');
+        if (tabsElement) {
+          // The leaderboard is usually before the tabs
+          tabsElement.parentElement?.previousElementSibling?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }, 100);
   };
 
   return (
@@ -34,7 +64,7 @@ export default function MobileNav({
           <span className="sr-only">Toggle menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+      <SheetContent side="left" className="w-[300px] sm:w-[400px] overflow-y-auto">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle className="flex items-center gap-2">
             <img src="/dotloop-logo.png" alt="Dotloop Logo" className="h-8 w-auto" />
@@ -42,40 +72,64 @@ export default function MobileNav({
           </SheetTitle>
         </SheetHeader>
         
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 pb-8">
           <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-medium text-muted-foreground px-2">Dashboard</h3>
+            <h3 className="text-sm font-medium text-muted-foreground px-2">Dashboard Sections</h3>
             <Button 
               variant={activeTab === 'pipeline' ? 'secondary' : 'ghost'} 
               className="justify-start" 
               onClick={() => handleTabClick('pipeline')}
             >
               <BarChart2 className="mr-2 h-4 w-4" />
-              Pipeline & Performance
+              Pipeline
             </Button>
             <Button 
-              variant={activeTab === 'financials' ? 'secondary' : 'ghost'} 
+              variant={activeTab === 'timeline' ? 'secondary' : 'ghost'} 
               className="justify-start" 
-              onClick={() => handleTabClick('financials')}
+              onClick={() => handleTabClick('timeline')}
             >
-              <DollarSignIcon className="mr-2 h-4 w-4" />
-              Financial Analytics
+              <Activity className="mr-2 h-4 w-4" />
+              Timeline
             </Button>
             <Button 
-              variant={activeTab === 'agents' ? 'secondary' : 'ghost'} 
+              variant={activeTab === 'financial' ? 'secondary' : 'ghost'} 
               className="justify-start" 
-              onClick={() => handleTabClick('agents')}
+              onClick={() => handleTabClick('financial')}
+            >
+              <DollarSign className="mr-2 h-4 w-4" />
+              Financial
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="justify-start" 
+              onClick={handleAgentClick}
             >
               <Users className="mr-2 h-4 w-4" />
               Agent Leaderboard
             </Button>
             <Button 
-              variant={activeTab === 'transactions' ? 'secondary' : 'ghost'} 
+              variant={activeTab === 'leadsource' ? 'secondary' : 'ghost'} 
               className="justify-start" 
-              onClick={() => handleTabClick('transactions')}
+              onClick={() => handleTabClick('leadsource')}
             >
               <FileText className="mr-2 h-4 w-4" />
-              Transactions
+              Lead Source
+            </Button>
+            <Button 
+              variant={activeTab === 'property' ? 'secondary' : 'ghost'} 
+              className="justify-start" 
+              onClick={() => handleTabClick('property')}
+            >
+              <HomeIcon className="mr-2 h-4 w-4" />
+              Property Type
+            </Button>
+            <Button 
+              variant={activeTab === 'geographic' ? 'secondary' : 'ghost'} 
+              className="justify-start" 
+              onClick={() => handleTabClick('geographic')}
+            >
+              <Map className="mr-2 h-4 w-4" />
+              Geographic
             </Button>
             <Button 
               variant={activeTab === 'insights' ? 'secondary' : 'ghost'} 
@@ -83,7 +137,7 @@ export default function MobileNav({
               onClick={() => handleTabClick('insights')}
             >
               <PieChart className="mr-2 h-4 w-4" />
-              Market Insights
+              Insights
             </Button>
           </div>
 
@@ -113,7 +167,7 @@ export default function MobileNav({
             </Button>
           </div>
 
-          <div className="flex flex-col gap-2 mt-auto">
+          <div className="flex flex-col gap-2 mt-auto pt-4 border-t">
             <div className="flex items-center justify-between px-2 py-2">
               <span className="text-sm font-medium">Theme</span>
               <ModeToggle />
@@ -136,7 +190,7 @@ export default function MobileNav({
   );
 }
 
-function DollarSignIcon(props: any) {
+function HomeIcon(props: any) {
   return (
     <svg
       {...props}
@@ -150,8 +204,8 @@ function DollarSignIcon(props: any) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <line x1="12" x2="12" y1="2" y2="22" />
-      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
   )
 }
