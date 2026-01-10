@@ -22,7 +22,7 @@ const STREETS = [
 
 const STATUSES = [
   'Sold', 'Sold', 'Sold', 'Sold', // Higher weight for sold
-  'Active', 'Active', 
+  'Active Listings', 'Active Listings', 
   'Under Contract', 'Under Contract',
   'Archived'
 ];
@@ -49,6 +49,7 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
   const records: DotloopRecord[] = [];
   const now = new Date();
   const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+  const threeMonthsFuture = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate());
 
   for (let i = 0; i < count; i++) {
     const status = STATUSES[Math.floor(Math.random() * STATUSES.length)];
@@ -65,11 +66,19 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
     let listingDate = '';
 
     if (status === 'Sold') {
-      const close = new Date(createdDate.getTime() + (Math.random() * 60 + 30) * 24 * 60 * 60 * 1000);
+      // Sold in the past year
+      const close = randomDate(createdDate, now);
       closingDate = formatDate(close);
       offerDate = formatDate(new Date(close.getTime() - 30 * 24 * 60 * 60 * 1000));
     } else if (status === 'Under Contract') {
-      offerDate = formatDate(new Date(createdDate.getTime() + 15 * 24 * 60 * 60 * 1000));
+      // Closing in the future (15-60 days from now)
+      const futureClose = new Date(now.getTime() + (Math.random() * 45 + 15) * 24 * 60 * 60 * 1000);
+      closingDate = formatDate(futureClose);
+      offerDate = formatDate(new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)); // Offer accepted recently
+    } else if (status === 'Active Listings') {
+      // Projected closing in future (30-90 days)
+      const projectedClose = new Date(now.getTime() + (Math.random() * 60 + 30) * 24 * 60 * 60 * 1000);
+      closingDate = formatDate(projectedClose); // Set for projection purposes
     }
 
     if (status !== 'Archived') {
@@ -78,13 +87,16 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
 
     // Commission logic
     const commissionRate = 0.03;
-    const totalCommission = status === 'Sold' ? price * commissionRate : 0;
+    const totalCommission = price * commissionRate; // Calculate for ALL statuses so projections work
     const isBuySide = Math.random() > 0.5;
     
-    const loopId = crypto.randomUUID();
+    const loopId = crypto.randomUUID(); // Generate a fake UUID
+    // Use a realistic looking ID for the view URL
+    const viewId = Math.floor(Math.random() * 100000000) + 200000000;
+
     records.push({
-      loopId,
-      loopViewUrl: `https://www.dotloop.com/loop/${loopId}/view`,
+      loopId: loopId,
+      loopViewUrl: `https://www.dotloop.com/loop/${viewId}/view`,
       loopName: `${streetNum} ${streetName} St, ${city}, TX`,
       loopStatus: status,
       createdDate: formatDate(createdDate),
@@ -92,7 +104,7 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
       listingDate,
       offerDate,
       address: `${streetNum} ${streetName} St`,
-      price: status === 'Sold' ? price : 0, // Only count price if sold for some metrics
+      price: price, // Always populate price
       propertyType: PROPERTY_TYPES[Math.floor(Math.random() * PROPERTY_TYPES.length)],
       bedrooms: Math.floor(Math.random() * 4) + 2,
       bathrooms: Math.floor(Math.random() * 3) + 2,
@@ -102,9 +114,9 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
       county: 'Williamson',
       leadSource: LEAD_SOURCES[Math.floor(Math.random() * LEAD_SOURCES.length)],
       earnestMoney: price * 0.01,
-      salePrice: status === 'Sold' ? price : 0,
+      salePrice: status === 'Sold' ? price : 0, // Sale price only for sold
       commissionRate: 3,
-      commissionTotal: totalCommission,
+      commissionTotal: totalCommission, // Populate for all to enable projections
       agents: agent,
       createdBy: agent,
       buySideCommission: isBuySide ? totalCommission : 0,
