@@ -57,28 +57,36 @@ export function exportAgentAsPDF(agent: AgentMetrics): void {
           line-height: 1.6;
         }
         .header {
-          border-bottom: 3px solid #1e3a5f;
+          border-bottom: 3px solid #1E90FF; /* Dodger Blue */
           margin-bottom: 30px;
           padding-bottom: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
         }
-        .header h1 {
-          color: #1e3a5f;
-          margin: 0 0 10px 0;
+        .header-content h1 {
+          color: #1e3a5f; /* Navy */
+          margin: 0 0 5px 0;
           font-size: 28px;
         }
-        .header p {
+        .header-content p {
           color: #666;
-          margin: 5px 0;
+          margin: 0;
           font-size: 14px;
+        }
+        .logo-placeholder {
+          color: #1E90FF;
+          font-weight: bold;
+          font-size: 24px;
         }
         .section {
           margin-bottom: 30px;
           page-break-inside: avoid;
         }
         .section h2 {
-          color: #1e3a5f;
+          color: #1e3a5f; /* Navy */
           font-size: 18px;
-          border-bottom: 2px solid #10b981;
+          border-bottom: 2px solid #1E90FF; /* Dodger Blue */
           padding-bottom: 10px;
           margin-bottom: 15px;
         }
@@ -89,64 +97,75 @@ export function exportAgentAsPDF(agent: AgentMetrics): void {
           margin-bottom: 20px;
         }
         .metric-card {
-          background: #f5f5f5;
+          background: #f8fafc;
           padding: 15px;
           border-radius: 8px;
-          border-left: 4px solid #10b981;
+          border-left: 4px solid #1E90FF; /* Dodger Blue */
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .metric-label {
           font-size: 12px;
-          color: #666;
+          color: #64748b;
           text-transform: uppercase;
           margin-bottom: 5px;
           font-weight: 600;
+          letter-spacing: 0.5px;
         }
         .metric-value {
           font-size: 24px;
-          color: #1e3a5f;
+          color: #1e3a5f; /* Navy */
           font-weight: bold;
         }
         .metric-subtext {
           font-size: 12px;
-          color: #999;
+          color: #94a3b8;
           margin-top: 5px;
         }
         .footer {
           margin-top: 40px;
           padding-top: 20px;
-          border-top: 1px solid #ddd;
+          border-top: 1px solid #e2e8f0;
           font-size: 12px;
-          color: #999;
+          color: #94a3b8;
+          text-align: center;
         }
         table {
           width: 100%;
           border-collapse: collapse;
           margin-bottom: 20px;
+          background: white;
         }
         th, td {
           padding: 12px;
           text-align: left;
-          border-bottom: 1px solid #ddd;
+          border-bottom: 1px solid #e2e8f0;
         }
         th {
-          background: #f5f5f5;
+          background: #f1f5f9;
           font-weight: 600;
-          color: #1e3a5f;
+          color: #1e3a5f; /* Navy */
+          text-transform: uppercase;
+          font-size: 12px;
+          letter-spacing: 0.5px;
         }
         .highlight {
-          background: #10b981;
-          color: white;
-          padding: 2px 6px;
-          border-radius: 4px;
+          background: #e0f2fe; /* Light Blue */
+          color: #0369a1; /* Dark Blue */
+          padding: 2px 8px;
+          border-radius: 12px;
           font-weight: 600;
+          font-size: 14px;
         }
       </style>
     </head>
     <body>
       <div class="header">
-        <h1>Agent Performance Report</h1>
-        <p><strong>Agent:</strong> ${agent.agentName}</p>
-        <p><strong>Generated:</strong> ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+        <div class="header-content">
+          <h1>Agent Performance Report</h1>
+          <p><strong>Agent:</strong> ${agent.agentName}</p>
+          <p><strong>Generated:</strong> ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+        </div>
+        <div class="logo-placeholder">dotloop</div>
       </div>
 
       <div class="section">

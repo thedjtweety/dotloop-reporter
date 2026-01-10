@@ -22,23 +22,23 @@ export default function CommissionStatement({ auditResult, onClose }: Commission
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl shadow-lg border-2">
-        <CardHeader className="flex flex-row items-start justify-between pb-2">
+      <Card className="w-full max-w-2xl shadow-lg border-2 border-[#1E90FF]/20">
+        <CardHeader className="flex flex-row items-start justify-between pb-2 bg-[#1e3a5f] text-white rounded-t-lg">
           <div>
             <CardTitle className="text-2xl font-bold">Commission Statement</CardTitle>
-            <CardDescription>Transaction Breakdown</CardDescription>
+            <CardDescription className="text-blue-200">Transaction Breakdown</CardDescription>
           </div>
-          <Button variant="outline" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20">
             <span className="sr-only">Close</span>
             <span className="text-lg">×</span>
           </Button>
         </CardHeader>
-        <CardContent className="space-y-6" id="commission-statement-content">
+        <CardContent className="space-y-6 pt-6" id="commission-statement-content">
           {/* Header Info */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-muted-foreground">Agent</p>
-              <p className="font-medium text-lg">{agentName}</p>
+              <p className="font-medium text-lg text-[#1e3a5f]">{agentName}</p>
             </div>
             <div className="text-right">
               <p className="text-muted-foreground">Closing Date</p>
@@ -46,17 +46,17 @@ export default function CommissionStatement({ auditResult, onClose }: Commission
             </div>
             <div className="col-span-2">
               <p className="text-muted-foreground">Property / Loop</p>
-              <p className="font-medium">{loopName}</p>
+              <p className="font-medium text-[#1e3a5f]">{loopName}</p>
             </div>
           </div>
 
-          <Separator />
+          <Separator className="bg-slate-200" />
 
           {/* Financial Breakdown */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="font-medium">Gross Commission Income (GCI)</span>
-              <span className="font-bold text-lg">{formatCurrency(snapshot.grossCommission)}</span>
+              <span className="font-medium text-slate-700">Gross Commission Income (GCI)</span>
+              <span className="font-bold text-lg text-[#1e3a5f]">{formatCurrency(snapshot.grossCommission)}</span>
             </div>
 
             {snapshot.teamSplitAmount > 0 && (
@@ -69,7 +69,7 @@ export default function CommissionStatement({ auditResult, onClose }: Commission
             <div className="flex justify-between items-center text-red-600">
               <span>
                 Less: Brokerage Split 
-                <Badge variant="outline" className="ml-2 text-xs">
+                <Badge variant="outline" className="ml-2 text-xs border-red-200 text-red-600">
                   {snapshot.splitPercentageApplied < 100 ? `${100 - snapshot.splitPercentageApplied}%` : '0% (Capped)'}
                 </Badge>
               </span>
@@ -87,36 +87,36 @@ export default function CommissionStatement({ auditResult, onClose }: Commission
               </div>
             )}
 
-            <Separator className="my-2" />
+            <Separator className="my-2 bg-slate-200" />
 
-            <div className="flex justify-between items-center bg-muted/50 p-3 rounded-md">
-              <span className="font-bold text-lg">Net Agent Commission</span>
-              <span className="font-bold text-xl text-emerald-600">{formatCurrency(snapshot.agentNetCommission)}</span>
+            <div className="flex justify-between items-center bg-[#f0f9ff] p-3 rounded-md border border-[#1E90FF]/20">
+              <span className="font-bold text-lg text-[#1e3a5f]">Net Agent Commission</span>
+              <span className="font-bold text-xl text-[#1E90FF]">{formatCurrency(snapshot.agentNetCommission)}</span>
             </div>
           </div>
 
           {/* YTD Context */}
-          <div className="bg-blue-50/50 p-4 rounded-md border border-blue-100 text-sm space-y-2">
-            <h4 className="font-semibold text-blue-900">Year-to-Date (YTD) Context</h4>
+          <div className="bg-slate-50 p-4 rounded-md border border-slate-200 text-sm space-y-2">
+            <h4 className="font-semibold text-[#1e3a5f]">Year-to-Date (YTD) Context</h4>
             <div className="grid grid-cols-2 gap-2">
               <div className="flex justify-between">
-                <span className="text-blue-700">Company Dollar Before Deal:</span>
-                <span>{formatCurrency(snapshot.ytdBefore)}</span>
+                <span className="text-slate-600">Company Dollar Before Deal:</span>
+                <span className="font-medium">{formatCurrency(snapshot.ytdBefore)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-blue-700">Company Dollar After Deal:</span>
-                <span>{formatCurrency(snapshot.ytdAfter)}</span>
+                <span className="text-slate-600">Company Dollar After Deal:</span>
+                <span className="font-medium">{formatCurrency(snapshot.ytdAfter)}</span>
               </div>
             </div>
             {snapshot.isCapped && (
-              <div className="mt-2 text-center font-medium text-emerald-600 bg-emerald-100/50 py-1 rounded">
+              <div className="mt-2 text-center font-medium text-[#1E90FF] bg-[#1E90FF]/10 py-1 rounded border border-[#1E90FF]/20">
                 🎉 Agent has CAPPED for this cycle!
               </div>
             )}
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={async () => {
+            <Button variant="outline" className="border-[#1E90FF] text-[#1E90FF] hover:bg-[#1E90FF]/10" onClick={async () => {
               const element = document.getElementById('commission-statement-content');
               if (element) {
                 const canvas = await html2canvas(element, { scale: 2 });
@@ -130,7 +130,7 @@ export default function CommissionStatement({ auditResult, onClose }: Commission
             }}>
               <Download className="w-4 h-4 mr-2" /> Download PDF
             </Button>
-            <Button onClick={onClose}>Close</Button>
+            <Button onClick={onClose} className="bg-[#1e3a5f] hover:bg-[#1e3a5f]/90">Close</Button>
           </div>
         </CardContent>
       </Card>

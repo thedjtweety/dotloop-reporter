@@ -15,7 +15,7 @@ export default function AgentOnePager({ agent }: AgentOnePagerProps) {
     const pageHeight = doc.internal.pageSize.getHeight();
     
     // --- Header Background ---
-    doc.setFillColor(30, 58, 95); // Deep Slate Blue (#1e3a5f)
+    doc.setFillColor(30, 144, 255); // Dodger Blue (#1E90FF)
     doc.rect(0, 0, pageWidth, 60, 'F');
     
     // --- Title & Agent Name ---
@@ -32,29 +32,29 @@ export default function AgentOnePager({ agent }: AgentOnePagerProps) {
     // In a real app, we'd load the actual logo image here
     doc.setFillColor(255, 255, 255);
     doc.circle(pageWidth - 30, 30, 15, 'F');
-    doc.setTextColor(30, 58, 95);
+    doc.setTextColor(30, 58, 95); // Navy
     doc.setFontSize(8);
-    doc.text('LOGO', pageWidth - 36, 32);
+    doc.text('dotloop', pageWidth - 38, 32);
 
     // --- Key Metrics Section ---
     let yPos = 80;
     
     // Helper to draw metric card
     const drawMetricCard = (x: number, y: number, title: string, value: string, subtitle: string) => {
-      doc.setFillColor(245, 247, 250);
-      doc.setDrawColor(220, 220, 220);
+      doc.setFillColor(248, 250, 252); // Slate 50
+      doc.setDrawColor(226, 232, 240); // Slate 200
       doc.roundedRect(x, y, 50, 40, 3, 3, 'FD');
       
-      doc.setTextColor(100, 116, 139); // Muted text
+      doc.setTextColor(100, 116, 139); // Slate 500
       doc.setFontSize(9);
       doc.text(title, x + 5, y + 10);
       
-      doc.setTextColor(30, 58, 95); // Primary text
+      doc.setTextColor(30, 58, 95); // Navy
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.text(value, x + 5, y + 22);
       
-      doc.setTextColor(16, 185, 129); // Emerald green
+      doc.setTextColor(30, 144, 255); // Dodger Blue
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
       doc.text(subtitle, x + 5, y + 32);
@@ -66,18 +66,19 @@ export default function AgentOnePager({ agent }: AgentOnePagerProps) {
 
     // --- Performance Breakdown ---
     yPos += 60;
-    doc.setTextColor(30, 58, 95);
+    doc.setTextColor(30, 58, 95); // Navy
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text('Performance Breakdown', 20, yPos);
     
     yPos += 15;
-    doc.setDrawColor(200, 200, 200);
+    doc.setDrawColor(30, 144, 255); // Dodger Blue
+    doc.setLineWidth(0.5);
     doc.line(20, yPos, pageWidth - 20, yPos);
     
     yPos += 15;
     doc.setFontSize(11);
-    doc.setTextColor(50, 50, 50);
+    doc.setTextColor(51, 65, 85); // Slate 700
     
     const rowHeight = 12;
     const col1 = 20;
@@ -96,11 +97,11 @@ export default function AgentOnePager({ agent }: AgentOnePagerProps) {
 
     // --- Footer ---
     const footerY = pageHeight - 20;
-    doc.setDrawColor(200, 200, 200);
+    doc.setDrawColor(226, 232, 240); // Slate 200
     doc.line(20, footerY, pageWidth - 20, footerY);
     
     doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
+    doc.setTextColor(148, 163, 184); // Slate 400
     doc.text(`Generated on ${new Date().toLocaleDateString()} via Dotloop Reporter`, 20, footerY + 10);
     doc.text('Confidential & Proprietary', pageWidth - 60, footerY + 10);
 
