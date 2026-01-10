@@ -56,6 +56,7 @@ export interface DashboardMetrics {
   totalSalesVolume: number;
   averagePrice: number;
   totalCommission: number;
+  totalCompanyDollar: number; // Added field
   averageDaysToClose: number;
   closingRate: number;
   hasFinancialData: boolean; // New flag to indicate if financial data is present
@@ -339,7 +340,7 @@ export function normalizeRecord(raw: any, mapping?: Record<string, string>): Dot
         if (match && raw[match] !== undefined && raw[match] !== '') return raw[match];
       }
 
-      return undefined;
+      return '';
     };
 
     // Helper to clean currency strings
@@ -422,6 +423,7 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
         totalSalesVolume: 0,
         averagePrice: 0,
         totalCommission: 0,
+        totalCompanyDollar: 0,
         averageDaysToClose: 0,
         closingRate: 0,
         hasFinancialData: false,
@@ -437,6 +439,7 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
 
     let totalSalesVolume = 0;
     let totalCommission = 0;
+    let totalCompanyDollar = 0;
     let daysToCloseValues: number[] = [];
 
     recs.forEach(record => {
@@ -451,6 +454,7 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
       if (status.includes('closed') || status.includes('sold')) {
         totalSalesVolume += record.salePrice || record.price || 0;
         totalCommission += record.commissionTotal || 0;
+        totalCompanyDollar += record.companyDollar || 0;
 
         if (record.closingDate && record.createdDate) {
           const created = new Date(record.createdDate);
@@ -482,6 +486,7 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
       totalSalesVolume,
       averagePrice,
       totalCommission,
+      totalCompanyDollar,
       averageDaysToClose,
       closingRate,
       hasFinancialData,
@@ -498,10 +503,7 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
     trends = {
       totalTransactions: calculateTrend(currentMetrics.totalTransactions, prevMetrics.totalTransactions),
       totalVolume: calculateTrend(currentMetrics.totalSalesVolume, prevMetrics.totalSalesVolume),
-      avgCommission: calculateTrend(
-        currentMetrics.totalTransactions > 0 ? currentMetrics.totalCommission / currentMetrics.totalTransactions : 0,
-        prevMetrics.totalTransactions > 0 ? prevMetrics.totalCommission / prevMetrics.totalTransactions : 0
-      ),
+      avgCommission: calculateTrend(currentMetrics.totalCommission / (currentMetrics.closed || 1), prevMetrics.totalCommission / (prevMetrics.closed || 1)),
       avgSalePrice: calculateTrend(currentMetrics.averagePrice, prevMetrics.averagePrice),
       avgDaysToClose: calculateTrend(currentMetrics.averageDaysToClose, prevMetrics.averageDaysToClose),
       closingRate: calculateTrend(currentMetrics.closingRate, prevMetrics.closingRate),
@@ -510,170 +512,78 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
 
   return {
     ...currentMetrics,
-    trends
+    trends,
   };
 }
 
-/**
- * Get data for Lead Source chart
- */
-export function getLeadSourceData(records: DotloopRecord[]): ChartData[] {
-  const sourceMap = new Map<string, number>();
+// Helper functions for getting chart data
+export function getPipelineData(records: DotloopRecord[]): ChartData[] {
+  const counts: Record<string, number> = {};
   
-  records.forEach(record => {
-    const source = record.leadSource || 'Unknown';
-    sourceMap.set(source, (sourceMap.get(source) || 0) + 1);
+  records.forEach(r => {
+    const status = r.loopStatus || 'Unknown';
+    counts[status] = (counts[status] || 0) + 1;
   });
 
-  const total = records.length;
+  return Object.entries(counts)
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => b.value - a.value);
+}
+
+export function getLeadSourceData(records: DotloopRecord[]): ChartData[] {
+  const counts: Record<string, number> = {};
   
-  return Array.from(sourceMap.entries())
-    .map(([label, value]) => ({
-      label,
-      value,
-      percentage: total > 0 ? (value / total) * 100 : 0
-    }))
+  records.forEach(r => {
+    const source = r.leadSource || 'Unknown';
+    counts[source] = (counts[source] || 0) + 1;
+  });
+
+  return Object.entries(counts)
+    .map(([label, value]) => ({ label, value }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 10); // Top 10 sources
 }
 
-/**
- * Get data for Property Type chart
- */
 export function getPropertyTypeData(records: DotloopRecord[]): ChartData[] {
-  const typeMap = new Map<string, number>();
+  const counts: Record<string, number> = {};
   
-  records.forEach(record => {
-    const type = record.propertyType || 'Unknown';
-    typeMap.set(type, (typeMap.get(type) || 0) + 1);
+  records.forEach(r => {
+    const type = r.propertyType || 'Unknown';
+    counts[type] = (counts[type] || 0) + 1;
   });
 
-  const total = records.length;
-
-  return Array.from(typeMap.entries())
-    .map(([label, value]) => ({
-      label,
-      value,
-      percentage: total > 0 ? (value / total) * 100 : 0
-    }))
+  return Object.entries(counts)
+    .map(([label, value]) => ({ label, value }))
     .sort((a, b) => b.value - a.value);
 }
 
-/**
- * Get data for Geographic chart (by City)
- */
 export function getGeographicData(records: DotloopRecord[]): ChartData[] {
-  const cityMap = new Map<string, number>();
+  const counts: Record<string, number> = {};
   
-  records.forEach(record => {
-    const city = record.city || 'Unknown';
-    cityMap.set(city, (cityMap.get(city) || 0) + 1);
+  records.forEach(r => {
+    const state = r.state || 'Unknown';
+    counts[state] = (counts[state] || 0) + 1;
   });
 
-  const total = records.length;
-
-  return Array.from(cityMap.entries())
-    .map(([label, value]) => ({
-      label,
-      value,
-      percentage: total > 0 ? (value / total) * 100 : 0
-    }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 10); // Top 10 cities
+  return Object.entries(counts)
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => b.value - a.value);
 }
 
-/**
- * Get Sales Over Time data (Monthly)
- */
 export function getSalesOverTime(records: DotloopRecord[]): ChartData[] {
-  const monthMap = new Map<string, { count: number; volume: number }>();
+  const monthlyVolume: Record<string, number> = {};
   
-  // Sort records by closing date
-  const sortedRecords = [...records]
-    .filter(r => r.closingDate)
-    .sort((a, b) => new Date(a.closingDate).getTime() - new Date(b.closingDate).getTime());
-
-  if (sortedRecords.length === 0) return [];
-
-  // Generate all months in range
-  const start = new Date(sortedRecords[0].closingDate);
-  const end = new Date(sortedRecords[sortedRecords.length - 1].closingDate);
-  
-  const current = new Date(start.getFullYear(), start.getMonth(), 1);
-  const endDate = new Date(end.getFullYear(), end.getMonth(), 1);
-
-  while (current <= endDate) {
-    const key = current.toLocaleString('default', { month: 'short', year: '2-digit' });
-    monthMap.set(key, { count: 0, volume: 0 });
-    current.setMonth(current.getMonth() + 1);
-  }
-
-  // Fill data
-  sortedRecords.forEach(record => {
-    const date = new Date(record.closingDate);
-    if (!isNaN(date.getTime())) {
-      const key = date.toLocaleString('default', { month: 'short', year: '2-digit' });
-      if (monthMap.has(key)) {
-        const data = monthMap.get(key)!;
-        data.count++;
-        data.volume += record.salePrice || record.price || 0;
+  records.forEach(r => {
+    if ((r.loopStatus === 'Closed' || r.loopStatus === 'Sold') && r.closingDate) {
+      const date = new Date(r.closingDate);
+      if (!isNaN(date.getTime())) {
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        monthlyVolume[key] = (monthlyVolume[key] || 0) + (r.salePrice || r.price || 0);
       }
     }
   });
 
-  // Calculate moving average (3-month)
-  const data = Array.from(monthMap.entries()).map(([label, { count, volume }]) => ({
-    label,
-    value: count, // Or volume, depending on what we want to show. Usually transaction count bars.
-    volume // Keep volume for tooltips if needed
-  }));
-
-  return data.map((item, index, array) => {
-    // Calculate 3-month moving average
-    let sum = 0;
-    let count = 0;
-    for (let i = Math.max(0, index - 2); i <= index; i++) {
-      sum += array[i].value;
-      count++;
-    }
-    return {
-      ...item,
-      movingAverage: count > 0 ? sum / count : 0
-    };
-  });
-}
-
-/**
- * Get Pipeline data (by Loop Status)
- */
-export function getPipelineData(records: DotloopRecord[]): ChartData[] {
-  const statusMap = new Map<string, number>();
-  
-  records.forEach(record => {
-    // Normalize status
-    let status = record.loopStatus || 'Unknown';
-    
-    // Group similar statuses if needed, or keep raw
-    if (status.toLowerCase().includes('sold') || status.toLowerCase().includes('closed')) {
-      status = 'Closed';
-    } else if (status.toLowerCase().includes('active')) {
-      status = 'Active';
-    } else if (status.toLowerCase().includes('contract') || status.toLowerCase().includes('pending')) {
-      status = 'Under Contract';
-    } else if (status.toLowerCase().includes('archived')) {
-      status = 'Archived';
-    }
-    
-    statusMap.set(status, (statusMap.get(status) || 0) + 1);
-  });
-
-  const total = records.length;
-
-  return Array.from(statusMap.entries())
-    .map(([label, value]) => ({
-      label,
-      value,
-      percentage: total > 0 ? (value / total) * 100 : 0
-    }))
-    .sort((a, b) => b.value - a.value);
+  return Object.entries(monthlyVolume)
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 }

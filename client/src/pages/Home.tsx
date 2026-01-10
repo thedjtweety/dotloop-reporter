@@ -78,6 +78,7 @@ import DataValidationReport from '@/components/DataValidationReport';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ModeToggle } from '@/components/ModeToggle';
 import MobileNav from '@/components/MobileNav';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 export default function Home() {
   const [location, setLocation] = useLocation();
@@ -249,9 +250,9 @@ export default function Home() {
         filtered = filteredRecords.filter(r => (r.state || 'Unknown') === label);
         break;
       case 'commission':
-        title = `Commission: ${label}`;
-        // This is simplified, actual filtering would depend on how commission data is structured
-        filtered = filteredRecords; 
+        title = `Commission Range: ${label}`;
+        // Logic for commission range filtering would go here
+        filtered = filteredRecords;
         break;
     }
 
@@ -260,112 +261,55 @@ export default function Home() {
     setDrillDownOpen(true);
   };
 
-  const handleFileUpload = (file: File) => {
+  const handleFileUpload = async (file: File) => {
     setIsLoading(true);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      try {
-        const { headers, data } = parseCSV(text);
-        
-        // Check if this is a Consultant/Volume-only report
-        // Logic: Has headers but missing critical commission columns
-        const hasCommissionData = headers.some(h => 
-          h.toLowerCase().includes('commission') || 
-          h.toLowerCase().includes('split') || 
-          h.toLowerCase().includes('gross')
-        );
-        
-        const hasVolumeData = headers.some(h => 
-          h.toLowerCase().includes('price') || 
-          h.toLowerCase().includes('volume')
-        );
-
-        if (!hasCommissionData && hasVolumeData) {
-          // Store data temporarily and ask user
-          const records = data.map(row => {
-            const record: any = {};
-            headers.forEach((header, index) => {
-              record[header] = row[index];
-            });
-            return normalizeRecord(record, customMapping);
-          });
-          
-          setConsultantRedirectData(records);
-          setShowConsultantConfirm(true);
-          setIsLoading(false);
-          return;
-        }
-
-        // Standard flow
-        setCsvHeaders(headers);
-        setRawCsvData(data);
-        setPendingFile({ headers, data });
-        
-        // Check if we have a saved template match
-        const matchingTemplate = findMatchingTemplate(headers);
-        
-        if (matchingTemplate) {
-          // Auto-apply template
-          setCustomMapping(matchingTemplate.mapping);
-          processWithMapping(headers, data, matchingTemplate.mapping);
-        } else {
-          // Show mapping wizard
-          setShowMapping(true);
-        }
-      } catch (error) {
-        console.error('Error parsing CSV:', error);
-        alert('Error parsing CSV file. Please check the format.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const handleConsultantRedirect = () => {
-    if (consultantRedirectData) {
-      // In a real app, we would navigate to a different route or set a "mode"
-      // For now, we'll just load the data but maybe set a flag or show a toast
-      setAllRecords(consultantRedirectData);
-      setFilteredRecords(consultantRedirectData);
-      setMetrics(calculateMetrics(consultantRedirectData));
-      setAgentMetrics(calculateAgentMetrics(consultantRedirectData));
-      setShowConsultantConfirm(false);
+    try {
+      const text = await file.text();
+      const result = parseCSV(text);
       
-      // Optional: Navigate to a specific "Consultant" tab if we had one
-      // setActiveTab('consultant'); 
+      // Check if we need mapping
+      const headers = result.meta.fields || [];
+      const requiredFields = ['Loop Name', 'Loop Status', 'Price', 'Closing Date'];
+      const missingFields = requiredFields.filter(f => !headers.includes(f));
+
+      if (missingFields.length > 0 && Object.keys(customMapping).length === 0) {
+        // Show mapping wizard
+        setCsvHeaders(headers);
+        setRawCsvData(result.data);
+        setPendingFile({ headers, data: result.data });
+        setShowMapping(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Process with existing mapping or default
+      processWithMapping(result.data, customMapping);
+      
+    } catch (error) {
+      console.error('Error parsing CSV:', error);
+      // Show error toast
     }
   };
 
-  const processWithMapping = (headers: string[], data: any[][], mapping: FieldMapping) => {
-    const records = data.map(row => {
-      const record: any = {};
-      headers.forEach((header, index) => {
-        record[header] = row[index];
+  const processWithMapping = (data: any[], mapping: FieldMapping) => {
+    const processed = data.map(row => {
+      const newRow: any = { ...row };
+      
+      // Apply mapping
+      Object.entries(mapping).forEach(([standardField, csvHeader]) => {
+        if (csvHeader && row[csvHeader] !== undefined) {
+          newRow[standardField] = row[csvHeader];
+        }
       });
-      return normalizeRecord(record, mapping);
-    });
 
-    setAllRecords(records);
-    setFilteredRecords(records);
-    setMetrics(calculateMetrics(records));
-    setAgentMetrics(calculateAgentMetrics(records));
-    
-    // Save template if it's new
-    if (!findMatchingTemplate(headers)) {
-      saveTemplate('Auto-Saved Template', headers, mapping);
-    }
-  };
+      return normalizeRecord(newRow);
+    }).filter((record): record is DotloopRecord => record !== null);
 
-  const handleMappingComplete = (mapping: FieldMapping) => {
-    setCustomMapping(mapping);
-    localStorage.setItem('dotloop_field_mapping', JSON.stringify(mapping));
-    
-    if (pendingFile) {
-      processWithMapping(pendingFile.headers, pendingFile.data, mapping);
-    }
-    
+    setAllRecords(processed);
+    setFilteredRecords(processed);
+    setMetrics(calculateMetrics(processed));
+    setAgentMetrics(calculateAgentMetrics(processed));
+    setIsLoading(false);
     setShowMapping(false);
     setShowFieldMapper(false);
   };
@@ -373,131 +317,139 @@ export default function Home() {
   if (!metrics) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <header className="border-b border-border bg-card">
-          <div className="container py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+          <div className="container flex h-16 items-center justify-between">
+            <div className="flex items-center gap-2">
               <img src="/dotloop-logo.png" alt="Dotloop Logo" className="h-8 w-auto" />
-              <h1 className="text-2xl font-display font-bold text-foreground">
+              <h1 className="text-xl font-display font-bold text-foreground hidden sm:block">
                 Reporting Tool
               </h1>
             </div>
-                <div className="flex items-center gap-2">
-                <ModeToggle />
-              </div>
+            <div className="flex items-center gap-4">
+              <ModeToggle />
+              <Button variant="outline" onClick={handleDemoMode} disabled={isLoading}>
+                {isLoading ? 'Loading...' : 'Try Demo'}
+              </Button>
+            </div>
           </div>
         </header>
 
-        <main className="flex-1 flex flex-col">
-          <div className="flex-1 container mx-auto px-4 py-12 flex flex-col items-center justify-center">
-            <UploadZone 
-              onFileUpload={handleFileUpload} 
-              onDemoClick={handleDemoMode}
-              isLoading={isLoading} 
-            />
+        <main className="flex-1 container flex items-center justify-center py-12">
+          <div className="w-full max-w-2xl space-y-8 text-center">
+            <div className="space-y-4">
+              <h2 className="text-4xl font-display font-bold tracking-tight text-foreground sm:text-5xl">
+                Transform Your Data into <span className="text-primary">Actionable Insights</span>
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+                Upload your Dotloop export to instantly generate professional commission reports, agent leaderboards, and financial analytics.
+              </p>
+            </div>
+
+            <Card className="p-8 border-dashed border-2 border-border bg-card/50 hover:bg-card/80 transition-colors">
+              <UploadZone onFileUpload={handleFileUpload} isLoading={isLoading} />
+            </Card>
+
+            <TrustBar />
             
-            <RecentUploads 
-              files={recentFiles} 
-              onSelect={handleRecentSelect}
-              onDelete={handleRecentDelete}
-            />
+            {recentFiles.length > 0 && (
+              <div className="mt-12 text-left">
+                <RecentUploads 
+                  files={recentFiles} 
+                  onSelect={handleRecentSelect} 
+                  onDelete={handleRecentDelete} 
+                />
+              </div>
+            )}
           </div>
-          
-          <TrustBar />
         </main>
 
-        <AlertDialog open={showConsultantConfirm} onOpenChange={setShowConsultantConfirm}>
+        {/* Mapping Dialogs */}
+        <AlertDialog open={showMapping} onOpenChange={setShowMapping}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-primary" />
-                Consultant Report Detected
-              </AlertDialogTitle>
+              <AlertDialogTitle>Map Your CSV Columns</AlertDialogTitle>
               <AlertDialogDescription>
-                This file appears to be a Consultant/Volume-only report (missing commission data).
-                Would you like to view it in the specialized <strong>Consultant Performance Hub</strong>?
+                We noticed some standard fields are missing. Would you like to map your CSV columns to our standard fields?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setShowConsultantConfirm(false)}>
-                Stay on Standard Report
+              <AlertDialogCancel onClick={() => {
+                setShowMapping(false);
+                processWithMapping(pendingFile?.data || [], {});
+              }}>
+                Skip (Use Defaults)
               </AlertDialogCancel>
-              <AlertDialogAction onClick={handleConsultantRedirect}>
-                Switch to Consultant Hub
+              <AlertDialogAction onClick={() => {
+                setShowMapping(false);
+                setShowFieldMapper(true);
+              }}>
+                Start Mapping
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Field Mapper Dialog - Wrapped in Dialog to match props */}
+        <Dialog open={showFieldMapper} onOpenChange={setShowFieldMapper}>
+          <DialogContent className="max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none">
+            <FieldMapper
+              headers={csvHeaders}
+              onSave={(mapping) => {
+                setCustomMapping(mapping);
+                localStorage.setItem('dotloop_field_mapping', JSON.stringify(mapping));
+                if (pendingFile) {
+                  processWithMapping(pendingFile.data, mapping);
+                }
+              }}
+              onCancel={() => setShowFieldMapper(false)}
+              initialMapping={customMapping}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="container py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Dashboard Header */}
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="container flex h-16 items-center justify-between">
+          <div className="flex items-center gap-4">
             <MobileNav 
               onReset={() => {
-                setAllRecords([]);
                 setMetrics(null);
-                setDateRange(undefined);
+                setAllRecords([]);
+                setFilteredRecords([]);
               }}
               onOpenSettings={() => {
-                setActiveTab('settings');
-                setTimeout(() => {
-                  document.getElementById('commission-plans-section')?.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
+                // Open settings logic
               }}
               onOpenMapping={() => setShowFieldMapper(true)}
               activeTab={activeTab}
               onTabChange={setActiveTab}
             />
-            <img src="/dotloop-logo.png" alt="Dotloop Logo" className="h-8 w-auto hidden md:block" />
-            <img src="/dotloop-logo.png" alt="Dotloop Logo" className="h-6 w-auto md:hidden" />
-            <div>
-              <h1 className="text-xl md:text-2xl font-display font-bold text-foreground">
+            <div className="flex items-center gap-2">
+              <img src="/dotloop-logo.png" alt="Dotloop Logo" className="h-8 w-auto" />
+              <h1 className="text-xl font-display font-bold text-foreground hidden md:block">
                 Reporting Tool
               </h1>
-              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
-                {filteredRecords.length} transactions analyzed
-              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <div className="hidden md:flex items-center gap-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-2 border-primary/50 hover:bg-primary/10 hover:border-primary text-primary font-medium"
-                onClick={() => {
-                  setActiveTab('settings');
-                  setTimeout(() => {
-                    document.getElementById('commission-plans-section')?.scrollIntoView({ behavior: 'smooth' });
-                  }, 100);
-                }}
-              >
-                <Settings className="w-4 h-4" />
-                Commission Settings
-              </Button>
-              <ModeToggle />
-            </div>
+          
+          <div className="flex items-center gap-4">
             <div className="hidden md:block">
               <DatePickerWithRange date={dateRange} setDate={setDateRange} />
             </div>
-            <div className="md:hidden">
-               {/* Mobile Date Picker Trigger could go here if needed, or rely on filters in tabs */}
-            </div>
-            <div className="hidden md:flex gap-2">
-              <Button variant="outline" onClick={() => setShowFieldMapper(true)}>
-                <Settings className="w-4 h-4 mr-2" />
-                Map Fields
-              </Button>
-              <Button
-                variant="outline"
+            <div className="flex items-center gap-2">
+              <ModeToggle />
+              <Button 
+                variant="ghost" 
+                size="sm"
                 onClick={() => {
-                  setAllRecords([]);
                   setMetrics(null);
+                  setAllRecords([]);
+                  setFilteredRecords([]);
                   setDateRange(undefined);
                 }}
               >
@@ -686,7 +638,7 @@ export default function Home() {
                   <h2 className="text-xl font-display font-bold text-foreground mb-4">
                     Buy vs Sell Trends
                   </h2>
-                  <BuySellTrendChart records={filteredRecords} />
+                  <BuySellTrendChart data={filteredRecords} />
                 </Card>
               </div>
             </TabsContent>
@@ -698,7 +650,7 @@ export default function Home() {
                 </h2>
                 <LeadSourceChart 
                   data={getLeadSourceData(filteredRecords)} 
-                  onBarClick={(label) => handleChartClick('leadSource', label)}
+                  onSliceClick={(label) => handleChartClick('leadSource', label)}
                 />
               </Card>
             </TabsContent>
@@ -710,7 +662,7 @@ export default function Home() {
                 </h2>
                 <PropertyTypeChart 
                   data={getPropertyTypeData(filteredRecords)} 
-                  onPieClick={(label) => handleChartClick('propertyType', label)}
+                  onBarClick={(label) => handleChartClick('propertyType', label)}
                 />
               </Card>
             </TabsContent>
@@ -722,7 +674,7 @@ export default function Home() {
                 </h2>
                 <GeographicChart 
                   data={getGeographicData(filteredRecords)} 
-                  onRegionClick={(label) => handleChartClick('geographic', label)}
+                  onBarClick={(label) => handleChartClick('geographic', label)}
                 />
               </Card>
             </TabsContent>
@@ -733,24 +685,35 @@ export default function Home() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card className="p-6 bg-card border border-border">
                       <h2 className="text-xl font-display font-bold text-foreground mb-4">
-                        Financial Overview
+                        Revenue Overview
                       </h2>
-                      <FinancialChart 
-                        metrics={metrics} 
-                        onBarClick={(label) => handleChartClick('commission', label)}
-                      />
+                      <FinancialChart metrics={metrics} />
                     </Card>
                     <Card className="p-6 bg-card border border-border">
                       <h2 className="text-xl font-display font-bold text-foreground mb-4">
                         Commission Breakdown
                       </h2>
-                      <CommissionBreakdownChart metrics={metrics} />
+                      <CommissionBreakdownChart 
+                        buySide={filteredRecords.reduce((sum, r) => sum + (r.buySideCommission || 0), 0)}
+                        sellSide={filteredRecords.reduce((sum, r) => sum + (r.sellSideCommission || 0), 0)}
+                      />
                     </Card>
-                    <Card className="p-6 bg-card border border-border lg:col-span-2">
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card className="p-6 bg-card border border-border">
                       <h2 className="text-xl font-display font-bold text-foreground mb-4">
                         Revenue Distribution
                       </h2>
-                      <RevenueDistributionChart records={filteredRecords} />
+                      <RevenueDistributionChart 
+                        totalCommission={metrics.totalCommission}
+                        companyDollar={metrics.totalCompanyDollar}
+                      />
+                    </Card>
+                    <Card className="p-6 bg-card border border-border">
+                      <h2 className="text-xl font-display font-bold text-foreground mb-4">
+                        Agent Mix
+                      </h2>
+                      <AgentMixChart agents={agentMetrics} />
                     </Card>
                   </div>
                 </TabsContent>
@@ -767,58 +730,84 @@ export default function Home() {
                   <h2 className="text-xl font-display font-bold text-foreground mb-4">
                     Market Insights
                   </h2>
-                  <PropertyInsightsChart records={filteredRecords} />
+                  <PropertyInsightsChart data={filteredRecords} />
                 </Card>
                 <Card className="p-6 bg-card border border-border">
                   <h2 className="text-xl font-display font-bold text-foreground mb-4">
                     Price Reduction Analysis
                   </h2>
-                  <PriceReductionChart records={filteredRecords} />
+                  <PriceReductionChart data={filteredRecords} />
                 </Card>
-                <Card className="p-6 bg-card border border-border">
-                  <h2 className="text-xl font-display font-bold text-foreground mb-4">
-                    Agent Mix
-                  </h2>
-                  <AgentMixChart records={filteredRecords} />
-                </Card>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card className="p-6 bg-card border border-border">
                   <h2 className="text-xl font-display font-bold text-foreground mb-4">
                     Compliance Status
                   </h2>
-                  <ComplianceChart records={filteredRecords} />
+                  <ComplianceChart data={filteredRecords} />
                 </Card>
-                <Card className="p-6 bg-card border border-border lg:col-span-2">
+                <Card className="p-6 bg-card border border-border">
                   <h2 className="text-xl font-display font-bold text-foreground mb-4">
                     Tag Analysis
                   </h2>
-                  <TagsChart records={filteredRecords} />
+                  <TagsChart data={filteredRecords} />
                 </Card>
               </div>
             </TabsContent>
 
             <TabsContent value="health" className="space-y-4">
               <DataHealthCheck records={allRecords} />
-              <DataValidationReport records={allRecords} />
+              <DataValidationReport 
+                records={allRecords} 
+                onConfirm={() => {
+                  // Just switch to pipeline tab as "confirm" action
+                  setActiveTab('pipeline');
+                }}
+                onCancel={() => {
+                  setMetrics(null);
+                  setAllRecords([]);
+                  setFilteredRecords([]);
+                }}
+              />
             </TabsContent>
 
-            <TabsContent value="settings" className="space-y-8">
-              <div id="commission-plans-section">
-                <CommissionPlansManager />
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <TeamManager />
-                <AgentAssignment 
-                  records={allRecords} 
-                  onUpdate={(updatedRecords) => {
-                    setAllRecords(updatedRecords);
-                    // Trigger re-calculation
-                    const newMetrics = calculateMetrics(updatedRecords);
-                    setMetrics(newMetrics);
-                    setAgentMetrics(calculateAgentMetrics(updatedRecords));
-                  }} 
-                />
-              </div>
+            <TabsContent value="settings" className="space-y-4">
+              <Tabs defaultValue="commission" className="w-full">
+                <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
+                  <TabsTrigger 
+                    value="commission"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
+                  >
+                    Commission Plans
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="teams"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
+                  >
+                    Team Management
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="assignments"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
+                  >
+                    Agent Assignments
+                  </TabsTrigger>
+                </TabsList>
+                
+                <div className="mt-6">
+                  <TabsContent value="commission">
+                    <CommissionPlansManager />
+                  </TabsContent>
+                  <TabsContent value="teams">
+                    <TeamManager />
+                  </TabsContent>
+                  <TabsContent value="assignments">
+                    <AgentAssignment 
+                      records={allRecords}
+                    />
+                  </TabsContent>
+                </div>
+              </Tabs>
             </TabsContent>
           </Tabs>
         </div>
@@ -826,54 +815,29 @@ export default function Home() {
 
       {/* Drill Down Modal */}
       <DrillDownModal
-        open={drillDownOpen}
-        onOpenChange={setDrillDownOpen}
+        isOpen={drillDownOpen}
+        onClose={() => setDrillDownOpen(false)}
         title={drillDownTitle}
         transactions={drillDownTransactions}
       />
 
-      {/* Field Mapper Modal */}
-      <AlertDialog open={showMapping}>
-        <AlertDialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Map Your CSV Columns</AlertDialogTitle>
-            <AlertDialogDescription>
-              We couldn't automatically match all columns. Please map your CSV headers to our standard fields.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          
-          <ColumnMapping 
-            headers={csvHeaders} 
-            sampleData={rawCsvData}
-            onConfirm={handleMappingComplete}
-            onCancel={() => setShowMapping(false)}
+      {/* Field Mapper Dialog - Wrapped in Dialog to match props */}
+      <Dialog open={showFieldMapper} onOpenChange={setShowFieldMapper}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none">
+          <FieldMapper
+            headers={csvHeaders}
+            onSave={(mapping) => {
+              setCustomMapping(mapping);
+              localStorage.setItem('dotloop_field_mapping', JSON.stringify(mapping));
+              if (pendingFile) {
+                processWithMapping(pendingFile.data, mapping);
+              }
+            }}
+            onCancel={() => setShowFieldMapper(false)}
+            initialMapping={customMapping}
           />
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Manual Field Mapper Trigger */}
-      <div className="hidden">
-        <FieldMapper
-          headers={csvHeaders.length > 0 ? csvHeaders : Object.keys(allRecords[0] || {})}
-          initialMapping={customMapping}
-          onSave={handleMappingComplete}
-          onCancel={() => setShowFieldMapper(false)}
-        />
-      </div>
-      
-      {/* Actual Field Mapper Dialog */}
-      {showFieldMapper && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <FieldMapper
-              headers={csvHeaders.length > 0 ? csvHeaders : Object.keys(allRecords[0] || {})}
-              initialMapping={customMapping}
-              onSave={handleMappingComplete}
-              onCancel={() => setShowFieldMapper(false)}
-            />
-          </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
