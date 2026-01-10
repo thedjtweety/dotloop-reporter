@@ -49,7 +49,6 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
   const records: DotloopRecord[] = [];
   const now = new Date();
   const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-  const threeMonthsFuture = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
 
   for (let i = 0; i < count; i++) {
     const status = STATUSES[Math.floor(Math.random() * STATUSES.length)];
@@ -71,9 +70,6 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
       offerDate = formatDate(new Date(close.getTime() - 30 * 24 * 60 * 60 * 1000));
     } else if (status === 'Under Contract') {
       offerDate = formatDate(new Date(createdDate.getTime() + 15 * 24 * 60 * 60 * 1000));
-      // Ensure closing date is in the future for projection
-      const futureClose = randomDate(now, threeMonthsFuture);
-      closingDate = formatDate(futureClose);
     }
 
     if (status !== 'Archived') {
@@ -82,8 +78,7 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
 
     // Commission logic
     const commissionRate = 0.03;
-    // Ensure commission is calculated for Sold AND Under Contract status (projected)
-    const totalCommission = (status === 'Sold' || status === 'Under Contract') ? price * commissionRate : 0;
+    const totalCommission = status === 'Sold' ? price * commissionRate : 0;
     const isBuySide = Math.random() > 0.5;
     
     const loopId = crypto.randomUUID();
@@ -97,7 +92,7 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
       listingDate,
       offerDate,
       address: `${streetNum} ${streetName} St`,
-      price: (status === 'Sold' || status === 'Under Contract') ? price : 0, 
+      price: status === 'Sold' ? price : 0, // Only count price if sold for some metrics
       propertyType: PROPERTY_TYPES[Math.floor(Math.random() * PROPERTY_TYPES.length)],
       bedrooms: Math.floor(Math.random() * 4) + 2,
       bathrooms: Math.floor(Math.random() * 3) + 2,
@@ -122,10 +117,7 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
       originalPrice: price + 10000,
       yearBuilt: Math.floor(Math.random() * 30) + 1990,
       lotSize: Math.floor(Math.random() * 8000) + 4000,
-      subdivision: 'Sample Estates',
-      schoolDistrict: 'Sample ISD',
-      expirationDate: '',
-      transactionType: 'Residential'
+      subdivision: 'Sample Estates'
     });
   }
 
