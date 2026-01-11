@@ -46,13 +46,23 @@ const MAX_COLUMNS = 200; // Maximum columns to prevent memory issues
 const SAMPLE_SIZE = 100; // Lines to sample for validation
 
 /**
+ * Progress callback for validation operations
+ */
+export type ValidationProgressCallback = (progress: number, message?: string) => void;
+
+/**
  * Main validation function - validates CSV file before parsing
  */
-export async function validateCSVFile(file: File): Promise<ValidationResult> {
+export async function validateCSVFile(
+  file: File,
+  onProgress?: ValidationProgressCallback
+): Promise<ValidationResult> {
+  onProgress?.(0, 'Starting validation...');
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
   
   // 1. File size validation
+  onProgress?.(10, 'Checking file size...');
   if (file.size === 0) {
     errors.push({
       code: 'EMPTY_FILE',
@@ -86,6 +96,7 @@ export async function validateCSVFile(file: File): Promise<ValidationResult> {
   }
   
   // 2. File type validation
+  onProgress?.(20, 'Validating file type...');
   if (!isValidCSVFile(file)) {
     warnings.push({
       code: 'INVALID_FILE_TYPE',
@@ -95,6 +106,7 @@ export async function validateCSVFile(file: File): Promise<ValidationResult> {
   }
   
   // 3. Read file content
+  onProgress?.(30, 'Reading file content...');
   let content: string;
   try {
     content = await readFileContent(file);
@@ -115,6 +127,7 @@ export async function validateCSVFile(file: File): Promise<ValidationResult> {
   }
   
   // 4. Encoding validation
+  onProgress?.(50, 'Detecting encoding...');
   const encoding = detectEncoding(content);
   if (encoding !== 'UTF-8' && encoding !== 'ASCII') {
     warnings.push({
@@ -125,16 +138,19 @@ export async function validateCSVFile(file: File): Promise<ValidationResult> {
   }
   
   // 5. Content validation
+  onProgress?.(60, 'Validating content...');
   const contentValidation = validateContent(content);
   errors.push(...contentValidation.errors);
   warnings.push(...contentValidation.warnings);
   
   // 6. Structure validation
+  onProgress?.(80, 'Validating structure...');
   const structureValidation = validateStructure(content);
   errors.push(...structureValidation.errors);
   warnings.push(...structureValidation.warnings);
   
   // 7. Build metadata
+  onProgress?.(95, 'Building metadata...');
   const metadata: FileMetadata = {
     fileName: file.name,
     fileSize: file.size,
@@ -149,6 +165,8 @@ export async function validateCSVFile(file: File): Promise<ValidationResult> {
   
   // Critical errors prevent parsing
   const criticalErrors = errors.filter(e => e.severity === 'critical');
+  
+  onProgress?.(100, 'Validation complete');
   
   return {
     isValid: criticalErrors.length === 0,

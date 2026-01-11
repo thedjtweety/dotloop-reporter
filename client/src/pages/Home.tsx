@@ -43,6 +43,7 @@ import {
 } from '@/lib/csvParser';
 import { validateCSVFile, ValidationResult } from '@/lib/csvValidator';
 import { ValidationErrorDisplay } from '@/components/ValidationErrorDisplay';
+import { UploadProgress, useUploadProgress } from '@/components/UploadProgress';
 import { filterRecordsByDate, getPreviousPeriod } from '@/lib/dateUtils';
 import { cleanDate, cleanNumber, cleanPercentage, cleanText } from '@/lib/dataCleaning';
 import { findMatchingTemplate, saveTemplate } from '@/lib/importTemplates';
@@ -119,6 +120,12 @@ export default function Home() {
   // CSV Validation State
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [showValidationError, setShowValidationError] = useState(false);
+  
+  // Upload Progress State
+  const [showProgress, setShowProgress] = useState(false);
+  const [uploadFileName, setUploadFileName] = useState('');
+  const [uploadFileSize, setUploadFileSize] = useState('');
+  const uploadProgress = useUploadProgress();
 
   // Load saved mapping and recent files on mount
   useEffect(() => {
@@ -304,16 +311,47 @@ export default function Home() {
 
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
+    
+    // Show progress dialog for files > 1MB
+    const shouldShowProgress = file.size > 1024 * 1024; // 1MB
+    if (shouldShowProgress) {
+      setUploadFileName(file.name);
+      setUploadFileSize(formatBytes(file.size));
+      setShowProgress(true);
+      uploadProgress.reset();
+    }
+    
     try {
       // Step 1: Validate the CSV file
-      const validationResult = await validateCSVFile(file);
+      if (shouldShowProgress) {
+        uploadProgress.startStage('validation', 'Checking file format and structure...');
+      }
+      
+      const validationResult = await validateCSVFile(file, (progress, message) => {
+        if (shouldShowProgress) {
+          uploadProgress.updateProgress('validation', progress, message);
+        }
+      });
       
       // If validation fails with critical errors, show error display
       if (!validationResult.isValid) {
-        setValidationResult(validationResult);
-        setShowValidationError(true);
+        if (shouldShowProgress) {
+          uploadProgress.errorStage('validation', 'Validation failed');
+          setTimeout(() => {
+            setShowProgress(false);
+            setValidationResult(validationResult);
+            setShowValidationError(true);
+          }, 1000);
+        } else {
+          setValidationResult(validationResult);
+          setShowValidationError(true);
+        }
         setIsLoading(false);
         return;
+      }
+      
+      if (shouldShowProgress) {
+        uploadProgress.completeStage('validation', 'Validation passed');
       }
       
       // If there are warnings, show them but continue
@@ -322,16 +360,40 @@ export default function Home() {
       }
       
       // Step 2: Parse the CSV
-      const text = await file.text();
-      const records = parseCSV(text);
+      if (shouldShowProgress) {
+        uploadProgress.startStage('parsing', 'Reading CSV data...');
+      }
       
-      // Check if user is authenticated
+      const text = await file.text();
+      const records = parseCSV(text, (progress, message) => {
+        if (shouldShowProgress) {
+          uploadProgress.updateProgress('parsing', progress, message);
+        }
+      });
+      
+      if (shouldShowProgress) {
+        uploadProgress.completeStage('parsing', `Parsed ${records.length} records`);
+      }
+      
+      // Step 3: Upload to database
       if (isAuthenticated && user) {
+        if (shouldShowProgress) {
+          uploadProgress.startStage('upload', 'Saving to database...');
+        }
+        
         // Save to database via tRPC
         await uploadMutation.mutateAsync({
           fileName: file.name,
           transactions: records,
         });
+        
+        if (shouldShowProgress) {
+          uploadProgress.completeStage('upload', 'Upload complete');
+        }
+      } else if (shouldShowProgress) {
+        // Skip upload stage for non-authenticated users
+        uploadProgress.startStage('upload', 'Skipping database upload (not logged in)');
+        uploadProgress.completeStage('upload', 'Processing complete');
       }
       
       // Process the records for immediate display
@@ -346,11 +408,38 @@ export default function Home() {
         await handleSaveRecent(file.name, records);
       }
       
+      // Hide progress dialog after a short delay
+      if (shouldShowProgress) {
+        setTimeout(() => {
+          setShowProgress(false);
+        }, 2000);
+      }
+      
     } catch (error) {
       console.error('Error parsing CSV:', error);
+      
+      if (shouldShowProgress) {
+        const activeStage = uploadProgress.stages.find(s => s.status === 'in-progress');
+        if (activeStage) {
+          uploadProgress.errorStage(
+            activeStage.id,
+            error instanceof Error ? error.message : 'Unknown error occurred'
+          );
+        }
+      }
+      
       setIsLoading(false);
       // Show error toast
     }
+  };
+  
+  // Helper function to format bytes
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   const processWithMapping = (data: any[], mapping: FieldMapping) => {
@@ -435,6 +524,21 @@ export default function Home() {
             )}
           </div>
         </main>
+
+        {/* Upload Progress Dialog */}
+        <Dialog open={showProgress} onOpenChange={setShowProgress}>
+          <DialogContent className="max-w-2xl">
+            <UploadProgress
+              stages={uploadProgress.stages}
+              fileName={uploadFileName}
+              fileSize={uploadFileSize}
+              onCancel={() => {
+                setShowProgress(false);
+                setIsLoading(false);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
 
         {/* CSV Validation Error Dialog */}
         <Dialog open={showValidationError} onOpenChange={setShowValidationError}>
