@@ -86,6 +86,8 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ModeToggle } from '@/components/ModeToggle';
 import MobileNav from '@/components/MobileNav';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import OnboardingTour from '@/components/OnboardingTour';
+import { useOnboardingTour, uploadTourSteps, dashboardTourSteps } from '@/hooks/useOnboardingTour';
 
 export default function Home() {
   // The userAuth hooks provides authentication state
@@ -93,6 +95,7 @@ export default function Home() {
   let { user, loading, error, isAuthenticated, logout } = useAuth();
 
   const [location, setLocation] = useLocation();
+  const { showTour, completeTour, skipTour } = useOnboardingTour();
   const [allRecords, setAllRecords] = useState<DotloopRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<DotloopRecord[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -498,7 +501,7 @@ export default function Home() {
             <div className="flex items-center gap-4">
               <ConnectDotloop variant="button" />
               <ModeToggle />
-              <Button variant="outline" onClick={handleDemoMode} disabled={isLoading}>
+              <Button variant="outline" onClick={handleDemoMode} disabled={isLoading} data-tour="demo-button">
                 {isLoading ? 'Loading...' : 'Try Demo'}
               </Button>
             </div>
@@ -516,7 +519,7 @@ export default function Home() {
               </p>
             </div>
 
-            <Card className="p-8 border-dashed border-2 border-border bg-card/50 hover:bg-card/80 transition-colors">
+            <Card className="p-8 border-dashed border-2 border-border bg-card/50 hover:bg-card/80 transition-colors" data-tour="upload-zone">
               <UploadZone onFileUpload={handleFileUpload} isLoading={isLoading} />
             </Card>
 
@@ -679,7 +682,7 @@ export default function Home() {
       {/* Main Dashboard */}
       <main className="container py-8">
         {/* Top Metrics Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8" data-tour="metrics">
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
             <MetricCard
               title="Total Transactions"
@@ -796,13 +799,13 @@ export default function Home() {
 
         {/* Agent Leaderboard Section */}
         {agentMetrics.length > 0 && (
-          <div className="mb-8">
+          <div className="mb-8" data-tour="leaderboard">
             <AgentLeaderboardWithExport agents={agentMetrics} records={filteredRecords} />
           </div>
         )}
 
         {/* Charts Section */}
-        <div className="mb-8">
+        <div className="mb-8" data-tour="charts">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3 lg:grid-cols-10 mb-6 h-auto">
               <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
@@ -823,7 +826,7 @@ export default function Home() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="pipeline" className="space-y-4">
+            <TabsContent value="pipeline" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <Card className="p-6 bg-card border border-border">
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Pipeline Breakdown
@@ -835,7 +838,7 @@ export default function Home() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="timeline" className="space-y-4">
+            <TabsContent value="timeline" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card className="p-6 bg-card border border-border">
                   <h2 className="text-xl font-display font-bold text-foreground mb-4">
@@ -854,7 +857,7 @@ export default function Home() {
               </div>
             </TabsContent>
 
-            <TabsContent value="leadsource" className="space-y-4">
+            <TabsContent value="leadsource" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <Card className="p-6 bg-card border border-border">
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Lead Source Performance
@@ -866,7 +869,7 @@ export default function Home() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="property" className="space-y-4">
+            <TabsContent value="property" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <Card className="p-6 bg-card border border-border">
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Property Type Distribution
@@ -878,7 +881,7 @@ export default function Home() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="geographic" className="space-y-4">
+            <TabsContent value="geographic" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <Card className="p-6 bg-card border border-border">
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Geographic Distribution
@@ -892,7 +895,7 @@ export default function Home() {
 
             {metrics?.hasFinancialData && (
               <>
-                <TabsContent value="financial" className="space-y-4">
+                <TabsContent value="financial" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card className="p-6 bg-card border border-border">
                       <h2 className="text-xl font-display font-bold text-foreground mb-4">
@@ -929,13 +932,13 @@ export default function Home() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="audit" className="space-y-4">
+                <TabsContent value="audit" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
                   <CommissionAuditReport records={filteredRecords} />
                 </TabsContent>
               </>
             )}
 
-            <TabsContent value="insights" className="space-y-4">
+            <TabsContent value="insights" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card className="p-6 bg-card border border-border">
                   <h2 className="text-xl font-display font-bold text-foreground mb-4">
@@ -966,7 +969,7 @@ export default function Home() {
               </div>
             </TabsContent>
 
-            <TabsContent value="health" className="space-y-4">
+            <TabsContent value="health" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <DataHealthCheck records={allRecords} />
               <DataValidationReport 
                 records={allRecords} 
@@ -982,7 +985,7 @@ export default function Home() {
               />
             </TabsContent>
 
-            <TabsContent value="settings" className="space-y-4">
+            <TabsContent value="settings" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <Tabs defaultValue="commission" className="w-full">
                 <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
                   <TabsTrigger 
@@ -1049,6 +1052,15 @@ export default function Home() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Onboarding Tour */}
+      {showTour && (
+        <OnboardingTour
+          steps={uploadTourSteps}
+          onComplete={completeTour}
+          onSkip={skipTour}
+        />
+      )}
     </div>
   );
 }
