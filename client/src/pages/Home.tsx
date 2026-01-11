@@ -269,12 +269,32 @@ export default function Home() {
     setDrillDownOpen(true);
   };
 
+  const [currentUploadId, setCurrentUploadId] = useState<number | undefined>();
+  const utils = trpc.useUtils();
+
   const uploadMutation = trpc.uploads.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (result) => {
       // Refetch the uploads list
-      trpc.uploads.list.useQuery();
+      utils.uploads.list.invalidate();
+      // Set the current upload ID
+      setCurrentUploadId(result.uploadId);
     },
   });
+
+  const { data: uploadTransactions } = trpc.uploads.getTransactions.useQuery(
+    { uploadId: currentUploadId! },
+    { enabled: !!currentUploadId }
+  );
+
+  // Load transactions when uploadId changes
+  useEffect(() => {
+    if (uploadTransactions && uploadTransactions.length > 0) {
+      setAllRecords(uploadTransactions);
+      setFilteredRecords(uploadTransactions);
+      setMetrics(calculateMetrics(uploadTransactions));
+      setAgentMetrics(calculateAgentMetrics(uploadTransactions));
+    }
+  }, [uploadTransactions]);
 
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
@@ -376,10 +396,9 @@ export default function Home() {
               <div className="mt-12 text-left">
                 <UploadHistory 
                   onSelectUpload={(uploadId) => {
-                    // We'll load the transactions using a different approach
-                    // For now, just trigger a refetch
-                    window.location.href = `/?uploadId=${uploadId}`;
+                    setCurrentUploadId(uploadId);
                   }}
+                  currentUploadId={currentUploadId}
                 />
               </div>
             ) : recentFiles.length > 0 && (

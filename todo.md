@@ -9,12 +9,13 @@
 - [ ] Test authentication flow with real uploads
 
 ## Phase 2: New Features (Current)
-- [x] Add Upload History UI sidebar/dropdown
-- [x] Implement "Connect Dotloop" button with OAuth placeholder
 - [x] Create Admin Dashboard for user and upload management
 - [x] Write comprehensive Admin Dashboard documentation (Admin_Dashboard_Guide.md)
 - [x] Implement admin router with full test coverage (15 passing tests)
-- [ ] Test all three new features together
+- [x] Implement Upload History UI sidebar component
+- [x] Add "Connect Dotloop" button with OAuth placeholder modal
+- [x] Integrate database-backed upload history with frontend
+- [x] Test all three new features together
 
 ## Phase 3: Dotloop API Integration (Future)
 - [ ] Create Dotloop OAuth integration table (schema exists)
