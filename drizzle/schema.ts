@@ -35,6 +35,15 @@ export const uploads = mysqlTable("uploads", {
   fileName: varchar("fileName", { length: 255 }).notNull(),
   recordCount: int("recordCount").notNull(),
   uploadedAt: timestamp("uploadedAt").defaultNow().notNull(),
+  
+  // Performance metrics
+  fileSize: int("fileSize"), // File size in bytes
+  validationTimeMs: int("validationTimeMs"), // Time spent validating (milliseconds)
+  parsingTimeMs: int("parsingTimeMs"), // Time spent parsing (milliseconds)
+  uploadTimeMs: int("uploadTimeMs"), // Time spent uploading to DB (milliseconds)
+  totalTimeMs: int("totalTimeMs"), // Total processing time (milliseconds)
+  status: mysqlEnum("status", ["success", "failed", "partial"]).default("success").notNull(),
+  errorMessage: text("errorMessage"), // Error details if failed
 });
 
 export type Upload = typeof uploads.$inferSelect;

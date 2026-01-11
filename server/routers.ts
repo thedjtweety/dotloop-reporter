@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { adminRouter } from './adminRouter';
+import { performanceRouter } from './performanceRouter';
 import {
   createUpload,
   getUserUploads,
@@ -40,14 +41,26 @@ export const appRouter = router({
         z.object({
           fileName: z.string(),
           transactions: z.array(z.any()),
+          fileSize: z.number().optional(),
+          validationTimeMs: z.number().optional(),
+          parsingTimeMs: z.number().optional(),
+          totalTimeMs: z.number().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
+        const uploadStartTime = Date.now();
+        
         // Create upload record
         const uploadId = await createUpload({
           userId: ctx.user.id,
           fileName: input.fileName,
           recordCount: input.transactions.length,
+          fileSize: input.fileSize,
+          validationTimeMs: input.validationTimeMs,
+          parsingTimeMs: input.parsingTimeMs,
+          uploadTimeMs: null, // Will be calculated after transaction insert
+          totalTimeMs: input.totalTimeMs,
+          status: 'success',
         });
 
         // Prepare transactions for bulk insert
@@ -156,6 +169,7 @@ export const appRouter = router({
   }),
 
   admin: adminRouter,
+  performance: performanceRouter,
 });
 
 export type AppRouter = typeof appRouter;

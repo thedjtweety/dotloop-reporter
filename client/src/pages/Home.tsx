@@ -321,17 +321,28 @@ export default function Home() {
       uploadProgress.reset();
     }
     
+    // Track performance metrics
+    const performanceMetrics = {
+      fileSize: file.size,
+      validationTimeMs: 0,
+      parsingTimeMs: 0,
+      totalTimeMs: 0,
+    };
+    const overallStartTime = Date.now();
+    
     try {
       // Step 1: Validate the CSV file
       if (shouldShowProgress) {
         uploadProgress.startStage('validation', 'Checking file format and structure...');
       }
       
+      const validationStartTime = Date.now();
       const validationResult = await validateCSVFile(file, (progress, message) => {
         if (shouldShowProgress) {
           uploadProgress.updateProgress('validation', progress, message);
         }
       });
+      performanceMetrics.validationTimeMs = Date.now() - validationStartTime;
       
       // If validation fails with critical errors, show error display
       if (!validationResult.isValid) {
@@ -364,12 +375,14 @@ export default function Home() {
         uploadProgress.startStage('parsing', 'Reading CSV data...');
       }
       
+      const parsingStartTime = Date.now();
       const text = await file.text();
       const records = parseCSV(text, (progress, message) => {
         if (shouldShowProgress) {
           uploadProgress.updateProgress('parsing', progress, message);
         }
       });
+      performanceMetrics.parsingTimeMs = Date.now() - parsingStartTime;
       
       if (shouldShowProgress) {
         uploadProgress.completeStage('parsing', `Parsed ${records.length} records`);
@@ -381,10 +394,16 @@ export default function Home() {
           uploadProgress.startStage('upload', 'Saving to database...');
         }
         
-        // Save to database via tRPC
+        performanceMetrics.totalTimeMs = Date.now() - overallStartTime;
+        
+        // Save to database via tRPC with performance metrics
         await uploadMutation.mutateAsync({
           fileName: file.name,
           transactions: records,
+          fileSize: performanceMetrics.fileSize,
+          validationTimeMs: performanceMetrics.validationTimeMs,
+          parsingTimeMs: performanceMetrics.parsingTimeMs,
+          totalTimeMs: performanceMetrics.totalTimeMs,
         });
         
         if (shouldShowProgress) {

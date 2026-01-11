@@ -95,10 +95,16 @@ export default function AdminDashboard() {
               </h1>
             </div>
           </div>
-          <Button variant="outline" onClick={() => setLocation('/')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to App
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setLocation('/performance')}>
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Performance Metrics
+            </Button>
+            <Button variant="outline" onClick={() => setLocation('/')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to App
+            </Button>
+          </div>
         </div>
       </header>
 

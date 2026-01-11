@@ -15,6 +15,13 @@
       "when": 1768169873757,
       "tag": "0001_fat_ezekiel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1768173970128,
+      "tag": "0002_awesome_groot",
+      "breakpoints": true
     }
   ]
 }

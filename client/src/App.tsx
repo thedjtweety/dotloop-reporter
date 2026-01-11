@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import AdminDashboard from "./pages/AdminDashboard";
 import CreativeDashboard from "./pages/CreativeDashboard";
+import PerformanceDashboard from "./pages/PerformanceDashboard";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -14,6 +15,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/performance" component={PerformanceDashboard} />
       <Route path="/creative" component={CreativeDashboard} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

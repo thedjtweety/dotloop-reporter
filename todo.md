@@ -47,3 +47,15 @@
 - [x] Add estimated time remaining calculation
 - [x] Test with large files (6.13 MB, 50,000 records)
 - [x] Verified all three stages work correctly (validation, parsing, upload)
+
+## Phase 5: Performance Metrics Dashboard
+- [x] Design database schema for performance metrics (processing times, file sizes)
+- [x] Add performance tracking fields to uploads table (fileSize, validationTimeMs, parsingTimeMs, uploadTimeMs, totalTimeMs, status)
+- [x] Create admin API endpoints for aggregate statistics (8 endpoints with 9 passing tests)
+- [x] Build Performance Metrics Dashboard page (admin-only at /performance)
+- [x] Add charts for file size distribution
+- [x] Add charts for processing time trends
+- [x] Add success/failure rate metrics
+- [x] Add bottleneck identification (slowest stages)
+- [x] Integrate performance tracking into upload flow
+- [x] Test with real upload data
