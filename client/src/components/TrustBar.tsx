@@ -8,8 +8,8 @@ import { TrendingUp, Users, Building2, DollarSign } from 'lucide-react';
 
 export default function TrustBar() {
   return (
-    <div className="w-full bg-slate-900/50 backdrop-blur-sm border-t border-white/10 py-8 mt-[-2px]">
-      <div className="container mx-auto px-4">
+    <div className="w-full bg-slate-900/50 backdrop-blur-sm border-t border-white/10 py-8 mt-[-2px] overflow-hidden">
+      <div className="max-w-5xl mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="flex flex-col items-center text-center space-y-2">
             <div className="p-3 rounded-full bg-emerald-500/10 mb-2">

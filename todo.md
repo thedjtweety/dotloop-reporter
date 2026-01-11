@@ -79,3 +79,10 @@
 - [x] Implement tour progress tracking (localStorage with useOnboardingTour hook)
 - [x] Add "Skip Tour" and "Next" navigation with step counter
 - [x] Test tour flow (verified working on dashboard) and micro-interactions
+
+## Phase 8: UI Fixes - Leaderboard & Ticker
+- [x] Fix Agent Performance Leaderboard text contrast in dark mode
+- [x] Improve podium numbers visibility (increased opacity, added dark variants)
+- [x] Adjust background colors for better readability (dark:from-slate-800/50)
+- [x] Fix ticker overflow on upload page (added overflow-hidden, max-w-5xl)
+- [x] Test fixes in both light and dark modes
