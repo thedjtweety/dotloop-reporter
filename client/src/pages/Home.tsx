@@ -41,6 +41,8 @@ import {
   DashboardMetrics,
   AgentMetrics,
 } from '@/lib/csvParser';
+import { validateCSVFile, ValidationResult } from '@/lib/csvValidator';
+import { ValidationErrorDisplay } from '@/components/ValidationErrorDisplay';
 import { filterRecordsByDate, getPreviousPeriod } from '@/lib/dateUtils';
 import { cleanDate, cleanNumber, cleanPercentage, cleanText } from '@/lib/dataCleaning';
 import { findMatchingTemplate, saveTemplate } from '@/lib/importTemplates';
@@ -113,6 +115,10 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('pipeline');
   const [showConsultantConfirm, setShowConsultantConfirm] = useState(false);
   const [consultantRedirectData, setConsultantRedirectData] = useState<DotloopRecord[] | null>(null);
+  
+  // CSV Validation State
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const [showValidationError, setShowValidationError] = useState(false);
 
   // Load saved mapping and recent files on mount
   useEffect(() => {
@@ -299,6 +305,23 @@ export default function Home() {
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
     try {
+      // Step 1: Validate the CSV file
+      const validationResult = await validateCSVFile(file);
+      
+      // If validation fails with critical errors, show error display
+      if (!validationResult.isValid) {
+        setValidationResult(validationResult);
+        setShowValidationError(true);
+        setIsLoading(false);
+        return;
+      }
+      
+      // If there are warnings, show them but continue
+      if (validationResult.warnings.length > 0) {
+        console.warn('CSV validation warnings:', validationResult.warnings);
+      }
+      
+      // Step 2: Parse the CSV
       const text = await file.text();
       const records = parseCSV(text);
       
@@ -412,6 +435,21 @@ export default function Home() {
             )}
           </div>
         </main>
+
+        {/* CSV Validation Error Dialog */}
+        <Dialog open={showValidationError} onOpenChange={setShowValidationError}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            {validationResult && (
+              <ValidationErrorDisplay
+                validationResult={validationResult}
+                onRetry={() => {
+                  setShowValidationError(false);
+                  setValidationResult(null);
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Mapping Dialogs */}
         <AlertDialog open={showMapping} onOpenChange={setShowMapping}>
