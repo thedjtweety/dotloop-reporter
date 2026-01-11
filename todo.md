@@ -8,14 +8,21 @@
 - [ ] Create upload history UI component
 - [ ] Test authentication flow with real uploads
 
-## Phase 2: Dotloop API Integration (Future)
-- [ ] Create Dotloop OAuth integration table (schema exists)
-- [ ] Add "Connect Dotloop" button
-- [ ] Implement mock API for testing
-- [ ] Add API sync worker
-- [ ] Create admin dashboard for connection management
+## Phase 2: New Features (Current)
+- [x] Add Upload History UI sidebar/dropdown
+- [x] Implement "Connect Dotloop" button with OAuth placeholder
+- [x] Create Admin Dashboard for user and upload management
+- [x] Write comprehensive Admin Dashboard documentation (Admin_Dashboard_Guide.md)
+- [x] Implement admin router with full test coverage (15 passing tests)
+- [ ] Test all three new features together
 
-## Phase 3: Multi-Tenant Architecture
+## Phase 3: Dotloop API Integration (Future)
+- [ ] Create Dotloop OAuth integration table (schema exists)
+- [ ] Implement OAuth flow for Dotloop connection
+- [ ] Add API sync worker
+- [ ] Create connection management interface
+
+## Phase 4: Multi-Tenant Architecture
 - [ ] Add brokerage_id to all relevant tables
 - [ ] Implement tenant isolation in queries
 - [ ] Create brokerage management interface

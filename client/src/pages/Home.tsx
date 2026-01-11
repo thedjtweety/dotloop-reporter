@@ -50,6 +50,8 @@ import UploadZone from '@/components/UploadZone';
 import TrustBar from '@/components/TrustBar';
 import CommissionProjector from '@/components/CommissionProjector';
 import RecentUploads, { RecentFile } from '@/components/RecentUploads';
+import UploadHistory from '@/components/UploadHistory';
+import ConnectDotloop from '@/components/ConnectDotloop';
 import MetricCard from '@/components/MetricCard';
 import ColumnMapping from '@/components/ColumnMapping';
 import FieldMapper, { ColumnMapping as FieldMapping } from '@/components/FieldMapper';
@@ -343,6 +345,7 @@ export default function Home() {
               </h1>
             </div>
             <div className="flex items-center gap-4">
+              <ConnectDotloop variant="button" />
               <ModeToggle />
               <Button variant="outline" onClick={handleDemoMode} disabled={isLoading}>
                 {isLoading ? 'Loading...' : 'Try Demo'}
@@ -368,7 +371,18 @@ export default function Home() {
 
             <TrustBar />
             
-            {recentFiles.length > 0 && (
+            {/* Show Upload History for authenticated users, RecentUploads for guests */}
+            {isAuthenticated && user ? (
+              <div className="mt-12 text-left">
+                <UploadHistory 
+                  onSelectUpload={(uploadId) => {
+                    // We'll load the transactions using a different approach
+                    // For now, just trigger a refetch
+                    window.location.href = `/?uploadId=${uploadId}`;
+                  }}
+                />
+              </div>
+            ) : recentFiles.length > 0 && (
               <div className="mt-12 text-left">
                 <RecentUploads 
                   files={recentFiles} 
