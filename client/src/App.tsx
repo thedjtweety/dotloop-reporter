@@ -7,8 +7,8 @@ import { ThemeProvider } from "./components/theme-provider";
 import Home from "./pages/Home";
 import CreativeDashboard from "./pages/CreativeDashboard";
 
-
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />

@@ -10,6 +10,8 @@
 
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { trpc } from '@/lib/trpc';
 import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent, Settings, ArrowLeft, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -81,6 +83,10 @@ import MobileNav from '@/components/MobileNav';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 export default function Home() {
+  // The userAuth hooks provides authentication state
+  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
+
   const [location, setLocation] = useLocation();
   const [allRecords, setAllRecords] = useState<DotloopRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<DotloopRecord[]>([]);
@@ -261,32 +267,43 @@ export default function Home() {
     setDrillDownOpen(true);
   };
 
+  const uploadMutation = trpc.uploads.create.useMutation({
+    onSuccess: () => {
+      // Refetch the uploads list
+      trpc.uploads.list.useQuery();
+    },
+  });
+
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
     try {
       const text = await file.text();
-      const result = parseCSV(text);
+      const records = parseCSV(text);
       
-      // Check if we need mapping
-      const headers = result.meta.fields || [];
-      const requiredFields = ['Loop Name', 'Loop Status', 'Price', 'Closing Date'];
-      const missingFields = requiredFields.filter(f => !headers.includes(f));
-
-      if (missingFields.length > 0 && Object.keys(customMapping).length === 0) {
-        // Show mapping wizard
-        setCsvHeaders(headers);
-        setRawCsvData(result.data);
-        setPendingFile({ headers, data: result.data });
-        setShowMapping(true);
-        setIsLoading(false);
-        return;
+      // Check if user is authenticated
+      if (isAuthenticated && user) {
+        // Save to database via tRPC
+        await uploadMutation.mutateAsync({
+          fileName: file.name,
+          transactions: records,
+        });
       }
-
-      // Process with existing mapping or default
-      processWithMapping(result.data, customMapping);
+      
+      // Process the records for immediate display
+      setAllRecords(records);
+      setFilteredRecords(records);
+      setMetrics(calculateMetrics(records));
+      setAgentMetrics(calculateAgentMetrics(records));
+      setIsLoading(false);
+      
+      // Save to recent files (localStorage fallback for non-authenticated users)
+      if (!isAuthenticated) {
+        await handleSaveRecent(file.name, records);
+      }
       
     } catch (error) {
       console.error('Error parsing CSV:', error);
+      setIsLoading(false);
       // Show error toast
     }
   };
