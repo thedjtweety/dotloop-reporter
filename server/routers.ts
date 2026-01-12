@@ -205,6 +205,50 @@ export const appRouter = router({
         }));
       }),
 
+    // Get all transactions for the current user (across all uploads)
+    getAllTransactions: protectedProcedure.query(async ({ ctx }) => {
+      const dbTransactions = await getUserTransactions(ctx.user.id);
+
+      // Convert back to DotloopRecord format
+      return dbTransactions.map((t) => ({
+        loopId: t.loopId || "",
+        loopViewUrl: t.loopViewUrl || "",
+        loopName: t.loopName || "",
+        loopStatus: t.loopStatus || "",
+        createdDate: t.createdDate || "",
+        closingDate: t.closingDate || "",
+        listingDate: t.listingDate || "",
+        offerDate: t.offerDate || "",
+        address: t.address || "",
+        price: t.price || 0,
+        propertyType: t.propertyType || "",
+        bedrooms: t.bedrooms || 0,
+        bathrooms: t.bathrooms || 0,
+        squareFootage: t.squareFootage || 0,
+        city: t.city || "",
+        state: t.state || "",
+        county: t.county || "",
+        leadSource: t.leadSource || "",
+        agents: t.agents || "",
+        createdBy: t.createdBy || "",
+        earnestMoney: t.earnestMoney || 0,
+        salePrice: t.salePrice || 0,
+        commissionRate: t.commissionRate || 0,
+        commissionTotal: t.commissionTotal || 0,
+        buySideCommission: t.buySideCommission || 0,
+        sellSideCommission: t.sellSideCommission || 0,
+        companyDollar: t.companyDollar || 0,
+        referralSource: t.referralSource || "",
+        referralPercentage: t.referralPercentage || 0,
+        complianceStatus: t.complianceStatus || "",
+        tags: t.tags ? JSON.parse(t.tags) : [],
+        originalPrice: t.originalPrice || 0,
+        yearBuilt: t.yearBuilt || 0,
+        lotSize: t.lotSize || 0,
+        subdivision: t.subdivision || "",
+      }));
+    }),
+
     // Delete an upload
     delete: protectedProcedure
       .input(z.object({ uploadId: z.number() }))

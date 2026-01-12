@@ -901,3 +901,11 @@
 - [x] Update validation to allow duplicate loopIds (since upsert handles them)
 - [x] Update tests to reflect duplicate loopId handling (28 tests passing)
 - [x] Verified CSV parser handles multiple Dotloop export formats with fuzzy matching
+
+## Phase 25: Fix Commission Management Section
+- [x] Remove redundant "Upload Transaction Data" section (data comes from CSV upload)
+- [x] Fix automatic commission calculation to pull from uploaded transactions via database
+- [x] Added getAllTransactions endpoint to fetch all user transactions from database
+- [x] Verify agents list is populated from transaction data (extracted from agents field)
+- [x] CommissionCalculator now displays transaction count, agent count, plan count, and assignment count
+- [x] Removed CSVUploadWidget from CommissionCalculator (redundant with main upload flow)
