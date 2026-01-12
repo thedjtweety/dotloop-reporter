@@ -65,6 +65,7 @@ const TeamSchema = z.object({
 }).strict();
 
 const AgentAssignmentSchema = z.object({
+  id: z.string().optional(),
   agentName: z.string(),
   planId: z.string(),
   teamId: z.string().optional(),
@@ -122,6 +123,8 @@ export const commissionRouter = router({
               deductions: p.deductions ? JSON.parse(p.deductions as string) : undefined,
               royaltyPercentage: p.royaltyPercentage,
               royaltyCap: p.royaltyCap,
+              useSliding: p.useSliding === 1,
+              tiers: p.tiers ? JSON.parse(p.tiers as string) : undefined,
             } as CommissionPlan));
         }
 
@@ -358,6 +361,166 @@ export const commissionRouter = router({
         agentCount: transactionAgents.size,
         planCount: input.plans.length,
       };
+    }),
+
+  /**
+   * Save a commission plan to the database
+   */
+  savePlan: protectedProcedure
+    .input(CommissionPlanSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const db = await getDb();
+        if (!db) {
+          throw new Error("Database connection not available");
+        }
+
+        // Check if plan exists
+        const existing = await db
+          .select()
+          .from(commissionPlans)
+          .where(eq(commissionPlans.id, input.id))
+          .limit(1);
+
+        if (existing.length > 0) {
+          // Update existing plan
+          await db
+            .update(commissionPlans)
+            .set({
+              name: input.name,
+              splitPercentage: input.splitPercentage,
+              capAmount: input.capAmount,
+              postCapSplit: input.postCapSplit,
+              royaltyPercentage: input.royaltyPercentage,
+              royaltyCap: input.royaltyCap,
+              deductions: JSON.stringify(input.deductions),
+            })
+            .where(eq(commissionPlans.id, input.id));
+        } else {
+          // Insert new plan
+          await db.insert(commissionPlans).values({
+            id: input.id,
+            tenantId: ctx.user.tenantId,
+            name: input.name,
+            splitPercentage: input.splitPercentage,
+            capAmount: input.capAmount,
+            postCapSplit: input.postCapSplit,
+            royaltyPercentage: input.royaltyPercentage,
+            royaltyCap: input.royaltyCap,
+            deductions: JSON.stringify(input.deductions),
+          });
+        }
+
+        return { success: true, id: input.id };
+      } catch (error) {
+        console.error("Save plan error:", error);
+        throw new Error(
+          `Failed to save commission plan: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
+      }
+    }),
+
+  /**
+   * Delete a commission plan from the database
+   */
+  deletePlan: protectedProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input: planId }) => {
+      try {
+        const db = await getDb();
+        if (!db) {
+          throw new Error("Database connection not available");
+        }
+
+        // Delete the plan
+        await db
+          .delete(commissionPlans)
+          .where(eq(commissionPlans.id, planId));
+
+        return { success: true };
+      } catch (error) {
+        console.error("Delete plan error:", error);
+        throw new Error(
+          `Failed to delete commission plan: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
+      }
+    }),
+
+  /**
+   * Save an agent assignment to the database
+   */
+  saveAssignment: protectedProcedure
+    .input(AgentAssignmentSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const db = await getDb();
+        if (!db) {
+          throw new Error("Database connection not available");
+        }
+
+        // Check if assignment exists
+        const existing = await db
+          .select()
+          .from(agentAssignments)
+          .where(eq(agentAssignments.id, input.id))
+          .limit(1);
+
+        if (existing.length > 0) {
+          // Update existing assignment
+          await db
+            .update(agentAssignments)
+            .set({
+              agentName: input.agentName,
+              planId: input.planId,
+              teamId: input.teamId,
+              anniversaryDate: input.anniversaryDate,
+            })
+            .where(eq(agentAssignments.id, input.id));
+        } else {
+          // Insert new assignment
+          await db.insert(agentAssignments).values({
+            id: input.id,
+            tenantId: ctx.user.tenantId,
+            agentName: input.agentName,
+            planId: input.planId,
+            teamId: input.teamId,
+            anniversaryDate: input.anniversaryDate,
+          });
+        }
+
+        return { success: true, id: input.id };
+      } catch (error) {
+        console.error("Save assignment error:", error);
+        throw new Error(
+          `Failed to save agent assignment: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
+      }
+    }),
+
+  /**
+   * Delete an agent assignment from the database
+   */
+  deleteAssignment: protectedProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input: assignmentId }) => {
+      try {
+        const db = await getDb();
+        if (!db) {
+          throw new Error("Database connection not available");
+        }
+
+        // Delete the assignment
+        await db
+          .delete(agentAssignments)
+          .where(eq(agentAssignments.id, assignmentId));
+
+        return { success: true };
+      } catch (error) {
+        console.error("Delete assignment error:", error);
+        throw new Error(
+          `Failed to delete agent assignment: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
+      }
     }),
 });
 

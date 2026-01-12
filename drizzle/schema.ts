@@ -349,6 +349,10 @@ export const commissionPlans = mysqlTable("commission_plans", {
   royaltyPercentage: int("royaltyPercentage"), // Franchise fee percentage
   royaltyCap: int("royaltyCap"), // Cap on royalty amount
   
+  // Sliding scale tiers
+  useSliding: int("useSliding").notNull().default(0), // Whether to use tiered splits
+  tiers: text("tiers"), // JSON array of commission tiers with thresholds
+  
   // Metadata
   description: text("description"),
   isActive: int("isActive").notNull().default(1),

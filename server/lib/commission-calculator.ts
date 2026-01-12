@@ -22,15 +22,24 @@ export interface Deduction {
   frequency: 'per_transaction';
 }
 
+export interface CommissionTier {
+  id: string;
+  threshold: number; // YTD amount at which this tier starts (e.g., 0, 50000, 100000)
+  splitPercentage: number; // Agent's share at this tier (e.g., 60 for 60/40)
+  description: string; // e.g., "$0-$50K: 60/40"
+}
+
 export interface CommissionPlan {
   id: string;
   name: string;
-  splitPercentage: number; // Agent's share before cap (e.g., 80 for 80/20)
+  splitPercentage: number; // Default/base split percentage (used if no tiers defined)
   capAmount: number; // Annual cap on Company Dollar
   postCapSplit: number; // Agent's share after cap (usually 100)
   royaltyPercentage?: number; // Franchise fee percentage
   royaltyCap?: number; // Cap on royalty
   deductions?: Deduction[];
+  tiers?: CommissionTier[]; // Sliding scale tiers (optional)
+  useSliding: boolean; // Whether to use tiered splits or flat split
 }
 
 export interface Team {
@@ -171,6 +180,36 @@ export function getCycleEndDate(cycleStart: Date): Date {
 }
 
 /**
+ * Get the effective split percentage for an agent based on their YTD performance
+ * Supports sliding scale tiers
+ */
+function getEffectiveSplitPercentage(
+  plan: CommissionPlan,
+  ytdCompanyDollar: number
+): number {
+  // If no tiers defined or sliding scale disabled, use base split
+  if (!plan.useSliding || !plan.tiers || plan.tiers.length === 0) {
+    return plan.splitPercentage;
+  }
+
+  // Sort tiers by threshold (ascending)
+  const sortedTiers = [...plan.tiers].sort((a, b) => a.threshold - b.threshold);
+
+  // Find the applicable tier based on YTD amount
+  let applicableTier = sortedTiers[0]; // Default to first tier
+  
+  for (const tier of sortedTiers) {
+    if (ytdCompanyDollar >= tier.threshold) {
+      applicableTier = tier;
+    } else {
+      break; // Found the right tier, stop looking
+    }
+  }
+
+  return applicableTier.splitPercentage;
+}
+
+/**
  * Calculate commission for a single transaction
  */
 export function calculateTransactionCommission(
@@ -199,9 +238,10 @@ export function calculateTransactionCommission(
     afterTeamSplit = gciPerAgent - teamSplitAmount;
   }
   
-  // Step 3: Calculate Brokerage Split (with cap logic)
+  // Step 3: Calculate Brokerage Split (with cap logic and sliding scales)
+  const effectiveAgentSplit = getEffectiveSplitPercentage(plan, ytdCompanyDollar);
   const remainingCap = Math.max(0, plan.capAmount - ytdCompanyDollar);
-  const brokerageSharePercent = 100 - plan.splitPercentage;
+  const brokerageSharePercent = 100 - effectiveAgentSplit;
   const potentialCompanyDollar = afterTeamSplit * (brokerageSharePercent / 100);
   
   let brokerageSplitAmount = 0;

@@ -698,3 +698,48 @@
 - [ ] Test plan/team/assignment management from panel - Ready for testing
 - [ ] Verify data persistence across tabs - Ready for testing
 - [ ] Test on mobile and desktop - Ready for testing
+
+
+## Phase 49: Fix Commission Data Persistence (URGENT)
+**Priority:** CRITICAL | **Complexity:** 7/10 | **Time Estimate:** 2-3 hours
+**Status:** 🚧 Active Development - Blocking calculator functionality
+
+### Problem
+- Plans and agents are created in UI but not saved to database
+- Calculator queries database and finds 0 plans/agents
+- Data only exists in local storage, not persistent
+
+### Solution: Add Database Persistence
+
+#### Backend (tRPC Procedures)
+- [ ] Add savePlan procedure to create/update plans in database
+- [ ] Add saveAssignment procedure to create/update agent assignments
+- [ ] Add deletePlan procedure for plan deletion
+- [ ] Add deleteAssignment procedure for assignment deletion
+- [ ] Ensure procedures validate tenant isolation
+
+#### Frontend (UI Components)
+- [ ] Update CommissionPlansManager to call savePlan on create/update
+- [ ] Update CommissionPlansManager to call deletePlan on delete
+- [ ] Update AgentAssignment to call saveAssignment on create/update
+- [ ] Update AgentAssignment to call deleteAssignment on delete
+- [ ] Add loading states during database operations
+- [ ] Add error handling and user feedback
+
+#### Testing
+- [ ] Create a plan and verify it appears in database
+- [ ] Assign an agent and verify it appears in database
+- [ ] Click Calculate and verify plans/agents are now detected
+- [ ] Test full calculation workflow end-to-end
+
+## Phase 45: Sliding Scale Commission Support
+
+- [x] Update CommissionPlan interface to support tier definitions
+- [x] Implement tier-based split calculation logic
+- [x] Update database schema for commission_plan_tiers table
+- [x] Create UI for tier configuration in CommissionPlansManager
+- [x] Write tests for sliding scale calculations (multi-tier scenarios)
+- [x] Test mixed scenarios (hitting cap while on different tier)
+- [x] Verify YTD tracking across tier boundaries
+- [ ] Update CommissionCalculator UI to show tier information
+- [ ] Save checkpoint with sliding scale support
