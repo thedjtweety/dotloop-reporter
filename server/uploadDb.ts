@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { uploads, transactions, auditLogs, users } from "../drizzle/schema";
 import type { InferInsertModel } from 'drizzle-orm';
 
@@ -57,7 +57,7 @@ export async function getUploadById(uploadId: number, userId: number) {
 
 /**
  * Bulk insert or update transactions (upsert) with error handling and retry logic
- * Uses ON DUPLICATE KEY UPDATE to handle duplicate loopIds by updating existing records
+ * Uses Drizzle's onDuplicateKeyUpdate to handle duplicate loopIds gracefully
  */
 export async function createTransactions(transactionList: InsertTransaction[]) {
   const db = await getDb();
@@ -73,9 +73,49 @@ export async function createTransactions(transactionList: InsertTransaction[]) {
     const batch = transactionList.slice(i, i + batchSize);
     
     try {
-      // Use raw SQL for upsert to handle duplicate loopIds gracefully
-      // ON DUPLICATE KEY UPDATE will update existing records instead of failing
-      await upsertTransactionBatch(db, batch);
+      // Use Drizzle's onDuplicateKeyUpdate for upsert
+      // This will update existing records if loopId already exists
+      // Using sql.raw to reference VALUES() from the INSERT statement
+      await db.insert(transactions).values(batch).onDuplicateKeyUpdate({
+        set: {
+          loopViewUrl: sql`VALUES(${transactions.loopViewUrl})`,
+          loopName: sql`VALUES(${transactions.loopName})`,
+          loopStatus: sql`VALUES(${transactions.loopStatus})`,
+          createdDate: sql`VALUES(${transactions.createdDate})`,
+          closingDate: sql`VALUES(${transactions.closingDate})`,
+          listingDate: sql`VALUES(${transactions.listingDate})`,
+          offerDate: sql`VALUES(${transactions.offerDate})`,
+          address: sql`VALUES(${transactions.address})`,
+          price: sql`VALUES(${transactions.price})`,
+          propertyType: sql`VALUES(${transactions.propertyType})`,
+          bedrooms: sql`VALUES(${transactions.bedrooms})`,
+          bathrooms: sql`VALUES(${transactions.bathrooms})`,
+          squareFootage: sql`VALUES(${transactions.squareFootage})`,
+          city: sql`VALUES(${transactions.city})`,
+          state: sql`VALUES(${transactions.state})`,
+          county: sql`VALUES(${transactions.county})`,
+          leadSource: sql`VALUES(${transactions.leadSource})`,
+          agents: sql`VALUES(${transactions.agents})`,
+          createdBy: sql`VALUES(${transactions.createdBy})`,
+          earnestMoney: sql`VALUES(${transactions.earnestMoney})`,
+          salePrice: sql`VALUES(${transactions.salePrice})`,
+          commissionRate: sql`VALUES(${transactions.commissionRate})`,
+          commissionTotal: sql`VALUES(${transactions.commissionTotal})`,
+          buySideCommission: sql`VALUES(${transactions.buySideCommission})`,
+          sellSideCommission: sql`VALUES(${transactions.sellSideCommission})`,
+          companyDollar: sql`VALUES(${transactions.companyDollar})`,
+          referralSource: sql`VALUES(${transactions.referralSource})`,
+          referralPercentage: sql`VALUES(${transactions.referralPercentage})`,
+          complianceStatus: sql`VALUES(${transactions.complianceStatus})`,
+          tags: sql`VALUES(${transactions.tags})`,
+          originalPrice: sql`VALUES(${transactions.originalPrice})`,
+          yearBuilt: sql`VALUES(${transactions.yearBuilt})`,
+          lotSize: sql`VALUES(${transactions.lotSize})`,
+          subdivision: sql`VALUES(${transactions.subdivision})`,
+          uploadId: sql`VALUES(${transactions.uploadId})`,
+        },
+      });
+      
       console.log(`Batch ${batchIndex}: Upserted ${batch.length} records`);
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
@@ -88,7 +128,45 @@ export async function createTransactions(transactionList: InsertTransaction[]) {
           const smallBatchSize = 50;
           for (let j = 0; j < batch.length; j += smallBatchSize) {
             const smallBatch = batch.slice(j, j + smallBatchSize);
-            await upsertTransactionBatch(db, smallBatch);
+            await db.insert(transactions).values(smallBatch).onDuplicateKeyUpdate({
+              set: {
+                loopViewUrl: sql`VALUES(${transactions.loopViewUrl})`,
+                loopName: sql`VALUES(${transactions.loopName})`,
+                loopStatus: sql`VALUES(${transactions.loopStatus})`,
+                createdDate: sql`VALUES(${transactions.createdDate})`,
+                closingDate: sql`VALUES(${transactions.closingDate})`,
+                listingDate: sql`VALUES(${transactions.listingDate})`,
+                offerDate: sql`VALUES(${transactions.offerDate})`,
+                address: sql`VALUES(${transactions.address})`,
+                price: sql`VALUES(${transactions.price})`,
+                propertyType: sql`VALUES(${transactions.propertyType})`,
+                bedrooms: sql`VALUES(${transactions.bedrooms})`,
+                bathrooms: sql`VALUES(${transactions.bathrooms})`,
+                squareFootage: sql`VALUES(${transactions.squareFootage})`,
+                city: sql`VALUES(${transactions.city})`,
+                state: sql`VALUES(${transactions.state})`,
+                county: sql`VALUES(${transactions.county})`,
+                leadSource: sql`VALUES(${transactions.leadSource})`,
+                agents: sql`VALUES(${transactions.agents})`,
+                createdBy: sql`VALUES(${transactions.createdBy})`,
+                earnestMoney: sql`VALUES(${transactions.earnestMoney})`,
+                salePrice: sql`VALUES(${transactions.salePrice})`,
+                commissionRate: sql`VALUES(${transactions.commissionRate})`,
+                commissionTotal: sql`VALUES(${transactions.commissionTotal})`,
+                buySideCommission: sql`VALUES(${transactions.buySideCommission})`,
+                sellSideCommission: sql`VALUES(${transactions.sellSideCommission})`,
+                companyDollar: sql`VALUES(${transactions.companyDollar})`,
+                referralSource: sql`VALUES(${transactions.referralSource})`,
+                referralPercentage: sql`VALUES(${transactions.referralPercentage})`,
+                complianceStatus: sql`VALUES(${transactions.complianceStatus})`,
+                tags: sql`VALUES(${transactions.tags})`,
+                originalPrice: sql`VALUES(${transactions.originalPrice})`,
+                yearBuilt: sql`VALUES(${transactions.yearBuilt})`,
+                lotSize: sql`VALUES(${transactions.lotSize})`,
+                subdivision: sql`VALUES(${transactions.subdivision})`,
+                uploadId: sql`VALUES(${transactions.uploadId})`,
+              },
+            });
           }
           console.log(`Successfully upserted batch ${batchIndex} with smaller batch size`);
           continue;
@@ -115,153 +193,6 @@ export async function createTransactions(transactionList: InsertTransaction[]) {
   }
   
   console.log(`Upsert completed: ${transactionList.length} records processed`);
-}
-
-/**
- * Helper function to upsert a batch of transactions using raw SQL
- */
-async function upsertTransactionBatch(db: any, batch: InsertTransaction[]) {
-  if (batch.length === 0) return;
-
-  // Build the VALUES clause with proper escaping
-  const valuesClauses = batch.map(t => {
-    const values = [
-      t.tenantId,
-      t.uploadId,
-      t.userId,
-      t.loopId,
-      t.loopViewUrl,
-      t.loopName,
-      t.loopStatus,
-      t.createdDate,
-      t.closingDate,
-      t.listingDate,
-      t.offerDate,
-      t.address,
-      t.price,
-      t.propertyType,
-      t.bedrooms,
-      t.bathrooms,
-      t.squareFootage,
-      t.city,
-      t.state,
-      t.county,
-      t.leadSource,
-      t.agents,
-      t.createdBy,
-      t.earnestMoney,
-      t.salePrice,
-      t.commissionRate,
-      t.commissionTotal,
-      t.buySideCommission,
-      t.sellSideCommission,
-      t.companyDollar,
-      t.referralSource,
-      t.referralPercentage,
-      t.complianceStatus,
-      JSON.stringify(t.tags || []),
-      t.originalPrice,
-      t.yearBuilt,
-      t.lotSize,
-      t.subdivision,
-    ];
-    return `(${values.map(() => '?').join(',')})`;
-  });
-
-  // Flatten all values for the query
-  const allValues = batch.flatMap(t => [
-    t.tenantId,
-    t.uploadId,
-    t.userId,
-    t.loopId,
-    t.loopViewUrl,
-    t.loopName,
-    t.loopStatus,
-    t.createdDate,
-    t.closingDate,
-    t.listingDate,
-    t.offerDate,
-    t.address,
-    t.price,
-    t.propertyType,
-    t.bedrooms,
-    t.bathrooms,
-    t.squareFootage,
-    t.city,
-    t.state,
-    t.county,
-    t.leadSource,
-    t.agents,
-    t.createdBy,
-    t.earnestMoney,
-    t.salePrice,
-    t.commissionRate,
-    t.commissionTotal,
-    t.buySideCommission,
-    t.sellSideCommission,
-    t.companyDollar,
-    t.referralSource,
-    t.referralPercentage,
-    t.complianceStatus,
-    JSON.stringify(t.tags || []),
-    t.originalPrice,
-    t.yearBuilt,
-    t.lotSize,
-    t.subdivision,
-  ]);
-
-  const sql = `
-    INSERT INTO transactions (
-      tenantId, uploadId, userId, loopId, loopViewUrl, loopName, loopStatus,
-      createdDate, closingDate, listingDate, offerDate, address, price, propertyType,
-      bedrooms, bathrooms, squareFootage, city, state, county, leadSource, agents,
-      createdBy, earnestMoney, salePrice, commissionRate, commissionTotal,
-      buySideCommission, sellSideCommission, companyDollar, referralSource,
-      referralPercentage, complianceStatus, tags, originalPrice, yearBuilt, lotSize,
-      subdivision
-    ) VALUES ${valuesClauses.join(',')}
-    ON DUPLICATE KEY UPDATE
-      loopViewUrl = VALUES(loopViewUrl),
-      loopName = VALUES(loopName),
-      loopStatus = VALUES(loopStatus),
-      createdDate = VALUES(createdDate),
-      closingDate = VALUES(closingDate),
-      listingDate = VALUES(listingDate),
-      offerDate = VALUES(offerDate),
-      address = VALUES(address),
-      price = VALUES(price),
-      propertyType = VALUES(propertyType),
-      bedrooms = VALUES(bedrooms),
-      bathrooms = VALUES(bathrooms),
-      squareFootage = VALUES(squareFootage),
-      city = VALUES(city),
-      state = VALUES(state),
-      county = VALUES(county),
-      leadSource = VALUES(leadSource),
-      agents = VALUES(agents),
-      createdBy = VALUES(createdBy),
-      earnestMoney = VALUES(earnestMoney),
-      salePrice = VALUES(salePrice),
-      commissionRate = VALUES(commissionRate),
-      commissionTotal = VALUES(commissionTotal),
-      buySideCommission = VALUES(buySideCommission),
-      sellSideCommission = VALUES(sellSideCommission),
-      companyDollar = VALUES(companyDollar),
-      referralSource = VALUES(referralSource),
-      referralPercentage = VALUES(referralPercentage),
-      complianceStatus = VALUES(complianceStatus),
-      tags = VALUES(tags),
-      originalPrice = VALUES(originalPrice),
-      yearBuilt = VALUES(yearBuilt),
-      lotSize = VALUES(lotSize),
-      subdivision = VALUES(subdivision),
-      uploadId = VALUES(uploadId),
-      updatedAt = NOW()
-  `;
-
-  // Execute the raw SQL query
-  const connection = await db.execute(sql, allValues);
-  return connection;
 }
 
 /**
