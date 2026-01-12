@@ -19,9 +19,10 @@ import { CheckCircle2, Clock, Archive, AlertCircle, ExternalLink } from 'lucide-
 interface TransactionTableProps {
   transactions: DotloopRecord[];
   limit?: number;
+  compact?: boolean;
 }
 
-export default function TransactionTable({ transactions, limit }: TransactionTableProps) {
+export default function TransactionTable({ transactions, limit, compact = false }: TransactionTableProps) {
   const displayTransactions = limit ? transactions.slice(0, limit) : transactions;
 
   const getStatusIcon = (status: string) => {
@@ -77,7 +78,7 @@ export default function TransactionTable({ transactions, limit }: TransactionTab
           </TableHeader>
           <TableBody>
             {displayTransactions.map((transaction, idx) => (
-              <TableRow key={idx} className="border-border hover:bg-muted/50">
+              <TableRow key={idx} className={`border-border hover:bg-muted/50 ${compact ? 'h-12' : ''}`}>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     {getStatusIcon(transaction.loopStatus)}

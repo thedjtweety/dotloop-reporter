@@ -198,3 +198,11 @@
 - [x] Fix CLOSED column values (extremely light gray, nearly invisible)
 - [x] Replace ALL text-accent instances in data display components with text-foreground (AgentLeaderboard, TransactionTable, DataHealthCheck)
 - [x] Test visibility in light mode (all text-accent replaced with text-foreground for high contrast)
+
+## Phase 23: Improve Metric Card Modal UX
+- [x] Increase modal height to 90% of viewport (h-[90vh])
+- [x] Increase modal width to max-w-7xl for better use of screen space
+- [x] Add compact prop to TransactionTable for tighter spacing
+- [x] Add sticky header to modal with border separator
+- [x] Use flex layout to prevent header from scrolling
+- [x] Test modal with various deal counts (modal now uses 90% viewport height with wider max-w-7xl, sticky header, and compact table)

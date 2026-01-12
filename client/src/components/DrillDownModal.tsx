@@ -28,15 +28,15 @@ export default function DrillDownModal({
 }: DrillDownModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-7xl h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0 pb-4 border-b">
           <DialogTitle className="text-xl font-display">{title}</DialogTitle>
           <DialogDescription>
-            Showing {transactions.length} transactions
+            Showing {transactions.length} transaction{transactions.length !== 1 ? 's' : ''}
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-4">
-          <TransactionTable transactions={transactions} />
+        <div className="flex-1 overflow-y-auto mt-4">
+          <TransactionTable transactions={transactions} compact />
         </div>
       </DialogContent>
     </Dialog>
