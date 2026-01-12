@@ -8,6 +8,7 @@ import {
   deleteUpload,
   getUserUploads,
 } from "./uploadDb";
+import { commissionRouter } from "./commissionRouter";
 import type { DotloopRecord } from "../shared/types";
 
 export const uploadsRouter = router({
@@ -143,8 +144,14 @@ export const uploadsRouter = router({
     }),
 });
 
+const authRouter = router({
+  me: protectedProcedure.query(({ ctx }) => ctx.user),
+});
+
 export const appRouter = router({
+  auth: authRouter,
   uploads: uploadsRouter,
+  commission: commissionRouter,
 });
 
 export type AppRouter = typeof appRouter;

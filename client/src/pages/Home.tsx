@@ -79,6 +79,7 @@ import DataHealthCheck from '@/components/DataHealthCheck';
 import CommissionPlansManager from '@/components/CommissionPlansManager';
 import TeamManager from '@/components/TeamManager';
 import AgentAssignment from '@/components/AgentAssignment';
+import CommissionCalculator from '@/components/CommissionCalculator';
 import CommissionAuditReport from '@/components/CommissionAuditReport';
 import DataValidationReport from '@/components/DataValidationReport';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -1076,6 +1077,38 @@ function HomeContent() {
             <CollapsibleSection title="Agent Performance Leaderboard" icon={<Trophy className="w-6 h-6" />}>
               <AgentLeaderboardWithExport agents={agentMetrics} records={filteredRecords} />
             </CollapsibleSection>
+          </div>
+        )}
+
+        {/* Commission Management Section */}
+        {metrics?.hasFinancialData && (
+          <div data-section="commission-management">
+            <Card className="p-6 bg-card border border-border">
+              <div className="mb-6">
+                <h2 className="text-2xl font-display font-bold text-foreground mb-2">Commission Management</h2>
+                <p className="text-foreground">Configure plans, teams, and calculate commissions</p>
+              </div>
+              <Tabs defaultValue="plans" className="w-full">
+                <TabsList className="grid w-full grid-cols-4 mb-6">
+                  <TabsTrigger value="plans">Plans</TabsTrigger>
+                  <TabsTrigger value="teams">Teams</TabsTrigger>
+                  <TabsTrigger value="agents">Agents</TabsTrigger>
+                  <TabsTrigger value="calculator">Calculator</TabsTrigger>
+                </TabsList>
+                <TabsContent value="plans" className="space-y-4">
+                  <CommissionPlansManager />
+                </TabsContent>
+                <TabsContent value="teams" className="space-y-4">
+                  <TeamManager />
+                </TabsContent>
+                <TabsContent value="agents" className="space-y-4">
+                  <AgentAssignment records={allRecords} />
+                </TabsContent>
+                <TabsContent value="calculator" className="space-y-4">
+                  <CommissionCalculator />
+                </TabsContent>
+              </Tabs>
+            </Card>
           </div>
         )}
 
