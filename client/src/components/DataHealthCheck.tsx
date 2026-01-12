@@ -133,7 +133,7 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
                       <h4 className="font-medium text-foreground">{issue.title}</h4>
                     </div>
                     <p className="text-sm text-foreground">{issue.description}</p>
-                    <p className="text-xs font-medium text-accent">Impact: {issue.impact}</p>
+                    <p className="text-xs font-medium text-foreground">Impact: {issue.impact}</p>
                   </div>
                   <Button 
                     size="sm" 

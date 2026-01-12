@@ -96,7 +96,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
   });
 
   const getPerformanceBadge = (closingRate: number) => {
-    if (closingRate >= 50) return 'bg-accent text-accent-foreground';
+    if (closingRate >= 50) return 'bg-accent text-foreground-foreground';
     if (closingRate >= 30) return 'bg-primary/20 text-primary';
     return 'bg-secondary/20 text-secondary-foreground';
   };
@@ -243,7 +243,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                   </div>
                 </TableCell>
                 {hasFinancialData && (
-                  <TableCell className="font-semibold text-accent">
+                  <TableCell className="font-semibold text-foreground">
                     {formatCurrency(agent.totalCommission)}
                   </TableCell>
                 )}
@@ -260,7 +260,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                 <TableCell className="text-center font-medium">
                   {agent.totalTransactions}
                 </TableCell>
-                <TableCell className="text-center font-medium text-accent">
+                <TableCell className="text-center font-medium text-foreground">
                   {agent.closedDeals}
                 </TableCell>
                 <TableCell className="text-center">

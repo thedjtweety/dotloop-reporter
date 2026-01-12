@@ -116,7 +116,7 @@ export default function TransactionTable({ transactions, limit }: TransactionTab
                 <TableCell className="text-sm font-medium text-foreground">
                   ${(transaction.price / 1000).toFixed(0)}K
                 </TableCell>
-                <TableCell className="text-sm font-semibold text-accent">
+                <TableCell className="text-sm font-semibold text-foreground">
                   ${(transaction.commissionTotal / 1000).toFixed(1)}K
                 </TableCell>
                 <TableCell className="text-sm text-foreground">

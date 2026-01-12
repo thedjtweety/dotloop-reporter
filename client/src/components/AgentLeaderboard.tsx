@@ -49,7 +49,7 @@ export default function AgentLeaderboard({ agents }: AgentLeaderboardProps) {
   });
 
   const getPerformanceBadge = (closingRate: number) => {
-    if (closingRate >= 50) return 'bg-accent text-accent-foreground';
+    if (closingRate >= 50) return 'bg-accent text-foreground-foreground';
     if (closingRate >= 30) return 'bg-primary/20 text-primary';
     return 'bg-secondary/20 text-secondary-foreground';
   };
@@ -132,7 +132,7 @@ export default function AgentLeaderboard({ agents }: AgentLeaderboardProps) {
                 <TableCell className="font-medium text-foreground">
                   {agent.agentName}
                 </TableCell>
-                <TableCell className="font-semibold text-accent">
+                <TableCell className="font-semibold text-foreground">
                   ${(agent.totalCommission / 1000).toFixed(1)}K
                 </TableCell>
                 <TableCell className="text-foreground">
@@ -141,7 +141,7 @@ export default function AgentLeaderboard({ agents }: AgentLeaderboardProps) {
                 <TableCell className="text-center font-medium">
                   {agent.totalTransactions}
                 </TableCell>
-                <TableCell className="text-center font-medium text-accent">
+                <TableCell className="text-center font-medium text-foreground">
                   {agent.closedDeals}
                 </TableCell>
                 <TableCell className="text-center">

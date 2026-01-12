@@ -192,3 +192,9 @@
 - [x] Replace ALL text-muted-foreground with text-foreground (134 instances removed)
 - [x] Fix CardDescription component to use text-foreground
 - [x] Test visibility in both modes (verified: all text is pure white in dark mode, pure black in light mode)
+
+## Phase 22: Fix Light Gray Table Values
+- [x] Fix TOTAL GCI column values (extremely light gray, nearly invisible)
+- [x] Fix CLOSED column values (extremely light gray, nearly invisible)
+- [x] Replace ALL text-accent instances in data display components with text-foreground (AgentLeaderboard, TransactionTable, DataHealthCheck)
+- [x] Test visibility in light mode (all text-accent replaced with text-foreground for high contrast)
