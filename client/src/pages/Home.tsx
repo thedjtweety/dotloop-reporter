@@ -50,7 +50,6 @@ import { findMatchingTemplate, saveTemplate } from '@/lib/importTemplates';
 import { generateSampleData } from '@/lib/sampleData';
 import { getRecentFiles, saveRecentFile, deleteRecentFile } from '@/lib/storage';
 import UploadZone from '@/components/UploadZone';
-import TrustBar from '@/components/TrustBar';
 import CommissionProjector from '@/components/CommissionProjector';
 import RecentUploads, { RecentFile } from '@/components/RecentUploads';
 import UploadHistory from '@/components/UploadHistory';
@@ -522,8 +521,6 @@ export default function Home() {
             <Card className="p-8 border-dashed border-2 border-border bg-card/50 hover:bg-card/80 transition-colors" data-tour="upload-zone">
               <UploadZone onFileUpload={handleFileUpload} isLoading={isLoading} />
             </Card>
-
-            <TrustBar />
             
             {/* Show Upload History for authenticated users, RecentUploads for guests */}
             {isAuthenticated && user ? (

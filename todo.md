@@ -98,3 +98,8 @@
 - [x] Adjust font sizes for better fit
 - [x] Ensure proper text wrapping and truncation (added truncate w-full px-1)
 - [x] Test ticker appearance in light mode (numbers fit perfectly within cards)
+
+## Phase 11: Remove Ticker
+- [x] Remove TrustBar component from Home.tsx upload screen
+- [x] Clean up any unused TrustBar imports
+- [x] Test upload page without ticker (clean, focused layout confirmed)
