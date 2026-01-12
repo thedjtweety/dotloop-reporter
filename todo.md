@@ -802,3 +802,12 @@
 - [x] Add scrolling to commission plan settings panel
 - [x] Test calculator with sample data
 - [x] Verify all settings are accessible
+
+## Phase 42: Seed Data & CSV Upload Component
+- [x] Create seed API endpoint (seedRouter) to populate sample plans and agents
+- [x] Register seed router in main routers
+- [x] Create CSV upload component for Calculate tab
+- [x] Add file validation (CSV format, required columns, size limits)
+- [x] Integrate upload component into CommissionCalculator
+- [x] Add drag-and-drop support for CSV files
+- [x] Add error handling and user feedback

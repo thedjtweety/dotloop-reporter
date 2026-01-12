@@ -10,6 +10,7 @@ import { dotloopOAuthRouter } from './dotloopOAuthRouter';
 import { tenantSettingsRouter } from './tenantSettingsRouter';
 import { commissionRouter } from './commissionRouter';
 import { tierHistoryRouter } from './tierHistoryRouter';
+import { seedRouter } from './seedRouter';
 import {
   createUpload,
   getUserUploads,
@@ -188,6 +189,7 @@ export const appRouter = router({
   tenantSettings: tenantSettingsRouter,
   commission: commissionRouter,
   tierHistory: tierHistoryRouter,
+  seed: seedRouter,
 });
 
 export type AppRouter = typeof appRouter;

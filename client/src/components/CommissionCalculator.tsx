@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle, Loader2, Download, RefreshCw } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { getRecentFiles } from '@/lib/storage';
+import CSVUploadWidget from '@/components/CSVUploadWidget';
 import type { DotloopRecord } from '@/lib/csvParser';
 
 interface CalculationResult {
@@ -37,6 +38,7 @@ export default function CommissionCalculator() {
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [transactions, setTransactions] = useState<DotloopRecord[]>([]);
   const [hasData, setHasData] = useState(false);
+  const [fileName, setFileName] = useState<string>('');
 
   // Fetch data from tRPC
   const { data: plans, isLoading: plansLoading, error: plansError } = trpc.commission.getPlans.useQuery();
@@ -184,8 +186,18 @@ export default function CommissionCalculator() {
     );
   }
 
+  const handleDataLoaded = (data: DotloopRecord[], uploadFileName: string) => {
+    setTransactions(data);
+    setFileName(uploadFileName);
+    setHasData(true);
+    setError(null);
+  };
+
   return (
     <div className="space-y-6">
+      {/* CSV Upload Widget */}
+      <CSVUploadWidget onDataLoaded={handleDataLoaded} isLoading={plansLoading || teamsLoading || assignmentsLoading} />
+
       {/* Status Card */}
       <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
         <div className="flex items-start justify-between">
