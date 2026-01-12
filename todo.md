@@ -783,3 +783,16 @@
 - [x] Test analytics dashboard with sample data
 - [x] Create comprehensive tier analytics guide (TIER_ANALYTICS_GUIDE.md)
 - [x] Create tier history router test suite (tierHistoryRouter.test.ts)
+
+## Phase 40: Tier Threshold Validation & Sample Data
+- [x] Create tier validation utility (validateTierThresholds, detectOverlaps)
+- [x] Add tier validation to commission plan creation/update
+- [x] Create sample data seed script with 3 test plans
+- [x] Create sample agent assignments (5-10 agents per plan)
+- [x] Add seed command to package.json
+- [x] Create UI validation feedback for tier configuration
+- [x] Test validation with invalid tier configurations
+- [x] Test sample data loads correctly
+- [x] Verify calculation page displays sample data
+- [x] Create comprehensive tier validation test suite (45+ tests)
+- [x] Create client-side tier validation library
