@@ -87,9 +87,9 @@ export default function TierAnalyticsDashboard({ planId }: TierAnalyticsProps) {
   // Process timeline data for line chart
   const timelineChartData = useMemo(() => {
     if (!timeline) return [];
-    return timeline.map((entry) => {
+    return timeline.map((entry: any) => {
       const data: any = { date: entry.date };
-      entry.transitions.forEach((t) => {
+      entry.transitions.forEach((t: any) => {
         data[`tier_${t.tier}`] = t.count;
       });
       return data;
@@ -203,7 +203,7 @@ export default function TierAnalyticsDashboard({ planId }: TierAnalyticsProps) {
                     <p className="text-foreground text-sm font-medium">Avg Days to Tier</p>
                     <p className="text-2xl font-bold text-primary mt-2">
                       {Math.round(
-                        Object.values(stats.averageTimings).reduce((a, b) => a + b, 0) /
+                        (Object.values(stats.averageTimings) as number[]).reduce((a: number, b: number) => a + b, 0) /
                           Object.keys(stats.averageTimings).length || 0
                       )}
                     </p>
@@ -218,7 +218,7 @@ export default function TierAnalyticsDashboard({ planId }: TierAnalyticsProps) {
                     <p className="text-foreground text-sm font-medium">Total YTD Amount</p>
                     <p className="text-2xl font-bold text-primary mt-2">
                       ${(
-                        revenueByTier?.reduce((sum, r) => sum + r.totalYtdAmount, 0) || 0
+                        revenueByTier?.reduce((sum: number, r: any) => sum + r.totalYtdAmount, 0) || 0
                       ).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                     </p>
                   </div>
@@ -255,7 +255,7 @@ export default function TierAnalyticsDashboard({ planId }: TierAnalyticsProps) {
                         outerRadius={100}
                         label={({ tier, percentage }) => `Tier ${tier}: ${percentage}%`}
                       >
-                        {distribution.map((_, index) => (
+                        {distribution.map((_: any, index: number) => (
                           <Cell key={`cell-${index}`} fill={TIER_COLORS[index % TIER_COLORS.length]} />
                         ))}
                       </Pie>
@@ -285,7 +285,7 @@ export default function TierAnalyticsDashboard({ planId }: TierAnalyticsProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {distribution?.map((row) => (
+                      {distribution?.map((row: any) => (
                         <tr key={row.tier} className="border-b border-border/50">
                           <td className="py-2 px-3 text-foreground">Tier {row.tier}</td>
                           <td className="py-2 px-3 text-foreground">{row.count}</td>
@@ -346,7 +346,7 @@ export default function TierAnalyticsDashboard({ planId }: TierAnalyticsProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {revenueByTier?.map((row) => (
+                      {revenueByTier?.map((row: any) => (
                         <tr key={row.tier} className="border-b border-border/50">
                           <td className="py-2 px-3 text-foreground">Tier {row.tier}</td>
                           <td className="py-2 px-3 text-foreground">
