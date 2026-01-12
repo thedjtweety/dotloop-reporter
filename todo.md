@@ -594,3 +594,37 @@
 - [ ] All tests pass (50+ scenarios)
 - [ ] UI shows calculated commissions clearly
 - [ ] Performance: Calculate 1000 transactions in < 5 seconds
+
+
+## Phase 46: Separate Commission Management Module (In Progress)
+**Priority:** HIGH | **Complexity:** 5/10 | **Time Estimate:** 2-3 hours
+**Status:** 🚧 Active Development
+
+### Navigation Restructure
+- [x] Analyze current navigation structure (Home page with tabs)
+- [x] Design new navigation with separate Analytics and Commission sections
+- [x] Create dedicated Commission Management route (/commission)
+- [x] Update navigation menu to show both sections
+- [x] Keep commission metrics in Analytics charts
+
+### Commission Management Page
+- [x] Create new CommissionManagement.tsx page component
+- [x] Design tabbed interface for commission features
+- [x] Move Commission Plans tab to new page
+- [x] Move Team Management tab to new page
+- [x] Move Commission Audit tab to new page
+- [x] Add Agent Assignments tab (from Settings)
+- [x] Add future "Calculate Commissions" tab placeholder
+
+### Analytics Page Updates
+- [x] Keep Agent Leaderboard in Analytics
+- [x] Keep Commission Breakdown charts in Analytics
+- [x] Keep Revenue Distribution in Analytics
+- [x] Remove commission settings tabs from Analytics
+- [x] Update Settings tab with redirect message
+
+### Testing
+- [ ] Test navigation between Analytics and Commission Management - In Progress
+- [ ] Verify all commission features work in new location - In Progress
+- [ ] Test responsive design on mobile - In Progress
+- [ ] Verify data persistence across navigation - In Progress

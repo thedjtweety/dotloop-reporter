@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Settings, Upload, BarChart2, Users, FileText, PieChart, Map, Activity, DollarSign } from 'lucide-react';
+import { Menu, Settings, Upload, BarChart2, Users, FileText, PieChart, Map, Activity, DollarSign, ArrowRight } from 'lucide-react';
+import { useLocation } from 'wouter';
 import { ModeToggle } from '@/components/ModeToggle';
 
 interface MobileNavProps {
@@ -20,6 +21,7 @@ export default function MobileNav({
   onTabChange
 }: MobileNavProps) {
   const [open, setOpen] = useState(false);
+  const [, setLocation] = useLocation();
 
   const handleTabClick = (tab: string) => {
     onTabChange(tab);
@@ -147,12 +149,13 @@ export default function MobileNav({
               variant="ghost" 
               className="justify-start" 
               onClick={() => {
-                onOpenSettings();
+                setLocation('/commission');
                 setOpen(false);
               }}
             >
-              <Settings className="mr-2 h-4 w-4" />
-              Commission Settings
+              <DollarSign className="mr-2 h-4 w-4" />
+              Commission Management
+              <ArrowRight className="ml-auto h-4 w-4" />
             </Button>
             <Button 
               variant="ghost" 

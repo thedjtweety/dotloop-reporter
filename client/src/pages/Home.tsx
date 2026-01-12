@@ -565,6 +565,10 @@ function HomeContent() {
             </div>
             <div className="flex items-center gap-4">
               <ConnectDotloop variant="button" />
+              <Button variant="ghost" onClick={() => setLocation('/commission')} className="hidden sm:flex">
+                <DollarSign className="h-4 w-4 mr-2" />
+                Commission
+              </Button>
               {isAuthenticated && user?.role === 'admin' && (
                 <Button variant="ghost" onClick={() => setLocation('/admin')}>
                   <Settings className="h-4 w-4 mr-2" />
@@ -894,10 +898,7 @@ function HomeContent() {
               <TabsTrigger value="property">Property Type</TabsTrigger>
               <TabsTrigger value="geographic">Geographic</TabsTrigger>
               {metrics?.hasFinancialData && (
-                <>
-                  <TabsTrigger value="financial">Financial</TabsTrigger>
-                  <TabsTrigger value="audit" className="text-red-600 data-[state=active]:text-red-700 data-[state=active]:bg-red-50">Commission Audit</TabsTrigger>
-                </>
+                <TabsTrigger value="financial">Financial</TabsTrigger>
               )}
               <TabsTrigger value="insights">Insights</TabsTrigger>
               <TabsTrigger value="health">Data Health</TabsTrigger>
@@ -1012,9 +1013,6 @@ function HomeContent() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="audit" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-                  <CommissionAuditReport records={filteredRecords} />
-                </TabsContent>
               </>
             )}
 
@@ -1066,42 +1064,17 @@ function HomeContent() {
             </TabsContent>
 
             <TabsContent value="settings" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-              <Tabs defaultValue="commission" className="w-full">
-                <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
-                  <TabsTrigger 
-                    value="commission"
-                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
-                  >
-                    Commission Plans
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="teams"
-                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
-                  >
-                    Team Management
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="assignments"
-                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
-                  >
-                    Agent Assignments
-                  </TabsTrigger>
-                </TabsList>
-                
-                <div className="mt-6">
-                  <TabsContent value="commission">
-                    <CommissionPlansManager />
-                  </TabsContent>
-                  <TabsContent value="teams">
-                    <TeamManager />
-                  </TabsContent>
-                  <TabsContent value="assignments">
-                    <AgentAssignment 
-                      records={allRecords}
-                    />
-                  </TabsContent>
-                </div>
-              </Tabs>
+              <Card className="p-12 text-center">
+                <DollarSign className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h3 className="text-2xl font-bold mb-3">Commission Management Moved</h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                  All commission-related features (Plans, Teams, Assignments, and Audit) are now in a dedicated Commission Management section.
+                </p>
+                <Button onClick={() => setLocation('/commission')} size="lg" className="gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Go to Commission Management
+                </Button>
+              </Card>
             </TabsContent>
           </Tabs>
           </CollapsibleSection>
