@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE users SET role = 'admin' WHERE id = (SELECT id FROM users ORDER BY createdAt ASC LIMIT 1);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 24ruGQuiASWpGv5.root --database gtMbYvvduSqhsHRvj39YWw --execute UPDATE users SET role = 'admin' WHERE id = (SELECT id FROM users ORDER BY createdAt ASC LIMIT 1);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 64
+}

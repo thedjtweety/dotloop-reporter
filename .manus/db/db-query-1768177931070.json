@@ -1,0 +1,80 @@
+{
+  "query": "SELECT id, name, email, role, createdAt FROM users ORDER BY createdAt DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 24ruGQuiASWpGv5.root --database gtMbYvvduSqhsHRvj39YWw --execute SELECT id, name, email, role, createdAt FROM users ORDER BY createdAt DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "60162",
+      "name": "Regular User",
+      "email": "user-perf@test.com",
+      "role": "user",
+      "createdAt": "2026-01-11 23:33:04"
+    },
+    {
+      "id": "60161",
+      "name": "Admin User",
+      "email": "admin-perf@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-11 23:33:04"
+    },
+    {
+      "id": "60157",
+      "name": "Admin User",
+      "email": "admin-perf@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-11 23:32:44"
+    },
+    {
+      "id": "60158",
+      "name": "Regular User",
+      "email": "user-perf@test.com",
+      "role": "user",
+      "createdAt": "2026-01-11 23:32:44"
+    },
+    {
+      "id": "60152",
+      "name": "Regular User",
+      "email": "user-perf@test.com",
+      "role": "user",
+      "createdAt": "2026-01-11 23:32:19"
+    },
+    {
+      "id": "60151",
+      "name": "Admin User",
+      "email": "admin-perf@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-11 23:32:19"
+    },
+    {
+      "id": "60144",
+      "name": "Regular User",
+      "email": "user-perf@test.com",
+      "role": "user",
+      "createdAt": "2026-01-11 23:31:47"
+    },
+    {
+      "id": "60143",
+      "name": "Admin User",
+      "email": "admin-perf@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-11 23:31:47"
+    },
+    {
+      "id": "60135",
+      "name": "Admin User",
+      "email": "admin-perf@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-11 23:30:57"
+    },
+    {
+      "id": "60136",
+      "name": "Regular User",
+      "email": "user-perf@test.com",
+      "role": "user",
+      "createdAt": "2026-01-11 23:30:57"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\tcreatedAt\n60162\tRegular User\tuser-perf@test.com\tuser\t2026-01-11 23:33:04\n60161\tAdmin User\tadmin-perf@test.com\tadmin\t2026-01-11 23:33:04\n60157\tAdmin User\tadmin-perf@test.com\tadmin\t2026-01-11 23:32:44\n60158\tRegular User\tuser-perf@test.com\tuser\t2026-01-11 23:32:44\n60152\tRegular User\tuser-perf@test.com\tuser\t2026-01-11 23:32:19\n60151\tAdmin User\tadmin-perf@test.com\tadmin\t2026-01-11 23:32:19\n60144\tRegular User\tuser-perf@test.com\tuser\t2026-01-11 23:31:47\n60143\tAdmin User\tadmin-perf@test.com\tadmin\t2026-01-11 23:31:47\n60135\tAdmin User\tadmin-perf@test.com\tadmin\t2026-01-11 23:30:57\n60136\tRegular User\tuser-perf@test.com\tuser\t2026-01-11 23:30:57\n",
+  "stderr": "",
+  "execution_time_ms": 194
+}
