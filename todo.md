@@ -144,3 +144,19 @@
 - [x] Test all clickable elements on main reporting tool
 - [x] Add pointer-events-none to OnboardingTour overlay
 - [x] Disable tour by default to prevent blocking issues
+
+## Phase 17: Chart Drill-Down Feature
+- [x] Create global filter state context (FilterContext)
+- [x] Define filter types (pipeline, timeline, leadSource, propertyType, geographic, agent)
+- [x] Add click handlers to Pipeline chart
+- [x] Add click handlers to Timeline chart (Sales Timeline chart doesn't need drill-down)
+- [x] Add click handlers to Lead Source chart
+- [x] Add click handlers to Property Type chart
+- [x] Add click handlers to Geographic chart
+- [x] Create FilterBadge component to show active filters
+- [x] Add clear filter functionality
+- [x] Update data processing logic to apply filters
+- [x] Update metrics to reflect filtered data
+- [x] Update agent leaderboard to reflect filtered data
+- [x] Add smooth transitions for filter changes (using Tailwind animate-in classes)
+- [x] Test drill-down on all chart types (tested Pipeline and Lead Source charts successfully)

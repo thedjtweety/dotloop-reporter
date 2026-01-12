@@ -87,11 +87,14 @@ import MobileNav from '@/components/MobileNav';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import OnboardingTour from '@/components/OnboardingTour';
 import { useOnboardingTour, uploadTourSteps, dashboardTourSteps } from '@/hooks/useOnboardingTour';
+import { FilterProvider, useFilters } from '@/contexts/FilterContext';
+import FilterBadge from '@/components/FilterBadge';
 
-export default function Home() {
+function HomeContent() {
   // The userAuth hooks provides authentication state
   // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
   let { user, loading, error, isAuthenticated, logout } = useAuth();
+  const { filters, addFilter } = useFilters();
 
   const [location, setLocation] = useLocation();
   const { showTour, completeTour, skipTour } = useOnboardingTour();
@@ -188,13 +191,14 @@ export default function Home() {
     }, 1500);
   };
 
-  // Update metrics when date range or records change
+  // Update metrics when date range, records, or filters change
   useEffect(() => {
     if (allRecords.length === 0) return;
 
     let currentRecords = allRecords;
     let previousRecords: DotloopRecord[] | undefined;
 
+    // Apply date range filter
     if (dateRange?.from && dateRange?.to) {
       currentRecords = filterRecordsByDate(allRecords, { from: dateRange.from, to: dateRange.to });
       
@@ -202,10 +206,28 @@ export default function Home() {
       previousRecords = filterRecordsByDate(allRecords, prevRange);
     }
 
+    // Apply chart drill-down filters
+    filters.forEach(filter => {
+      switch (filter.type) {
+        case 'pipeline':
+          currentRecords = currentRecords.filter(r => r.loopStatus === filter.value);
+          break;
+        case 'leadSource':
+          currentRecords = currentRecords.filter(r => (r.leadSource || 'Unknown') === filter.value);
+          break;
+        case 'propertyType':
+          currentRecords = currentRecords.filter(r => (r.transactionType || 'Unknown') === filter.value);
+          break;
+        case 'geographic':
+          currentRecords = currentRecords.filter(r => (r.state || 'Unknown') === filter.value);
+          break;
+      }
+    });
+
     setFilteredRecords(currentRecords);
     setMetrics(calculateMetrics(currentRecords, previousRecords));
     setAgentMetrics(calculateAgentMetrics(currentRecords));
-  }, [allRecords, dateRange]);
+  }, [allRecords, dateRange, filters]);
 
   const handleMetricClick = (type: 'total' | 'volume' | 'closing' | 'days' | 'active' | 'contract' | 'closed' | 'archived') => {
     let filtered: DotloopRecord[] = [];
@@ -252,36 +274,30 @@ export default function Home() {
   };
 
   const handleChartClick = (type: 'pipeline' | 'leadSource' | 'propertyType' | 'geographic' | 'commission', label: string) => {
-    let filtered: DotloopRecord[] = [];
     let title = '';
 
     switch (type) {
       case 'pipeline':
         title = `Pipeline: ${label}`;
-        filtered = filteredRecords.filter(r => r.loopStatus === label);
+        addFilter({ type: 'pipeline', label: title, value: label });
         break;
       case 'leadSource':
         title = `Lead Source: ${label}`;
-        filtered = filteredRecords.filter(r => (r.leadSource || 'Unknown') === label);
+        addFilter({ type: 'leadSource', label: title, value: label });
         break;
       case 'propertyType':
         title = `Property Type: ${label}`;
-        filtered = filteredRecords.filter(r => (r.transactionType || 'Unknown') === label);
+        addFilter({ type: 'propertyType', label: title, value: label });
         break;
       case 'geographic':
         title = `State: ${label}`;
-        filtered = filteredRecords.filter(r => (r.state || 'Unknown') === label);
+        addFilter({ type: 'geographic', label: title, value: label });
         break;
       case 'commission':
         title = `Commission Range: ${label}`;
         // Logic for commission range filtering would go here
-        filtered = filteredRecords;
         break;
     }
-
-    setDrillDownTitle(title);
-    setDrillDownTransactions(filtered);
-    setDrillDownOpen(true);
   };
 
   const [currentUploadId, setCurrentUploadId] = useState<number | undefined>();
@@ -690,6 +706,9 @@ export default function Home() {
 
       {/* Main Dashboard */}
       <main className="container py-8">
+        {/* Filter Badge */}
+        <FilterBadge />
+        
         {/* Top Metrics Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8" data-tour="metrics">
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1071,5 +1090,13 @@ export default function Home() {
         />
       )}
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <FilterProvider>
+      <HomeContent />
+    </FilterProvider>
   );
 }
