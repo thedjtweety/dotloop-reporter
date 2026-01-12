@@ -864,3 +864,11 @@
 - [x] Fix TypeScript errors in uploadDb.ts, db.ts, and dotloopOAuthRouter.ts
 - [x] Remove tierHistoryRouter (tierHistory table was dropped in migration)
 - [x] Test Commission Management page loads without errors
+
+
+## Phase 38: Bug Fix - Calculate Commissions Shows Wrong Error
+- [x] Investigate why CommissionCalculator doesn't detect existing plans
+- [x] Check if plans are being loaded correctly in the component
+- [x] Fix validation logic to properly check for plans before showing error
+- [x] Add refetch mechanism to CommissionCalculator on mount and before calculate
+- [x] Test Calculate Commissions button with configured plans and agents

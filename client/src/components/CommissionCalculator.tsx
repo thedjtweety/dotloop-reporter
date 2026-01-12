@@ -41,9 +41,9 @@ export default function CommissionCalculator() {
   const [fileName, setFileName] = useState<string>('');
 
   // Fetch data from tRPC
-  const { data: plans, isLoading: plansLoading, error: plansError } = trpc.commission.getPlans.useQuery();
-  const { data: teams, isLoading: teamsLoading, error: teamsError } = trpc.commission.getTeams.useQuery();
-  const { data: assignments, isLoading: assignmentsLoading, error: assignmentsError } = trpc.commission.getAssignments.useQuery();
+  const { data: plans, isLoading: plansLoading, error: plansError, refetch: refetchPlans } = trpc.commission.getPlans.useQuery();
+  const { data: teams, isLoading: teamsLoading, error: teamsError, refetch: refetchTeams } = trpc.commission.getTeams.useQuery();
+  const { data: assignments, isLoading: assignmentsLoading, error: assignmentsError, refetch: refetchAssignments } = trpc.commission.getAssignments.useQuery();
   const calculateMutation = trpc.commission.calculate.useMutation();
 
   // Log query status for debugging
@@ -53,6 +53,13 @@ export default function CommissionCalculator() {
     if (assignmentsError) console.error('Assignments query error:', assignmentsError);
     console.log('Plans:', plans?.length || 0, 'Teams:', teams?.length || 0, 'Assignments:', assignments?.length || 0);
   }, [plans, teams, assignments, plansError, teamsError, assignmentsError]);
+
+  // Refetch data when component mounts to ensure latest plans and assignments
+  useEffect(() => {
+    refetchPlans();
+    refetchTeams();
+    refetchAssignments();
+  }, [refetchPlans, refetchTeams, refetchAssignments]);
 
   // Load recent transaction data on mount
   useEffect(() => {
@@ -87,21 +94,29 @@ export default function CommissionCalculator() {
       setCalculating(true);
       setError(null);
 
+      // Refetch latest data before calculating
+      const plansResult = await refetchPlans();
+      const assignmentsResult = await refetchAssignments();
+
       // Validate data
       if (!transactions || transactions.length === 0) {
         setError('No transactions available to calculate. Please upload a Dotloop export first.');
         return;
       }
 
-      if (!plans || plans.length === 0) {
+      if (!plansResult?.data || plansResult.data.length === 0) {
         setError('No commission plans configured. Please create a plan in the Plans tab first.');
         return;
       }
 
-      if (!assignments || assignments.length === 0) {
+      if (!assignmentsResult?.data || assignmentsResult.data.length === 0) {
         setError('No agent assignments configured. Please assign agents to plans in the Agents tab first.');
         return;
       }
+
+      // Use the refetched data
+      const currentPlans = plansResult.data;
+      const currentAssignments = assignmentsResult.data;
 
       // Transform transactions to match API schema
       const transactionInputs = transactions.map(t => ({
@@ -118,9 +133,9 @@ export default function CommissionCalculator() {
       // Call calculation API
       const response = await calculateMutation.mutateAsync({
         transactions: transactionInputs,
-        planIds: plans.map(p => p.id),
+        planIds: currentPlans.map(p => p.id),
         teamIds: teams?.map(t => t.id) || [],
-        agentAssignments: assignments.map(a => ({
+        agentAssignments: currentAssignments.map(a => ({
           id: a.id || Math.random().toString(36).substr(2, 9),
           agentName: a.agentName,
           planId: a.planId,
