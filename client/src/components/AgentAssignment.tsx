@@ -5,13 +5,12 @@ import {
   AgentPlanAssignment, 
   getCommissionPlans, 
   getTeams,
-  getAgentAssignments, 
-  saveAgentAssignments 
 } from '@/lib/commission';
 import { DotloopRecord } from '@/lib/csvParser';
 import { trpc } from '@/lib/trpc';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
+import { nanoid } from 'nanoid';
 import {
   Table,
   TableBody,
@@ -41,11 +40,20 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
   const [assignments, setAssignments] = useState<AgentPlanAssignment[]>([]);
   const [agents, setAgents] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Fetch assignments from database
+  const { data: dbAssignments, refetch: refetchAssignments } = trpc.commission.getAssignments.useQuery();
+  const saveAssignmentsMutation = trpc.commission.saveAssignments.useMutation();
 
   useEffect(() => {
     setPlans(getCommissionPlans());
     setTeams(getTeams());
-    setAssignments(getAgentAssignments());
+
+    // Use database assignments if available, otherwise empty
+    if (dbAssignments) {
+      setAssignments(dbAssignments);
+    }
 
     // Extract unique agents from records
     const uniqueAgents = new Set<string>();
@@ -55,7 +63,21 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
       }
     });
     setAgents(Array.from(uniqueAgents).sort());
-  }, [records]);
+  }, [records, dbAssignments]);
+
+  const saveToDatabase = async (newAssignments: AgentPlanAssignment[]) => {
+    try {
+      setIsSaving(true);
+      await saveAssignmentsMutation.mutateAsync(newAssignments);
+      await refetchAssignments();
+      toast.success('Assignments saved successfully');
+    } catch (error) {
+      console.error('Error saving assignments:', error);
+      toast.error('Failed to save assignments');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleAssignPlan = (agentName: string, planId: string) => {
     const existing = assignments.find(a => a.agentName === agentName);
@@ -63,15 +85,13 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
     
     if (planId !== 'none') {
       newAssignments.push({
-        id: existing?.id || Math.random().toString(36).substr(2, 9),
+        id: existing?.id || nanoid(),
         agentName,
         planId,
         teamId: existing?.teamId, // Preserve team
         startDate: existing?.startDate || new Date().toISOString().split('T')[0]
       });
     } else if (existing?.teamId) {
-       // Keep assignment if team exists but plan removed? No, require plan for now.
-       // Actually, let's allow partial assignment.
        newAssignments.push({
          id: existing.id,
          agentName,
@@ -80,7 +100,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
        });
     }
     setAssignments(newAssignments);
-    saveAgentAssignments(newAssignments);
+    saveToDatabase(newAssignments);
   };
 
   const handleAssignTeam = (agentName: string, teamId: string) => {
@@ -96,7 +116,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
       });
     } else if (newTeamId) {
       newAssignments.push({
-        id: Math.random().toString(36).substr(2, 9),
+        id: nanoid(),
         agentName,
         planId: 'none', // Placeholder
         teamId: newTeamId,
@@ -104,7 +124,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
       });
     }
     setAssignments(newAssignments);
-    saveAgentAssignments(newAssignments);
+    saveToDatabase(newAssignments);
   };
 
   const handleAnniversaryChange = (agentName: string, date: string) => {
@@ -118,7 +138,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
       });
     } else {
       newAssignments.push({
-        id: Math.random().toString(36).substr(2, 9),
+        id: nanoid(),
         agentName,
         planId: 'none',
         anniversaryDate: date,
@@ -126,7 +146,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
       });
     }
     setAssignments(newAssignments);
-    saveAgentAssignments(newAssignments);
+    saveToDatabase(newAssignments);
   };
 
   const getAgentPlanId = (agentName: string) => {

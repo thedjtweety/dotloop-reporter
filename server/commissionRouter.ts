@@ -276,6 +276,54 @@ export const commissionRouter = router({
   }),
 
   /**
+   * Save agent assignments to database
+   * 
+   * Input:
+   * - assignments: Array of agent-to-plan assignments to save
+   * 
+   * Output:
+   * - success: boolean indicating if save was successful
+   * - count: number of assignments saved
+   */
+  saveAssignments: protectedProcedure
+    .input(z.array(AgentAssignmentSchema))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const db = await getDb();
+        if (!db) {
+          throw new Error("Database connection not available");
+        }
+
+        // Delete existing assignments for this tenant
+        await db.delete(agentAssignments).where(eq(agentAssignments.tenantId, ctx.user.tenantId));
+
+        // Insert new assignments
+        if (input.length > 0) {
+          const assignmentsToInsert = input.map(a => ({
+            id: a.id,
+            tenantId: ctx.user.tenantId,
+            agentName: a.agentName,
+            planId: a.planId,
+            teamId: a.teamId || null,
+            startDate: a.startDate || null,
+            anniversaryDate: a.anniversaryDate || null,
+            isActive: 1,
+          }));
+
+          await db.insert(agentAssignments).values(assignmentsToInsert);
+        }
+
+        return {
+          success: true,
+          count: input.length,
+        };
+      } catch (error) {
+        console.error("Error saving agent assignments:", error);
+        throw new Error("Failed to save agent assignments");
+      }
+    }),
+
+  /**
    * Calculate commission for a single transaction
    * Useful for quick calculations or testing
    */
