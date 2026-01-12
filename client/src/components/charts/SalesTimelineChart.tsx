@@ -13,7 +13,7 @@ interface SalesTimelineChartProps {
 export default function SalesTimelineChart({ data }: SalesTimelineChartProps) {
   if (data.length === 0) {
     return (
-      <div className="h-80 flex items-center justify-center text-muted-foreground">
+      <div className="h-80 flex items-center justify-center text-foreground/70">
         No data available
       </div>
     );

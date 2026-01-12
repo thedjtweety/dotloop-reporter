@@ -46,9 +46,9 @@ export default function UploadHistory({ onSelectUpload, currentUploadId }: Uploa
     return (
       <Card className="p-6 border-dashed">
         <div className="text-center py-8">
-          <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <FileText className="w-12 h-12 text-foreground/70 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">No Upload History</h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-foreground/70">
             Your uploaded CSV files will appear here for quick access.
           </p>
         </div>
@@ -65,7 +65,7 @@ export default function UploadHistory({ onSelectUpload, currentUploadId }: Uploa
               <BarChart3 className="w-5 h-5 text-primary" />
               <h3 className="font-semibold text-foreground">Upload History</h3>
             </div>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-foreground/70">
               {uploads.length} {uploads.length === 1 ? 'upload' : 'uploads'}
             </span>
           </div>
@@ -88,20 +88,20 @@ export default function UploadHistory({ onSelectUpload, currentUploadId }: Uploa
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <FileText className={`w-4 h-4 flex-shrink-0 ${currentUploadId === upload.id ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <FileText className={`w-4 h-4 flex-shrink-0 ${currentUploadId === upload.id ? 'text-primary' : 'text-foreground/70'}`} />
                       <h4 className="font-medium text-sm text-foreground truncate">
                         {upload.fileName}
                       </h4>
                     </div>
                     
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-3 text-xs text-foreground/70">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         <span>
                           {formatDistanceToNow(new Date(upload.uploadedAt), { addSuffix: true })}
                         </span>
                       </div>
-                      <span className="text-muted-foreground/50">•</span>
+                      <span className="text-foreground/70/50">•</span>
                       <span className="font-medium">
                         {upload.recordCount} {upload.recordCount === 1 ? 'record' : 'records'}
                       </span>
@@ -122,7 +122,7 @@ export default function UploadHistory({ onSelectUpload, currentUploadId }: Uploa
                     </Button>
                     
                     {currentUploadId !== upload.id && (
-                      <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ChevronRight className="w-4 h-4 text-foreground/70 opacity-0 group-hover:opacity-100 transition-opacity" />
                     )}
                   </div>
                 </div>

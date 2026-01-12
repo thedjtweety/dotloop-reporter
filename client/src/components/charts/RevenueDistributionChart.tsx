@@ -31,7 +31,7 @@ export default function RevenueDistributionChart({ totalCommission, companyDolla
         <div className="bg-background border border-border p-2 rounded-lg shadow-lg text-sm">
           <p className="font-semibold" style={{ color: item.color }}>{item.name}</p>
           <p className="text-foreground">{formatCurrency(item.value)}</p>
-          <p className="text-muted-foreground">{formatPercentage(percent)}</p>
+          <p className="text-foreground/70">{formatPercentage(percent)}</p>
         </div>
       );
     }
@@ -44,7 +44,7 @@ export default function RevenueDistributionChart({ totalCommission, companyDolla
         <CardHeader>
           <CardTitle className="text-lg font-medium">Revenue Distribution</CardTitle>
         </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center text-muted-foreground">
+        <CardContent className="h-[300px] flex items-center justify-center text-foreground/70">
           No revenue data available
         </CardContent>
       </Card>
@@ -86,13 +86,13 @@ export default function RevenueDistributionChart({ totalCommission, companyDolla
         </div>
         <div className="mt-4 grid grid-cols-2 gap-4 text-center">
           <div className="p-3 bg-violet-50 dark:bg-violet-900/20 rounded-lg">
-            <p className="text-xs text-muted-foreground mb-1">Agent Split</p>
+            <p className="text-xs text-foreground/70 mb-1">Agent Split</p>
             <p className="text-lg font-bold text-violet-600 dark:text-violet-400">
               {formatPercentage(total > 0 ? (agentCommission / total) * 100 : 0)}
             </p>
           </div>
           <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-            <p className="text-xs text-muted-foreground mb-1">Company Split</p>
+            <p className="text-xs text-foreground/70 mb-1">Company Split</p>
             <p className="text-lg font-bold text-amber-600 dark:text-amber-400">
               {formatPercentage(total > 0 ? (safeCompanyDollar / total) * 100 : 0)}
             </p>

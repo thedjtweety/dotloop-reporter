@@ -28,7 +28,7 @@ export default function FilterBadge() {
 
   return (
     <div ref={badgeRef} className="flex items-center gap-2 flex-wrap p-4 bg-muted/50 rounded-lg border border-border animate-in fade-in slide-in-from-top-2 duration-300">
-      <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+      <span className="text-sm font-medium text-foreground/70 flex items-center gap-2">
         <FilterX className="w-4 h-4" />
         Active Filters:
       </span>
@@ -57,7 +57,7 @@ export default function FilterBadge() {
         variant="ghost"
         size="sm"
         onClick={clearAllFilters}
-        className="text-xs h-7 px-2 text-muted-foreground hover:text-foreground"
+        className="text-xs h-7 px-2 text-foreground/70 hover:text-foreground"
       >
         Clear All
       </Button>

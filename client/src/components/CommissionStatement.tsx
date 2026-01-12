@@ -37,15 +37,15 @@ export default function CommissionStatement({ auditResult, onClose }: Commission
           {/* Header Info */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-muted-foreground">Agent</p>
+              <p className="text-foreground/70">Agent</p>
               <p className="font-medium text-lg text-[#1e3a5f]">{agentName}</p>
             </div>
             <div className="text-right">
-              <p className="text-muted-foreground">Closing Date</p>
+              <p className="text-foreground/70">Closing Date</p>
               <p className="font-medium">{closingDate}</p>
             </div>
             <div className="col-span-2">
-              <p className="text-muted-foreground">Property / Loop</p>
+              <p className="text-foreground/70">Property / Loop</p>
               <p className="font-medium text-[#1e3a5f]">{loopName}</p>
             </div>
           </div>

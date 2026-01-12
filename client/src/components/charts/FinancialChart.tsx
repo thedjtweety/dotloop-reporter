@@ -43,7 +43,7 @@ export default function FinancialChart({ metrics }: FinancialChartProps) {
           <div key={index} className="p-6 bg-background rounded-lg border border-border">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <p className="text-sm text-muted-foreground font-medium mb-2">
+                <p className="text-sm text-foreground/70 font-medium mb-2">
                   {metric.label}
                 </p>
                 <p className="text-2xl font-display font-bold text-foreground">

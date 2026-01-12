@@ -92,10 +92,10 @@ export function UploadProgress({ stages, fileName, fileSize, onCancel }: UploadP
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="font-medium">Overall Progress</span>
-            <span className="text-muted-foreground">{overallProgress}%</span>
+            <span className="text-foreground/70">{overallProgress}%</span>
           </div>
           <Progress value={overallProgress} className="h-3" />
-          <div className="flex justify-between text-xs text-muted-foreground">
+          <div className="flex justify-between text-xs text-foreground/70">
             <span>Elapsed: {formatTime(elapsedTime)}</span>
             {estimatedTimeRemaining !== null && !isComplete && !hasError && (
               <span>Est. remaining: {formatTime(estimatedTimeRemaining)}</span>
@@ -128,12 +128,12 @@ export function UploadProgress({ stages, fileName, fileSize, onCancel }: UploadP
                       stage.status === 'complete' ? 'text-green-900' :
                       stage.status === 'error' ? 'text-red-900' :
                       stage.status === 'in-progress' ? 'text-primary' :
-                      'text-muted-foreground'
+                      'text-foreground/70'
                     }`}>
                       {index + 1}. {stage.label}
                     </span>
                     {stage.status === 'in-progress' && (
-                      <span className="text-xs text-muted-foreground ml-2">
+                      <span className="text-xs text-foreground/70 ml-2">
                         {stage.progress}%
                       </span>
                     )}
@@ -151,7 +151,7 @@ export function UploadProgress({ stages, fileName, fileSize, onCancel }: UploadP
                   
                   {/* Stage Message */}
                   {stage.message && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-foreground/70 mt-1">
                       {stage.message}
                     </p>
                   )}

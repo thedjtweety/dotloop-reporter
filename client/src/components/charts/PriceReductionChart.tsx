@@ -30,7 +30,7 @@ export default function PriceReductionChart({ data }: PriceReductionChartProps) 
       return (
         <div className="bg-background border border-border p-2 rounded-lg shadow-lg text-sm">
           <p className="font-semibold">{label}</p>
-          <p className="text-muted-foreground">Original: {formatCurrency(data.original)}</p>
+          <p className="text-foreground/70">Original: {formatCurrency(data.original)}</p>
           <p className="text-foreground font-medium">Final: {formatCurrency(data.final)}</p>
           <p className={data.diff >= 0 ? "text-emerald-500" : "text-red-500"}>
             Change: {formatCurrency(data.diff)} ({formatPercentage(data.percent)})

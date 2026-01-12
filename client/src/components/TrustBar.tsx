@@ -20,7 +20,7 @@ export default function TrustBar() {
               <div className="text-lg md:text-xl font-bold text-foreground font-display truncate w-full px-1">
                 <AnimatedCounter value={500000000} prefix="$" suffix="+" isCurrency />
               </div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+              <div className="text-xs text-foreground/70 uppercase tracking-wide font-medium">
                 Volume Analyzed
               </div>
             </div>
@@ -34,7 +34,7 @@ export default function TrustBar() {
               <div className="text-lg md:text-xl font-bold text-foreground font-display truncate w-full px-1">
                 <AnimatedCounter value={12500} suffix="+" />
               </div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+              <div className="text-xs text-foreground/70 uppercase tracking-wide font-medium">
                 Transactions
               </div>
             </div>
@@ -48,7 +48,7 @@ export default function TrustBar() {
               <div className="text-lg md:text-xl font-bold text-foreground font-display truncate w-full px-1">
                 <AnimatedCounter value={850} suffix="+" />
               </div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+              <div className="text-xs text-foreground/70 uppercase tracking-wide font-medium">
                 Agents Tracked
               </div>
             </div>
@@ -62,7 +62,7 @@ export default function TrustBar() {
               <div className="text-lg md:text-xl font-bold text-foreground font-display truncate w-full px-1">
                 <AnimatedCounter value={98} suffix="%" />
               </div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+              <div className="text-xs text-foreground/70 uppercase tracking-wide font-medium">
                 Accuracy Rate
               </div>
             </div>

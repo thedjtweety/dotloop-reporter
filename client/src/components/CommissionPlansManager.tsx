@@ -111,7 +111,7 @@ export default function CommissionPlansManager() {
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-medium">Commission Plans</h3>
-          <p className="text-sm text-muted-foreground">Define your brokerage's split structures and caps.</p>
+          <p className="text-sm text-foreground/70">Define your brokerage's split structures and caps.</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -221,7 +221,7 @@ export default function CommissionPlansManager() {
                       </div>
                       <div className="grid gap-1 w-24">
                          <select 
-                            className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm ring-offset-background placeholder:text-foreground/70 focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                             value={deduction.type}
                             onChange={(e) => updateDeduction(deduction.id, 'type', e.target.value)}
                          >
@@ -233,7 +233,7 @@ export default function CommissionPlansManager() {
                         type="button" 
                         variant="ghost" 
                         size="icon" 
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        className="h-8 w-8 text-foreground/70 hover:text-destructive"
                         onClick={() => removeDeduction(deduction.id)}
                       >
                         <X className="h-4 w-4" />
@@ -241,7 +241,7 @@ export default function CommissionPlansManager() {
                     </div>
                   ))}
                   {(currentPlan.deductions || []).length === 0 && (
-                    <p className="text-xs text-muted-foreground italic text-center py-2">
+                    <p className="text-xs text-foreground/70 italic text-center py-2">
                       No deductions configured.
                     </p>
                   )}
@@ -278,27 +278,27 @@ export default function CommissionPlansManager() {
             <CardContent>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Cap Amount:</span>
+                  <span className="text-foreground/70">Cap Amount:</span>
                   <span className="font-medium">
                     {plan.capAmount > 0 ? `$${plan.capAmount.toLocaleString()}` : 'No Cap'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Post-Cap Split:</span>
+                  <span className="text-foreground/70">Post-Cap Split:</span>
                   <span className="font-medium">{plan.postCapSplit}%</span>
                 </div>
                 {plan.royaltyPercentage ? (
-                  <div className="flex justify-between text-xs text-muted-foreground pt-2 border-t">
+                  <div className="flex justify-between text-xs text-foreground/70 pt-2 border-t">
                     <span>Royalty: {plan.royaltyPercentage}%</span>
                     <span>Cap: ${plan.royaltyCap?.toLocaleString()}</span>
                   </div>
                 ) : null}
                 {plan.deductions && plan.deductions.length > 0 && (
                   <div className="pt-2 border-t mt-2">
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Deductions:</p>
+                    <p className="text-xs font-medium text-foreground/70 mb-1">Deductions:</p>
                     <div className="space-y-1">
                       {plan.deductions.map(d => (
-                        <div key={d.id} className="flex justify-between text-xs text-muted-foreground">
+                        <div key={d.id} className="flex justify-between text-xs text-foreground/70">
                           <span>{d.name}</span>
                           <span>{d.type === 'fixed' ? `$${d.amount}` : `${d.amount}%`}</span>
                         </div>

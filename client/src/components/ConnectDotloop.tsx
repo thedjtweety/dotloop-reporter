@@ -35,21 +35,21 @@ export default function ConnectDotloop({ variant = 'button', onConnect }: Connec
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 Connect Your Dotloop Account
               </h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-foreground/70 mb-4">
                 Automatically sync your transaction data in real-time. No more manual CSV uploads—your reports update automatically every night.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0" />
-                  <span className="text-muted-foreground">Automatic sync</span>
+                  <span className="text-foreground/70">Automatic sync</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Shield className="w-4 h-4 text-accent flex-shrink-0" />
-                  <span className="text-muted-foreground">Read-only access</span>
+                  <span className="text-foreground/70">Read-only access</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Zap className="w-4 h-4 text-accent flex-shrink-0" />
-                  <span className="text-muted-foreground">Real-time updates</span>
+                  <span className="text-foreground/70">Real-time updates</span>
                 </div>
               </div>
               <Button onClick={handleConnect} className="w-full md:w-auto">
@@ -88,7 +88,7 @@ function ComingSoonDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
             </div>
             <div>
               <DialogTitle className="text-xl">Dotloop Integration Coming Soon</DialogTitle>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-foreground/70 mt-1">
                 We're building something amazing
               </p>
             </div>
@@ -96,7 +96,7 @@ function ComingSoonDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
         </DialogHeader>
         
         <div className="space-y-4 py-4">
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-sm text-foreground/70 leading-relaxed">
             We're currently in the process of integrating with Dotloop's OAuth system to provide you with seamless, automatic data synchronization.
           </p>
 
@@ -105,7 +105,7 @@ function ComingSoonDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
               <RefreshCw className="w-4 h-4 text-primary" />
               What to Expect
             </h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="space-y-2 text-sm text-foreground/70">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
                 <span><strong className="text-foreground">One-Click Connection:</strong> Securely link your Dotloop account with OAuth 2.0</span>
@@ -139,7 +139,7 @@ function ComingSoonDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground italic">
+          <p className="text-xs text-foreground/70 italic">
             In the meantime, continue using CSV uploads to access all reporting features.
           </p>
         </div>
