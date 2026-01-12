@@ -756,3 +756,16 @@
 - [x] Create template manager UI
 - [x] Test all new features end-to-end
 - [x] Save final checkpoint with all enhancements
+
+
+## Phase 47: Fix Commission Calculation Detection
+
+- [x] Investigate why plans aren't being detected (showing 0 Plans)
+- [x] Investigate why agents aren't being detected (showing 0 Agents)
+- [x] Check CommissionCalculator component data loading
+- [x] Verify tRPC queries are working correctly
+- [x] Update CommissionPlanSchema to include sliding scale fields
+- [x] Update savePlan to persist sliding scale fields
+- [x] Update getPlans to return sliding scale fields
+- [x] Test commission calculation with existing data
+- [x] Save checkpoint with fixes

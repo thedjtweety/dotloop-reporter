@@ -55,6 +55,13 @@ const CommissionPlanSchema = z.object({
   deductions: z.array(DeductionSchema).optional().default([]),
   royaltyPercentage: z.number().optional(),
   royaltyCap: z.number().optional(),
+  useSliding: z.boolean().optional().default(false),
+  tiers: z.array(z.object({
+    id: z.string(),
+    threshold: z.number(),
+    splitPercentage: z.number(),
+    description: z.string(),
+  })).optional(),
 });
 
 const TeamSchema = z.object({
@@ -193,6 +200,8 @@ export const commissionRouter = router({
         deductions: p.deductions ? JSON.parse(p.deductions as string) : undefined,
         royaltyPercentage: p.royaltyPercentage,
         royaltyCap: p.royaltyCap,
+        useSliding: p.useSliding === 1,
+        tiers: p.tiers ? JSON.parse(p.tiers as string) : undefined,
       } as CommissionPlan));
     } catch (error) {
       console.error("Error fetching commission plans:", error);
@@ -394,6 +403,8 @@ export const commissionRouter = router({
               royaltyPercentage: input.royaltyPercentage,
               royaltyCap: input.royaltyCap,
               deductions: JSON.stringify(input.deductions),
+              useSliding: input.useSliding ? 1 : 0,
+              tiers: input.tiers ? JSON.stringify(input.tiers) : null,
             })
             .where(eq(commissionPlans.id, input.id));
         } else {
@@ -408,6 +419,8 @@ export const commissionRouter = router({
             royaltyPercentage: input.royaltyPercentage,
             royaltyCap: input.royaltyCap,
             deductions: JSON.stringify(input.deductions),
+            useSliding: input.useSliding ? 1 : 0,
+            tiers: input.tiers ? JSON.stringify(input.tiers) : null,
           });
         }
 
