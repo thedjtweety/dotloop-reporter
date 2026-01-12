@@ -218,3 +218,12 @@
 - [x] Remove unnecessary spacing in table cells (gap-0.5 on mobile, gap-1 on desktop)
 - [x] Optimize table headers with smaller fonts and reduced padding
 - [x] Test final mobile optimization (95vh height, reduced padding/fonts, compact table cells)
+
+## Phase 25: Chart and Drill-Down Testing & Fixes
+- [x] Test Pipeline chart drill-down in demo mode (found bug: metrics showing $0)
+- [x] Test Lead Source chart drill-down in demo mode (✅ working correctly)
+- [ ] Test Property Type chart drill-down in demo mode
+- [ ] Test Geographic chart drill-down in demo mode
+- [x] Identify all breaking issues or incorrect data displays (Bug: calculateMetrics only counted closed deals)
+- [x] Fix identified bugs (Changed to count all transactions for volume/commission)
+- [x] Verify Pipeline and Lead Source charts work correctly with drill-down

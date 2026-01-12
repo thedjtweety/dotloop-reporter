@@ -472,12 +472,13 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
       else if (status.includes('closed') || status.includes('sold')) statusCounts.closed++;
       else if (status.includes('archived')) statusCounts.archived++;
 
-      // Only count volume/commission for closed/sold deals
-      if (status.includes('closed') || status.includes('sold')) {
-        totalSalesVolume += record.salePrice || record.price || 0;
-        totalCommission += record.commissionTotal || 0;
-        totalCompanyDollar += record.companyDollar || 0;
+      // Count volume/commission for all deals (use price for non-closed, salePrice for closed)
+      totalSalesVolume += record.salePrice || record.price || 0;
+      totalCommission += record.commissionTotal || 0;
+      totalCompanyDollar += record.companyDollar || 0;
 
+      // Only calculate days to close for closed/sold deals
+      if (status.includes('closed') || status.includes('sold')) {
         if (record.closingDate && record.createdDate) {
           const created = new Date(record.createdDate);
           const closing = new Date(record.closingDate);
@@ -490,7 +491,7 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
     });
 
     const totalTransactions = recs.length;
-    const averagePrice = statusCounts.closed > 0 ? totalSalesVolume / statusCounts.closed : 0;
+    const averagePrice = totalTransactions > 0 ? totalSalesVolume / totalTransactions : 0;
     const averageDaysToClose = daysToCloseValues.length > 0 
       ? Math.round(daysToCloseValues.reduce((a, b) => a + b, 0) / daysToCloseValues.length) 
       : 0;
