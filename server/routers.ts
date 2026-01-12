@@ -18,6 +18,10 @@ export const uploadsRouter = router({
       z.object({
         fileName: z.string(),
         transactions: z.array(z.record(z.unknown())),
+        fileSize: z.number().optional(),
+        validationTimeMs: z.number().optional(),
+        parsingTimeMs: z.number().optional(),
+        totalTimeMs: z.number().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
