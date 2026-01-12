@@ -763,8 +763,7 @@ function HomeContent() {
         <FilterBadge />
         
         {/* Top Metrics Row */}
-        <div data-section="metrics" className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8" data-tour="metrics">
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div data-section="metrics" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" data-tour="metrics">
             <MetricCard
               title="Total Transactions"
               value={metrics.totalTransactions}
@@ -799,7 +798,6 @@ function HomeContent() {
               trend={metrics.trends?.avgDaysToClose}
               onClick={() => handleMetricClick('days')}
             />
-          </div>
         </div>
 
         {/* Status Overview Row */}

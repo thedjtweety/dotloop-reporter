@@ -276,3 +276,9 @@
 - [x] Test modal on desktop with various transaction counts (tested with 93 transactions)
 - [x] Verify button styling with logo looks professional (green buttons with logo + "View" text)
 - [x] Eliminate horizontal scrolling in modal table by optimizing column widths and using table-fixed layout
+
+## Phase 31: Optimize Metric Cards Layout
+- [x] Increase metric card sizes now that Commission Projector is moved
+- [x] Improve grid layout for better desktop presentation (4-column layout for top metrics)
+- [x] Adjust pipeline status cards layout (kept as 4-column)
+- [x] Test metric cards on desktop to ensure optimal sizing (4-column layout looks great, cards are larger and more prominent)
