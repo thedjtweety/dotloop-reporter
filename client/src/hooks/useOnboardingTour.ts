@@ -12,11 +12,12 @@ export function useOnboardingTour() {
   const [showTour, setShowTour] = useState(false);
 
   useEffect(() => {
-    // Check if user has completed the tour
+    // Tour is disabled by default to prevent interaction blocking issues
+    // Users can manually enable it if needed
     const tourCompleted = localStorage.getItem(TOUR_COMPLETED_KEY);
-    if (!tourCompleted) {
-      // Delay showing tour slightly to let page load
-      setTimeout(() => setShowTour(true), 1000);
+    if (tourCompleted === null) {
+      // Mark as completed by default so tour doesn't auto-show
+      localStorage.setItem(TOUR_COMPLETED_KEY, 'true');
     }
   }, []);
 

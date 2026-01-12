@@ -117,12 +117,12 @@ export default function OnboardingTour({ steps, onComplete, onSkip }: Onboarding
 
   return (
     <>
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black/50 z-[9998] animate-in fade-in duration-300" />
+      {/* Overlay - pointer-events-none allows clicks through, but highlighted elements will still be interactive */}
+      <div className="fixed inset-0 bg-black/50 z-[9998] animate-in fade-in duration-300 pointer-events-none" />
 
       {/* Tooltip */}
       <Card
-        className="fixed z-[9999] w-80 p-6 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300"
+        className="fixed z-[9999] w-80 p-6 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300 pointer-events-auto"
         style={{
           top: `${tooltipPosition.top}px`,
           left: `${tooltipPosition.left}px`,
