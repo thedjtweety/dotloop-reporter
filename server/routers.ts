@@ -3,6 +3,9 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
+import { eq } from 'drizzle-orm';
+import { uploads } from '../drizzle/schema';
+import { validateTransactionBatch } from './transactionValidator';
 import { adminRouter } from './adminRouter';
 import { performanceRouter } from './performanceRouter';
 import { auditLogRouter } from './auditLogRouter';
@@ -118,8 +121,37 @@ export const appRouter = router({
           subdivision: t.subdivision || null,
         }));
 
+        // Validate transactions before insertion
+        const validationResult = validateTransactionBatch(transactionsToInsert);
+        if (!validationResult.valid && validationResult.errors) {
+          // If validation fails, delete the upload record to keep database clean
+          const db = await import('./db').then(m => m.getDb());
+          if (db) {
+            await db.delete(uploads).where(eq(uploads.id, uploadId));
+          }
+          
+          const errorSummary = validationResult.errors.slice(0, 5).join('; ');
+          const moreErrors = validationResult.errors.length > 5 ? ` (and ${validationResult.errors.length - 5} more errors)` : '';
+          throw new Error(`Data validation failed: ${errorSummary}${moreErrors}`);
+        }
+
         // Bulk insert transactions
-        await createTransactions(transactionsToInsert);
+        try {
+          await createTransactions(validationResult.validData || transactionsToInsert);
+        } catch (error) {
+          // If transaction insertion fails, delete the upload record to keep database clean
+          const db = await import('./db').then(m => m.getDb());
+          if (db) {
+            await db.delete(uploads).where(eq(uploads.id, uploadId));
+          }
+          
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          console.error('Transaction insertion failed:', errorMsg);
+          throw new Error(
+            `Failed to save transaction data: ${errorMsg}. ` +
+            `This typically happens with very large files. Please try uploading a smaller CSV file or contact support.`
+          );
+        }
 
         return { uploadId, recordCount: input.transactions.length };
       }),
