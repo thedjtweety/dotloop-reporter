@@ -17,6 +17,7 @@ import {
   getUserTransactions,
   deleteUpload,
 } from "./uploadDb";
+import { InsertTransaction } from "../drizzle/schema";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -47,6 +48,7 @@ export const appRouter = router({
           fileSize: z.number().optional(),
           validationTimeMs: z.number().optional(),
           parsingTimeMs: z.number().optional(),
+          uploadTimeMs: z.number().optional(),
           totalTimeMs: z.number().optional(),
         })
       )
@@ -63,11 +65,11 @@ export const appRouter = router({
           userId: ctx.user.id,
           fileName: input.fileName,
           recordCount: input.transactions.length,
-          fileSize: input.fileSize,
-          validationTimeMs: input.validationTimeMs,
-          parsingTimeMs: input.parsingTimeMs,
-          uploadTimeMs: null, // Will be calculated after transaction insert
-          totalTimeMs: input.totalTimeMs,
+          fileSize: input.fileSize ?? null,
+          validationTimeMs: input.validationTimeMs ?? null,
+          parsingTimeMs: input.parsingTimeMs ?? null,
+          uploadTimeMs: input.uploadTimeMs ?? null, // Will be calculated after transaction insert
+          totalTimeMs: input.totalTimeMs ?? null,
           status: 'success',
         });
 

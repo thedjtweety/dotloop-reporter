@@ -36,6 +36,13 @@
       "when": 1768191494717,
       "tag": "0004_rapid_zaladane",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1768235598318,
+      "tag": "0005_white_vermin",
+      "breakpoints": true
     }
   ]
 }

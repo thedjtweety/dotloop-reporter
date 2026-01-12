@@ -54,6 +54,9 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
+// Add index on openId for faster lookups
+export const userOpenIdIdx = index("openId_idx").on(users.openId);
+
 /**
  * OAuth Tokens Table
  * Securely stores encrypted OAuth tokens for external API access
@@ -88,6 +91,9 @@ export const oauthTokens = mysqlTable("oauth_tokens", {
   userIdx: index("user_idx").on(table.userId),
   tokenHashIdx: index("tokenHash_idx").on(table.tokenHash),
   expiresIdx: index("expires_idx").on(table.tokenExpiresAt),
+  // Composite indexes for common query patterns
+  tenantProviderIdx: index("tenant_provider_idx").on(table.tenantId, table.provider),
+  tenantUserProviderIdx: index("tenant_user_provider_idx").on(table.tenantId, table.userId, table.provider),
 }));
 
 export type OAuthToken = typeof oauthTokens.$inferSelect;
@@ -157,10 +163,16 @@ export const uploads = mysqlTable("uploads", {
 }, (table) => ({
   tenantIdx: index("tenant_idx").on(table.tenantId),
   userIdx: index("user_idx").on(table.userId),
+  // Composite indexes for common query patterns
+  userUploadedAtIdx: index("user_uploadedAt_idx").on(table.userId, table.uploadedAt),
+  tenantUploadedAtIdx: index("tenant_uploadedAt_idx").on(table.tenantId, table.uploadedAt),
 }));
 
 export type Upload = typeof uploads.$inferSelect;
 export type InsertUpload = typeof uploads.$inferInsert;
+
+// Add index on fileName for search
+export const uploadFileNameIdx = index("fileName_idx").on(uploads.fileName);
 
 /**
  * Transactions Table (Multi-Tenant)
@@ -223,11 +235,19 @@ export const transactions = mysqlTable("transactions", {
 }, (table) => ({
   tenantIdx: index("tenant_idx").on(table.tenantId),
   uploadIdx: index("upload_idx").on(table.uploadId),
+  userIdIdx: index("user_idx").on(table.userId),
   loopIdUnique: unique("loopId_tenant_unique").on(table.loopId, table.tenantId),
+  // Composite indexes for common query patterns
+  uploadIdUserIdx: index("uploadId_user_idx").on(table.uploadId, table.userId),
+  userCreatedAtIdx: index("user_createdAt_idx").on(table.userId, table.createdAt),
+  tenantCreatedAtIdx: index("tenant_createdAt_idx").on(table.tenantId, table.createdAt),
 }));
 
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = typeof transactions.$inferInsert;
+
+// Add index on loopId for faster lookups
+export const transactionLoopIdIdx = index("loopId_idx").on(transactions.loopId);
 
 /**
  * Audit Logs (Multi-Tenant)
@@ -270,6 +290,11 @@ export const auditLogs = mysqlTable("audit_logs", {
 }, (table) => ({
   tenantIdx: index("tenant_idx").on(table.tenantId),
   actionIdx: index("action_idx").on(table.action),
+  adminIdIdx: index("adminId_idx").on(table.adminId),
+  // Composite indexes for common query patterns
+  tenantCreatedAtIdx: index("tenant_createdAt_idx").on(table.tenantId, table.createdAt),
+  adminIdCreatedAtIdx: index("adminId_createdAt_idx").on(table.adminId, table.createdAt),
+  targetTypeTargetIdIdx: index("targetType_targetId_idx").on(table.targetType, table.targetId),
 }));
 
 export type AuditLog = typeof auditLogs.$inferSelect;
@@ -296,6 +321,9 @@ export const platformAdminLogs = mysqlTable("platform_admin_logs", {
   adminIdx: index("admin_idx").on(table.adminUserId),
   tenantIdx: index("tenant_idx").on(table.tenantId),
   timeIdx: index("time_idx").on(table.createdAt),
+  // Composite indexes for common query patterns
+  adminTimeIdx: index("admin_time_idx").on(table.adminUserId, table.createdAt),
+  tenantTimeIdx: index("tenant_time_idx").on(table.tenantId, table.createdAt),
 }));
 
 export type PlatformAdminLog = typeof platformAdminLogs.$inferSelect;

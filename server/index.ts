@@ -2,6 +2,7 @@ import express from "express";
 import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { setupGracefulShutdown, startConnectionPoolHealthCheck } from "./lib/connection-pool-manager";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,6 +10,12 @@ const __dirname = path.dirname(__filename);
 async function startServer() {
   const app = express();
   const server = createServer(app);
+
+  // Setup graceful shutdown handlers
+  setupGracefulShutdown();
+  
+  // Start connection pool health checks
+  startConnectionPoolHealthCheck();
 
   // Serve static files from dist/public in production
   const staticPath =
@@ -28,6 +35,9 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
   });
+
+  // Return server instance for graceful shutdown
+  return server;
 }
 
 startServer().catch(console.error);
