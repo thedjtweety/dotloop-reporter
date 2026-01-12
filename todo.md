@@ -796,3 +796,9 @@
 - [x] Verify calculation page displays sample data
 - [x] Create comprehensive tier validation test suite (45+ tests)
 - [x] Create client-side tier validation library
+
+## Phase 41: Bug Fixes - Calculator & Settings Panel
+- [x] Fix commission calculator not loading plans and agents
+- [x] Add scrolling to commission plan settings panel
+- [x] Test calculator with sample data
+- [x] Verify all settings are accessible

@@ -39,10 +39,18 @@ export default function CommissionCalculator() {
   const [hasData, setHasData] = useState(false);
 
   // Fetch data from tRPC
-  const { data: plans } = trpc.commission.getPlans.useQuery();
-  const { data: teams } = trpc.commission.getTeams.useQuery();
-  const { data: assignments } = trpc.commission.getAssignments.useQuery();
+  const { data: plans, isLoading: plansLoading, error: plansError } = trpc.commission.getPlans.useQuery();
+  const { data: teams, isLoading: teamsLoading, error: teamsError } = trpc.commission.getTeams.useQuery();
+  const { data: assignments, isLoading: assignmentsLoading, error: assignmentsError } = trpc.commission.getAssignments.useQuery();
   const calculateMutation = trpc.commission.calculate.useMutation();
+
+  // Log query status for debugging
+  useEffect(() => {
+    if (plansError) console.error('Plans query error:', plansError);
+    if (teamsError) console.error('Teams query error:', teamsError);
+    if (assignmentsError) console.error('Assignments query error:', assignmentsError);
+    console.log('Plans:', plans?.length || 0, 'Teams:', teams?.length || 0, 'Assignments:', assignments?.length || 0);
+  }, [plans, teams, assignments, plansError, teamsError, assignmentsError]);
 
   // Load recent transaction data on mount
   useEffect(() => {
@@ -79,17 +87,17 @@ export default function CommissionCalculator() {
 
       // Validate data
       if (!transactions || transactions.length === 0) {
-        setError('No transactions available to calculate');
+        setError('No transactions available to calculate. Please upload a Dotloop export first.');
         return;
       }
 
       if (!plans || plans.length === 0) {
-        setError('No commission plans configured');
+        setError('No commission plans configured. Please create a plan in the Plans tab first.');
         return;
       }
 
       if (!assignments || assignments.length === 0) {
-        setError('No agent assignments configured');
+        setError('No agent assignments configured. Please assign agents to plans in the Agents tab first.');
         return;
       }
 
@@ -152,12 +160,27 @@ export default function CommissionCalculator() {
     a.click();
   };
 
-  if (loading) {
+  if (loading || plansLoading || teamsLoading || assignmentsLoading) {
     return (
       <Card className="p-8 text-center">
         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-        <p className="text-muted-foreground">Loading transaction data...</p>
+        <p className="text-muted-foreground">Loading data...</p>
       </Card>
+    );
+  }
+
+  // Show errors if queries failed
+  if (plansError || teamsError || assignmentsError) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Failed to load configuration data. Please try refreshing the page.
+          {plansError && <div>Plans error: {String(plansError)}</div>}
+          {teamsError && <div>Teams error: {String(teamsError)}</div>}
+          {assignmentsError && <div>Assignments error: {String(assignmentsError)}</div>}
+        </AlertDescription>
+      </Alert>
     );
   }
 

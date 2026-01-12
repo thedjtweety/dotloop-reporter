@@ -157,14 +157,14 @@ export default function CommissionPlansManager() {
               <Settings className="h-4 w-4" /> Commission Plan Settings
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>{isEditing ? 'Edit Plan' : 'Create New Plan'}</DialogTitle>
               <DialogDescription>
                 Configure the split percentage, cap amount, and post-cap rules.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 overflow-y-auto flex-1 pr-4">
               <div className="grid gap-2">
                 <Label htmlFor="name">Plan Name</Label>
                 <Input
@@ -295,13 +295,13 @@ export default function CommissionPlansManager() {
                 </div>
               </div>
             </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSaving}>Cancel</Button>
-            <Button onClick={handleSavePlan} disabled={isSaving} className="gap-2">
-              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              {isSaving ? 'Saving...' : 'Save Plan'}
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="mt-4 border-t pt-4">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSaving}>Cancel</Button>
+              <Button onClick={handleSavePlan} disabled={isSaving} className="gap-2">
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {isSaving ? 'Saving...' : 'Save Plan'}
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
