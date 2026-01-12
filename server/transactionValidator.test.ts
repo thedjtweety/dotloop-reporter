@@ -153,8 +153,12 @@ describe('Transaction Validator', () => {
   });
 
   describe('validateTransactionBatch', () => {
-    it('should validate a batch of valid transactions', () => {
-      const batch = [validTransaction, validTransaction, validTransaction];
+    it('should validate a batch of valid transactions with unique loopIds', () => {
+      const batch = [
+        { ...validTransaction, loopId: 'loop-1' },
+        { ...validTransaction, loopId: 'loop-2' },
+        { ...validTransaction, loopId: 'loop-3' },
+      ];
       const result = validateTransactionBatch(batch);
       expect(result.valid).toBe(true);
       expect(result.validData?.length).toBe(3);
@@ -163,9 +167,9 @@ describe('Transaction Validator', () => {
 
     it('should report errors for invalid transactions in batch', () => {
       const batch = [
-        validTransaction,
-        { ...validTransaction, price: 'invalid' },
-        validTransaction,
+        { ...validTransaction, loopId: 'loop-1' },
+        { ...validTransaction, price: 'invalid', loopId: 'loop-2' },
+        { ...validTransaction, loopId: 'loop-3' },
       ];
       const result = validateTransactionBatch(batch);
       expect(result.valid).toBe(false);
@@ -175,9 +179,9 @@ describe('Transaction Validator', () => {
 
     it('should report multiple errors', () => {
       const batch = [
-        { ...validTransaction, price: 'invalid' },
-        { ...validTransaction, bedrooms: -5 },
-        { ...validTransaction, tenantId: undefined },
+        { ...validTransaction, price: 'invalid', loopId: 'loop-1' },
+        { ...validTransaction, bedrooms: -5, loopId: 'loop-2' },
+        { ...validTransaction, tenantId: undefined, loopId: 'loop-3' },
       ];
       const result = validateTransactionBatch(batch);
       expect(result.valid).toBe(false);
@@ -190,8 +194,12 @@ describe('Transaction Validator', () => {
       expect(result.validData?.length).toBe(0);
     });
 
-    it('should handle large batch', () => {
-      const batch = Array(1000).fill(validTransaction);
+    it('should handle large batch with unique loopIds', () => {
+      // Create 1000 unique transactions with different loopIds
+      const batch = Array(1000).fill(null).map((_, i) => ({
+        ...validTransaction,
+        loopId: `loop-${i}`, // Make each loopId unique
+      }));
       const result = validateTransactionBatch(batch);
       expect(result.valid).toBe(true);
       expect(result.validData?.length).toBe(1000);
@@ -199,15 +207,39 @@ describe('Transaction Validator', () => {
 
     it('should handle mixed valid and invalid records', () => {
       const batch = [
-        validTransaction,
-        { ...validTransaction, price: 'invalid' },
-        validTransaction,
-        { ...validTransaction, bedrooms: -1 },
-        validTransaction,
+        { ...validTransaction, loopId: 'loop-1' },
+        { ...validTransaction, price: 'invalid', loopId: 'loop-2' },
+        { ...validTransaction, loopId: 'loop-3' },
+        { ...validTransaction, bedrooms: -1, loopId: 'loop-4' },
+        { ...validTransaction, loopId: 'loop-5' },
       ];
       const result = validateTransactionBatch(batch);
       expect(result.valid).toBe(false);
       expect(result.errors?.length).toBe(2);
+    });
+
+    it('should detect duplicate loopIds in batch', () => {
+      const batch = [
+        { ...validTransaction, loopId: 'duplicate-id' },
+        { ...validTransaction, loopId: 'unique-id' },
+        { ...validTransaction, loopId: 'duplicate-id' }, // Duplicate
+      ];
+      const result = validateTransactionBatch(batch);
+      expect(result.valid).toBe(false);
+      expect(result.errors?.length).toBeGreaterThan(0);
+      expect(result.errors?.[0]).toContain('Duplicate loopId');
+    });
+
+    it('should reject transactions with missing loopId', () => {
+      const batch = [
+        { ...validTransaction, loopId: 'loop-1' },
+        { ...validTransaction, loopId: null },
+        { ...validTransaction, loopId: 'loop-3' },
+      ];
+      const result = validateTransactionBatch(batch);
+      expect(result.valid).toBe(false);
+      expect(result.errors?.length).toBeGreaterThan(0);
+      expect(result.errors?.[0]).toContain('Missing loopId');
     });
   });
 

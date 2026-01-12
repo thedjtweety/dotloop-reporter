@@ -119,16 +119,31 @@ export function validateTransaction(transaction: any, rowIndex: number): { valid
 }
 
 /**
- * Validates a batch of transactions
+ * Validates a batch of transactions and detects duplicates
  */
 export function validateTransactionBatch(transactions: any[]): { valid: boolean; validData?: InsertTransaction[]; errors?: string[] } {
   const validData: InsertTransaction[] = [];
   const errors: string[] = [];
+  const loopIdsSeen = new Map<string, number>(); // Track loopIds and their row numbers
 
   for (let i = 0; i < transactions.length; i++) {
     const result = validateTransaction(transactions[i], i + 1);
     if (result.valid && result.data) {
-      validData.push(result.data);
+      // Check for duplicate loopIds within the batch
+      const loopId = result.data.loopId;
+      if (loopId && loopIdsSeen.has(loopId)) {
+        const firstRow = loopIdsSeen.get(loopId);
+        errors.push(
+          `Row ${i + 1}: Duplicate loopId '${loopId}' (also appears in row ${firstRow}). ` +
+          `Each transaction must have a unique loopId within the same tenant.`
+        );
+      } else if (loopId) {
+        loopIdsSeen.set(loopId, i + 1);
+        validData.push(result.data);
+      } else {
+        // loopId is missing or empty - this is an error since it's part of the unique constraint
+        errors.push(`Row ${i + 1}: Missing loopId. This field is required and must be unique.`);
+      }
     } else if (result.error) {
       errors.push(result.error);
     }

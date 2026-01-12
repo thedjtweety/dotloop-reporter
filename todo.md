@@ -887,7 +887,9 @@
 - [x] Add error handling for MySQL max_allowed_packet limit
 - [x] Improve error messages for database insertion failures
 - [x] Add retry logic for failed batches (50-row fallback)
-- [x] Create comprehensive transaction validator (26 tests passing)
+- [x] Create comprehensive transaction validator (28 tests passing)
 - [x] Add data validation before database insertion
 - [x] Add upload record cleanup on validation/insertion failure
-- [x] Test transaction validator with edge cases (all 26 tests passing)
+- [x] Detect duplicate loopIds within batch (unique constraint on loopId_tenant)
+- [x] Test transaction validator with edge cases and duplicate detection (all 28 tests passing)
+- [x] Identify root cause: unique constraint on (loopId, tenantId) was rejecting duplicate loopIds
