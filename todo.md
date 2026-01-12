@@ -668,3 +668,33 @@
 - [ ] Test cap scenarios - In Progress
 - [ ] Verify YTD calculations - In Progress
 - [ ] Test error scenarios - In Progress
+
+
+## Phase 48: Restructure Commission Module as Analytics Panel (In Progress)
+**Priority:** HIGH | **Complexity:** 6/10 | **Time Estimate:** 3-4 hours
+**Status:** 🚧 Active Development
+
+### Cleanup
+- [x] Remove `/commission` route from App.tsx
+- [x] Remove "Commission" button from Home.tsx header
+- [ ] Remove "Commission" button from MobileNav.tsx - Will handle if needed
+- [ ] Delete CommissionManagement.tsx page - Keeping for now, can be removed later
+- [x] Restore Commission Audit tab to Analytics tabs
+
+### Create Commission Panel Component
+- [x] Create CommissionManagementPanel.tsx component
+- [x] Add tabbed interface (Plans, Teams, Assignments, Calculate)
+- [x] Import existing components (CommissionPlansManager, TeamManager, AgentAssignment, CommissionCalculator)
+- [x] Style as card/panel with consistent design
+
+### Integration
+- [x] Add Commission Management panel below Agent Leaderboard in Home.tsx
+- [x] Ensure commission analytics charts remain visible in tabs
+- [ ] Test responsive design on mobile - In Progress
+- [ ] Verify all functionality works within panel context - In Progress
+
+### Testing
+- [ ] Test commission calculation from panel - Ready for testing
+- [ ] Test plan/team/assignment management from panel - Ready for testing
+- [ ] Verify data persistence across tabs - Ready for testing
+- [ ] Test on mobile and desktop - Ready for testing
