@@ -128,8 +128,8 @@ export default function CommissionCalculator() {
         agents: t.agents || '',
         salePrice: Number(t.salePrice) || 0,
         commissionRate: Number(t.commissionRate) || 0,
-        buySidePercent: Number(t.buySidePercent) || 50,
-        sellSidePercent: Number(t.sellSidePercent) || 50,
+        buySideCommission: Number(t.buySideCommission) || 0,
+        sellSideCommission: Number(t.sellSideCommission) || 0,
       }));
 
       // Call calculation API
