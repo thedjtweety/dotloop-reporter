@@ -5,6 +5,7 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, TooltipProps } from 'recharts';
 import { ChartData } from '@/lib/csvParser';
+import { useRef, useEffect } from 'react';
 
 interface GeographicChartProps {
   data: ChartData[];
@@ -36,6 +37,23 @@ const CustomTooltip = ({ active, payload, label, total }: TooltipProps<number, s
 };
 
 export default function GeographicChart({ data, onBarClick }: GeographicChartProps) {
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Add entrance animation
+    if (chartRef.current) {
+      chartRef.current.style.opacity = '0';
+      chartRef.current.style.transform = 'translateY(20px)';
+      requestAnimationFrame(() => {
+        if (chartRef.current) {
+          chartRef.current.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+          chartRef.current.style.opacity = '1';
+          chartRef.current.style.transform = 'translateY(0)';
+        }
+      });
+    }
+  }, [data]);
+
   if (data.length === 0) {
     return (
       <div className="h-80 flex items-center justify-center text-foreground">
@@ -45,6 +63,7 @@ export default function GeographicChart({ data, onBarClick }: GeographicChartPro
   }
 
   return (
+    <div ref={chartRef}>
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 60 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -63,12 +82,30 @@ export default function GeographicChart({ data, onBarClick }: GeographicChartPro
           radius={[8, 8, 0, 0]}
           onClick={(data) => onBarClick && onBarClick(data.label)}
           className="cursor-pointer"
+          animationBegin={0}
+          animationDuration={800}
+          animationEasing="ease-out"
+          style={{
+            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))'
+          }}
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <Cell key={`cell-${index}`} fill={`url(#geo-gradient-${index})`} />
           ))}
         </Bar>
+        <defs>
+          {data.map((entry, index) => {
+            const baseColor = COLORS[index % COLORS.length];
+            return (
+              <linearGradient key={`geo-gradient-${index}`} id={`geo-gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={baseColor} stopOpacity={0.9} />
+                <stop offset="100%" stopColor={baseColor} stopOpacity={0.6} />
+              </linearGradient>
+            );
+          })}
+        </defs>
       </BarChart>
     </ResponsiveContainer>
+    </div>
   );
 }
