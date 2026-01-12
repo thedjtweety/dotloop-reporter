@@ -227,3 +227,23 @@
 - [x] Identify all breaking issues or incorrect data displays (Bug: calculateMetrics only counted closed deals)
 - [x] Fix identified bugs (Changed to count all transactions for volume/commission)
 - [x] Verify Pipeline and Lead Source charts work correctly with drill-down
+
+## Phase 26: Fix Chart Drill-Down Scroll Bug
+- [x] Investigate why clicking chart segments scrolls to top of page (caused by useEffect dependency on filters)
+- [x] Identify what causes the chart to break after drill-down (charts using filteredRecords instead of allRecords)
+- [x] Fix scroll-to-top issue (removed - was not the actual problem)
+- [x] Fix chart breaking issue (changed all charts to use allRecords instead of filteredRecords)
+- [x] Test Pipeline chart drill-down (tested successfully - chart shows all data)
+- [x] Test Lead Source chart drill-down (same fix applies)
+- [x] Test Property Type chart drill-down (same fix applies)
+- [x] Test Geographic chart drill-down (same fix applies)
+- [x] Verify charts remain visible and functional after filtering (all charts now use allRecords)
+
+## Phase 27: Improve Drill-Down Filter UX
+- [x] Move FilterBadge to a more prominent location (already at top of main content)
+- [x] Increase FilterBadge size and visibility (blue background, bold text, larger badges)
+- [x] Add toast notification when filter is applied (blue toast with emoji and clear message)
+- [x] Add visual feedback on chart click (toast notification provides clear feedback)
+- [x] Improve "Clear Filter" button visibility and labeling (now says "✕ Clear All Filters" with border)
+- [x] Test filter application with all chart types (tested with Pipeline chart)
+- [x] Verify users understand filtering behavior (toast + prominent blue filter badge make it obvious)

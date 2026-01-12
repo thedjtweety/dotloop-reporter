@@ -89,6 +89,7 @@ import OnboardingTour from '@/components/OnboardingTour';
 import { useOnboardingTour, uploadTourSteps, dashboardTourSteps } from '@/hooks/useOnboardingTour';
 import { FilterProvider, useFilters } from '@/contexts/FilterContext';
 import FilterBadge from '@/components/FilterBadge';
+import toast, { Toaster } from 'react-hot-toast';
 
 function HomeContent() {
   // The userAuth hooks provides authentication state
@@ -282,18 +283,62 @@ function HomeContent() {
       case 'pipeline':
         title = `Pipeline: ${label}`;
         addFilter({ type: 'pipeline', label: title, value: label });
+        toast.success(`🔍 Now filtering by: ${label}`, {
+          duration: 3000,
+          position: 'top-center',
+          style: {
+            background: '#3b82f6',
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            padding: '16px',
+          },
+        });
         break;
       case 'leadSource':
         title = `Lead Source: ${label}`;
         addFilter({ type: 'leadSource', label: title, value: label });
+        toast.success(`🔍 Now filtering by lead source: ${label}`, {
+          duration: 3000,
+          position: 'top-center',
+          style: {
+            background: '#3b82f6',
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            padding: '16px',
+          },
+        });
         break;
       case 'propertyType':
         title = `Property Type: ${label}`;
         addFilter({ type: 'propertyType', label: title, value: label });
+        toast.success(`🔍 Now filtering by property type: ${label}`, {
+          duration: 3000,
+          position: 'top-center',
+          style: {
+            background: '#3b82f6',
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            padding: '16px',
+          },
+        });
         break;
       case 'geographic':
         title = `State: ${label}`;
         addFilter({ type: 'geographic', label: title, value: label });
+        toast.success(`🔍 Now filtering by state: ${label}`, {
+          duration: 3000,
+          position: 'top-center',
+          style: {
+            background: '#3b82f6',
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            padding: '16px',
+          },
+        });
         break;
       case 'commission':
         title = `Commission Range: ${label}`;
@@ -647,6 +692,7 @@ function HomeContent() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Toaster />
       {/* Dashboard Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container flex h-16 items-center justify-between">
@@ -862,7 +908,7 @@ function HomeContent() {
                   Pipeline Breakdown
                 </h2>
                 <PipelineChart 
-                  data={getPipelineData(filteredRecords)} 
+                  data={getPipelineData(allRecords)} 
                   onBarClick={(label) => handleChartClick('pipeline', label)}
                 />
               </Card>
@@ -893,7 +939,7 @@ function HomeContent() {
                   Lead Source Performance
                 </h2>
                 <LeadSourceChart 
-                  data={getLeadSourceData(filteredRecords)} 
+                  data={getLeadSourceData(allRecords)} 
                   onSliceClick={(label) => handleChartClick('leadSource', label)}
                 />
               </Card>
@@ -905,7 +951,7 @@ function HomeContent() {
                   Property Type Distribution
                 </h2>
                 <PropertyTypeChart 
-                  data={getPropertyTypeData(filteredRecords)} 
+                  data={getPropertyTypeData(allRecords)} 
                   onBarClick={(label) => handleChartClick('propertyType', label)}
                 />
               </Card>
@@ -917,7 +963,7 @@ function HomeContent() {
                   Geographic Distribution
                 </h2>
                 <GeographicChart 
-                  data={getGeographicData(filteredRecords)} 
+                  data={getGeographicData(allRecords)} 
                   onBarClick={(label) => handleChartClick('geographic', label)}
                 />
               </Card>

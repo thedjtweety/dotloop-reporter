@@ -27,39 +27,39 @@ export default function FilterBadge() {
   if (!hasFilters) return null;
 
   return (
-    <div ref={badgeRef} className="flex items-center gap-2 flex-wrap p-4 bg-muted/50 rounded-lg border border-border animate-in fade-in slide-in-from-top-2 duration-300">
-      <span className="text-sm font-medium text-foreground flex items-center gap-2">
-        <FilterX className="w-4 h-4" />
-        Active Filters:
+    <div ref={badgeRef} className="flex items-center gap-3 flex-wrap p-5 bg-blue-500/10 dark:bg-blue-400/10 rounded-xl border-2 border-blue-500/30 dark:border-blue-400/30 animate-in fade-in slide-in-from-top-2 duration-300 shadow-lg">
+      <span className="text-base font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
+        <FilterX className="w-5 h-5" />
+        🔍 Filtering Dashboard:
       </span>
       
       {filters.map((filter) => (
         <Badge
           key={filter.type}
           variant="secondary"
-          className="pl-3 pr-1 py-1 gap-1 hover:bg-secondary/80 transition-colors"
+          className="pl-4 pr-2 py-2 gap-2 bg-blue-500 dark:bg-blue-600 text-white hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors text-sm font-semibold"
         >
-          <span className="text-xs">
+          <span>
             {filter.label}
           </span>
           <Button
             variant="ghost"
             size="sm"
-            className="h-4 w-4 p-0 hover:bg-destructive/20"
+            className="h-5 w-5 p-0 hover:bg-white/20 text-white"
             onClick={() => removeFilter(filter.type)}
           >
-            <X className="w-3 h-3" />
+            <X className="w-4 h-4" />
           </Button>
         </Badge>
       ))}
 
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         onClick={clearAllFilters}
-        className="text-xs h-7 px-2 text-foreground hover:text-foreground"
+        className="text-sm h-9 px-4 font-semibold border-2 border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400 hover:bg-blue-500 hover:text-white dark:hover:bg-blue-600"
       >
-        Clear All
+        ✕ Clear All Filters
       </Button>
     </div>
   );
