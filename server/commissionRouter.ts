@@ -10,6 +10,7 @@
 
 import { protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
+import { nanoid } from "nanoid";
 import {
   calculateCommissions,
   calculateTransactionCommission,
@@ -72,7 +73,7 @@ const TeamSchema = z.object({
 }).strict();
 
 const AgentAssignmentSchema = z.object({
-  id: z.string().optional(),
+  id: z.string(), // Required for database insert
   agentName: z.string(),
   planId: z.string(),
   teamId: z.string().optional(),
@@ -467,7 +468,7 @@ export const commissionRouter = router({
       }
     }),
 
-  /**
+   /**
    * Save an agent assignment to the database
    */
   saveAssignment: protectedProcedure
@@ -478,12 +479,15 @@ export const commissionRouter = router({
         if (!db) {
           throw new Error("Database connection not available");
         }
-
+        
+        // Ensure id is a string (not undefined)
+        const assignmentId = input.id || nanoid();
+        
         // Check if assignment exists
         const existing = await db
           .select()
           .from(agentAssignments)
-          .where(eq(agentAssignments.id, input.id))
+          .where(eq(agentAssignments.id, assignmentId))
           .limit(1);
 
         if (existing.length > 0) {
@@ -496,11 +500,11 @@ export const commissionRouter = router({
               teamId: input.teamId,
               anniversaryDate: input.anniversaryDate,
             })
-            .where(eq(agentAssignments.id, input.id));
+            .where(eq(agentAssignments.id, assignmentId));
         } else {
           // Insert new assignment
           await db.insert(agentAssignments).values({
-            id: input.id,
+            id: assignmentId,
             tenantId: ctx.user.tenantId,
             agentName: input.agentName,
             planId: input.planId,

@@ -180,14 +180,18 @@ export const seedRouter = router({
           try {
             const startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
             const dateStr = startDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+            const assignmentId = nanoid();
             
-            await db.insert(agentAssignments).values({
-              id: nanoid(),
-              tenantId,
-              agentName,
-              planId,
+            // Build the insert object with proper typing
+            const insertData = {
+              id: assignmentId,
+              tenantId: tenantId,
+              agentName: agentName,
+              planId: planId,
               startDate: dateStr,
-            } as any);
+            };
+            
+            await db.insert(agentAssignments).values(insertData);
             assignmentsCreated++;
           } catch (error) {
             console.error(`Error assigning agent ${agentName}:`, error);
