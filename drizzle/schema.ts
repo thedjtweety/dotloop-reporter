@@ -458,3 +458,45 @@ export const commissionCalculations = mysqlTable("commission_calculations", {
 
 export type CommissionCalculation = typeof commissionCalculations.$inferSelect;
 export type InsertCommissionCalculation = typeof commissionCalculations.$inferInsert;
+
+
+/**
+ * Tier History Table
+ * Tracks when agents transition between commission tiers
+ */
+export const tierHistory = mysqlTable("tier_history", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  
+  // Agent information
+  agentName: varchar("agentName", { length: 255 }).notNull(),
+  planId: varchar("planId", { length: 64 }).notNull(),
+  
+  // Tier transition details
+  previousTierIndex: int("previousTierIndex"),
+  previousTierThreshold: int("previousTierThreshold"),
+  previousSplitPercentage: int("previousSplitPercentage"),
+  
+  newTierIndex: int("newTierIndex").notNull(),
+  newTierThreshold: int("newTierThreshold").notNull(),
+  newSplitPercentage: int("newSplitPercentage").notNull(),
+  
+  // YTD amount when transition occurred
+  ytdAmount: int("ytdAmount").notNull(),
+  
+  // Transaction that triggered the tier change
+  transactionId: varchar("transactionId", { length: 64 }),
+  transactionDate: varchar("transactionDate", { length: 10 }), // YYYY-MM-DD
+  
+  // Metadata
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index("tier_history_tenant_idx").on(table.tenantId),
+  agentIdx: index("tier_history_agent_idx").on(table.agentName),
+  planIdx: index("tier_history_plan_idx").on(table.planId),
+  dateIdx: index("tier_history_date_idx").on(table.createdAt),
+  tenantAgentPlanIdx: index("tier_history_tenant_agent_plan_idx").on(table.tenantId, table.agentName, table.planId),
+}));
+
+export type TierHistory = typeof tierHistory.$inferSelect;
+export type InsertTierHistory = typeof tierHistory.$inferInsert;

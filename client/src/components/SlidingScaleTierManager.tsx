@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/toggle-switch';
+import { TierTemplateSelector } from '@/components/TierTemplateSelector';
 import { Trash2, Plus, TrendingUp } from 'lucide-react';
 import {
   Table,
@@ -106,15 +108,13 @@ export function SlidingScaleTierManager({
               </CardDescription>
             </div>
           </div>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={useSliding}
-              onChange={(e) => onUseSlidingChange(e.target.checked)}
-              className="w-4 h-4"
-            />
+          <div className="flex items-center gap-3">
             <span className="text-sm font-medium">Enable Sliding Scale</span>
-          </label>
+            <Switch
+              checked={useSliding}
+              onCheckedChange={onUseSlidingChange}
+            />
+          </div>
         </div>
       </CardHeader>
 
@@ -244,6 +244,7 @@ export function SlidingScaleTierManager({
                   <Plus className="h-4 w-4 mr-2" />
                   Add Tier
                 </Button>
+                <TierTemplateSelector onSelectTemplate={onTiersChange} />
               </div>
 
               <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">

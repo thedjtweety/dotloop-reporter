@@ -743,3 +743,16 @@
 - [x] Verify YTD tracking across tier boundaries
 - [ ] Update CommissionCalculator UI to show tier information
 - [ ] Save checkpoint with sliding scale support
+
+## Phase 46: Sliding Scale UI Fixes and Enhancements
+
+- [x] Fix missing slider toggle in commission plan settings dialog
+- [x] Create tier visualization dashboard with progress charts
+- [x] Implement tier history tracking table in database
+- [x] Add tier transition logging to commission router
+- [x] Create tier history API endpoints (list, stats)
+- [x] Build tier history UI component
+- [x] Add bulk tier templates feature
+- [x] Create template manager UI
+- [x] Test all new features end-to-end
+- [x] Save final checkpoint with all enhancements
