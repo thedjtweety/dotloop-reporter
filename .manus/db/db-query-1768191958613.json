@@ -1,0 +1,9 @@
+{
+  "query": "\nSET FOREIGN_KEY_CHECKS = 0;\nDROP TABLE IF EXISTS __drizzle_migrations;\nDROP TABLE IF EXISTS audit_logs;\nDROP TABLE IF EXISTS transactions;\nDROP TABLE IF EXISTS uploads;\nDROP TABLE IF EXISTS dotloop_integrations;\nDROP TABLE IF EXISTS users;\nDROP TABLE IF EXISTS oauth_tokens;\nDROP TABLE IF EXISTS token_audit_logs;\nDROP TABLE IF EXISTS platform_admin_logs;\nDROP TABLE IF EXISTS tenants;\nSET FOREIGN_KEY_CHECKS = 1;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 24ruGQuiASWpGv5.root --database gtMbYvvduSqhsHRvj39YWw --execute \nSET FOREIGN_KEY_CHECKS = 0;\nDROP TABLE IF EXISTS __drizzle_migrations;\nDROP TABLE IF EXISTS audit_logs;\nDROP TABLE IF EXISTS transactions;\nDROP TABLE IF EXISTS uploads;\nDROP TABLE IF EXISTS dotloop_integrations;\nDROP TABLE IF EXISTS users;\nDROP TABLE IF EXISTS oauth_tokens;\nDROP TABLE IF EXISTS token_audit_logs;\nDROP TABLE IF EXISTS platform_admin_logs;\nDROP TABLE IF EXISTS tenants;\nSET FOREIGN_KEY_CHECKS = 1;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 2677
+}
