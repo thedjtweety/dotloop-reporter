@@ -160,3 +160,11 @@
 - [x] Update agent leaderboard to reflect filtered data
 - [x] Add smooth transitions for filter changes (using Tailwind animate-in classes)
 - [x] Test drill-down on all chart types (tested Pipeline and Lead Source charts successfully)
+
+## Phase 18: Drill-Down UX Fixes
+- [x] Restore deal information modal (broken by drill-down implementation)
+- [x] Keep both drill-down filter AND modal functionality working together (metric cards open modal, charts apply filters)
+- [x] Fix dark mode text visibility for table headers (Total GCI, Closed, Commission, etc.)
+- [x] Fix dark mode text visibility for all labels and text elements (changed text-muted-foreground to text-foreground)
+- [x] Optimize drill-down UX to avoid scrolling (added auto-scroll to metrics section when filters are applied)
+- [x] Test all fixes in both light and dark modes (verified: modal works, dark mode text is visible, filter badge shows with auto-scroll)

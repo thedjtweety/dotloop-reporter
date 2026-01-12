@@ -229,6 +229,7 @@ function HomeContent() {
     setAgentMetrics(calculateAgentMetrics(currentRecords));
   }, [allRecords, dateRange, filters]);
 
+  // Handle metric card clicks - opens modal with deal details
   const handleMetricClick = (type: 'total' | 'volume' | 'closing' | 'days' | 'active' | 'contract' | 'closed' | 'archived') => {
     let filtered: DotloopRecord[] = [];
     let title = '';
@@ -273,6 +274,7 @@ function HomeContent() {
     setDrillDownOpen(true);
   };
 
+  // Handle chart segment clicks - applies drill-down filters
   const handleChartClick = (type: 'pipeline' | 'leadSource' | 'propertyType' | 'geographic' | 'commission', label: string) => {
     let title = '';
 

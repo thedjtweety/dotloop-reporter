@@ -3,6 +3,7 @@
  * Displays active filters with ability to remove individual filters or clear all
  */
 
+import { useEffect, useRef } from 'react';
 import { X, FilterX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,11 +11,23 @@ import { useFilters } from '@/contexts/FilterContext';
 
 export default function FilterBadge() {
   const { filters, removeFilter, clearAllFilters, hasFilters } = useFilters();
+  const badgeRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to show filtered results when filters are applied
+  useEffect(() => {
+    if (hasFilters && badgeRef.current) {
+      // Scroll to the metrics section (just below the filter badge)
+      const metricsSection = document.querySelector('[data-tour="metrics"]');
+      if (metricsSection) {
+        metricsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, [filters.length]); // Trigger when filter count changes
 
   if (!hasFilters) return null;
 
   return (
-    <div className="flex items-center gap-2 flex-wrap p-4 bg-muted/50 rounded-lg border border-border animate-in fade-in slide-in-from-top-2 duration-300">
+    <div ref={badgeRef} className="flex items-center gap-2 flex-wrap p-4 bg-muted/50 rounded-lg border border-border animate-in fade-in slide-in-from-top-2 duration-300">
       <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
         <FilterX className="w-4 h-4" />
         Active Filters:
