@@ -571,6 +571,12 @@ function HomeContent() {
                   Admin
                 </Button>
               )}
+              {isAuthenticated && (
+                <Button variant="ghost" onClick={() => setLocation('/settings')}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Button>
+              )}
               <ModeToggle />
               <Button variant="outline" onClick={handleDemoMode} disabled={isLoading} data-tour="demo-button">
                 {isLoading ? 'Loading...' : 'Try Demo'}
@@ -732,6 +738,12 @@ function HomeContent() {
                 <Button variant="ghost" size="sm" onClick={() => setLocation('/admin')}>
                   <Settings className="h-4 w-4 mr-2" />
                   Admin
+                </Button>
+              )}
+              {isAuthenticated && (
+                <Button variant="ghost" size="sm" onClick={() => setLocation('/settings')}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
                 </Button>
               )}
               <ModeToggle />
