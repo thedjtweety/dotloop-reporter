@@ -37,7 +37,11 @@ export const auditLogRouter = router({
       const db = await getDb();
       if (!db) throw new Error('Database not available');
       
+      const { getTenantIdFromUser } = await import('./lib/tenant-context');
+      const tenantId = await getTenantIdFromUser(user.id);
+      
       await db.insert(auditLogs).values({
+        tenantId,
         adminId: user.id,
         adminName: user.name || 'Unknown Admin',
         adminEmail: user.email || undefined,

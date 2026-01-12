@@ -6,6 +6,7 @@ import { z } from "zod";
 import { adminRouter } from './adminRouter';
 import { performanceRouter } from './performanceRouter';
 import { auditLogRouter } from './auditLogRouter';
+import { dotloopOAuthRouter } from './dotloopOAuthRouter';
 import {
   createUpload,
   getUserUploads,
@@ -51,8 +52,13 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const uploadStartTime = Date.now();
         
+        // Get tenant context
+        const { getTenantIdFromUser } = await import('./lib/tenant-context');
+        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        
         // Create upload record
         const uploadId = await createUpload({
+          tenantId,
           userId: ctx.user.id,
           fileName: input.fileName,
           recordCount: input.transactions.length,
@@ -66,6 +72,7 @@ export const appRouter = router({
 
         // Prepare transactions for bulk insert
         const transactionsToInsert = input.transactions.map((t: any) => ({
+          tenantId,
           uploadId,
           userId: ctx.user.id,
           loopId: t.loopId || null,
@@ -172,6 +179,7 @@ export const appRouter = router({
   admin: adminRouter,
   performance: performanceRouter,
   auditLogs: auditLogRouter,
+  dotloopOAuth: dotloopOAuthRouter,
 });
 
 export type AppRouter = typeof appRouter;

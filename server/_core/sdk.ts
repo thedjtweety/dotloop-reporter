@@ -274,7 +274,11 @@ class SDKServer {
     if (!user) {
       try {
         const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
+        const { getTenantId } = await import('../lib/tenant-context');
+        const tenantId = await getTenantId();
+        
         await db.upsertUser({
+          tenantId,
           openId: userInfo.openId,
           name: userInfo.name || null,
           email: userInfo.email ?? null,
@@ -292,7 +296,11 @@ class SDKServer {
       throw ForbiddenError("User not found");
     }
 
+    const { getTenantIdFromUser } = await import('../lib/tenant-context');
+    const tenantId = await getTenantIdFromUser(user.id);
+    
     await db.upsertUser({
+      tenantId,
       openId: user.openId,
       lastSignedIn: signedInAt,
     });

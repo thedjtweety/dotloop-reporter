@@ -30,7 +30,12 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 
   try {
+    // Import tenant context helper
+    const { getTenantId } = await import('./lib/tenant-context');
+    const tenantId = user.tenantId || await getTenantId();
+
     const values: InsertUser = {
+      tenantId,
       openId: user.openId,
     };
     const updateSet: Record<string, unknown> = {};

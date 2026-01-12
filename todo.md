@@ -382,3 +382,31 @@
 - Application code needs refactoring to use new schema
 - Estimated 14-20 hours to complete remaining work
 - See MULTITENANT_IMPLEMENTATION_ROADMAP.md for detailed action plan
+
+## Phase 35: Multi-Tenant Architecture - Fix TypeScript Errors & Tenant Context
+- [x] Create tenant context middleware to extract tenantId from authenticated user
+- [x] Update audit log insertions to include tenantId in all API routes
+- [x] Fix auth router user upsert to handle tenantId properly
+- [x] Add tenant scoping to all database queries
+- [x] Test application runs without TypeScript errors
+
+## Phase 36: OAuth Flow Implementation
+- [ ] Register Dotloop OAuth application and obtain credentials (waiting for user)
+- [x] Create OAuth callback endpoint for Dotloop authorization
+- [x] Implement token storage using encryption utilities
+- [ ] Build "Connect Dotloop" UI flow with authorization redirect (pending credentials)
+- [x] Implement automatic token refresh mechanism
+- [x] Add token audit logging for security tracking
+
+## Phase 37: Tenant Settings Page
+- [ ] Create tenant settings page component
+- [ ] Add subscription information display
+- [ ] Implement custom domain management UI
+- [ ] Add API connection status monitoring
+- [ ] Create tenant profile editing interface
+
+## Future: Chart Visual Enhancements
+- [ ] Save chart visual enhancement ideas document
+- [ ] Implement gradient fills and glows on charts
+- [ ] Add micro-animations to chart interactions
+- [ ] Create radial/circular chart variations

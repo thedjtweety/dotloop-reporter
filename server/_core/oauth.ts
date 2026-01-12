@@ -28,7 +28,11 @@ export function registerOAuthRoutes(app: Express) {
         return;
       }
 
+      const { getTenantId } = await import('../lib/tenant-context');
+      const tenantId = await getTenantId();
+
       await db.upsertUser({
+        tenantId,
         openId: userInfo.openId,
         name: userInfo.name || null,
         email: userInfo.email ?? null,

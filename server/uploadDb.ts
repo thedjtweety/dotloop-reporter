@@ -116,7 +116,11 @@ export async function deleteUpload(uploadId: number, userId: number, isAdminActi
 
   // Log admin action if applicable
   if (isAdminAction && adminUser) {
+    const { getTenantIdFromUser } = await import('./lib/tenant-context');
+    const tenantId = await getTenantIdFromUser(adminUser.id);
+    
     await db.insert(auditLogs).values({
+      tenantId,
       adminId: adminUser.id,
       adminName: adminUser.name || 'Unknown Admin',
       adminEmail: adminUser.email || undefined,

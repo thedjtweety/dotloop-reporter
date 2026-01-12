@@ -168,7 +168,11 @@ export const adminRouter = router({
         .where(eq(users.id, input.userId));
 
       // Log the action
+      const { getTenantIdFromUser } = await import('./lib/tenant-context');
+      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      
       await db.insert(auditLogs).values({
+        tenantId,
         adminId: ctx.user.id,
         adminName: ctx.user.name || 'Unknown Admin',
         adminEmail: ctx.user.email || undefined,
@@ -214,7 +218,11 @@ export const adminRouter = router({
       await db.delete(users).where(eq(users.id, input.userId));
 
       // Log the action
+      const { getTenantIdFromUser: getTenantId2 } = await import('./lib/tenant-context');
+      const tenantId2 = await getTenantId2(ctx.user.id);
+      
       await db.insert(auditLogs).values({
+        tenantId: tenantId2,
         adminId: ctx.user.id,
         adminName: ctx.user.name || 'Unknown Admin',
         adminEmail: ctx.user.email || undefined,
