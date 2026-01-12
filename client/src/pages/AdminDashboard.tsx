@@ -294,7 +294,7 @@ export default function AdminDashboard() {
                         </TableCell>
                         <TableCell>{upload.recordCount.toLocaleString()}</TableCell>
                         <TableCell className="text-foreground text-sm">
-                          {formatDistanceToNow(new Date(upload.uploadedAt), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(upload.createdAt), { addSuffix: true })}
                         </TableCell>
                       </TableRow>
                     ))}
