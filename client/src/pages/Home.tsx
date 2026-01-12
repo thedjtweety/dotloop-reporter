@@ -80,7 +80,6 @@ import CommissionPlansManager from '@/components/CommissionPlansManager';
 import TeamManager from '@/components/TeamManager';
 import AgentAssignment from '@/components/AgentAssignment';
 import CommissionAuditReport from '@/components/CommissionAuditReport';
-import CommissionManagementPanel from '@/components/CommissionManagementPanel';
 import DataValidationReport from '@/components/DataValidationReport';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ModeToggle } from '@/components/ModeToggle';
@@ -1062,14 +1061,16 @@ function HomeContent() {
             </TabsContent>
 
             <TabsContent value="settings" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-              <Card className="p-6">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold mb-2">Settings</h3>
-                  <p className="text-sm text-muted-foreground">Manage your account and application settings.</p>
-                </div>
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Settings functionality coming soon</p>
-                </div>
+              <Card className="p-12 text-center">
+                <DollarSign className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h3 className="text-2xl font-bold mb-3">Commission Management Moved</h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                  All commission-related features (Plans, Teams, Assignments, and Audit) are now in a dedicated Commission Management section.
+                </p>
+                <Button onClick={() => setLocation('/commission')} size="lg" className="gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Go to Commission Management
+                </Button>
               </Card>
             </TabsContent>
           </Tabs>
@@ -1084,11 +1085,6 @@ function HomeContent() {
             </CollapsibleSection>
           </div>
         )}
-
-        {/* Commission Management Panel */}
-        <div data-section="commission-management">
-          <CommissionManagementPanel records={filteredRecords} hasData={filteredRecords.length > 0} />
-        </div>
 
         {/* Commission Projector Section */}
         {metrics?.hasFinancialData && (

@@ -1,9 +1,0 @@
-{
-  "query": "ALTER TABLE `commission_plans` ADD COLUMN `useSliding` int NOT NULL DEFAULT 0; ALTER TABLE `commission_plans` ADD COLUMN `tiers` text;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 24ruGQuiASWpGv5.root --database gtMbYvvduSqhsHRvj39YWw --execute ALTER TABLE `commission_plans` ADD COLUMN `useSliding` int NOT NULL DEFAULT 0; ALTER TABLE `commission_plans` ADD COLUMN `tiers` text;",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 801
-}

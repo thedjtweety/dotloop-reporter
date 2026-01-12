@@ -160,7 +160,7 @@ export const dotloopOAuthRouter = router({
         const tokenHash = tokenEncryption.hashToken(tokenData.access_token);
         
         // Calculate expiration time
-        const expiresAt = new Date(Date.now() + (tokenData.expires_in * 1000)).toISOString();
+        const expiresAt = new Date(Date.now() + (tokenData.expires_in * 1000));
 
         // Store tokens in database
         const [result] = await db.insert(oauthTokens).values({
@@ -196,7 +196,7 @@ export const dotloopOAuthRouter = router({
         return {
           success: true,
           tokenId,
-          expiresAt: expiresAt,
+          expiresAt: expiresAt.toISOString(),
           scope: tokenData.scope,
         };
       } catch (error) {
@@ -277,7 +277,7 @@ export const dotloopOAuthRouter = router({
         const encryptedAccessToken = tokenEncryption.encrypt(tokenData.access_token);
         const encryptedRefreshToken = tokenEncryption.encrypt(tokenData.refresh_token);
         const tokenHash = tokenEncryption.hashToken(tokenData.access_token);
-        const expiresAt = new Date(Date.now() + (tokenData.expires_in * 1000)).toISOString();
+        const expiresAt = new Date(Date.now() + (tokenData.expires_in * 1000));
 
         // Update token in database
         await db
@@ -287,8 +287,8 @@ export const dotloopOAuthRouter = router({
             encryptedRefreshToken,
             tokenExpiresAt: expiresAt,
             tokenHash,
-            lastRefreshedAt: new Date().toISOString(),
-            lastUsedAt: new Date().toISOString(),
+            lastRefreshedAt: new Date(),
+            lastUsedAt: new Date(),
           })
           .where(eq(oauthTokens.id, existingToken.id));
 
@@ -309,7 +309,7 @@ export const dotloopOAuthRouter = router({
 
         return {
           success: true,
-          expiresAt: expiresAt,
+          expiresAt: expiresAt.toISOString(),
           scope: tokenData.scope,
         };
       } catch (error) {
@@ -453,17 +453,16 @@ export const dotloopOAuthRouter = router({
       }
 
       const now = new Date();
-      const expiresAtDate = typeof token.expiresAt === 'string' ? new Date(token.expiresAt) : token.expiresAt;
-      const isExpired = expiresAtDate < now;
+      const isExpired = token.expiresAt < now;
 
       return {
         connected: true,
         tokenId: token.id,
-        expiresAt: typeof token.expiresAt === 'string' ? token.expiresAt : (token.expiresAt as any).toISOString(),
+        expiresAt: token.expiresAt.toISOString(),
         isExpired,
-        lastUsedAt: token.lastUsedAt ? (typeof token.lastUsedAt === 'string' ? token.lastUsedAt : (token.lastUsedAt as any).toISOString()) : undefined,
-        lastRefreshedAt: token.lastRefreshedAt ? (typeof token.lastRefreshedAt === 'string' ? token.lastRefreshedAt : (token.lastRefreshedAt as any).toISOString()) : undefined,
-        connectedAt: typeof token.createdAt === 'string' ? token.createdAt : (token.createdAt as any).toISOString(),
+        lastUsedAt: token.lastUsedAt?.toISOString(),
+        lastRefreshedAt: token.lastRefreshedAt?.toISOString(),
+        connectedAt: token.createdAt.toISOString(),
         message: isExpired 
           ? 'Token expired - will be refreshed automatically on next use'
           : 'Connected to Dotloop',

@@ -675,237 +675,36 @@
 **Status:** 🚧 Active Development
 
 ### Cleanup
-- [x] Remove `/commission` route from App.tsx
-- [x] Remove "Commission" button from Home.tsx header
-- [ ] Remove "Commission" button from MobileNav.tsx - Will handle if needed
-- [ ] Delete CommissionManagement.tsx page - Keeping for now, can be removed later
-- [x] Restore Commission Audit tab to Analytics tabs
+- [ ] Remove `/commission` route from App.tsx
+- [ ] Remove "Commission" button from Home.tsx header
+- [ ] Remove "Commission" button from MobileNav.tsx
+- [ ] Delete CommissionManagement.tsx page
+- [ ] Restore Commission Audit tab to Analytics tabs
 
 ### Create Commission Panel Component
-- [x] Create CommissionManagementPanel.tsx component
-- [x] Add tabbed interface (Plans, Teams, Assignments, Calculate)
-- [x] Import existing components (CommissionPlansManager, TeamManager, AgentAssignment, CommissionCalculator)
-- [x] Style as card/panel with consistent design
+- [ ] Create CommissionManagementPanel.tsx component
+- [ ] Add tabbed interface (Plans, Teams, Assignments, Calculate)
+- [ ] Import existing components (CommissionPlansManager, TeamManager, AgentAssignment, CommissionCalculator)
+- [ ] Style as card/panel with consistent design
 
 ### Integration
-- [x] Add Commission Management panel below Agent Leaderboard in Home.tsx
-- [x] Ensure commission analytics charts remain visible in tabs
-- [ ] Test responsive design on mobile - In Progress
-- [ ] Verify all functionality works within panel context - In Progress
+- [ ] Add Commission Management panel below Agent Leaderboard in Home.tsx
+- [ ] Ensure commission analytics charts remain visible in tabs
+- [ ] Test responsive design on mobile
+- [ ] Verify all functionality works within panel context
 
 ### Testing
-- [ ] Test commission calculation from panel - Ready for testing
-- [ ] Test plan/team/assignment management from panel - Ready for testing
-- [ ] Verify data persistence across tabs - Ready for testing
-- [ ] Test on mobile and desktop - Ready for testing
+- [ ] Test commission calculation from panel
+- [ ] Test plan/team/assignment management from panel
+- [ ] Verify data persistence across tabs
+- [ ] Test on mobile and desktop
 
-
-## Phase 49: Fix Commission Data Persistence (URGENT)
-**Priority:** CRITICAL | **Complexity:** 7/10 | **Time Estimate:** 2-3 hours
-**Status:** 🚧 Active Development - Blocking calculator functionality
-
-### Problem
-- Plans and agents are created in UI but not saved to database
-- Calculator queries database and finds 0 plans/agents
-- Data only exists in local storage, not persistent
-
-### Solution: Add Database Persistence
-
-#### Backend (tRPC Procedures)
-- [ ] Add savePlan procedure to create/update plans in database
-- [ ] Add saveAssignment procedure to create/update agent assignments
-- [ ] Add deletePlan procedure for plan deletion
-- [ ] Add deleteAssignment procedure for assignment deletion
-- [ ] Ensure procedures validate tenant isolation
-
-#### Frontend (UI Components)
-- [ ] Update CommissionPlansManager to call savePlan on create/update
-- [ ] Update CommissionPlansManager to call deletePlan on delete
-- [ ] Update AgentAssignment to call saveAssignment on create/update
-- [ ] Update AgentAssignment to call deleteAssignment on delete
-- [ ] Add loading states during database operations
-- [ ] Add error handling and user feedback
-
-#### Testing
-- [ ] Create a plan and verify it appears in database
-- [ ] Assign an agent and verify it appears in database
-- [ ] Click Calculate and verify plans/agents are now detected
-- [ ] Test full calculation workflow end-to-end
-
-## Phase 45: Sliding Scale Commission Support
-
-- [x] Update CommissionPlan interface to support tier definitions
-- [x] Implement tier-based split calculation logic
-- [x] Update database schema for commission_plan_tiers table
-- [x] Create UI for tier configuration in CommissionPlansManager
-- [x] Write tests for sliding scale calculations (multi-tier scenarios)
-- [x] Test mixed scenarios (hitting cap while on different tier)
-- [x] Verify YTD tracking across tier boundaries
-- [ ] Update CommissionCalculator UI to show tier information
-- [ ] Save checkpoint with sliding scale support
-
-## Phase 46: Sliding Scale UI Fixes and Enhancements
-
-- [x] Fix missing slider toggle in commission plan settings dialog
-- [x] Create tier visualization dashboard with progress charts
-- [x] Implement tier history tracking table in database
-- [x] Add tier transition logging to commission router
-- [x] Create tier history API endpoints (list, stats)
-- [x] Build tier history UI component
-- [x] Add bulk tier templates feature
-- [x] Create template manager UI
-- [x] Test all new features end-to-end
-- [x] Save final checkpoint with all enhancements
-
-
-## Phase 47: Fix Commission Calculation Detection
-
-- [x] Investigate why plans aren't being detected (showing 0 Plans)
-- [x] Investigate why agents aren't being detected (showing 0 Agents)
-- [x] Check CommissionCalculator component data loading
-- [x] Verify tRPC queries are working correctly
-- [x] Update CommissionPlanSchema to include sliding scale fields
-- [x] Update savePlan to persist sliding scale fields
-- [x] Update getPlans to return sliding scale fields
-- [x] Test commission calculation with existing data
-- [x] Save checkpoint with fixes
-
-## Phase 39: Tier History Logging & Analytics
-- [x] Create tier history logging API endpoints (getTierHistory, logTierTransition, getTierStats)
-- [x] Integrate tier transition tracking into commission calculator
-- [x] Build tier analytics dashboard with visualizations
-- [x] Create agent distribution chart (pie/donut showing agents per tier)
-- [x] Create tier advancement timeline (line chart showing time to reach each tier)
-- [x] Create revenue impact analysis (bar chart comparing revenue by tier)
-- [x] Create tier transition heatmap (showing when agents advance)
-- [x] Add tier performance metrics (average earnings per tier, tier retention rate)
-- [x] Test tier history logging end-to-end
-- [x] Test analytics dashboard with sample data
-- [x] Create comprehensive tier analytics guide (TIER_ANALYTICS_GUIDE.md)
-- [x] Create tier history router test suite (tierHistoryRouter.test.ts)
-
-## Phase 40: Tier Threshold Validation & Sample Data
-- [x] Create tier validation utility (validateTierThresholds, detectOverlaps)
-- [x] Add tier validation to commission plan creation/update
-- [x] Create sample data seed script with 3 test plans
-- [x] Create sample agent assignments (5-10 agents per plan)
-- [x] Add seed command to package.json
-- [x] Create UI validation feedback for tier configuration
-- [x] Test validation with invalid tier configurations
-- [x] Test sample data loads correctly
-- [x] Verify calculation page displays sample data
-- [x] Create comprehensive tier validation test suite (45+ tests)
-- [x] Create client-side tier validation library
-
-## Phase 41: Bug Fixes - Calculator & Settings Panel
-- [x] Fix commission calculator not loading plans and agents
-- [x] Add scrolling to commission plan settings panel
-- [x] Test calculator with sample data
-- [x] Verify all settings are accessible
-
-## Phase 42: Seed Data & CSV Upload Component
-- [x] Create seed API endpoint (seedRouter) to populate sample plans and agents
-- [x] Register seed router in main routers
-- [x] Create CSV upload component for Calculate tab
-- [x] Add file validation (CSV format, required columns, size limits)
-- [x] Integrate upload component into CommissionCalculator
-- [x] Add drag-and-drop support for CSV files
-- [x] Add error handling and user feedback
-
-## Phase 43: Bug Fix - tRPC Commission Plans Query Error
-- [x] Diagnose tRPC client error when fetching plans
-- [x] Check commission router registration
-- [x] Verify tRPC procedure definitions
-- [x] Add enhanced error logging to getPlans procedure
-- [x] Fix duplicate useState import in CommissionPlansManager
-- [x] Simplify seedRouter to fix TypeScript errors
-- [x] Restart dev server to clear cache
-
-## Phase 44: Sample CSV Test Data
-- [x] Create sample Dotloop export CSV with realistic transaction data (20 transactions, $285K-$735K range)
-- [x] Create comprehensive SAMPLE_CSV_GUIDE.md with usage instructions
-- [ ] Test CSV upload widget with sample file
-- [ ] Verify commission calculations work with sample data
-
-## Phase 45: Fix seedRouter TypeScript Errors
-- [x] Diagnose agentAssignments insert type errors
-- [x] Review agentAssignments schema definition
-- [x] Fix seedRouter insert logic to match schema types (proper variable typing)
-- [x] Fix AgentAssignmentSchema to make id required
-- [x] Add nanoid import to commissionRouter
-- [x] Fix duplicate nanoid import
-
-## Phase 35: TypeScript Fixes & User Module
-- [x] Export CommissionTier type from client-side commission library
-- [x] Add tiers and useSliding fields to CommissionPlan interface
-- [x] Add id field to AgentPlanAssignment interface (client and server)
-- [x] Fix CommissionPlansManager to use useMutation hook instead of mutate
-- [x] Fix CommissionCalculator to include id in agent assignments
-- [x] Fix AgentAssignment component to include id in all assignment creations
-- [x] Fix getAssignments procedure to include id in returned assignments
-- [x] Create user profile module (@/lib/user) with useUser hook
-- [x] Implement useIsAdmin and useHasRole hooks
-- [x] Add user utility functions (getUserInitials, formatUserName)
-
-## Phase 36: Seed Data UI Implementation
-- [x] Create SeedDataButton component with confirmation dialogs
-- [x] Add SeedDataButton to TenantSettings page
-- [x] Verify seedRouter is registered in main appRouter
-- [x] Test SeedDataButton integration with seedRouter
-- [x] Write vitest tests for SeedDataButton component
-- [x] Write vitest tests for seedRouter procedures (6 tests passing)
-
-
-## Phase 37: Bug Fix - Database Schema Mismatch
-- [x] Investigate commission_plans table schema
-- [x] Fix getPlans query to match actual table columns
-- [x] Update commissionRouter to select correct fields
-- [x] Add useSliding and tiers columns to database
-- [x] Fix TypeScript errors in uploadDb.ts, db.ts, and dotloopOAuthRouter.ts
-- [x] Remove tierHistoryRouter (tierHistory table was dropped in migration)
-- [x] Test Commission Management page loads without errors
-
-
-## Phase 38: Bug Fix - Calculate Commissions Shows Wrong Error
-- [x] Investigate why CommissionCalculator doesn't detect existing plans
-- [x] Check if plans are being loaded correctly in the component
-- [x] Fix validation logic to properly check for plans before showing error
-- [x] Add refetch mechanism to CommissionCalculator on mount and before calculate
-- [x] Test Calculate Commissions button with configured plans and agents
-
-
-## Phase 39: Bug Fix - Summary Stats Show 0 Plans and 0 Agents
-- [x] Check where summary stats are displayed in CommissionCalculator
-- [x] Investigate why stats aren't loading from database queries
-- [x] Add staleTime: 0 to queries for fresh data
-- [x] Add polling interval to refetch data every 5 seconds
-- [x] Add description field to CommissionPlanSchema and savePlan procedure
-- [x] Test stats update after creating plans and assigning agents
-
-## Phase 23: Critical Bug Fix - CSV Upload Failure
-- [x] Fix batch size in createTransactions (reduce from 1000 to 100 rows per batch)
-- [x] Add error handling for MySQL max_allowed_packet limit
-- [x] Improve error messages for database insertion failures
-- [x] Add retry logic for failed batches (50-row fallback)
-- [x] Create comprehensive transaction validator (28 tests passing)
-- [x] Add data validation before database insertion
-- [x] Add upload record cleanup on validation/insertion failure
-- [x] Detect duplicate loopIds within batch (unique constraint on loopId_tenant)
-- [x] Test transaction validator with edge cases and duplicate detection (all 28 tests passing)
-- [x] Identify root cause: unique constraint on (loopId, tenantId) was rejecting duplicate loopIds
-
-## Phase 24: Implement Upsert Logic for Re-uploads
-- [x] Implement upsert (insert or update) for transactions with duplicate loopIds
-- [x] Update createTransactions to use ON DUPLICATE KEY UPDATE
-- [x] Preserve original createdAt timestamp on updates (only update other fields)
-- [x] Update validation to allow duplicate loopIds (since upsert handles them)
-- [x] Update tests to reflect duplicate loopId handling (28 tests passing)
-- [x] Verified CSV parser handles multiple Dotloop export formats with fuzzy matching
-
-## Phase 25: Fix Commission Management Section
-- [x] Remove redundant "Upload Transaction Data" section (data comes from CSV upload)
-- [x] Fix automatic commission calculation to pull from uploaded transactions via database
-- [x] Added getAllTransactions endpoint to fetch all user transactions from database
-- [x] Verify agents list is populated from transaction data (extracted from agents field)
-- [x] CommissionCalculator now displays transaction count, agent count, plan count, and assignment count
-- [x] Removed CSVUploadWidget from CommissionCalculator (redundant with main upload flow)
+## Phase 40: CSV Format Robustness
+- [x] Make CSV parser accept multiple CSV formats (Dotloop standard, ReportBuilding, nested Dotloop exports)
+- [x] Improve header detection heuristics to handle various formats (added Financials, Property, Loop View, Loop ID keywords)
+- [x] Add support for nested column names with forward slashes (e.g., "Financials / Sale Commission Rate")
+- [x] Add fallback field matching for common variations (20+ variations per field)
+- [x] Test with ReportBuilding.csv format (7 records parsed successfully)
+- [x] Test with nested Dotloop export format (2025soldtest.csv - 52 records parsed successfully)
+- [x] Support abbreviated field names (Beds, Baths, Sq Ft, Company $, etc.)
+- [x] Flexible tag parsing (pipes or commas)

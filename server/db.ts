@@ -1,9 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { users } from "../drizzle/schema";
-import type { InferInsertModel } from 'drizzle-orm';
-
-type InsertUser = InferInsertModel<typeof users>;
+import { InsertUser, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -57,11 +54,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     textFields.forEach(assignNullable);
 
     if (user.lastSignedIn !== undefined) {
-      const lastSignedInValue = typeof user.lastSignedIn === 'object' && user.lastSignedIn !== null && 'toISOString' in user.lastSignedIn 
-        ? (user.lastSignedIn as any).toISOString() 
-        : user.lastSignedIn;
-      values.lastSignedIn = lastSignedInValue as any;
-      updateSet.lastSignedIn = lastSignedInValue;
+      values.lastSignedIn = user.lastSignedIn;
+      updateSet.lastSignedIn = user.lastSignedIn;
     }
     if (user.role !== undefined) {
       values.role = user.role;
@@ -72,11 +66,11 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     }
 
     if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date().toISOString();
+      values.lastSignedIn = new Date();
     }
 
     if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date().toISOString();
+      updateSet.lastSignedIn = new Date();
     }
 
     await db.insert(users).values(values).onDuplicateKeyUpdate({
