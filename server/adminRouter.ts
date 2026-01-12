@@ -1,8 +1,10 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from './_core/trpc';
+import { router } from './_core/trpc';
+import { protectedProcedure } from './_core/trpc';
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 import { getDb } from './db';
-import { users, uploads } from '../drizzle/schema';
+import { users, uploads, auditLogs } from '../drizzle/schema';
+import { deleteUpload } from './uploadDb';
 import { eq, desc, sql } from 'drizzle-orm';
 
 /**
@@ -127,6 +129,21 @@ export const adminRouter = router({
     }),
 
   /**
+   * Delete an upload (admin can delete any upload)
+   */
+  deleteUpload: adminProcedure
+    .input(
+      z.object({
+        uploadId: z.number(),
+        userId: z.number(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      await deleteUpload(input.uploadId, input.userId, true, ctx.user);
+      return { success: true };
+    }),
+
+  /**
    * Update user role (promote/demote admin)
    */
   updateUserRole: adminProcedure
@@ -136,14 +153,31 @@ export const adminRouter = router({
         role: z.enum(['user', 'admin']),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+
+      // Get user info before update for audit log
+      const userToUpdate = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
+      const userName = userToUpdate[0]?.name || 'Unknown User';
+      const oldRole = userToUpdate[0]?.role || 'user';
 
       await db
         .update(users)
         .set({ role: input.role })
         .where(eq(users.id, input.userId));
+
+      // Log the action
+      await db.insert(auditLogs).values({
+        adminId: ctx.user.id,
+        adminName: ctx.user.name || 'Unknown Admin',
+        adminEmail: ctx.user.email || undefined,
+        action: 'user_role_changed',
+        targetType: 'user',
+        targetId: input.userId,
+        targetName: userName,
+        details: JSON.stringify({ oldRole, newRole: input.role, changedBy: ctx.user.id }),
+      });
 
       return { success: true };
     }),
@@ -169,11 +203,27 @@ export const adminRouter = router({
         });
       }
 
+      // Get user info before deletion for audit log
+      const userToDelete = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
+      const userName = userToDelete[0]?.name || 'Unknown User';
+
       // Delete user's uploads first (cascade will handle transactions)
       await db.delete(uploads).where(eq(uploads.userId, input.userId));
 
       // Delete user
       await db.delete(users).where(eq(users.id, input.userId));
+
+      // Log the action
+      await db.insert(auditLogs).values({
+        adminId: ctx.user.id,
+        adminName: ctx.user.name || 'Unknown Admin',
+        adminEmail: ctx.user.email || undefined,
+        action: 'user_deleted',
+        targetType: 'user',
+        targetId: input.userId,
+        targetName: userName,
+        details: JSON.stringify({ deletedBy: ctx.user.id }),
+      });
 
       return { success: true };
     }),

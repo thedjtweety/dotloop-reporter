@@ -5,6 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { adminRouter } from './adminRouter';
 import { performanceRouter } from './performanceRouter';
+import { auditLogRouter } from './auditLogRouter';
 import {
   createUpload,
   getUserUploads,
@@ -170,6 +171,7 @@ export const appRouter = router({
 
   admin: adminRouter,
   performance: performanceRouter,
+  auditLogs: auditLogRouter,
 });
 
 export type AppRouter = typeof appRouter;

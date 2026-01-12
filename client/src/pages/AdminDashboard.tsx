@@ -32,7 +32,9 @@ import {
   ArrowLeft,
   AlertTriangle,
   Database,
-  Activity
+  Activity,
+  FileSearch,
+  UserCog
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useLocation } from 'wouter';
@@ -96,6 +98,14 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setLocation('/roles')}>
+              <UserCog className="w-4 h-4 mr-2" />
+              Roles
+            </Button>
+            <Button variant="outline" onClick={() => setLocation('/audit-log')}>
+              <FileSearch className="w-4 h-4 mr-2" />
+              Audit Log
+            </Button>
             <Button variant="outline" onClick={() => setLocation('/performance')}>
               <BarChart3 className="w-4 h-4 mr-2" />
               Performance Metrics

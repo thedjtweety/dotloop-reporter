@@ -499,6 +499,12 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-4">
               <ConnectDotloop variant="button" />
+              {isAuthenticated && user?.role === 'admin' && (
+                <Button variant="ghost" onClick={() => setLocation('/admin')}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Admin
+                </Button>
+              )}
               <ModeToggle />
               <Button variant="outline" onClick={handleDemoMode} disabled={isLoading} data-tour="demo-button">
                 {isLoading ? 'Loading...' : 'Try Demo'}
@@ -653,6 +659,12 @@ export default function Home() {
               <DatePickerWithRange date={dateRange} setDate={setDateRange} />
             </div>
             <div className="flex items-center gap-2">
+              {isAuthenticated && user?.role === 'admin' && (
+                <Button variant="ghost" size="sm" onClick={() => setLocation('/admin')}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Admin
+                </Button>
+              )}
               <ModeToggle />
               <Button 
                 variant="ghost" 

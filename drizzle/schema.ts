@@ -129,3 +129,42 @@ export const dotloopIntegrations = mysqlTable("dotloop_integrations", {
 
 export type DotloopIntegration = typeof dotloopIntegrations.$inferSelect;
 export type InsertDotloopIntegration = typeof dotloopIntegrations.$inferInsert;
+
+/**
+ * Audit Logs
+ * Tracks all admin actions for accountability and compliance
+ */
+export const auditLogs = mysqlTable("audit_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Admin user who performed the action */
+  adminId: int("adminId").notNull(),
+  adminName: varchar("adminName", { length: 255 }).notNull(),
+  adminEmail: varchar("adminEmail", { length: 320 }),
+  
+  /** Action details */
+  action: mysqlEnum("action", [
+    "user_created",
+    "user_deleted",
+    "user_role_changed",
+    "upload_deleted",
+    "upload_viewed",
+    "settings_changed",
+    "data_exported"
+  ]).notNull(),
+  
+  /** Target of the action (if applicable) */
+  targetType: mysqlEnum("targetType", ["user", "upload", "system"]),
+  targetId: int("targetId"),
+  targetName: varchar("targetName", { length: 255 }),
+  
+  /** Additional context */
+  details: text("details"), // JSON string with additional details
+  ipAddress: varchar("ipAddress", { length: 45 }), // IPv4 or IPv6
+  userAgent: text("userAgent"),
+  
+  /** Metadata */
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;

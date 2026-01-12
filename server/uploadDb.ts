@@ -1,5 +1,5 @@
 import { eq, desc } from "drizzle-orm";
-import { uploads, transactions, InsertUpload, InsertTransaction } from "../drizzle/schema";
+import { uploads, transactions, InsertUpload, InsertTransaction, auditLogs, users } from "../drizzle/schema";
 import { getDb } from "./db";
 
 /**
@@ -100,7 +100,7 @@ export async function getUserTransactions(userId: number) {
 /**
  * Delete an upload and all its transactions
  */
-export async function deleteUpload(uploadId: number, userId: number) {
+export async function deleteUpload(uploadId: number, userId: number, isAdminAction: boolean = false, adminUser?: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -113,4 +113,18 @@ export async function deleteUpload(uploadId: number, userId: number) {
   
   // Then delete the upload
   await db.delete(uploads).where(eq(uploads.id, uploadId));
+
+  // Log admin action if applicable
+  if (isAdminAction && adminUser) {
+    await db.insert(auditLogs).values({
+      adminId: adminUser.id,
+      adminName: adminUser.name || 'Unknown Admin',
+      adminEmail: adminUser.email || undefined,
+      action: 'upload_deleted',
+      targetType: 'upload',
+      targetId: uploadId,
+      targetName: upload.fileName,
+      details: JSON.stringify({ uploadedBy: userId, recordCount: upload.recordCount }),
+    });
+  }
 }
