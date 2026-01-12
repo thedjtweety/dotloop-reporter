@@ -771,9 +771,10 @@ function HomeContent() {
       </header>
 
       {/* Main Dashboard */}
-      <main className="container py-8">
-        {/* Filter Badge */}
-        <FilterBadge />
+      {metrics && allRecords.length > 0 ? (
+        <main className="container py-8">
+          {/* Filter Badge */}
+          <FilterBadge />
         
         {/* Top Metrics Row */}
         <div data-section="metrics" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" data-tour="metrics">
@@ -856,12 +857,12 @@ function HomeContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-foreground font-medium">Closed</p>
-                <p className="text-2xl font-display font-bold text-accent">
+                <p className="text-2xl font-display font-bold text-white dark:text-white">
                   {metrics.closed}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-accent" />
+              <div className="w-12 h-12 rounded-lg bg-green-600 dark:bg-green-700 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-white" />
               </div>
             </div>
           </Card>
@@ -873,12 +874,12 @@ function HomeContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-foreground font-medium">Archived</p>
-                <p className="text-2xl font-display font-bold text-foreground">
+                <p className="text-2xl font-display font-bold text-white dark:text-white">
                   {metrics.archived}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                <HomeIcon className="w-6 h-6 text-foreground" />
+              <div className="w-12 h-12 rounded-lg bg-gray-700 dark:bg-gray-800 flex items-center justify-center">
+                <HomeIcon className="w-6 h-6 text-white dark:text-white" />
               </div>
             </div>
           </Card>
@@ -1060,18 +1061,10 @@ function HomeContent() {
               />
             </TabsContent>
 
-            <TabsContent value="settings" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-              <Card className="p-12 text-center">
-                <DollarSign className="h-16 w-16 text-primary mx-auto mb-4" />
-                <h3 className="text-2xl font-bold mb-3">Commission Management Moved</h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  All commission-related features (Plans, Teams, Assignments, and Audit) are now in a dedicated Commission Management section.
-                </p>
-                <Button onClick={() => setLocation('/commission')} size="lg" className="gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Go to Commission Management
-                </Button>
-              </Card>
+            <TabsContent value="settings" className="space-y-6 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+              <div className="space-y-4">
+                <CommissionPlansManager records={filteredRecords} />
+              </div>
             </TabsContent>
           </Tabs>
           </CollapsibleSection>
@@ -1095,6 +1088,7 @@ function HomeContent() {
           </div>
         )}
       </main>
+      ) : null}
 
       {/* Drill Down Modal */}
       <DrillDownModal

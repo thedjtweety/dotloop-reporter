@@ -708,3 +708,10 @@
 - [x] Test with nested Dotloop export format (2025soldtest.csv - 52 records parsed successfully)
 - [x] Support abbreviated field names (Beds, Baths, Sq Ft, Company $, etc.)
 - [x] Flexible tag parsing (pipes or commas)
+
+
+## Current Issues (Jan 12, 2026)
+- [ ] Fix contrast on Closed number - make text white or black depending on dark/light theme
+- [ ] Fix Archived background image - too light/washed out, needs better contrast
+- [ ] Fix upload functionality - uploads show "Complete!" but dashboard doesn't load
+- [ ] Restore Commission Plans, Agents, and Calculator sections in Settings tab
