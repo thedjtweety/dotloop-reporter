@@ -1,63 +1,72 @@
 /**
  * TrustBar Component
- * Displays animated counters to build trust and excitement
+ * Displays minimalist stat cards to build trust and credibility
  */
 
 import AnimatedCounter from './AnimatedCounter';
 import { TrendingUp, Users, Building2, DollarSign } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 export default function TrustBar() {
   return (
-    <div className="w-full bg-slate-900/50 backdrop-blur-sm border-t border-white/10 py-8 mt-[-2px] overflow-hidden">
+    <div className="w-full mt-8">
       <div className="max-w-5xl mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div className="flex flex-col items-center text-center space-y-2">
-            <div className="p-3 rounded-full bg-emerald-500/10 mb-2">
-              <DollarSign className="w-6 h-6 text-emerald-400" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="p-4 hover:shadow-lg transition-all duration-300 hover:scale-105 border-border/50 bg-card/50 backdrop-blur-sm group">
+            <div className="flex flex-col items-center text-center space-y-2">
+              <div className="p-2 rounded-lg bg-emerald-500/10 group-hover:bg-emerald-500/20 transition-colors">
+                <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div className="text-2xl font-bold text-foreground font-display">
+                <AnimatedCounter value={500000000} prefix="$" suffix="+" isCurrency />
+              </div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                Volume Analyzed
+              </div>
             </div>
-            <div className="text-3xl font-bold text-white font-display">
-              <AnimatedCounter value={500000000} prefix="$" suffix="+" isCurrency />
-            </div>
-            <div className="text-sm text-slate-400 uppercase tracking-wider font-medium">
-              Volume Analyzed
-            </div>
-          </div>
+          </Card>
 
-          <div className="flex flex-col items-center text-center space-y-2">
-            <div className="p-3 rounded-full bg-blue-500/10 mb-2">
-              <Building2 className="w-6 h-6 text-blue-400" />
+          <Card className="p-4 hover:shadow-lg transition-all duration-300 hover:scale-105 border-border/50 bg-card/50 backdrop-blur-sm group">
+            <div className="flex flex-col items-center text-center space-y-2">
+              <div className="p-2 rounded-lg bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
+                <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="text-2xl font-bold text-foreground font-display">
+                <AnimatedCounter value={12500} suffix="+" />
+              </div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                Transactions
+              </div>
             </div>
-            <div className="text-3xl font-bold text-white font-display">
-              <AnimatedCounter value={12500} suffix="+" />
-            </div>
-            <div className="text-sm text-slate-400 uppercase tracking-wider font-medium">
-              Transactions Processed
-            </div>
-          </div>
+          </Card>
 
-          <div className="flex flex-col items-center text-center space-y-2">
-            <div className="p-3 rounded-full bg-purple-500/10 mb-2">
-              <Users className="w-6 h-6 text-purple-400" />
+          <Card className="p-4 hover:shadow-lg transition-all duration-300 hover:scale-105 border-border/50 bg-card/50 backdrop-blur-sm group">
+            <div className="flex flex-col items-center text-center space-y-2">
+              <div className="p-2 rounded-lg bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
+                <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div className="text-2xl font-bold text-foreground font-display">
+                <AnimatedCounter value={850} suffix="+" />
+              </div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                Agents Tracked
+              </div>
             </div>
-            <div className="text-3xl font-bold text-white font-display">
-              <AnimatedCounter value={850} suffix="+" />
-            </div>
-            <div className="text-sm text-slate-400 uppercase tracking-wider font-medium">
-              Agents Tracked
-            </div>
-          </div>
+          </Card>
 
-          <div className="flex flex-col items-center text-center space-y-2">
-            <div className="p-3 rounded-full bg-orange-500/10 mb-2">
-              <TrendingUp className="w-6 h-6 text-orange-400" />
+          <Card className="p-4 hover:shadow-lg transition-all duration-300 hover:scale-105 border-border/50 bg-card/50 backdrop-blur-sm group">
+            <div className="flex flex-col items-center text-center space-y-2">
+              <div className="p-2 rounded-lg bg-orange-500/10 group-hover:bg-orange-500/20 transition-colors">
+                <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div className="text-2xl font-bold text-foreground font-display">
+                <AnimatedCounter value={98} suffix="%" />
+              </div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                Accuracy Rate
+              </div>
             </div>
-            <div className="text-3xl font-bold text-white font-display">
-              <AnimatedCounter value={98} suffix="%" />
-            </div>
-            <div className="text-sm text-slate-400 uppercase tracking-wider font-medium">
-              Accuracy Rate
-            </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>
