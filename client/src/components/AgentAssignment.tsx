@@ -63,6 +63,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
     
     if (planId !== 'none') {
       newAssignments.push({
+        id: existing?.id || Math.random().toString(36).substr(2, 9),
         agentName,
         planId,
         teamId: existing?.teamId, // Preserve team
@@ -72,6 +73,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
        // Keep assignment if team exists but plan removed? No, require plan for now.
        // Actually, let's allow partial assignment.
        newAssignments.push({
+         id: existing.id,
          agentName,
          planId: 'none',
          teamId: existing.teamId
@@ -94,6 +96,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
       });
     } else if (newTeamId) {
       newAssignments.push({
+        id: Math.random().toString(36).substr(2, 9),
         agentName,
         planId: 'none', // Placeholder
         teamId: newTeamId,
@@ -115,6 +118,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
       });
     } else {
       newAssignments.push({
+        id: Math.random().toString(36).substr(2, 9),
         agentName,
         planId: 'none',
         anniversaryDate: date,

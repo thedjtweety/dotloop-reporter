@@ -28,6 +28,8 @@ export default function CommissionPlansManager() {
 
   // Fetch plans from database
   const { data: dbPlans, refetch } = trpc.commission.getPlans.useQuery();
+  const savePlanMutation = trpc.commission.savePlan.useMutation();
+  const deletePlanMutation = trpc.commission.deletePlan.useMutation();
 
   useEffect(() => {
     // Use database plans if available, otherwise fall back to local storage
@@ -57,7 +59,7 @@ export default function CommissionPlansManager() {
       };
 
       // Save to database via tRPC
-      await trpc.commission.savePlan.mutate(newPlan);
+      await savePlanMutation.mutateAsync(newPlan);
 
       let updatedPlans;
       if (currentPlan.id) {
@@ -84,7 +86,7 @@ export default function CommissionPlansManager() {
       try {
         setIsSaving(true);
         // Delete from database via tRPC
-        await trpc.commission.deletePlan.mutate(id);
+        await deletePlanMutation.mutateAsync(id);
         
         const updatedPlans = plans.filter(p => p.id !== id);
         setPlans(updatedPlans);

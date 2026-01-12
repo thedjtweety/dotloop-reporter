@@ -834,3 +834,23 @@
 - [x] Fix AgentAssignmentSchema to make id required
 - [x] Add nanoid import to commissionRouter
 - [x] Fix duplicate nanoid import
+
+## Phase 35: TypeScript Fixes & User Module
+- [x] Export CommissionTier type from client-side commission library
+- [x] Add tiers and useSliding fields to CommissionPlan interface
+- [x] Add id field to AgentPlanAssignment interface (client and server)
+- [x] Fix CommissionPlansManager to use useMutation hook instead of mutate
+- [x] Fix CommissionCalculator to include id in agent assignments
+- [x] Fix AgentAssignment component to include id in all assignment creations
+- [x] Fix getAssignments procedure to include id in returned assignments
+- [x] Create user profile module (@/lib/user) with useUser hook
+- [x] Implement useIsAdmin and useHasRole hooks
+- [x] Add user utility functions (getUserInitials, formatUserName)
+
+## Phase 36: Seed Data UI Implementation
+- [x] Create SeedDataButton component with confirmation dialogs
+- [x] Add SeedDataButton to TenantSettings page
+- [x] Verify seedRouter is registered in main appRouter
+- [x] Test SeedDataButton integration with seedRouter
+- [x] Write vitest tests for SeedDataButton component
+- [x] Write vitest tests for seedRouter procedures (6 tests passing)

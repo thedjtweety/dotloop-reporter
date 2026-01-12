@@ -121,6 +121,7 @@ export default function CommissionCalculator() {
         planIds: plans.map(p => p.id),
         teamIds: teams?.map(t => t.id) || [],
         agentAssignments: assignments.map(a => ({
+          id: a.id || Math.random().toString(36).substr(2, 9),
           agentName: a.agentName,
           planId: a.planId,
           teamId: a.teamId,

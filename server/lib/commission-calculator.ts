@@ -50,6 +50,7 @@ export interface Team {
 }
 
 export interface AgentPlanAssignment {
+  id: string;
   agentName: string;
   planId: string;
   teamId?: string;

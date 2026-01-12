@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
+import SeedDataButton from '../components/SeedDataButton';
 
 import { 
   Building2, 
@@ -17,7 +18,8 @@ import {
   CheckCircle2,
   XCircle,
   Link as LinkIcon,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Zap
 } from 'lucide-react';
 
 export default function TenantSettings() {
@@ -343,6 +345,25 @@ export default function TenantSettings() {
               </p>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Sample Data Management */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Zap className="h-5 w-5" />
+            <CardTitle>Sample Data Management</CardTitle>
+          </div>
+          <CardDescription>Populate test commission plans and agents for development and testing</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-sm text-foreground/70">
+              Use the button below to seed your database with sample commission plans and agent assignments. This is useful for testing the commission calculator and other features without manual data entry.
+            </p>
+            <SeedDataButton onSuccess={() => refetchTenant()} />
+          </div>
         </CardContent>
       </Card>
     </div>

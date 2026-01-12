@@ -261,6 +261,7 @@ export const commissionRouter = router({
         .where(eq(agentAssignments.tenantId, ctx.user.tenantId));
 
       return assignmentsList.map((a: any) => ({
+        id: a.id,
         agentName: a.agentName,
         planId: a.planId,
         teamId: a.teamId,
