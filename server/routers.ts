@@ -142,6 +142,17 @@ export const uploadsRouter = router({
         createdAt: u.createdAt,
       }));
     }),
+
+    // List all uploads for the current user (alias for getHistory)
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const uploads = await getUserUploads(ctx.user.id);
+      return uploads.map((u) => ({
+        id: u.id,
+        fileName: u.fileName,
+        recordCount: u.recordCount,
+        createdAt: u.createdAt,
+      }));
+    }),
 });
 
 const authRouter = router({
