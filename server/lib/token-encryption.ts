@@ -30,13 +30,15 @@ class TokenEncryption {
    * Supports multiple key versions for rotation
    */
   private loadEncryptionKeys(): void {
-    // Load current key (required)
+    // Load current key (optional until OAuth is configured)
     const currentKey = process.env.TOKEN_ENCRYPTION_KEY;
     if (!currentKey) {
-      throw new Error(
-        'TOKEN_ENCRYPTION_KEY environment variable is required. ' +
+      console.warn(
+        '[Token Encryption] TOKEN_ENCRYPTION_KEY not set. ' +
+        'OAuth token encryption will not be available. ' +
         'Generate with: openssl rand -hex 32'
       );
+      return; // Skip key loading if not configured
     }
 
     // Validate key length
@@ -81,6 +83,14 @@ class TokenEncryption {
    * @returns Encrypted token in format: version:iv:authTag:encryptedData
    */
   encrypt(token: string, keyVersion?: number): string {
+    if (this.keys.size === 0) {
+      throw new Error(
+        'TOKEN_ENCRYPTION_KEY not configured. ' +
+        'Cannot encrypt tokens without encryption key. ' +
+        'Set TOKEN_ENCRYPTION_KEY environment variable.'
+      );
+    }
+
     const version = keyVersion || this.currentKeyVersion;
     const key = this.keys.get(version);
 
@@ -114,6 +124,14 @@ class TokenEncryption {
    * @throws Error if decryption fails (tampering detected)
    */
   decrypt(encryptedToken: string): string {
+    if (this.keys.size === 0) {
+      throw new Error(
+        'TOKEN_ENCRYPTION_KEY not configured. ' +
+        'Cannot decrypt tokens without encryption key. ' +
+        'Set TOKEN_ENCRYPTION_KEY environment variable.'
+      );
+    }
+
     const parts = encryptedToken.split(':');
     if (parts.length !== 4) {
       throw new Error(
