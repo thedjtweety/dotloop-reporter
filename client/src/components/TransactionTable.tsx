@@ -14,7 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { CheckCircle2, Clock, Archive, AlertCircle, ExternalLink } from 'lucide-react';
+import { CheckCircle2, Clock, Archive, AlertCircle } from 'lucide-react';
+import DotloopLogo from './DotloopLogo';
 
 interface TransactionTableProps {
   transactions: DotloopRecord[];
@@ -64,16 +65,17 @@ export default function TransactionTable({ transactions, limit, compact = false 
   }
 
   return (
-    <div className="overflow-x-auto -mx-4 sm:mx-0">
-      <div className="min-w-[600px] px-4 sm:px-0">
-        <Table>
+    <div className="w-full">
+      <Table className="table-fixed w-full">
           <TableHeader>
             <TableRow className="border-border">
-              <TableHead className="font-semibold w-[140px] sm:w-[180px] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-4">Status</TableHead>
-              <TableHead className="font-semibold min-w-[200px] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-4">Property</TableHead>
-              <TableHead className="font-semibold w-[100px] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-4">Price</TableHead>
-              <TableHead className="font-semibold w-[100px] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-4">Commission</TableHead>
-              <TableHead className="font-semibold w-[120px] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-4">Created Date</TableHead>
+              <TableHead className="font-semibold w-[12%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Status</TableHead>
+              <TableHead className="font-semibold w-[28%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Property</TableHead>
+              <TableHead className="font-semibold w-[13%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Agent</TableHead>
+              <TableHead className="font-semibold w-[11%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Price</TableHead>
+              <TableHead className="font-semibold w-[11%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Commission</TableHead>
+              <TableHead className="font-semibold w-[12%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Date</TableHead>
+              <TableHead className="font-semibold w-[13%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -91,28 +93,19 @@ export default function TransactionTable({ transactions, limit, compact = false 
                   </div>
                 </TableCell>
                 <TableCell className={`text-sm text-foreground ${compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}`}>
-                  <div className="flex flex-col gap-0.5 sm:gap-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] sm:text-sm font-medium truncate max-w-[180px] sm:max-w-[300px]" title={transaction.loopName}>
-                        {transaction.loopName}
-                      </span>
-                      {transaction.loopViewUrl && (
-                        <a
-                          href={transaction.loopViewUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex-shrink-0"
-                          title="View in Dotloop"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      )}
-                    </div>
-                    <div className="text-[10px] sm:text-xs text-foreground truncate max-w-[180px] sm:max-w-[300px]" title={transaction.address}>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[11px] sm:text-sm font-medium truncate max-w-[160px] sm:max-w-[220px]" title={transaction.loopName}>
+                      {transaction.loopName}
+                    </span>
+                    <span className="text-[10px] sm:text-xs text-muted-foreground truncate max-w-[160px] sm:max-w-[220px]" title={transaction.address}>
                       {transaction.address}
-                    </div>
+                    </span>
                   </div>
+                </TableCell>
+                <TableCell className={`text-[11px] sm:text-sm text-foreground ${compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}`}>
+                  <span className="truncate max-w-[100px] inline-block" title={transaction.agentName}>
+                    {transaction.agentName || 'N/A'}
+                  </span>
                 </TableCell>
                 <TableCell className={`text-[11px] sm:text-sm font-medium text-foreground ${compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}`}>
                   ${(transaction.price / 1000).toFixed(0)}K
@@ -122,19 +115,33 @@ export default function TransactionTable({ transactions, limit, compact = false 
                 </TableCell>
                 <TableCell className={`text-[10px] sm:text-sm text-foreground ${compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}`}>
                   {transaction.createdDate
-                    ? new Date(transaction.createdDate).toLocaleDateString()
+                    ? new Date(transaction.createdDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
                     : 'N/A'}
+                </TableCell>
+                <TableCell className={compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}>
+                  {transaction.loopViewUrl && (
+                    <a
+                      href={transaction.loopViewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-[10px] sm:text-xs font-medium"
+                      title="View in Dotloop"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <DotloopLogo size={14} />
+                      <span className="hidden sm:inline">View</span>
+                    </a>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        {limit && transactions.length > limit && (
+          <p className="text-xs text-foreground mt-2 px-4 sm:px-0">
+            Showing {limit} of {transactions.length} transactions
+          </p>
+        )}
       </div>
-      {limit && transactions.length > limit && (
-        <p className="text-xs text-foreground mt-2 px-4 sm:px-0">
-          Showing {limit} of {transactions.length} transactions
-        </p>
-      )}
-    </div>
   );
 }

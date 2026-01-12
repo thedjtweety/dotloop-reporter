@@ -265,3 +265,14 @@
 - [x] Add scroll detection to show/hide BackToTop button
 - [x] Test all navigation features in both light and dark modes (tested in dark mode)
 - [x] Verify smooth scrolling and section highlighting works correctly (all features working)
+
+## Phase 30: Improve Drill-Down Modal and External Links
+- [x] Redesign DrillDownModal with wider layout for desktop (already max-w-7xl)
+- [x] Convert modal content to table layout with columns: Status, Property, Agent, Price, Commission, Date, Actions
+- [x] Make modal taller to reduce scrolling (already h-[95vh])
+- [x] Add Dotloop logo SVG to project (DotloopLogo.tsx)
+- [x] Update all "View in Dotloop" buttons to include logo icon
+- [x] Ensure logo is visible and properly sized in buttons (14px with text)
+- [x] Test modal on desktop with various transaction counts (tested with 93 transactions)
+- [x] Verify button styling with logo looks professional (green buttons with logo + "View" text)
+- [x] Eliminate horizontal scrolling in modal table by optimizing column widths and using table-fixed layout
