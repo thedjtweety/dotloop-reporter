@@ -8,6 +8,7 @@ import { performanceRouter } from './performanceRouter';
 import { auditLogRouter } from './auditLogRouter';
 import { dotloopOAuthRouter } from './dotloopOAuthRouter';
 import { tenantSettingsRouter } from './tenantSettingsRouter';
+import { commissionRouter } from './commissionRouter';
 import {
   createUpload,
   getUserUploads,
@@ -184,6 +185,7 @@ export const appRouter = router({
   auditLogs: auditLogRouter,
   dotloopOAuth: dotloopOAuthRouter,
   tenantSettings: tenantSettingsRouter,
+  commission: commissionRouter,
 });
 
 export type AppRouter = typeof appRouter;

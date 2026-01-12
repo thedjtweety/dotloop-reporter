@@ -628,3 +628,43 @@
 - [ ] Verify all commission features work in new location - In Progress
 - [ ] Test responsive design on mobile - In Progress
 - [ ] Verify data persistence across navigation - In Progress
+
+
+## Phase 47: Backend API Integration for Automatic Commission Calculator (In Progress)
+**Priority:** HIGHEST | **Complexity:** 7/10 | **Time Estimate:** 4-6 hours
+**Status:** 🚧 Active Development
+
+### Backend API (tRPC Procedures)
+- [x] Create calculateCommissions tRPC procedure
+- [x] Add input validation with Zod schemas
+- [x] Fetch commission plans from database
+- [x] Fetch teams from database
+- [x] Fetch agent assignments from database
+- [x] Call commission calculator with fetched data
+- [x] Return calculation results with breakdowns and YTD summaries
+- [x] Add error handling and logging
+
+### Frontend UI Component
+- [x] Create CommissionCalculator.tsx component
+- [x] Add "Calculate Commissions" button
+- [x] Show loading state during calculation
+- [x] Display calculation results in table format
+- [x] Show YTD summaries with cap progress
+- [x] Add export to CSV functionality
+- [x] Handle errors gracefully with user-friendly messages
+
+### Integration
+- [x] Replace "Calculate (Coming Soon)" tab with active calculator
+- [x] Load most recent transaction data automatically
+- [ ] Allow manual data upload for calculation - Future enhancement
+- [ ] Persist calculation results in local storage - Future enhancement
+- [ ] Add comparison view (calculated vs uploaded) - Future enhancement
+
+### Testing
+- [ ] Write unit tests for tRPC procedures - In Progress
+- [ ] Test with sample transaction data - In Progress
+- [ ] Test with multiple commission plans - In Progress
+- [ ] Test with team splits - In Progress
+- [ ] Test cap scenarios - In Progress
+- [ ] Verify YTD calculations - In Progress
+- [ ] Test error scenarios - In Progress

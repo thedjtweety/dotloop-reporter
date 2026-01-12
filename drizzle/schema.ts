@@ -328,3 +328,129 @@ export const platformAdminLogs = mysqlTable("platform_admin_logs", {
 
 export type PlatformAdminLog = typeof platformAdminLogs.$inferSelect;
 export type InsertPlatformAdminLog = typeof platformAdminLogs.$inferInsert;
+
+
+/**
+ * Commission Plans Table
+ * Stores commission plan configurations for each tenant
+ */
+export const commissionPlans = mysqlTable("commission_plans", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  
+  // Commission split configuration
+  splitPercentage: int("splitPercentage").notNull(), // Agent's share before cap (e.g., 80)
+  capAmount: int("capAmount").notNull().default(0), // Annual cap on company dollar
+  postCapSplit: int("postCapSplit").notNull().default(100), // Agent's share after cap
+  
+  // Deductions and fees
+  deductions: text("deductions"), // JSON array of deductions
+  royaltyPercentage: int("royaltyPercentage"), // Franchise fee percentage
+  royaltyCap: int("royaltyCap"), // Cap on royalty amount
+  
+  // Metadata
+  description: text("description"),
+  isActive: int("isActive").notNull().default(1),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  tenantIdx: index("commission_plans_tenant_idx").on(table.tenantId),
+  activeIdx: index("commission_plans_active_idx").on(table.isActive),
+}));
+
+export type CommissionPlan = typeof commissionPlans.$inferSelect;
+export type InsertCommissionPlan = typeof commissionPlans.$inferInsert;
+
+/**
+ * Teams Table
+ * Stores team configurations for commission splits
+ */
+export const teams = mysqlTable("teams", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  
+  // Team lead information
+  leadAgent: varchar("leadAgent", { length: 255 }).notNull(),
+  teamSplitPercentage: int("teamSplitPercentage").notNull(), // Percentage team lead gets
+  
+  // Metadata
+  description: text("description"),
+  isActive: int("isActive").notNull().default(1),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  tenantIdx: index("teams_tenant_idx").on(table.tenantId),
+  activeIdx: index("teams_active_idx").on(table.isActive),
+}));
+
+export type Team = typeof teams.$inferSelect;
+export type InsertTeam = typeof teams.$inferInsert;
+
+/**
+ * Agent Assignments Table
+ * Maps agents to commission plans and teams
+ */
+export const agentAssignments = mysqlTable("agent_assignments", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  agentName: varchar("agentName", { length: 255 }).notNull(),
+  
+  // Assignment configuration
+  planId: varchar("planId", { length: 64 }).notNull(),
+  teamId: varchar("teamId", { length: 64 }), // Optional team assignment
+  
+  // Cap reset configuration
+  anniversaryDate: varchar("anniversaryDate", { length: 5 }), // MM-DD format for cap reset
+  startDate: varchar("startDate", { length: 10 }), // YYYY-MM-DD format
+  
+  // Metadata
+  isActive: int("isActive").notNull().default(1),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  tenantIdx: index("agent_assignments_tenant_idx").on(table.tenantId),
+  agentIdx: index("agent_assignments_agent_idx").on(table.agentName),
+  planIdx: index("agent_assignments_plan_idx").on(table.planId),
+  teamIdx: index("agent_assignments_team_idx").on(table.teamId),
+  activeIdx: index("agent_assignments_active_idx").on(table.isActive),
+  tenantAgentUnique: unique("agent_assignments_tenant_agent_unique").on(table.tenantId, table.agentName),
+}));
+
+export type AgentAssignment = typeof agentAssignments.$inferSelect;
+export type InsertAgentAssignment = typeof agentAssignments.$inferInsert;
+
+/**
+ * Commission Calculations Table
+ * Stores historical commission calculation results
+ */
+export const commissionCalculations = mysqlTable("commission_calculations", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  
+  // Calculation metadata
+  uploadId: int("uploadId"), // Reference to upload if from file
+  calculationDate: varchar("calculationDate", { length: 10 }).notNull(), // YYYY-MM-DD
+  
+  // Results (stored as JSON for flexibility)
+  breakdowns: text("breakdowns").notNull(), // JSON array of commission breakdowns
+  ytdSummaries: text("ytdSummaries").notNull(), // JSON array of YTD summaries
+  
+  // Statistics
+  transactionCount: int("transactionCount").notNull(),
+  agentCount: int("agentCount").notNull(),
+  totalCompanyDollar: int("totalCompanyDollar").notNull(),
+  totalGrossCommission: int("totalGrossCommission").notNull(),
+  
+  // Metadata
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index("commission_calculations_tenant_idx").on(table.tenantId),
+  dateIdx: index("commission_calculations_date_idx").on(table.calculationDate),
+  uploadIdx: index("commission_calculations_upload_idx").on(table.uploadId),
+}));
+
+export type CommissionCalculation = typeof commissionCalculations.$inferSelect;
+export type InsertCommissionCalculation = typeof commissionCalculations.$inferInsert;

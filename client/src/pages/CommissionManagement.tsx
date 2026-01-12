@@ -19,6 +19,7 @@ import CommissionPlansManager from '@/components/CommissionPlansManager';
 import TeamManager from '@/components/TeamManager';
 import AgentAssignment from '@/components/AgentAssignment';
 import CommissionAuditReport from '@/components/CommissionAuditReport';
+import CommissionCalculator from '@/components/CommissionCalculator';
 import { ModeToggle } from '@/components/ModeToggle';
 import { useLocation } from 'wouter';
 import { DotloopRecord } from '@/lib/csvParser';
@@ -138,12 +139,11 @@ export default function CommissionManagement() {
             </TabsTrigger>
             <TabsTrigger 
               value="calculate" 
-              className="gap-2 opacity-50 cursor-not-allowed"
-              disabled
+              className="gap-2"
             >
               <Calculator className="h-4 w-4" />
-              <span className="hidden sm:inline">Calculate (Coming Soon)</span>
-              <span className="sm:hidden">Calculate</span>
+              <span className="hidden sm:inline">Calculate</span>
+              <span className="sm:hidden">Calc</span>
             </TabsTrigger>
           </TabsList>
 
@@ -183,6 +183,21 @@ export default function CommissionManagement() {
                 </p>
               </div>
               <AgentAssignment records={records} />
+            </Card>
+          </TabsContent>
+
+          {/* Commission Calculate Tab */}
+          <TabsContent value="calculate" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+            <Card className="p-6">
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-2 text-primary">
+                  Automatic Commission Calculator
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Automatically calculate commissions from your transaction data using configured plans and agent assignments.
+                </p>
+              </div>
+              <CommissionCalculator />
             </Card>
           </TabsContent>
 

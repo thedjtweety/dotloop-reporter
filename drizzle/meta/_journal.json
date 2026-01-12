@@ -43,6 +43,13 @@
       "when": 1768235598318,
       "tag": "0005_white_vermin",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1768240306973,
+      "tag": "0006_sweet_carnage",
+      "breakpoints": true
     }
   ]
 }
