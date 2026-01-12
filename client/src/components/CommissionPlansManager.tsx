@@ -171,7 +171,7 @@ export default function CommissionPlansManager() {
                 <Label htmlFor="name">Plan Name</Label>
                 <Input
                   id="name"
-                  value={currentPlan.name || ''}
+                  value={currentPlan.name ?? ''}
                   onChange={(e) => setCurrentPlan({ ...currentPlan, name: e.target.value })}
                   placeholder="e.g. Standard 80/20"
                 />
@@ -182,7 +182,7 @@ export default function CommissionPlansManager() {
                   <Input
                     id="split"
                     type="number"
-                    value={currentPlan.splitPercentage}
+                    value={currentPlan.splitPercentage ?? 0}
                     onChange={(e) => setCurrentPlan({ ...currentPlan, splitPercentage: Number(e.target.value) })}
                   />
                 </div>
@@ -191,7 +191,7 @@ export default function CommissionPlansManager() {
                   <Input
                     id="cap"
                     type="number"
-                    value={currentPlan.capAmount}
+                    value={currentPlan.capAmount ?? 0}
                     onChange={(e) => setCurrentPlan({ ...currentPlan, capAmount: Number(e.target.value) })}
                   />
                 </div>
@@ -202,7 +202,7 @@ export default function CommissionPlansManager() {
                   <Input
                     id="postCap"
                     type="number"
-                    value={currentPlan.postCapSplit}
+                    value={currentPlan.postCapSplit ?? 100}
                     onChange={(e) => setCurrentPlan({ ...currentPlan, postCapSplit: Number(e.target.value) })}
                   />
                 </div>
@@ -215,7 +215,7 @@ export default function CommissionPlansManager() {
                     <Input
                       id="royalty"
                       type="number"
-                      value={currentPlan.royaltyPercentage}
+                      value={currentPlan.royaltyPercentage ?? 0}
                       onChange={(e) => setCurrentPlan({ ...currentPlan, royaltyPercentage: Number(e.target.value) })}
                     />
                   </div>
@@ -224,7 +224,7 @@ export default function CommissionPlansManager() {
                     <Input
                       id="royaltyCap"
                       type="number"
-                      value={currentPlan.royaltyCap}
+                      value={currentPlan.royaltyCap ?? 0}
                       onChange={(e) => setCurrentPlan({ ...currentPlan, royaltyCap: Number(e.target.value) })}
                     />
                   </div>
@@ -264,14 +264,14 @@ export default function CommissionPlansManager() {
                           type="number" 
                           placeholder="Amount" 
                           className="h-8 text-sm"
-                          value={deduction.amount}
+                          value={deduction.amount ?? 0}
                           onChange={(e) => updateDeduction(deduction.id, 'amount', Number(e.target.value))}
                         />
                       </div>
                       <div className="grid gap-1 w-24">
                          <select 
                             className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm ring-offset-background placeholder:text-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                            value={deduction.type}
+                            value={deduction.type ?? 'fixed'}
                             onChange={(e) => updateDeduction(deduction.id, 'type', e.target.value)}
                          >
                            <option value="fixed">$ Fixed</option>

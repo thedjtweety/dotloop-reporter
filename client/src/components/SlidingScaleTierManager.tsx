@@ -148,7 +148,7 @@ export function SlidingScaleTierManager({
                           {editingId === tier.id ? (
                             <Input
                               type="number"
-                              value={editThreshold}
+                              value={editThreshold ?? 0}
                               onChange={(e) => setEditThreshold(Number(e.target.value))}
                               className="w-32"
                               min="0"
@@ -164,7 +164,7 @@ export function SlidingScaleTierManager({
                           {editingId === tier.id ? (
                             <Input
                               type="number"
-                              value={editSplit}
+                              value={editSplit ?? 0}
                               onChange={(e) => setEditSplit(Number(e.target.value))}
                               className="w-24"
                               min="0"
