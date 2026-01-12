@@ -90,7 +90,7 @@ import { useOnboardingTour, uploadTourSteps, dashboardTourSteps } from '@/hooks/
 import { FilterProvider, useFilters } from '@/contexts/FilterContext';
 import FilterBadge from '@/components/FilterBadge';
 import toast, { Toaster } from 'react-hot-toast';
-import SectionNav from '@/components/SectionNav';
+// import SectionNav from '@/components/SectionNav'; // Removed floating navigation
 import BackToTop from '@/components/BackToTop';
 import CollapsibleSection from '@/components/CollapsibleSection';
 
@@ -702,7 +702,7 @@ function HomeContent() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Toaster />
-      <SectionNav />
+      {/* <SectionNav /> - Removed floating navigation */}
       <BackToTop />
       {/* Dashboard Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">

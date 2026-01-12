@@ -454,3 +454,8 @@
 - [x] Verify OAuth redirect URLs work with new domain (will work once OAuth configured)
 - [x] Update any hardcoded URLs in the application (none found - uses relative URLs)
 - [x] Create domain setup documentation
+
+## Phase 41: UI/UX Cleanup
+- [x] Remove floating navigation from dashboard right side
+- [x] Test dashboard layout without floating nav
+- [x] Verify all navigation still accessible
