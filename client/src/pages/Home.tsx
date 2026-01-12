@@ -537,7 +537,7 @@ function HomeContent() {
               <h2 className="text-4xl font-display font-bold tracking-tight text-foreground sm:text-5xl">
                 Transform Your Data into <span className="text-primary">Actionable Insights</span>
               </h2>
-              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+              <p className="text-lg text-foreground max-w-xl mx-auto">
                 Upload your Dotloop export to instantly generate professional commission reports, agent leaderboards, and financial analytics.
               </p>
             </div>
@@ -764,7 +764,7 @@ function HomeContent() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Active Listings</p>
+                <p className="text-sm text-foreground font-medium">Active Listings</p>
                 <p className="text-2xl font-display font-bold text-foreground">
                   {metrics.activeListings}
                 </p>
@@ -781,7 +781,7 @@ function HomeContent() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Under Contract</p>
+                <p className="text-sm text-foreground font-medium">Under Contract</p>
                 <p className="text-2xl font-display font-bold text-foreground">
                   {metrics.underContract}
                 </p>
@@ -798,7 +798,7 @@ function HomeContent() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Closed</p>
+                <p className="text-sm text-foreground font-medium">Closed</p>
                 <p className="text-2xl font-display font-bold text-accent">
                   {metrics.closed}
                 </p>
@@ -815,13 +815,13 @@ function HomeContent() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Archived</p>
+                <p className="text-sm text-foreground font-medium">Archived</p>
                 <p className="text-2xl font-display font-bold text-foreground">
                   {metrics.archived}
                 </p>
               </div>
               <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                <HomeIcon className="w-6 h-6 text-muted-foreground" />
+                <HomeIcon className="w-6 h-6 text-foreground" />
               </div>
             </div>
           </Card>

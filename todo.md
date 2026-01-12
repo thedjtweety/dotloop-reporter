@@ -186,3 +186,9 @@
 - [x] Replace all text-foreground/60 and text-foreground/80 with text-foreground
 - [x] Ensure no gray text remains anywhere in the application
 - [x] Test in both light and dark modes (all text now uses pure text-foreground for maximum contrast)
+
+## Phase 21: Fix Table Cell Gray Text
+- [x] Fix gray text in AgentLeaderboard table cells (Commission, Total GCI, etc.)
+- [x] Replace ALL text-muted-foreground with text-foreground (134 instances removed)
+- [x] Fix CardDescription component to use text-foreground
+- [x] Test visibility in both modes (verified: all text is pure white in dark mode, pure black in light mode)

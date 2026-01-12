@@ -95,7 +95,7 @@ export default function PerformanceDashboard() {
               <CardTitle className="text-3xl">{stats?.totalUploads || 0}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground">
                 {stats?.successfulUploads || 0} successful, {stats?.failedUploads || 0} failed
               </p>
               <p className="text-xs text-green-600 mt-1">
@@ -110,10 +110,10 @@ export default function PerformanceDashboard() {
               <CardTitle className="text-3xl">{formatTime(stats?.avgTotalTime)}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground">
                 Max: {formatTime(stats?.maxTotalTime)}
               </p>
-              <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+              <div className="text-xs text-foreground mt-1 space-y-0.5">
                 <div>Validation: {formatTime(stats?.avgValidationTime)}</div>
                 <div>Parsing: {formatTime(stats?.avgParsingTime)}</div>
                 <div>Upload: {formatTime(stats?.avgUploadTime)}</div>
@@ -127,10 +127,10 @@ export default function PerformanceDashboard() {
               <CardTitle className="text-3xl">{formatBytes(stats?.avgFileSize)}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground">
                 Max: {formatBytes(stats?.maxFileSize)}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-foreground mt-1">
                 Total records processed: {(stats?.totalRecords || 0).toLocaleString()}
               </p>
             </CardContent>
@@ -144,10 +144,10 @@ export default function PerformanceDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground">
                 All systems operational
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-foreground mt-1">
                 Last 30 days
               </p>
             </CardContent>
@@ -300,13 +300,13 @@ export default function PerformanceDashboard() {
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="font-medium">{upload.fileName}</p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-foreground">
                             {upload.recordCount.toLocaleString()} records • {formatBytes(upload.fileSize)}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold">{formatTime(upload.totalTimeMs)}</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-foreground">
                             {new Date(upload.uploadedAt).toLocaleDateString()}
                           </p>
                         </div>
@@ -433,7 +433,7 @@ export default function PerformanceDashboard() {
                           <td className="p-2">
                             <div>
                               <p className="font-medium">{user.userName || 'Unknown'}</p>
-                              <p className="text-xs text-muted-foreground">{user.userEmail}</p>
+                              <p className="text-xs text-foreground">{user.userEmail}</p>
                             </div>
                           </td>
                           <td className="text-right p-2">{user.totalUploads}</td>

@@ -122,7 +122,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
   if (agents.length === 0) {
     return (
       <Card className="p-8">
-        <div className="text-center text-muted-foreground">
+        <div className="text-center text-foreground">
           No agent data available
         </div>
       </Card>
@@ -146,7 +146,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
               size="sm"
               className="gap-2"
             >
-              <Trophy className={`w-4 h-4 ${showPodium ? 'text-yellow-500' : 'text-muted-foreground'}`} />
+              <Trophy className={`w-4 h-4 ${showPodium ? 'text-yellow-500' : 'text-foreground'}`} />
               {showPodium ? 'Hide Podium' : 'Show Podium'}
             </Button>
             <Button
@@ -160,7 +160,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
             </Button>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-foreground">
           Click column headers to sort. Download individual reports using the action buttons.
         </p>
       </div>
@@ -348,7 +348,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
         </Table>
       </div>
 
-      <div className="p-4 bg-muted/30 border-t border-border text-xs text-muted-foreground">
+      <div className="p-4 bg-muted/30 border-t border-border text-xs text-foreground">
         <p>
           Showing {sortedAgents.length} agent{sortedAgents.length !== 1 ? 's' : ''}
           . Download individual reports for performance reviews and team meetings.

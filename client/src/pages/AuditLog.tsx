@@ -115,19 +115,19 @@ export default function AuditLog() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card className="p-4">
-            <div className="text-sm text-muted-foreground mb-1">Total Events</div>
+            <div className="text-sm text-foreground mb-1">Total Events</div>
             <div className="text-2xl font-bold">{stats?.total || 0}</div>
           </Card>
           <Card className="p-4">
-            <div className="text-sm text-muted-foreground mb-1">Last 24 Hours</div>
+            <div className="text-sm text-foreground mb-1">Last 24 Hours</div>
             <div className="text-2xl font-bold">{stats?.recentActivity || 0}</div>
           </Card>
           <Card className="p-4">
-            <div className="text-sm text-muted-foreground mb-1">Active Admins</div>
+            <div className="text-sm text-foreground mb-1">Active Admins</div>
             <div className="text-2xl font-bold">{stats?.activeAdmins?.length || 0}</div>
           </Card>
           <Card className="p-4">
-            <div className="text-sm text-muted-foreground mb-1">Event Types</div>
+            <div className="text-sm text-foreground mb-1">Event Types</div>
             <div className="text-2xl font-bold">{stats?.byAction?.length || 0}</div>
           </Card>
         </div>
@@ -177,7 +177,7 @@ export default function AuditLog() {
                 </TableRow>
               ) : logsData?.logs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center py-8 text-foreground">
                     No audit logs found
                   </TableCell>
                 </TableRow>
@@ -196,28 +196,28 @@ export default function AuditLog() {
                     <TableCell>
                       <div>
                         <div className="font-medium">{log.adminName}</div>
-                        <div className="text-sm text-muted-foreground">{log.adminEmail}</div>
+                        <div className="text-sm text-foreground">{log.adminEmail}</div>
                       </div>
                     </TableCell>
                     <TableCell>
                       {log.targetName ? (
                         <div>
                           <div className="font-medium">{log.targetName}</div>
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-foreground">
                             {log.targetType} #{log.targetId}
                           </div>
                         </div>
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="text-foreground">—</span>
                       )}
                     </TableCell>
                     <TableCell>
                       {log.details ? (
-                        <div className="text-sm font-mono text-muted-foreground max-w-xs truncate">
+                        <div className="text-sm font-mono text-foreground max-w-xs truncate">
                           {log.details}
                         </div>
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="text-foreground">—</span>
                       )}
                     </TableCell>
                   </TableRow>
@@ -229,7 +229,7 @@ export default function AuditLog() {
           {/* Pagination */}
           {logsData && logsData.logs.length > 0 && (
             <div className="flex items-center justify-between p-4 border-t">
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-foreground">
                 Showing {page * limit + 1} to {page * limit + logsData.logs.length} of {logsData.total}
               </div>
               <div className="flex gap-2">

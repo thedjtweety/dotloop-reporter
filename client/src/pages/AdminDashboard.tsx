@@ -54,7 +54,7 @@ export default function AdminDashboard() {
         <Card className="p-8 max-w-md text-center">
           <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-foreground mb-2">Access Denied</h2>
-          <p className="text-muted-foreground mb-6">
+          <p className="text-foreground mb-6">
             You need admin privileges to access this page.
           </p>
           <Button onClick={() => setLocation('/')}>
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Total Users</p>
+                <p className="text-sm text-foreground font-medium">Total Users</p>
                 <p className="text-3xl font-bold text-foreground mt-2">
                   {statsLoading ? '...' : stats?.users.total || 0}
                 </p>
@@ -140,7 +140,7 @@ export default function AdminDashboard() {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Admin Users</p>
+                <p className="text-sm text-foreground font-medium">Admin Users</p>
                 <p className="text-3xl font-bold text-foreground mt-2">
                   {statsLoading ? '...' : stats?.users.admins || 0}
                 </p>
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Total Uploads</p>
+                <p className="text-sm text-foreground font-medium">Total Uploads</p>
                 <p className="text-3xl font-bold text-foreground mt-2">
                   {statsLoading ? '...' : stats?.uploads.total || 0}
                 </p>
@@ -168,7 +168,7 @@ export default function AdminDashboard() {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Total Records</p>
+                <p className="text-sm text-foreground font-medium">Total Records</p>
                 <p className="text-3xl font-bold text-foreground mt-2">
                   {statsLoading ? '...' : stats?.uploads.totalRecords.toLocaleString() || 0}
                 </p>
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
             <Card>
               <div className="p-6 border-b border-border">
                 <h3 className="text-lg font-semibold text-foreground">All Users</h3>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-foreground mt-1">
                   Manage user accounts and permissions
                 </p>
               </div>
@@ -223,14 +223,14 @@ export default function AdminDashboard() {
                     {users?.map((u) => (
                       <TableRow key={u.id}>
                         <TableCell className="font-medium">{u.name || 'Unknown'}</TableCell>
-                        <TableCell className="text-muted-foreground">{u.email || 'No email'}</TableCell>
+                        <TableCell className="text-foreground">{u.email || 'No email'}</TableCell>
                         <TableCell>
                           <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
                             {u.role}
                           </Badge>
                         </TableCell>
                         <TableCell>{u.uploadCount}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
+                        <TableCell className="text-foreground text-sm">
                           {formatDistanceToNow(new Date(u.lastSignedIn), { addSuffix: true })}
                         </TableCell>
                         <TableCell className="text-right">
@@ -268,7 +268,7 @@ export default function AdminDashboard() {
             <Card>
               <div className="p-6 border-b border-border">
                 <h3 className="text-lg font-semibold text-foreground">Recent Uploads</h3>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-foreground mt-1">
                   View all CSV uploads across all users
                 </p>
               </div>
@@ -289,11 +289,11 @@ export default function AdminDashboard() {
                         <TableCell>
                           <div>
                             <p className="text-sm font-medium">{upload.userName || 'Unknown'}</p>
-                            <p className="text-xs text-muted-foreground">{upload.userEmail}</p>
+                            <p className="text-xs text-foreground">{upload.userEmail}</p>
                           </div>
                         </TableCell>
                         <TableCell>{upload.recordCount.toLocaleString()}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
+                        <TableCell className="text-foreground text-sm">
                           {formatDistanceToNow(new Date(upload.uploadedAt), { addSuffix: true })}
                         </TableCell>
                       </TableRow>

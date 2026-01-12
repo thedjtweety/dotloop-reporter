@@ -178,19 +178,19 @@ export default function RoleManagement() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card className="p-4">
-            <div className="text-sm text-muted-foreground mb-1">Total Users</div>
+            <div className="text-sm text-foreground mb-1">Total Users</div>
             <div className="text-2xl font-bold">{totalUsers}</div>
           </Card>
           <Card className="p-4">
-            <div className="text-sm text-muted-foreground mb-1">Administrators</div>
+            <div className="text-sm text-foreground mb-1">Administrators</div>
             <div className="text-2xl font-bold text-primary">{adminCount}</div>
           </Card>
           <Card className="p-4">
-            <div className="text-sm text-muted-foreground mb-1">Regular Users</div>
+            <div className="text-sm text-foreground mb-1">Regular Users</div>
             <div className="text-2xl font-bold">{userCount}</div>
           </Card>
           <Card className="p-4">
-            <div className="text-sm text-muted-foreground mb-1">Selected</div>
+            <div className="text-sm text-foreground mb-1">Selected</div>
             <div className="text-2xl font-bold text-blue-600">{selectedCount}</div>
           </Card>
         </div>
@@ -199,7 +199,7 @@ export default function RoleManagement() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <Card className="p-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-foreground" />
               <Input
                 type="text"
                 placeholder="Search by name or email..."
@@ -265,7 +265,7 @@ export default function RoleManagement() {
             <TableBody>
               {filteredUsers?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-foreground">
                     No users found
                   </TableCell>
                 </TableRow>
@@ -290,7 +290,7 @@ export default function RoleManagement() {
                         <div className="font-medium">{u.name || 'Unknown'}</div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{u.email || '—'}</TableCell>
+                    <TableCell className="text-foreground">{u.email || '—'}</TableCell>
                     <TableCell>
                       <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
                         {u.role === 'admin' ? (
@@ -307,12 +307,12 @@ export default function RoleManagement() {
                       </Badge>
                     </TableCell>
                     <TableCell>{u.uploadCount}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-foreground">
                       {formatDistanceToNow(new Date(u.lastSignedIn), { addSuffix: true })}
                     </TableCell>
                     <TableCell className="text-right">
                       {u.id === user?.id ? (
-                        <span className="text-sm text-muted-foreground">You</span>
+                        <span className="text-sm text-foreground">You</span>
                       ) : (
                         <Button
                           variant={u.role === 'admin' ? 'destructive' : 'default'}
