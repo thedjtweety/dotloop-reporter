@@ -252,3 +252,16 @@
 - [x] Update Home.tsx to reorder sections: Metric cards → Charts → Agent Performance Leaderboard → Commission Projector
 - [x] Test new layout in both light and dark modes (verified in dark mode)
 - [x] Verify all sections display correctly in new order (all sections displaying correctly)
+
+## Phase 29: Dashboard Navigation Enhancements
+- [x] Create floating section navigation component (SectionNav.tsx)
+- [x] Implement scroll position tracking to highlight current section
+- [x] Add smooth scroll behavior when clicking navigation items
+- [ ] Add collapsible functionality to Metrics section (not needed - always visible)
+- [x] Add collapsible functionality to Charts section
+- [x] Add collapsible functionality to Agent Leaderboard section
+- [x] Add collapsible functionality to Commission Projector section
+- [x] Create BackToTop button component
+- [x] Add scroll detection to show/hide BackToTop button
+- [x] Test all navigation features in both light and dark modes (tested in dark mode)
+- [x] Verify smooth scrolling and section highlighting works correctly (all features working)

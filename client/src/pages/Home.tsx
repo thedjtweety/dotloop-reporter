@@ -12,7 +12,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent, Settings, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent, Settings, ArrowLeft, AlertCircle, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -90,6 +90,9 @@ import { useOnboardingTour, uploadTourSteps, dashboardTourSteps } from '@/hooks/
 import { FilterProvider, useFilters } from '@/contexts/FilterContext';
 import FilterBadge from '@/components/FilterBadge';
 import toast, { Toaster } from 'react-hot-toast';
+import SectionNav from '@/components/SectionNav';
+import BackToTop from '@/components/BackToTop';
+import CollapsibleSection from '@/components/CollapsibleSection';
 
 function HomeContent() {
   // The userAuth hooks provides authentication state
@@ -693,6 +696,8 @@ function HomeContent() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Toaster />
+      <SectionNav />
+      <BackToTop />
       {/* Dashboard Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container flex h-16 items-center justify-between">
@@ -758,7 +763,7 @@ function HomeContent() {
         <FilterBadge />
         
         {/* Top Metrics Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8" data-tour="metrics">
+        <div data-section="metrics" className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8" data-tour="metrics">
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
             <MetricCard
               title="Total Transactions"
@@ -869,8 +874,9 @@ function HomeContent() {
         </div>
 
         {/* Charts Section */}
-        <div className="mb-8" data-tour="charts">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div data-section="charts" data-tour="charts">
+          <CollapsibleSection title="Analytics Charts" icon={<TrendingUp className="w-6 h-6" />}>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3 lg:grid-cols-10 mb-6 h-auto">
               <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
@@ -1088,19 +1094,24 @@ function HomeContent() {
               </Tabs>
             </TabsContent>
           </Tabs>
+          </CollapsibleSection>
         </div>
 
         {/* Agent Leaderboard Section */}
         {agentMetrics.length > 0 && (
-          <div className="mb-8" data-tour="leaderboard">
-            <AgentLeaderboardWithExport agents={agentMetrics} records={filteredRecords} />
+          <div data-section="leaderboard" data-tour="leaderboard">
+            <CollapsibleSection title="Agent Performance Leaderboard" icon={<Trophy className="w-6 h-6" />}>
+              <AgentLeaderboardWithExport agents={agentMetrics} records={filteredRecords} />
+            </CollapsibleSection>
           </div>
         )}
 
         {/* Commission Projector Section */}
         {metrics?.hasFinancialData && (
-          <div className="mb-8">
-            <CommissionProjector records={filteredRecords} />
+          <div data-section="projector">
+            <CollapsibleSection title="Commission Projector" icon={<DollarSign className="w-6 h-6" />}>
+              <CommissionProjector records={filteredRecords} />
+            </CollapsibleSection>
           </div>
         )}
       </main>
