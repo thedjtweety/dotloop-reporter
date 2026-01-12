@@ -36,10 +36,10 @@ export default function TransactionTable({ transactions, limit, compact = false 
     if (!searchQuery.trim()) return transactions;
     const query = searchQuery.toLowerCase();
     return transactions.filter(t => 
-      t.propertyName?.toLowerCase().includes(query) ||
-      t.propertyAddress?.toLowerCase().includes(query) ||
-      t.status?.toLowerCase().includes(query) ||
-      t.agentName?.toLowerCase().includes(query)
+      t.loopName?.toLowerCase().includes(query) ||
+      t.address?.toLowerCase().includes(query) ||
+      t.loopStatus?.toLowerCase().includes(query) ||
+      t.agents?.toLowerCase().includes(query)
     );
   }, [transactions, searchQuery]);
 
@@ -117,22 +117,22 @@ export default function TransactionTable({ transactions, limit, compact = false 
         </div>
       )}
 
-      <Table className="table-fixed w-full">
+      <Table className="w-full">
           <TableHeader>
             <TableRow className="border-border">
-              <TableHead className="font-semibold w-[12%] text-xs py-2 px-2">Status</TableHead>
-              <TableHead className="font-semibold w-[28%] text-xs py-2 px-2">Property</TableHead>
-              <TableHead className="font-semibold w-[13%] text-xs py-2 px-2">Agent</TableHead>
-              <TableHead className="font-semibold w-[11%] text-xs py-2 px-2">Price</TableHead>
-              <TableHead className="font-semibold w-[11%] text-xs py-2 px-2">Commission</TableHead>
-              <TableHead className="font-semibold w-[12%] text-xs py-2 px-2">Date</TableHead>
-              <TableHead className="font-semibold w-[13%] text-xs py-2 px-2">Actions</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[140px]">Status</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[200px]">Property</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[120px]">Agent</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[100px]">Price</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[110px]">Commission</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[110px]">Date</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {displayTransactions.map((transaction, idx) => (
               <TableRow key={idx} className="border-border hover:bg-muted/50">
-                <TableCell className="py-2 px-2">
+                <TableCell className="py-2 px-3">
                   <div className="flex items-center gap-1 sm:gap-2">
                     {getStatusIcon(transaction.loopStatus)}
                     <span className="hidden sm:inline-block">
@@ -143,33 +143,33 @@ export default function TransactionTable({ transactions, limit, compact = false 
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="py-2 px-2">
+                <TableCell className="py-2 px-3">
                   <div className="flex flex-col gap-0">
                     <span className="font-medium text-xs text-foreground line-clamp-1">
-                      {transaction.propertyName || 'N/A'}
+                      {transaction.loopName || 'N/A'}
                     </span>
                     <span className="text-[10px] text-muted-foreground line-clamp-1">
-                      {transaction.propertyAddress || 'N/A'}
+                      {transaction.address || 'N/A'}
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground py-2 px-2">
+                <TableCell className="text-xs text-muted-foreground py-2 px-3">
                   <span className="line-clamp-1">
-                    {transaction.agentName || 'N/A'}
+                    {transaction.agents || 'N/A'}
                   </span>
                 </TableCell>
-                <TableCell className="text-xs font-medium text-foreground py-2 px-2">
+                <TableCell className="text-xs font-medium text-foreground py-2 px-3">
                   ${(transaction.price / 1000).toFixed(0)}K
                 </TableCell>
-                <TableCell className="text-xs font-semibold text-foreground py-2 px-2">
+                <TableCell className="text-xs font-semibold text-foreground py-2 px-3">
                   ${(transaction.commissionTotal / 1000).toFixed(1)}K
                 </TableCell>
-                <TableCell className="text-xs text-foreground py-2 px-2">
+                <TableCell className="text-xs text-foreground py-2 px-3">
                   {transaction.createdDate
                     ? new Date(transaction.createdDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
                     : 'N/A'}
                 </TableCell>
-                <TableCell className="py-2 px-2">
+                <TableCell className="py-2 px-3">
                   {transaction.loopViewUrl && (
                     <a
                       href={transaction.loopViewUrl}

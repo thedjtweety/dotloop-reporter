@@ -290,3 +290,10 @@
 - [x] Improve column spacing to use full modal width efficiently (already done in previous phase)
 - [x] Add page navigation controls (Previous/Next, page numbers)
 - [x] Test modal with large datasets to ensure no scrolling needed (tested with 104 transactions, perfect fit with 12 per page)
+
+## Phase 33: Fix Table Column Layout
+- [x] Fix overlapping column headers (removed table-fixed, added min-width to each column)
+- [x] Fix missing data - properties showing N/A instead of actual names/addresses (fixed: use loopName and address)
+- [x] Fix missing agent names showing N/A (fixed: use agents field)
+- [x] Adjust column widths to prevent header overlap (using min-w-[] classes)
+- [x] Verify data mapping from transaction records to table cells (corrected all field names)
