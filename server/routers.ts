@@ -26,11 +26,16 @@ export const uploadsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       // Create the upload record
-      const uploadId = await createUpload(
-        input.fileName,
-        input.transactions.length,
-        ctx.user.id
-      );
+      const uploadId = await createUpload({
+        fileName: input.fileName,
+        recordCount: input.transactions.length,
+        userId: ctx.user.id,
+        tenantId: ctx.user.tenantId,
+        fileSize: input.fileSize,
+        validationTimeMs: input.validationTimeMs,
+        parsingTimeMs: input.parsingTimeMs,
+        totalTimeMs: input.totalTimeMs,
+      });
 
       // Transform transactions to database format
       const transactionsToInsert = input.transactions.map((t: any) => ({
