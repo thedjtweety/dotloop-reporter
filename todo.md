@@ -854,3 +854,13 @@
 - [x] Test SeedDataButton integration with seedRouter
 - [x] Write vitest tests for SeedDataButton component
 - [x] Write vitest tests for seedRouter procedures (6 tests passing)
+
+
+## Phase 37: Bug Fix - Database Schema Mismatch
+- [x] Investigate commission_plans table schema
+- [x] Fix getPlans query to match actual table columns
+- [x] Update commissionRouter to select correct fields
+- [x] Add useSliding and tiers columns to database
+- [x] Fix TypeScript errors in uploadDb.ts, db.ts, and dotloopOAuthRouter.ts
+- [x] Remove tierHistoryRouter (tierHistory table was dropped in migration)
+- [x] Test Commission Management page loads without errors

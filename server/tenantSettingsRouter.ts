@@ -36,8 +36,8 @@ export const tenantSettingsRouter = router({
         status: tenant.status,
         subscriptionTier: tenant.subscriptionTier,
         settings: tenant.settings ? JSON.parse(tenant.settings) : {},
-        createdAt: tenant.createdAt.toISOString(),
-        updatedAt: tenant.updatedAt.toISOString(),
+        createdAt: typeof tenant.createdAt === 'string' ? tenant.createdAt : (tenant.createdAt as any).toISOString(),
+        updatedAt: typeof tenant.updatedAt === 'string' ? tenant.updatedAt : (tenant.updatedAt as any).toISOString(),
       };
     }),
 

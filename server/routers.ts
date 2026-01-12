@@ -9,7 +9,7 @@ import { auditLogRouter } from './auditLogRouter';
 import { dotloopOAuthRouter } from './dotloopOAuthRouter';
 import { tenantSettingsRouter } from './tenantSettingsRouter';
 import { commissionRouter } from './commissionRouter';
-import { tierHistoryRouter } from './tierHistoryRouter';
+// import { tierHistoryRouter } from './tierHistoryRouter'; // Removed: tierHistory table was dropped in migration
 import { seedRouter } from './seedRouter';
 import {
   createUpload,
@@ -20,7 +20,7 @@ import {
   getUserTransactions,
   deleteUpload,
 } from "./uploadDb";
-import { InsertTransaction } from "../drizzle/schema";
+// InsertTransaction is now inferred in uploadDb.ts
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -188,7 +188,7 @@ export const appRouter = router({
   dotloopOAuth: dotloopOAuthRouter,
   tenantSettings: tenantSettingsRouter,
   commission: commissionRouter,
-  tierHistory: tierHistoryRouter,
+  // tierHistory: tierHistoryRouter, // Removed: tierHistory table was dropped in migration
   seed: seedRouter,
 });
 

@@ -1,5 +1,9 @@
 import { eq, desc } from "drizzle-orm";
-import { uploads, transactions, InsertUpload, InsertTransaction, auditLogs, users } from "../drizzle/schema";
+import { uploads, transactions, auditLogs, users } from "../drizzle/schema";
+import type { InferInsertModel } from 'drizzle-orm';
+
+type InsertUpload = InferInsertModel<typeof uploads>;
+type InsertTransaction = InferInsertModel<typeof transactions>;
 import { getDb } from "./db";
 
 /**
