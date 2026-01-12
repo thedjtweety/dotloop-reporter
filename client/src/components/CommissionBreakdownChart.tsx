@@ -26,7 +26,7 @@ export default function CommissionBreakdownChart({ buySide, sellSide, onSliceCli
         <div className="bg-background border border-border p-2 rounded-lg shadow-lg text-sm">
           <p className="font-semibold" style={{ color: item.color }}>{item.name}</p>
           <p className="text-foreground">{formatCurrency(item.value)}</p>
-          <p className="text-foreground/70">{formatPercentage(percent)}</p>
+          <p className="text-foreground">{formatPercentage(percent)}</p>
         </div>
       );
     }
@@ -39,7 +39,7 @@ export default function CommissionBreakdownChart({ buySide, sellSide, onSliceCli
         <CardHeader>
           <CardTitle className="text-lg font-medium">Commission Breakdown</CardTitle>
         </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center text-foreground/70">
+        <CardContent className="h-[300px] flex items-center justify-center text-foreground">
           No commission data available
         </CardContent>
       </Card>
@@ -83,13 +83,13 @@ export default function CommissionBreakdownChart({ buySide, sellSide, onSliceCli
         </div>
         <div className="mt-4 grid grid-cols-2 gap-4 text-center">
           <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <p className="text-xs text-foreground/70 mb-1">Buy Side</p>
+            <p className="text-xs text-foreground mb-1">Buy Side</p>
             <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
               {formatPercentage(total > 0 ? (buySide / total) * 100 : 0)}
             </p>
           </div>
           <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-            <p className="text-xs text-foreground/70 mb-1">Sell Side</p>
+            <p className="text-xs text-foreground mb-1">Sell Side</p>
             <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
               {formatPercentage(total > 0 ? (sellSide / total) * 100 : 0)}
             </p>

@@ -80,7 +80,7 @@ export default function RecentActivity() {
             <Activity className="h-5 w-5 text-primary" />
             Recent Activity
           </h3>
-          <p className="text-sm text-foreground/70 mt-1">
+          <p className="text-sm text-foreground mt-1">
             Last 5 admin actions
           </p>
         </div>
@@ -93,11 +93,11 @@ export default function RecentActivity() {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
-          <div className="text-xs text-foreground/70 mb-1">Today's Actions</div>
+          <div className="text-xs text-foreground mb-1">Today's Actions</div>
           <div className="text-2xl font-bold text-foreground">{todayActions}</div>
         </div>
         <div className="p-3 rounded-lg bg-accent/5 border border-accent/10">
-          <div className="text-xs text-foreground/70 mb-1">Active Admins</div>
+          <div className="text-xs text-foreground mb-1">Active Admins</div>
           <div className="text-2xl font-bold text-foreground">{Array.isArray(stats?.activeAdmins) ? stats.activeAdmins.length : 0}</div>
         </div>
       </div>
@@ -105,7 +105,7 @@ export default function RecentActivity() {
       {/* Recent Logs */}
       <div className="space-y-3">
         {recentLogs.length === 0 ? (
-          <div className="text-center py-8 text-foreground/70">
+          <div className="text-center py-8 text-foreground">
             <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No recent activity</p>
           </div>
@@ -123,7 +123,7 @@ export default function RecentActivity() {
                   <Badge variant="outline" className={`text-xs ${getActionColor(log.action)}`}>
                     {getActionLabel(log.action)}
                   </Badge>
-                  <span className="text-xs text-foreground/70 flex items-center gap-1">
+                  <span className="text-xs text-foreground flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
                   </span>
@@ -141,7 +141,7 @@ export default function RecentActivity() {
                   )}
                 </div>
                 {log.details && (
-                  <div className="text-xs text-foreground/70 mt-1">
+                  <div className="text-xs text-foreground mt-1">
                     {(() => {
                       try {
                         const details = JSON.parse(log.details);

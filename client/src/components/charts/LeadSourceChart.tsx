@@ -26,7 +26,7 @@ const CustomTooltip = ({ active, payload, total }: TooltipProps<number, string> 
           <p className="text-primary">
             Count: <span className="font-medium">{value}</span>
           </p>
-          <p className="text-foreground/70">
+          <p className="text-foreground">
             Share: <span className="font-medium">{percentage}%</span>
           </p>
         </div>
@@ -39,7 +39,7 @@ const CustomTooltip = ({ active, payload, total }: TooltipProps<number, string> 
 export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartProps) {
   if (data.length === 0) {
     return (
-      <div className="h-80 flex items-center justify-center text-foreground/70">
+      <div className="h-80 flex items-center justify-center text-foreground">
         No data available
       </div>
     );
@@ -76,7 +76,7 @@ export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartP
             const { payload } = entry;
             const total = data.reduce((acc, curr) => acc + curr.value, 0);
             const percent = ((payload.value / total) * 100).toFixed(1);
-            return <span className="text-sm font-medium ml-2 mr-4">{payload.label} <span className="text-foreground/70">({percent}%)</span></span>;
+            return <span className="text-sm font-medium ml-2 mr-4">{payload.label} <span className="text-foreground">({percent}%)</span></span>;
           }}
         />
       </PieChart>

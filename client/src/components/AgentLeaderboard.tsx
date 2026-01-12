@@ -75,7 +75,7 @@ export default function AgentLeaderboard({ agents }: AgentLeaderboardProps) {
   if (agents.length === 0) {
     return (
       <Card className="p-8">
-        <div className="text-center text-foreground/70">
+        <div className="text-center text-foreground">
           No agent data available
         </div>
       </Card>
@@ -91,7 +91,7 @@ export default function AgentLeaderboard({ agents }: AgentLeaderboardProps) {
             Agent Performance Leaderboard
           </h2>
         </div>
-        <p className="text-sm text-foreground/70">
+        <p className="text-sm text-foreground">
           Click column headers to sort. Rankings based on total commission earned.
         </p>
       </div>
@@ -135,7 +135,7 @@ export default function AgentLeaderboard({ agents }: AgentLeaderboardProps) {
                 <TableCell className="font-semibold text-accent">
                   ${(agent.totalCommission / 1000).toFixed(1)}K
                 </TableCell>
-                <TableCell className="text-foreground/70">
+                <TableCell className="text-foreground">
                   ${(agent.averageCommission / 1000).toFixed(1)}K
                 </TableCell>
                 <TableCell className="text-center font-medium">
@@ -149,10 +149,10 @@ export default function AgentLeaderboard({ agents }: AgentLeaderboardProps) {
                     {agent.closingRate.toFixed(1)}%
                   </Badge>
                 </TableCell>
-                <TableCell className="text-foreground/70">
+                <TableCell className="text-foreground">
                   ${(agent.averageSalesPrice / 1000).toFixed(0)}K
                 </TableCell>
-                <TableCell className="text-center text-foreground/70">
+                <TableCell className="text-center text-foreground">
                   {agent.averageDaysToClose} days
                 </TableCell>
                 <TableCell className="text-center font-medium">
@@ -167,7 +167,7 @@ export default function AgentLeaderboard({ agents }: AgentLeaderboardProps) {
         </Table>
       </div>
 
-      <div className="p-4 bg-muted/30 border-t border-border text-xs text-foreground/70">
+      <div className="p-4 bg-muted/30 border-t border-border text-xs text-foreground">
         <p>
           Showing {sortedAgents.length} agent{sortedAgents.length !== 1 ? 's' : ''}
           . Metrics are calculated from all transactions in the uploaded data.

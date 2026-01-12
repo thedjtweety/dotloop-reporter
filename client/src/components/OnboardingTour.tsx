@@ -149,14 +149,14 @@ export default function OnboardingTour({ steps, onComplete, onSkip }: Onboarding
               />
             ))}
           </div>
-          <p className="text-xs text-foreground/70 mt-2">
+          <p className="text-xs text-foreground mt-2">
             Step {currentStep + 1} of {steps.length}
           </p>
         </div>
 
         {/* Content */}
         <h3 className="text-lg font-display font-bold mb-2">{step.title}</h3>
-        <p className="text-sm text-foreground/70 mb-6">{step.description}</p>
+        <p className="text-sm text-foreground mb-6">{step.description}</p>
 
         {/* Navigation */}
         <div className="flex justify-between items-center">
@@ -164,7 +164,7 @@ export default function OnboardingTour({ steps, onComplete, onSkip }: Onboarding
             variant="ghost"
             size="sm"
             onClick={handleSkip}
-            className="text-foreground/70"
+            className="text-foreground"
           >
             Skip Tour
           </Button>

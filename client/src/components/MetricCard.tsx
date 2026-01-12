@@ -128,7 +128,7 @@ export default function MetricCard({
 
       <div className="relative flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm text-foreground/70 font-medium mb-3 uppercase tracking-wider">
+          <p className="text-sm text-foreground font-medium mb-3 uppercase tracking-wider">
             {title}
           </p>
           <p className="text-4xl font-display font-bold text-foreground mb-1 transition-all duration-300 group-hover:scale-105">
@@ -146,10 +146,10 @@ export default function MetricCard({
                 {trend.direction === 'neutral' && <Minus className="w-4 h-4 mr-1" />}
                 {formatPercentage(trend.value)}
               </div>
-              <p className="text-xs text-foreground/60">vs previous</p>
+              <p className="text-xs text-foreground">vs previous</p>
             </div>
           ) : subtitle && (
-            <p className="text-sm text-foreground/70 mt-2 font-medium">
+            <p className="text-sm text-foreground mt-2 font-medium">
               {subtitle}
             </p>
           )}

@@ -46,7 +46,7 @@ export default function AgentMixChart({ agents }: AgentMixChartProps) {
         <CardHeader>
           <CardTitle className="text-lg font-medium">Top Agent Mix</CardTitle>
         </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center text-foreground/70">
+        <CardContent className="h-[300px] flex items-center justify-center text-foreground">
           No agent data available
         </CardContent>
       </Card>

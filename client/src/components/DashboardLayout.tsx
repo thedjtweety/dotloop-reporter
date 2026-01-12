@@ -64,7 +64,7 @@ export default function DashboardLayout({
             <h1 className="text-2xl font-semibold tracking-tight text-center">
               Sign in to continue
             </h1>
-            <p className="text-sm text-foreground/70 text-center max-w-sm">
+            <p className="text-sm text-foreground text-center max-w-sm">
               Access to this dashboard requires authentication. Continue to launch the login flow.
             </p>
           </div>
@@ -166,7 +166,7 @@ function DashboardLayoutContent({
                 className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
                 aria-label="Toggle navigation"
               >
-                <PanelLeft className="h-4 w-4 text-foreground/70" />
+                <PanelLeft className="h-4 w-4 text-foreground" />
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
@@ -214,7 +214,7 @@ function DashboardLayoutContent({
                     <p className="text-sm font-medium truncate leading-none">
                       {user?.name || "-"}
                     </p>
-                    <p className="text-xs text-foreground/70 truncate mt-1.5">
+                    <p className="text-xs text-foreground truncate mt-1.5">
                       {user?.email || "-"}
                     </p>
                   </div>

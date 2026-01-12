@@ -43,7 +43,7 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
           Top Performers
           <Trophy className="w-6 h-6 text-yellow-500 fill-yellow-500" />
         </h3>
-        <p className="text-foreground/70">Celebrating our highest achievers this period</p>
+        <p className="text-foreground">Celebrating our highest achievers this period</p>
       </div>
 
       <motion.div 

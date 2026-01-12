@@ -56,7 +56,7 @@ export default function TransactionTable({ transactions, limit }: TransactionTab
 
   if (transactions.length === 0) {
     return (
-      <div className="text-center py-8 text-foreground/70">
+      <div className="text-center py-8 text-foreground">
         No transactions found.
       </div>
     );
@@ -84,7 +84,7 @@ export default function TransactionTable({ transactions, limit }: TransactionTab
                     <span className="hidden sm:inline-block">
                       {getStatusBadge(transaction.loopStatus)}
                     </span>
-                    <span className="sm:hidden text-xs font-medium text-foreground/70">
+                    <span className="sm:hidden text-xs font-medium text-foreground">
                       {transaction.loopStatus}
                     </span>
                   </div>
@@ -108,7 +108,7 @@ export default function TransactionTable({ transactions, limit }: TransactionTab
                         </a>
                       )}
                     </div>
-                    <div className="text-xs text-foreground/70 truncate max-w-[180px] sm:max-w-[300px]" title={transaction.address}>
+                    <div className="text-xs text-foreground truncate max-w-[180px] sm:max-w-[300px]" title={transaction.address}>
                       {transaction.address}
                     </div>
                   </div>
@@ -119,7 +119,7 @@ export default function TransactionTable({ transactions, limit }: TransactionTab
                 <TableCell className="text-sm font-semibold text-accent">
                   ${(transaction.commissionTotal / 1000).toFixed(1)}K
                 </TableCell>
-                <TableCell className="text-sm text-foreground/70">
+                <TableCell className="text-sm text-foreground">
                   {transaction.createdDate
                     ? new Date(transaction.createdDate).toLocaleDateString()
                     : 'N/A'}
@@ -130,7 +130,7 @@ export default function TransactionTable({ transactions, limit }: TransactionTab
         </Table>
       </div>
       {limit && transactions.length > limit && (
-        <p className="text-xs text-foreground/70 mt-2 px-4 sm:px-0">
+        <p className="text-xs text-foreground mt-2 px-4 sm:px-0">
           Showing {limit} of {transactions.length} transactions
         </p>
       )}

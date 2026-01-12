@@ -143,10 +143,10 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-medium">Agent Assignments</h3>
-          <p className="text-sm text-foreground/70">Assign commission plans to your agents.</p>
+          <p className="text-sm text-foreground">Assign commission plans to your agents.</p>
         </div>
         <div className="relative w-64">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-foreground/70" />
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-foreground" />
           <Input
             placeholder="Search agents..."
             value={searchTerm}
@@ -170,7 +170,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
           <TableBody>
             {filteredAgents.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-foreground/70">
+                <TableCell colSpan={3} className="text-center py-8 text-foreground">
                   No agents found. Upload a CSV to populate this list.
                 </TableCell>
               </TableRow>
@@ -248,7 +248,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
                           </Badge>
                         )}
                         {!currentPlan && !currentTeam && (
-                          <span className="text-sm text-foreground/70 italic">--</span>
+                          <span className="text-sm text-foreground italic">--</span>
                         )}
                       </div>
                     </TableCell>

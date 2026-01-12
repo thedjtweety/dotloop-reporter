@@ -85,7 +85,7 @@ export default function ColumnMapping({ headers, sampleData, onConfirm, onCancel
     <Card className="p-6 w-full max-w-4xl mx-auto">
       <div className="mb-6">
         <h2 className="text-2xl font-display font-bold mb-2">Map Your Columns</h2>
-        <p className="text-foreground/70">
+        <p className="text-foreground">
           We found some columns in your file. Please match them to the required fields below.
         </p>
       </div>
@@ -115,7 +115,7 @@ export default function ColumnMapping({ headers, sampleData, onConfirm, onCancel
                 </SelectContent>
               </Select>
               {mapping[field.key] && (
-                <p className="text-xs text-foreground/70 truncate">
+                <p className="text-xs text-foreground truncate">
                   Sample: {sampleData[0]?.[headers.indexOf(mapping[field.key])] || 'Empty'}
                 </p>
               )}
@@ -127,7 +127,7 @@ export default function ColumnMapping({ headers, sampleData, onConfirm, onCancel
           <h3 className="font-semibold text-lg border-b pb-2">Optional Fields</h3>
           {REQUIRED_FIELDS.filter(f => !f.required).map(field => (
             <div key={field.key} className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-foreground/70">
+              <label className="text-sm font-medium text-foreground">
                 {field.label}
               </label>
               <Select 

@@ -61,7 +61,7 @@ export default function BuySellTrendChart({ data }: BuySellTrendChartProps) {
         <CardHeader>
           <CardTitle className="text-lg font-medium">Buy vs Sell Trend</CardTitle>
         </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center text-foreground/70">
+        <CardContent className="h-[300px] flex items-center justify-center text-foreground">
           No trend data available
         </CardContent>
       </Card>

@@ -93,7 +93,7 @@ export default function CommissionProjector({ records }: CommissionProjectorProp
             step={1}
             className="py-2"
           />
-          <p className="text-xs text-foreground/70">
+          <p className="text-xs text-foreground">
             Adjust to account for deals that might not close.
           </p>
         </div>
@@ -103,33 +103,33 @@ export default function CommissionProjector({ records }: CommissionProjectorProp
           <div className="flex justify-between items-center border-b border-border/50 pb-2">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500/40" />
-              <span className="text-sm font-medium text-foreground/80">30 Days</span>
+              <span className="text-sm font-medium text-foreground">30 Days</span>
             </div>
             <div className="text-right">
               <div className="text-lg font-bold text-foreground">{formatCurrency(projections.p30 * riskFactor)}</div>
-              <div className="text-xs text-foreground/70">{projections.count30} deals</div>
+              <div className="text-xs text-foreground">{projections.count30} deals</div>
             </div>
           </div>
 
           <div className="flex justify-between items-center border-b border-border/50 pb-2">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500/70" />
-              <span className="text-sm font-medium text-foreground/80">60 Days</span>
+              <span className="text-sm font-medium text-foreground">60 Days</span>
             </div>
             <div className="text-right">
               <div className="text-lg font-bold text-foreground">{formatCurrency(projections.p60 * riskFactor)}</div>
-              <div className="text-xs text-foreground/70">{projections.count60} deals</div>
+              <div className="text-xs text-foreground">{projections.count60} deals</div>
             </div>
           </div>
 
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-sm font-medium text-foreground/80">90 Days</span>
+              <span className="text-sm font-medium text-foreground">90 Days</span>
             </div>
             <div className="text-right">
               <div className="text-lg font-bold text-foreground">{formatCurrency(projections.p90 * riskFactor)}</div>
-              <div className="text-xs text-foreground/70">{projections.count90} deals</div>
+              <div className="text-xs text-foreground">{projections.count90} deals</div>
             </div>
           </div>
         </div>

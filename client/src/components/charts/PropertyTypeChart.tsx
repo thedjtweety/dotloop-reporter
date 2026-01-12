@@ -25,7 +25,7 @@ const CustomTooltip = ({ active, payload, label, total }: TooltipProps<number, s
           <p className="text-primary">
             Count: <span className="font-medium">{value}</span>
           </p>
-          <p className="text-foreground/70">
+          <p className="text-foreground">
             Share: <span className="font-medium">{percentage}%</span>
           </p>
         </div>
@@ -38,7 +38,7 @@ const CustomTooltip = ({ active, payload, label, total }: TooltipProps<number, s
 export default function PropertyTypeChart({ data, onBarClick }: PropertyTypeChartProps) {
   if (data.length === 0) {
     return (
-      <div className="h-80 flex items-center justify-center text-foreground/70">
+      <div className="h-80 flex items-center justify-center text-foreground">
         No data available
       </div>
     );
