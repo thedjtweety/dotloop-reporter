@@ -893,3 +893,11 @@
 - [x] Detect duplicate loopIds within batch (unique constraint on loopId_tenant)
 - [x] Test transaction validator with edge cases and duplicate detection (all 28 tests passing)
 - [x] Identify root cause: unique constraint on (loopId, tenantId) was rejecting duplicate loopIds
+
+## Phase 24: Implement Upsert Logic for Re-uploads
+- [x] Implement upsert (insert or update) for transactions with duplicate loopIds
+- [x] Update createTransactions to use ON DUPLICATE KEY UPDATE
+- [x] Preserve original createdAt timestamp on updates (only update other fields)
+- [x] Update validation to allow duplicate loopIds (since upsert handles them)
+- [x] Update tests to reflect duplicate loopId handling (28 tests passing)
+- [x] Verified CSV parser handles multiple Dotloop export formats with fuzzy matching

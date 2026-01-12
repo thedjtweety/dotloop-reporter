@@ -218,16 +218,16 @@ describe('Transaction Validator', () => {
       expect(result.errors?.length).toBe(2);
     });
 
-    it('should detect duplicate loopIds in batch', () => {
+    it('should allow duplicate loopIds in batch (upsert handles them)', () => {
       const batch = [
         { ...validTransaction, loopId: 'duplicate-id' },
         { ...validTransaction, loopId: 'unique-id' },
         { ...validTransaction, loopId: 'duplicate-id' }, // Duplicate
       ];
       const result = validateTransactionBatch(batch);
-      expect(result.valid).toBe(false);
-      expect(result.errors?.length).toBeGreaterThan(0);
-      expect(result.errors?.[0]).toContain('Duplicate loopId');
+      expect(result.valid).toBe(true);
+      expect(result.validData?.length).toBe(3);
+      expect(result.errors).toBeUndefined();
     });
 
     it('should reject transactions with missing loopId', () => {

@@ -124,25 +124,17 @@ export function validateTransaction(transaction: any, rowIndex: number): { valid
 export function validateTransactionBatch(transactions: any[]): { valid: boolean; validData?: InsertTransaction[]; errors?: string[] } {
   const validData: InsertTransaction[] = [];
   const errors: string[] = [];
-  const loopIdsSeen = new Map<string, number>(); // Track loopIds and their row numbers
 
   for (let i = 0; i < transactions.length; i++) {
     const result = validateTransaction(transactions[i], i + 1);
     if (result.valid && result.data) {
-      // Check for duplicate loopIds within the batch
+      // Check that loopId exists (required field)
       const loopId = result.data.loopId;
-      if (loopId && loopIdsSeen.has(loopId)) {
-        const firstRow = loopIdsSeen.get(loopId);
-        errors.push(
-          `Row ${i + 1}: Duplicate loopId '${loopId}' (also appears in row ${firstRow}). ` +
-          `Each transaction must have a unique loopId within the same tenant.`
-        );
-      } else if (loopId) {
-        loopIdsSeen.set(loopId, i + 1);
-        validData.push(result.data);
+      if (!loopId) {
+        errors.push(`Row ${i + 1}: Missing loopId. This field is required.`);
       } else {
-        // loopId is missing or empty - this is an error since it's part of the unique constraint
-        errors.push(`Row ${i + 1}: Missing loopId. This field is required and must be unique.`);
+        // Duplicate loopIds are allowed - upsert logic will handle them
+        validData.push(result.data);
       }
     } else if (result.error) {
       errors.push(result.error);

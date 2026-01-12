@@ -56,13 +56,14 @@ export async function getUploadById(uploadId: number, userId: number) {
 }
 
 /**
- * Bulk insert transactions with error handling and retry logic
+ * Bulk insert or update transactions (upsert) with error handling and retry logic
+ * Uses ON DUPLICATE KEY UPDATE to handle duplicate loopIds by updating existing records
  */
 export async function createTransactions(transactionList: InsertTransaction[]) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  // Insert in batches of 100 to avoid MySQL max_allowed_packet limit (default 4MB)
+  // Upsert in batches of 100 to avoid MySQL max_allowed_packet limit (default 4MB)
   // Each transaction row can be ~1-2KB, so 100 rows = ~100-200KB per batch
   const batchSize = 100;
   const failedBatches: { batchIndex: number; error: Error }[] = [];
@@ -72,10 +73,13 @@ export async function createTransactions(transactionList: InsertTransaction[]) {
     const batch = transactionList.slice(i, i + batchSize);
     
     try {
-      await db.insert(transactions).values(batch);
+      // Use raw SQL for upsert to handle duplicate loopIds gracefully
+      // ON DUPLICATE KEY UPDATE will update existing records instead of failing
+      await upsertTransactionBatch(db, batch);
+      console.log(`Batch ${batchIndex}: Upserted ${batch.length} records`);
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
-      console.error(`Failed to insert batch ${batchIndex} (rows ${i}-${Math.min(i + batchSize, transactionList.length)})`, err);
+      console.error(`Failed to upsert batch ${batchIndex} (rows ${i}-${Math.min(i + batchSize, transactionList.length)})`, err);
       
       // Try smaller batch size if this batch failed (50 rows per retry)
       if (batch.length > 50) {
@@ -84,9 +88,9 @@ export async function createTransactions(transactionList: InsertTransaction[]) {
           const smallBatchSize = 50;
           for (let j = 0; j < batch.length; j += smallBatchSize) {
             const smallBatch = batch.slice(j, j + smallBatchSize);
-            await db.insert(transactions).values(smallBatch);
+            await upsertTransactionBatch(db, smallBatch);
           }
-          console.log(`Successfully inserted batch ${batchIndex} with smaller batch size`);
+          console.log(`Successfully upserted batch ${batchIndex} with smaller batch size`);
           continue;
         } catch (retryError) {
           const retryErr = retryError instanceof Error ? retryError : new Error(String(retryError));
@@ -104,11 +108,160 @@ export async function createTransactions(transactionList: InsertTransaction[]) {
     const failedBatchIndices = failedBatches.map(fb => fb.batchIndex).join(', ');
     const firstError = failedBatches[0].error.message;
     throw new Error(
-      `Failed to insert ${failedBatches.length} batch(es) (indices: ${failedBatchIndices}). ` +
+      `Failed to upsert ${failedBatches.length} batch(es) (indices: ${failedBatchIndices}). ` +
       `First error: ${firstError}. ` +
       `Total records attempted: ${transactionList.length}`
     );
   }
+  
+  console.log(`Upsert completed: ${transactionList.length} records processed`);
+}
+
+/**
+ * Helper function to upsert a batch of transactions using raw SQL
+ */
+async function upsertTransactionBatch(db: any, batch: InsertTransaction[]) {
+  if (batch.length === 0) return;
+
+  // Build the VALUES clause with proper escaping
+  const valuesClauses = batch.map(t => {
+    const values = [
+      t.tenantId,
+      t.uploadId,
+      t.userId,
+      t.loopId,
+      t.loopViewUrl,
+      t.loopName,
+      t.loopStatus,
+      t.createdDate,
+      t.closingDate,
+      t.listingDate,
+      t.offerDate,
+      t.address,
+      t.price,
+      t.propertyType,
+      t.bedrooms,
+      t.bathrooms,
+      t.squareFootage,
+      t.city,
+      t.state,
+      t.county,
+      t.leadSource,
+      t.agents,
+      t.createdBy,
+      t.earnestMoney,
+      t.salePrice,
+      t.commissionRate,
+      t.commissionTotal,
+      t.buySideCommission,
+      t.sellSideCommission,
+      t.companyDollar,
+      t.referralSource,
+      t.referralPercentage,
+      t.complianceStatus,
+      JSON.stringify(t.tags || []),
+      t.originalPrice,
+      t.yearBuilt,
+      t.lotSize,
+      t.subdivision,
+    ];
+    return `(${values.map(() => '?').join(',')})`;
+  });
+
+  // Flatten all values for the query
+  const allValues = batch.flatMap(t => [
+    t.tenantId,
+    t.uploadId,
+    t.userId,
+    t.loopId,
+    t.loopViewUrl,
+    t.loopName,
+    t.loopStatus,
+    t.createdDate,
+    t.closingDate,
+    t.listingDate,
+    t.offerDate,
+    t.address,
+    t.price,
+    t.propertyType,
+    t.bedrooms,
+    t.bathrooms,
+    t.squareFootage,
+    t.city,
+    t.state,
+    t.county,
+    t.leadSource,
+    t.agents,
+    t.createdBy,
+    t.earnestMoney,
+    t.salePrice,
+    t.commissionRate,
+    t.commissionTotal,
+    t.buySideCommission,
+    t.sellSideCommission,
+    t.companyDollar,
+    t.referralSource,
+    t.referralPercentage,
+    t.complianceStatus,
+    JSON.stringify(t.tags || []),
+    t.originalPrice,
+    t.yearBuilt,
+    t.lotSize,
+    t.subdivision,
+  ]);
+
+  const sql = `
+    INSERT INTO transactions (
+      tenantId, uploadId, userId, loopId, loopViewUrl, loopName, loopStatus,
+      createdDate, closingDate, listingDate, offerDate, address, price, propertyType,
+      bedrooms, bathrooms, squareFootage, city, state, county, leadSource, agents,
+      createdBy, earnestMoney, salePrice, commissionRate, commissionTotal,
+      buySideCommission, sellSideCommission, companyDollar, referralSource,
+      referralPercentage, complianceStatus, tags, originalPrice, yearBuilt, lotSize,
+      subdivision
+    ) VALUES ${valuesClauses.join(',')}
+    ON DUPLICATE KEY UPDATE
+      loopViewUrl = VALUES(loopViewUrl),
+      loopName = VALUES(loopName),
+      loopStatus = VALUES(loopStatus),
+      createdDate = VALUES(createdDate),
+      closingDate = VALUES(closingDate),
+      listingDate = VALUES(listingDate),
+      offerDate = VALUES(offerDate),
+      address = VALUES(address),
+      price = VALUES(price),
+      propertyType = VALUES(propertyType),
+      bedrooms = VALUES(bedrooms),
+      bathrooms = VALUES(bathrooms),
+      squareFootage = VALUES(squareFootage),
+      city = VALUES(city),
+      state = VALUES(state),
+      county = VALUES(county),
+      leadSource = VALUES(leadSource),
+      agents = VALUES(agents),
+      createdBy = VALUES(createdBy),
+      earnestMoney = VALUES(earnestMoney),
+      salePrice = VALUES(salePrice),
+      commissionRate = VALUES(commissionRate),
+      commissionTotal = VALUES(commissionTotal),
+      buySideCommission = VALUES(buySideCommission),
+      sellSideCommission = VALUES(sellSideCommission),
+      companyDollar = VALUES(companyDollar),
+      referralSource = VALUES(referralSource),
+      referralPercentage = VALUES(referralPercentage),
+      complianceStatus = VALUES(complianceStatus),
+      tags = VALUES(tags),
+      originalPrice = VALUES(originalPrice),
+      yearBuilt = VALUES(yearBuilt),
+      lotSize = VALUES(lotSize),
+      subdivision = VALUES(subdivision),
+      uploadId = VALUES(uploadId),
+      updatedAt = NOW()
+  `;
+
+  // Execute the raw SQL query
+  const connection = await db.execute(sql, allValues);
+  return connection;
 }
 
 /**
