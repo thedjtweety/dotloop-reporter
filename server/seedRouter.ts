@@ -137,7 +137,6 @@ export const seedRouter = router({
         },
       ];
 
-      // Sample agents
       const sampleAgents = [
         'Alice Johnson',
         'Bob Smith',
@@ -152,26 +151,30 @@ export const seedRouter = router({
       ];
 
       // Insert plans
-      const insertedPlans = [];
+      let plansCreated = 0;
+      const insertedPlanIds: string[] = [];
+      
       for (const plan of samplePlans) {
         try {
-          await db.insert(commissionPlans).values(plan);
-          insertedPlans.push(plan);
+          await db.insert(commissionPlans).values(plan as any);
+          plansCreated++;
+          insertedPlanIds.push(plan.id);
         } catch (error) {
           console.error(`Error inserting plan ${plan.name}:`, error);
         }
       }
 
       // Insert agent assignments
-      let assignmentCount = 0;
-      for (let planIdx = 0; planIdx < insertedPlans.length; planIdx++) {
-        const planId = insertedPlans[planIdx].id;
+      let assignmentsCreated = 0;
+      for (let planIdx = 0; planIdx < insertedPlanIds.length; planIdx++) {
+        const planId = insertedPlanIds[planIdx];
         
         // Assign different agents to each plan
-        const agentsForPlan = sampleAgents.slice(
-          (planIdx * 3) % sampleAgents.length,
-          ((planIdx * 3) + 3) % sampleAgents.length || sampleAgents.length
-        );
+        const startIdx = (planIdx * 3) % sampleAgents.length;
+        const endIdx = (startIdx + 3) % sampleAgents.length;
+        const agentsForPlan = endIdx > startIdx 
+          ? sampleAgents.slice(startIdx, endIdx)
+          : [...sampleAgents.slice(startIdx), ...sampleAgents.slice(0, endIdx)];
         
         for (const agentName of agentsForPlan) {
           try {
@@ -184,8 +187,8 @@ export const seedRouter = router({
               agentName,
               planId,
               startDate: dateStr,
-            });
-            assignmentCount++;
+            } as any);
+            assignmentsCreated++;
           } catch (error) {
             console.error(`Error assigning agent ${agentName}:`, error);
           }
@@ -194,13 +197,14 @@ export const seedRouter = router({
 
       return {
         success: true,
-        message: `Seeded ${insertedPlans.length} plans and ${assignmentCount} agent assignments`,
-        plansCreated: insertedPlans.length,
-        assignmentsCreated: assignmentCount,
+        message: `Seeded ${plansCreated} plans and ${assignmentsCreated} agent assignments`,
+        plansCreated,
+        assignmentsCreated,
       };
     } catch (error) {
       console.error('Error seeding data:', error);
-      throw new Error(`Failed to seed data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to seed data: ${errorMsg}`);
     }
   }),
 
@@ -232,7 +236,8 @@ export const seedRouter = router({
       };
     } catch (error) {
       console.error('Error clearing data:', error);
-      throw new Error(`Failed to clear data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to clear data: ${errorMsg}`);
     }
   }),
 });

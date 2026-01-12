@@ -181,15 +181,21 @@ export const commissionRouter = router({
    */
   getPlans: protectedProcedure.query(async ({ ctx }) => {
     try {
+      console.log('getPlans called with tenantId:', ctx.user?.tenantId);
+      
       const db = await getDb();
       if (!db) {
+        console.error('Database connection not available');
         throw new Error("Database connection not available");
       }
       
+      console.log('Querying plans for tenant:', ctx.user.tenantId);
       const plansData = await db
         .select()
         .from(commissionPlans)
         .where(eq(commissionPlans.tenantId, ctx.user.tenantId));
+      
+      console.log('Found plans:', plansData.length);
 
       return plansData.map((p: any) => ({
         id: p.id,
@@ -205,7 +211,9 @@ export const commissionRouter = router({
       } as CommissionPlan));
     } catch (error) {
       console.error("Error fetching commission plans:", error);
-      throw new Error("Failed to fetch commission plans");
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error("Error details:", errorMsg);
+      throw new Error(`Failed to fetch commission plans: ${errorMsg}`);
     }
   }),
 
