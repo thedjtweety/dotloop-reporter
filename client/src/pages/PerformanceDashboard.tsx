@@ -439,14 +439,14 @@ export default function PerformanceDashboard() {
                           <td className="text-right p-2">{user.totalUploads}</td>
                           <td className="text-right p-2">{formatBytes(user.avgFileSize)}</td>
                           <td className="text-right p-2">{formatTime(user.avgTotalTime)}</td>
-                          <td className="text-right p-2">{user.totalRecords.toLocaleString()}</td>
+                          <td className="text-right p-2">{Number(user.totalRecords).toLocaleString()}</td>
                           <td className="text-right p-2">
                             <span className={`font-medium ${
-                              user.successRate >= 95 ? 'text-green-600' :
-                              user.successRate >= 80 ? 'text-yellow-600' :
+                              Number(user.successRate) >= 95 ? 'text-green-600' :
+                              Number(user.successRate) >= 80 ? 'text-yellow-600' :
                               'text-red-600'
                             }`}>
-                              {user.successRate.toFixed(1)}%
+                              {Number(user.successRate).toFixed(1)}%
                             </span>
                           </td>
                         </tr>
