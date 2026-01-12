@@ -4,9 +4,12 @@ import axios, { type AxiosInstance } from "axios";
 import { parse as parseCookieHeader } from "cookie";
 import type { Request } from "express";
 import { SignJWT, jwtVerify } from "jose";
-import type { User } from "../../drizzle/schema";
+import { users } from "../../drizzle/schema";
+import type { InferSelectModel } from "drizzle-orm";
 import * as db from "../db";
 import { ENV } from "./env";
+
+type User = InferSelectModel<typeof users>;
 import type {
   ExchangeTokenRequest,
   ExchangeTokenResponse,
@@ -283,7 +286,7 @@ class SDKServer {
           name: userInfo.name || null,
           email: userInfo.email ?? null,
           loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
-          lastSignedIn: signedInAt,
+          lastSignedIn: signedInAt.toISOString(),
         });
         user = await db.getUserByOpenId(userInfo.openId);
       } catch (error) {
@@ -302,7 +305,7 @@ class SDKServer {
     await db.upsertUser({
       tenantId,
       openId: user.openId,
-      lastSignedIn: signedInAt,
+      lastSignedIn: signedInAt.toISOString(),
     });
 
     return user;

@@ -57,8 +57,11 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     textFields.forEach(assignNullable);
 
     if (user.lastSignedIn !== undefined) {
-      values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
+      const lastSignedInValue = typeof user.lastSignedIn === 'object' && user.lastSignedIn !== null && 'toISOString' in user.lastSignedIn 
+        ? (user.lastSignedIn as any).toISOString() 
+        : user.lastSignedIn;
+      values.lastSignedIn = lastSignedInValue as any;
+      updateSet.lastSignedIn = lastSignedInValue;
     }
     if (user.role !== undefined) {
       values.role = user.role;

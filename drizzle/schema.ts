@@ -35,7 +35,7 @@ export const auditLogs = mysqlTable("audit_logs", {
 	details: text(),
 	ipAddress: varchar({ length: 45 }),
 	userAgent: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 },
 (table) => [
 	index("tenant_idx").on(table.tenantId),
@@ -133,6 +133,31 @@ export const platformAdminLogs = mysqlTable("platform_admin_logs", {
 	index("time_idx").on(table.createdAt),
 	index("admin_time_idx").on(table.adminUserId, table.createdAt),
 	index("tenant_time_idx").on(table.tenantId, table.createdAt),
+]);
+
+
+export const tierHistory = mysqlTable("tier_history", {
+	id: varchar({ length: 64 }).notNull(),
+	tenantId: int().notNull(),
+	agentName: varchar({ length: 255 }).notNull(),
+	planId: varchar({ length: 64 }).notNull(),
+	previousTierIndex: int(),
+	previousTierThreshold: int(),
+	previousSplitPercentage: int(),
+	newTierIndex: int().notNull(),
+	newTierThreshold: int().notNull(),
+	newSplitPercentage: int().notNull(),
+	ytdAmount: int().notNull(),
+	transactionId: varchar({ length: 255 }),
+	transactionDate: varchar({ length: 50 }),
+	createdAt: timestamp({ mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+},
+(table) => [
+	index("tier_history_tenant_idx").on(table.tenantId),
+	index("tier_history_agent_idx").on(table.agentName),
+	index("tier_history_plan_idx").on(table.planId),
+	index("tier_history_tenant_agent_idx").on(table.tenantId, table.agentName),
+	index("tier_history_created_idx").on(table.createdAt),
 ]);
 
 export const teams = mysqlTable("teams", {
