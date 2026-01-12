@@ -872,3 +872,12 @@
 - [x] Fix validation logic to properly check for plans before showing error
 - [x] Add refetch mechanism to CommissionCalculator on mount and before calculate
 - [x] Test Calculate Commissions button with configured plans and agents
+
+
+## Phase 39: Bug Fix - Summary Stats Show 0 Plans and 0 Agents
+- [x] Check where summary stats are displayed in CommissionCalculator
+- [x] Investigate why stats aren't loading from database queries
+- [x] Add staleTime: 0 to queries for fresh data
+- [x] Add polling interval to refetch data every 5 seconds
+- [x] Add description field to CommissionPlanSchema and savePlan procedure
+- [x] Test stats update after creating plans and assigning agents

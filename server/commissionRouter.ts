@@ -56,6 +56,7 @@ const CommissionPlanSchema = z.object({
   deductions: z.array(DeductionSchema).optional().default([]),
   royaltyPercentage: z.number().optional(),
   royaltyCap: z.number().optional(),
+  description: z.string().optional(),
   useSliding: z.boolean().optional().default(false),
   tiers: z.array(z.object({
     id: z.string(),
@@ -412,6 +413,7 @@ export const commissionRouter = router({
               postCapSplit: input.postCapSplit,
               royaltyPercentage: input.royaltyPercentage,
               royaltyCap: input.royaltyCap,
+              description: input.description,
               deductions: JSON.stringify(input.deductions),
               useSliding: input.useSliding ? 1 : 0,
               tiers: input.tiers ? JSON.stringify(input.tiers) : null,
@@ -428,6 +430,7 @@ export const commissionRouter = router({
             postCapSplit: input.postCapSplit,
             royaltyPercentage: input.royaltyPercentage,
             royaltyCap: input.royaltyCap,
+            description: input.description,
             deductions: JSON.stringify(input.deductions),
             useSliding: input.useSliding ? 1 : 0,
             tiers: input.tiers ? JSON.stringify(input.tiers) : null,

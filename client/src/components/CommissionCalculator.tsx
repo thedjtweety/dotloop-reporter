@@ -40,10 +40,10 @@ export default function CommissionCalculator() {
   const [hasData, setHasData] = useState(false);
   const [fileName, setFileName] = useState<string>('');
 
-  // Fetch data from tRPC
-  const { data: plans, isLoading: plansLoading, error: plansError, refetch: refetchPlans } = trpc.commission.getPlans.useQuery();
-  const { data: teams, isLoading: teamsLoading, error: teamsError, refetch: refetchTeams } = trpc.commission.getTeams.useQuery();
-  const { data: assignments, isLoading: assignmentsLoading, error: assignmentsError, refetch: refetchAssignments } = trpc.commission.getAssignments.useQuery();
+  // Fetch data from tRPC with staleTime: 0 to ensure fresh data
+  const { data: plans, isLoading: plansLoading, error: plansError, refetch: refetchPlans } = trpc.commission.getPlans.useQuery(undefined, { staleTime: 0 });
+  const { data: teams, isLoading: teamsLoading, error: teamsError, refetch: refetchTeams } = trpc.commission.getTeams.useQuery(undefined, { staleTime: 0 });
+  const { data: assignments, isLoading: assignmentsLoading, error: assignmentsError, refetch: refetchAssignments } = trpc.commission.getAssignments.useQuery(undefined, { staleTime: 0 });
   const calculateMutation = trpc.commission.calculate.useMutation();
 
   // Log query status for debugging
@@ -56,9 +56,12 @@ export default function CommissionCalculator() {
 
   // Refetch data when component mounts to ensure latest plans and assignments
   useEffect(() => {
-    refetchPlans();
-    refetchTeams();
-    refetchAssignments();
+    const interval = setInterval(() => {
+      refetchPlans();
+      refetchTeams();
+      refetchAssignments();
+    }, 5000); // Refetch every 5 seconds to keep data fresh
+    return () => clearInterval(interval);
   }, [refetchPlans, refetchTeams, refetchAssignments]);
 
   // Load recent transaction data on mount
