@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useLocation } from 'wouter';
+import RecentActivity from '@/components/RecentActivity';
 
 export default function AdminDashboard() {
   const [location, setLocation] = useLocation();
@@ -177,6 +178,11 @@ export default function AdminDashboard() {
               </div>
             </div>
           </Card>
+        </div>
+
+        {/* Recent Activity Widget */}
+        <div className="mb-8">
+          <RecentActivity />
         </div>
 
         {/* Tabs */}

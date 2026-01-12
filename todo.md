@@ -124,3 +124,16 @@
 
 ## Phase 14: Bug Fixes
 - [x] Fix TypeError in Performance Dashboard: successRate.toFixed is not a function (ensure proper type conversion)
+
+## Phase 15: Admin UX Enhancements
+- [x] Add checkboxes to Role Management table for multi-select
+- [x] Implement bulk promote action (promote all selected users to admin)
+- [x] Implement bulk demote action (demote all selected users to regular user)
+- [x] Add export selected users functionality (CSV download)
+- [x] Add "Select All" / "Deselect All" functionality
+- [x] Create Recent Activity widget component
+- [x] Add Recent Activity widget to Admin Dashboard home tab
+- [x] Display last 5 audit log entries with timestamps
+- [x] Add quick stats to Recent Activity widget (total actions today, active admins)
+- [x] Test bulk operations with multiple users
+- [x] Test Recent Activity widget updates in real-time
