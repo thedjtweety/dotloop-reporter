@@ -479,3 +479,118 @@
 - [x] Test preview loading functionality (working)
 - [x] Verify deployment/publish functionality works
 - [x] Ensure all environment variables are properly configured
+
+
+## Phase 44: QuickBooks Online Integration (Future Enhancement)
+**Priority:** Medium | **Complexity:** 6/10 | **Time Estimate:** 3-4 days
+**Documentation:** `/docs/QUICKBOOKS_INTEGRATION_ANALYSIS.md`
+
+### MVP Features (2 days)
+- [ ] Set up QuickBooks OAuth app (Client ID, Client Secret)
+- [ ] Implement QuickBooks OAuth router (reuse Dotloop OAuth pattern)
+- [ ] Add QuickBooks provider to oauth_tokens table
+- [ ] Create QuickBooksService class (server/lib/quickbooks-service.ts)
+- [ ] Implement commission invoice export (agents → QuickBooks invoices)
+- [ ] Add "Connect QuickBooks" button to Settings page
+- [ ] Show QuickBooks connection status in Settings
+- [ ] Add basic account mapping UI (Commission Expense → QB Account)
+- [ ] Add "Export to QuickBooks" button to Agent Leaderboard
+- [ ] Implement success/error notifications for exports
+- [ ] Write vitest tests for QuickBooks OAuth and export
+
+### Enhanced Features (1-2 days)
+- [ ] Implement journal entry export (accounting automation)
+- [ ] Add batch export from Agent Leaderboard (export all agents)
+- [ ] Add transaction-level export from drill-down modal
+- [ ] Create QuickBooksMapping page for advanced account mapping
+- [ ] Add export history tracking (show what's been exported)
+- [ ] Implement automatic token refresh (1-hour expiration)
+- [ ] Add pre-flight validation (check for missing customers/accounts)
+- [ ] Create user documentation (QUICKBOOKS_EXPORT_GUIDE.md)
+
+### Advanced Features (Optional - 2+ days)
+- [ ] Implement automatic daily sync (export new transactions)
+- [ ] Add two-way sync (import QuickBooks payments)
+- [ ] Create custom field mapping UI (user-defined fields)
+- [ ] Add export templates (save export configurations)
+- [ ] Implement progress tracking for large batch exports
+- [ ] Add QuickBooks company selection (multi-company support)
+- [ ] Create QuickBooks export analytics dashboard
+
+### Technical Notes
+- **API Endpoints:** Invoice, JournalEntry, Customer, Account
+- **Rate Limits:** 500 requests/minute per company
+- **OAuth Scope:** `com.intuit.quickbooks.accounting`
+- **Token Expiration:** Access token (1 hour), Refresh token (100 days)
+- **Dependencies:** `intuit-oauth`, `node-quickbooks`
+
+### Business Value
+- Saves users hours of manual data entry per week
+- Reduces accounting errors and improves accuracy
+- Automates agent payroll/1099 tracking
+- Differentiates product from competitors
+- Enables premium pricing tier
+- Increases product stickiness (integrated workflow)
+
+
+## Phase 45: Automatic Commission Calculation Engine (CRITICAL - In Progress)
+**Priority:** HIGHEST | **Complexity:** 8/10 | **Time Estimate:** 3-4 days
+**Status:** 🚧 Active Development
+
+### Core Calculation Engine (Day 1-2)
+- [x] Design commission calculation architecture and data flow
+- [x] Create CommissionCalculator class (server/lib/commission-calculator.ts)
+- [x] Implement basic split calculation (percentage-based)
+- [x] Implement cap tracking and cap-hit detection
+- [ ] Implement tiered commission plans (sliding scales) - Future enhancement
+- [ ] Implement flat fee commission plans - Future enhancement
+- [x] Handle team splits (team lead percentage)
+- [x] Calculate deductions (fixed and percentage-based)
+- [x] Calculate franchise fees and royalties
+- [ ] Handle referral fees - Future enhancement
+- [x] Implement YTD tracking for cap calculations
+- [x] Handle anniversary date-based cap resets
+
+### Test Suite (Day 2)
+- [x] Write tests for basic percentage splits (70/30, 80/20, etc.)
+- [x] Write tests for cap scenarios (before cap, at cap, after cap)
+- [ ] Write tests for tiered plans (multiple thresholds) - Future enhancement
+- [x] Write tests for team splits
+- [x] Write tests for deductions
+- [x] Write tests for edge cases (negative commissions, zero GCI, etc.)
+- [x] Test with 21 real-world scenarios (all passing)
+- [x] Verify all tests pass
+
+### Backend API (Day 2-3)
+- [ ] Create calculateCommission tRPC procedure
+- [ ] Create recalculateAllCommissions procedure (batch)
+- [ ] Add commission calculation to upload flow
+- [ ] Store calculated commissions in database
+- [ ] Add calculation audit log (track who calculated what)
+- [ ] Handle calculation errors gracefully
+
+### UI Integration (Day 3-4)
+- [ ] Add "Calculate Commissions" button to dashboard
+- [ ] Create calculation progress modal
+- [ ] Show before/after comparison
+- [ ] Add "Recalculate" button to Commission Audit tab
+- [ ] Update Commission Statement to show calculated vs actual
+- [ ] Add visual indicators for calculation status
+- [ ] Show calculation errors in UI
+- [ ] Add bulk recalculation for all agents
+
+### Documentation & Testing (Day 4)
+- [x] Create COMMISSION_CALCULATION_GUIDE.md
+- [x] Document all commission plan types
+- [x] Document calculation formulas
+- [x] Add troubleshooting guide
+- [ ] Test with 3 different brokerage scenarios - In Progress
+- [ ] Verify accuracy against manual calculations - In Progress
+
+### Success Criteria
+- [ ] Can calculate commission from transaction data automatically
+- [ ] Handles all commission plan types (percentage, cap, tier, flat)
+- [ ] Accurately tracks YTD for cap calculations
+- [ ] All tests pass (50+ scenarios)
+- [ ] UI shows calculated commissions clearly
+- [ ] Performance: Calculate 1000 transactions in < 5 seconds
