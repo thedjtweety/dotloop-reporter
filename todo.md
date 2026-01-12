@@ -247,3 +247,8 @@
 - [x] Improve "Clear Filter" button visibility and labeling (now says "✕ Clear All Filters" with border)
 - [x] Test filter application with all chart types (tested with Pipeline chart)
 - [x] Verify users understand filtering behavior (toast + prominent blue filter badge make it obvious)
+
+## Phase 28: Reorder Dashboard Sections
+- [x] Update Home.tsx to reorder sections: Metric cards → Charts → Agent Performance Leaderboard → Commission Projector
+- [x] Test new layout in both light and dark modes (verified in dark mode)
+- [x] Verify all sections display correctly in new order (all sections displaying correctly)

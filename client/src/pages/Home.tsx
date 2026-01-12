@@ -795,11 +795,6 @@ function HomeContent() {
               onClick={() => handleMetricClick('days')}
             />
           </div>
-          {metrics?.hasFinancialData && (
-            <div className="lg:col-span-1">
-              <CommissionProjector records={filteredRecords} />
-            </div>
-          )}
         </div>
 
         {/* Status Overview Row */}
@@ -872,13 +867,6 @@ function HomeContent() {
             </div>
           </Card>
         </div>
-
-        {/* Agent Leaderboard Section */}
-        {agentMetrics.length > 0 && (
-          <div className="mb-8" data-tour="leaderboard">
-            <AgentLeaderboardWithExport agents={agentMetrics} records={filteredRecords} />
-          </div>
-        )}
 
         {/* Charts Section */}
         <div className="mb-8" data-tour="charts">
@@ -1101,6 +1089,20 @@ function HomeContent() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Agent Leaderboard Section */}
+        {agentMetrics.length > 0 && (
+          <div className="mb-8" data-tour="leaderboard">
+            <AgentLeaderboardWithExport agents={agentMetrics} records={filteredRecords} />
+          </div>
+        )}
+
+        {/* Commission Projector Section */}
+        {metrics?.hasFinancialData && (
+          <div className="mb-8">
+            <CommissionProjector records={filteredRecords} />
+          </div>
+        )}
       </main>
 
       {/* Drill Down Modal */}
