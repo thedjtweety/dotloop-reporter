@@ -14,8 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { CheckCircle2, Clock, Archive, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { CheckCircle2, Clock, Archive, AlertCircle, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import DotloopLogo from './DotloopLogo';
+import { useState, useMemo } from 'react';
 
 interface TransactionTableProps {
   transactions: DotloopRecord[];
@@ -24,7 +27,33 @@ interface TransactionTableProps {
 }
 
 export default function TransactionTable({ transactions, limit, compact = false }: TransactionTableProps) {
-  const displayTransactions = limit ? transactions.slice(0, limit) : transactions;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const itemsPerPage = 12;
+
+  // Filter transactions based on search query
+  const filteredTransactions = useMemo(() => {
+    if (!searchQuery.trim()) return transactions;
+    const query = searchQuery.toLowerCase();
+    return transactions.filter(t => 
+      t.propertyName?.toLowerCase().includes(query) ||
+      t.propertyAddress?.toLowerCase().includes(query) ||
+      t.status?.toLowerCase().includes(query) ||
+      t.agentName?.toLowerCase().includes(query)
+    );
+  }, [transactions, searchQuery]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const displayTransactions = limit ? filteredTransactions.slice(0, limit) : filteredTransactions.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -65,23 +94,45 @@ export default function TransactionTable({ transactions, limit, compact = false 
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-4">
+      {/* Search Box - only show if not using limit prop */}
+      {!limit && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search by property, address, status, or agent..."
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-10 pr-4 py-2"
+          />
+        </div>
+      )}
+
+      {/* Results count */}
+      {!limit && (
+        <div className="text-sm text-muted-foreground">
+          Showing {startIndex + 1}-{Math.min(endIndex, filteredTransactions.length)} of {filteredTransactions.length} transactions
+          {searchQuery && ` (filtered from ${transactions.length} total)`}
+        </div>
+      )}
+
       <Table className="table-fixed w-full">
           <TableHeader>
             <TableRow className="border-border">
-              <TableHead className="font-semibold w-[12%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Status</TableHead>
-              <TableHead className="font-semibold w-[28%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Property</TableHead>
-              <TableHead className="font-semibold w-[13%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Agent</TableHead>
-              <TableHead className="font-semibold w-[11%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Price</TableHead>
-              <TableHead className="font-semibold w-[11%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Commission</TableHead>
-              <TableHead className="font-semibold w-[12%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Date</TableHead>
-              <TableHead className="font-semibold w-[13%] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-3">Actions</TableHead>
+              <TableHead className="font-semibold w-[12%] text-xs py-2 px-2">Status</TableHead>
+              <TableHead className="font-semibold w-[28%] text-xs py-2 px-2">Property</TableHead>
+              <TableHead className="font-semibold w-[13%] text-xs py-2 px-2">Agent</TableHead>
+              <TableHead className="font-semibold w-[11%] text-xs py-2 px-2">Price</TableHead>
+              <TableHead className="font-semibold w-[11%] text-xs py-2 px-2">Commission</TableHead>
+              <TableHead className="font-semibold w-[12%] text-xs py-2 px-2">Date</TableHead>
+              <TableHead className="font-semibold w-[13%] text-xs py-2 px-2">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {displayTransactions.map((transaction, idx) => (
-              <TableRow key={idx} className={`border-border hover:bg-muted/50 ${compact ? 'h-10 sm:h-12' : ''}`}>
-                <TableCell className={compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}>
+              <TableRow key={idx} className="border-border hover:bg-muted/50">
+                <TableCell className="py-2 px-2">
                   <div className="flex items-center gap-1 sm:gap-2">
                     {getStatusIcon(transaction.loopStatus)}
                     <span className="hidden sm:inline-block">
@@ -92,33 +143,33 @@ export default function TransactionTable({ transactions, limit, compact = false 
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className={`text-sm text-foreground ${compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}`}>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[11px] sm:text-sm font-medium truncate max-w-[160px] sm:max-w-[220px]" title={transaction.loopName}>
-                      {transaction.loopName}
+                <TableCell className="py-2 px-2">
+                  <div className="flex flex-col gap-0">
+                    <span className="font-medium text-xs text-foreground line-clamp-1">
+                      {transaction.propertyName || 'N/A'}
                     </span>
-                    <span className="text-[10px] sm:text-xs text-muted-foreground truncate max-w-[160px] sm:max-w-[220px]" title={transaction.address}>
-                      {transaction.address}
+                    <span className="text-[10px] text-muted-foreground line-clamp-1">
+                      {transaction.propertyAddress || 'N/A'}
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className={`text-[11px] sm:text-sm text-foreground ${compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}`}>
-                  <span className="truncate max-w-[100px] inline-block" title={transaction.agentName}>
+                <TableCell className="text-xs text-muted-foreground py-2 px-2">
+                  <span className="line-clamp-1">
                     {transaction.agentName || 'N/A'}
                   </span>
                 </TableCell>
-                <TableCell className={`text-[11px] sm:text-sm font-medium text-foreground ${compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}`}>
+                <TableCell className="text-xs font-medium text-foreground py-2 px-2">
                   ${(transaction.price / 1000).toFixed(0)}K
                 </TableCell>
-                <TableCell className={`text-[11px] sm:text-sm font-semibold text-foreground ${compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}`}>
+                <TableCell className="text-xs font-semibold text-foreground py-2 px-2">
                   ${(transaction.commissionTotal / 1000).toFixed(1)}K
                 </TableCell>
-                <TableCell className={`text-[10px] sm:text-sm text-foreground ${compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}`}>
+                <TableCell className="text-xs text-foreground py-2 px-2">
                   {transaction.createdDate
                     ? new Date(transaction.createdDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
                     : 'N/A'}
                 </TableCell>
-                <TableCell className={compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}>
+                <TableCell className="py-2 px-2">
                   {transaction.loopViewUrl && (
                     <a
                       href={transaction.loopViewUrl}
@@ -137,11 +188,46 @@ export default function TransactionTable({ transactions, limit, compact = false 
             ))}
           </TableBody>
         </Table>
-        {limit && transactions.length > limit && (
-          <p className="text-xs text-foreground mt-2 px-4 sm:px-0">
-            Showing {limit} of {transactions.length} transactions
-          </p>
-        )}
-      </div>
+
+      {/* Pagination Controls - only show if not using limit prop */}
+      {!limit && totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4 border-t border-border">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="gap-1"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </Button>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </span>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="gap-1"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Legacy limit message */}
+      {limit && transactions.length > limit && (
+        <p className="text-xs text-foreground mt-2 px-4 sm:px-0">
+          Showing {limit} of {transactions.length} transactions
+        </p>
+      )}
+    </div>
   );
 }

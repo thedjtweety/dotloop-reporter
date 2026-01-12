@@ -282,3 +282,11 @@
 - [x] Improve grid layout for better desktop presentation (4-column layout for top metrics)
 - [x] Adjust pipeline status cards layout (kept as 4-column)
 - [x] Test metric cards on desktop to ensure optimal sizing (4-column layout looks great, cards are larger and more prominent)
+
+## Phase 32: Fix Drill-Down Modal Visibility
+- [x] Add pagination to show 12 transactions per page
+- [x] Add search/filter box to quickly find transactions (searches property, address, status, agent)
+- [x] Optimize row height and padding for better density (reduced to py-2 px-2, text-xs for compact display)
+- [x] Improve column spacing to use full modal width efficiently (already done in previous phase)
+- [x] Add page navigation controls (Previous/Next, page numbers)
+- [x] Test modal with large datasets to ensure no scrolling needed (tested with 104 transactions, perfect fit with 12 per page)
