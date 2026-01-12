@@ -206,3 +206,15 @@
 - [x] Add sticky header to modal with border separator
 - [x] Use flex layout to prevent header from scrolling
 - [x] Test modal with various deal counts (modal now uses 90% viewport height with wider max-w-7xl, sticky header, and compact table)
+
+## Phase 24: Optimize Modal for Mobile
+- [x] Increase modal height on mobile to use more viewport space (95vh on mobile, 90vh on desktop)
+- [x] Reduce modal padding on mobile (p-3 on mobile, p-6 on desktop)
+- [x] Reduce table row height on mobile (h-10 on mobile, h-12 on desktop)
+- [x] Reduce header padding and font sizes for mobile
+- [x] Test modal on mobile viewport
+- [x] Further reduce table cell padding on mobile (py-1 px-2 on mobile, py-2 px-4 on desktop)
+- [x] Optimize font sizes in table cells for mobile (10-11px on mobile, sm/14px on desktop)
+- [x] Remove unnecessary spacing in table cells (gap-0.5 on mobile, gap-1 on desktop)
+- [x] Optimize table headers with smaller fonts and reduced padding
+- [x] Test final mobile optimization (95vh height, reduced padding/fonts, compact table cells)

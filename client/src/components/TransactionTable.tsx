@@ -69,31 +69,31 @@ export default function TransactionTable({ transactions, limit, compact = false 
         <Table>
           <TableHeader>
             <TableRow className="border-border">
-              <TableHead className="font-semibold w-[140px] sm:w-[180px]">Status</TableHead>
-              <TableHead className="font-semibold min-w-[200px]">Property</TableHead>
-              <TableHead className="font-semibold w-[100px]">Price</TableHead>
-              <TableHead className="font-semibold w-[100px]">Commission</TableHead>
-              <TableHead className="font-semibold w-[120px]">Created Date</TableHead>
+              <TableHead className="font-semibold w-[140px] sm:w-[180px] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-4">Status</TableHead>
+              <TableHead className="font-semibold min-w-[200px] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-4">Property</TableHead>
+              <TableHead className="font-semibold w-[100px] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-4">Price</TableHead>
+              <TableHead className="font-semibold w-[100px] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-4">Commission</TableHead>
+              <TableHead className="font-semibold w-[120px] text-[10px] sm:text-sm py-1 px-2 sm:py-2 sm:px-4">Created Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {displayTransactions.map((transaction, idx) => (
-              <TableRow key={idx} className={`border-border hover:bg-muted/50 ${compact ? 'h-12' : ''}`}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
+              <TableRow key={idx} className={`border-border hover:bg-muted/50 ${compact ? 'h-10 sm:h-12' : ''}`}>
+                <TableCell className={compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}>
+                  <div className="flex items-center gap-1 sm:gap-2">
                     {getStatusIcon(transaction.loopStatus)}
                     <span className="hidden sm:inline-block">
                       {getStatusBadge(transaction.loopStatus)}
                     </span>
-                    <span className="sm:hidden text-xs font-medium text-foreground">
+                    <span className="sm:hidden text-[10px] sm:text-xs font-medium text-foreground">
                       {transaction.loopStatus}
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-sm text-foreground">
-                  <div className="flex flex-col gap-1">
+                <TableCell className={`text-sm text-foreground ${compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}`}>
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium truncate max-w-[180px] sm:max-w-[300px]" title={transaction.loopName}>
+                      <span className="text-[11px] sm:text-sm font-medium truncate max-w-[180px] sm:max-w-[300px]" title={transaction.loopName}>
                         {transaction.loopName}
                       </span>
                       {transaction.loopViewUrl && (
@@ -109,18 +109,18 @@ export default function TransactionTable({ transactions, limit, compact = false 
                         </a>
                       )}
                     </div>
-                    <div className="text-xs text-foreground truncate max-w-[180px] sm:max-w-[300px]" title={transaction.address}>
+                    <div className="text-[10px] sm:text-xs text-foreground truncate max-w-[180px] sm:max-w-[300px]" title={transaction.address}>
                       {transaction.address}
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="text-sm font-medium text-foreground">
+                <TableCell className={`text-[11px] sm:text-sm font-medium text-foreground ${compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}`}>
                   ${(transaction.price / 1000).toFixed(0)}K
                 </TableCell>
-                <TableCell className="text-sm font-semibold text-foreground">
+                <TableCell className={`text-[11px] sm:text-sm font-semibold text-foreground ${compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}`}>
                   ${(transaction.commissionTotal / 1000).toFixed(1)}K
                 </TableCell>
-                <TableCell className="text-sm text-foreground">
+                <TableCell className={`text-[10px] sm:text-sm text-foreground ${compact ? 'py-1 px-2 sm:py-2 sm:px-4' : ''}`}>
                   {transaction.createdDate
                     ? new Date(transaction.createdDate).toLocaleDateString()
                     : 'N/A'}
