@@ -898,3 +898,4 @@
 - [x] Remove CSVUploadWidget from CommissionCalculator (transactions already uploaded)
 - [x] Add CommissionManagement route to App.tsx
 - [x] Resolve TypeScript errors (tierHistory import, CommissionTier exports)
+- [x] Fix $NaN issue in Commission Calculator (removed incorrect /100 division, fixed field names)

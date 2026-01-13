@@ -165,11 +165,11 @@ export default function CommissionCalculator() {
       b.agentName,
       b.loopName,
       b.closingDate,
-      (b.grossCommissionIncome / 100).toFixed(2),
-      (b.brokerageSplitAmount / 100).toFixed(2),
-      (b.agentCommission / 100).toFixed(2),
-      (b.ytdCompanyDollar / 100).toFixed(2),
-      (b.ytdAgentCommission / 100).toFixed(2),
+      b.grossCommissionIncome.toFixed(2),
+      b.brokerageSplitAmount.toFixed(2),
+      b.agentNetCommission.toFixed(2),
+      b.ytdAfterTransaction.toFixed(2),
+      b.agentNetCommission.toFixed(2),
     ]);
 
     const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
@@ -341,12 +341,12 @@ export default function CommissionCalculator() {
                     {result.data.breakdowns.map((breakdown: any, idx: number) => (
                       <tr key={idx} className="border-b hover:bg-muted/50">
                         <td className="py-2 px-4">{breakdown.agentName}</td>
-                        <td className="py-2 px-4 text-muted-foreground">{breakdown.loopName}</td>
-                        <td className="text-right py-2 px-4">${(breakdown.grossCommissionIncome / 100).toFixed(2)}</td>
-                        <td className="text-right py-2 px-4">${(breakdown.brokerageSplitAmount / 100).toFixed(2)}</td>
-                        <td className="text-right py-2 px-4 font-medium">${(breakdown.agentCommission / 100).toFixed(2)}</td>
-                        <td className="text-right py-2 px-4">${(breakdown.ytdCompanyDollar / 100).toFixed(2)}</td>
-                        <td className="text-right py-2 px-4 font-medium">${(breakdown.ytdAgentCommission / 100).toFixed(2)}</td>
+                        <td className="py-2 px-4 text-foreground">{breakdown.loopName}</td>
+                        <td className="text-right py-2 px-4">${breakdown.grossCommissionIncome.toFixed(2)}</td>
+                        <td className="text-right py-2 px-4">${breakdown.brokerageSplitAmount.toFixed(2)}</td>
+                        <td className="text-right py-2 px-4 font-medium">${breakdown.agentNetCommission.toFixed(2)}</td>
+                        <td className="text-right py-2 px-4">${breakdown.ytdAfterTransaction.toFixed(2)}</td>
+                        <td className="text-right py-2 px-4 font-medium">${breakdown.agentNetCommission.toFixed(2)}</td>
                         <td className="text-center py-2 px-4">
                           <Badge variant={breakdown.splitType === 'post-cap' ? 'destructive' : 'default'}>
                             {breakdown.splitType}
@@ -362,26 +362,26 @@ export default function CommissionCalculator() {
             {/* YTD Summaries Tab */}
             <TabsContent value="ytd" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {result.data.ytdSummaries.map((summary: any, idx: number) => (
+                    {result.data.ytdSummaries.map((summary: any, idx: number) => (
                   <Card key={idx} className="p-4">
                     <h4 className="font-semibold mb-3">{summary.agentName}</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">YTD Company Dollar:</span>
-                        <span className="font-medium">${(summary.ytdCompanyDollar / 100).toFixed(2)}</span>
+                        <span className="text-foreground">YTD Company Dollar:</span>
+                        <span className="font-medium">${summary.ytdCompanyDollar.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">YTD Agent Commission:</span>
-                        <span className="font-medium">${(summary.ytdAgentCommission / 100).toFixed(2)}</span>
+                        <span className="text-foreground">YTD Agent Commission:</span>
+                        <span className="font-medium">${summary.ytdNetCommission.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Cap Amount:</span>
-                        <span className="font-medium">${(summary.capAmount / 100).toFixed(2)}</span>
+                        <span className="text-foreground">Cap Amount:</span>
+                        <span className="font-medium">${summary.capAmount.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Remaining to Cap:</span>
+                        <span className="text-foreground">Remaining to Cap:</span>
                         <span className={`font-medium ${summary.remainingToCap <= 0 ? 'text-red-600' : 'text-green-600'}`}>
-                          ${(summary.remainingToCap / 100).toFixed(2)}
+                          ${summary.remainingToCap.toFixed(2)}
                         </span>
                       </div>
                       {summary.percentOfCap !== undefined && (
