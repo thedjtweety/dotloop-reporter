@@ -911,3 +911,10 @@
 - [x] Create comprehensive vitest tests for PDF generator (18 test cases)
 - [x] Fix date formatting in tests and implementation
 - [x] Add error handling for PDF generation failures
+
+## Phase 41: Critical Bug Fix - API Returning HTML Instead of JSON
+- [x] Investigate server crash causing HTML error pages
+- [x] Check commissionRouter for runtime errors
+- [x] Verify database connections in getPlans, getTeams, getAssignments
+- [x] Fix the root cause of the API failures (removed tiers field access)
+- [x] Test all affected endpoints return proper JSON

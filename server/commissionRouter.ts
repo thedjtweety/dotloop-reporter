@@ -224,7 +224,6 @@ export const commissionRouter = router({
         royaltyPercentage: p.royaltyPercentage,
         royaltyCap: p.royaltyCap,
         useSliding: p.useSliding === 1,
-        tiers: p.tiers ? JSON.parse(p.tiers as string) : undefined,
       } as CommissionPlan));
     } catch (error) {
       console.error("Error fetching commission plans:", error);
@@ -248,13 +247,12 @@ export const commissionRouter = router({
         .select()
         .from(teams)
         .where(eq(teams.tenantId, ctx.user.tenantId));
-
+      
       return teamsList.map((t: any) => ({
         id: t.id,
         name: t.name,
-        leadAgent: t.leadAgent,
-        teamSplitPercentage: t.teamSplitPercentage,
-      } as Team));
+        description: t.description,
+      }));
     } catch (error) {
       console.error("Error fetching teams:", error);
       throw new Error("Failed to fetch teams");
