@@ -8,7 +8,7 @@
  * - Agent assignments
  */
 
-import { protectedProcedure, router } from "./_core/trpc";
+import { protectedProcedure, protectedProcedureWithErrorHandling, router } from "./_core/trpc";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import {
@@ -196,7 +196,7 @@ export const commissionRouter = router({
   /**
    * Get all commission plans for the current tenant
    */
-  getPlans: protectedProcedure.query(async ({ ctx }) => {
+  getPlans: protectedProcedureWithErrorHandling.query(async ({ ctx }) => {
     try {
       console.log('getPlans called with tenantId:', ctx.user?.tenantId);
       
@@ -236,7 +236,7 @@ export const commissionRouter = router({
   /**
    * Get all teams for the current tenant
    */
-  getTeams: protectedProcedure.query(async ({ ctx }) => {
+  getTeams: protectedProcedureWithErrorHandling.query(async ({ ctx }) => {
     try {
       const db = await getDb();
       if (!db) {
@@ -262,7 +262,7 @@ export const commissionRouter = router({
   /**
    * Get all agent assignments for the current tenant
    */
-  getAssignments: protectedProcedure.query(async ({ ctx }) => {
+  getAssignments: protectedProcedureWithErrorHandling.query(async ({ ctx }) => {
     try {
       const db = await getDb();
       if (!db) {

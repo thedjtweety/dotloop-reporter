@@ -947,3 +947,34 @@
   - [ ] Test error handling in all procedures
   - [ ] Verify health checks work correctly
   - [ ] Load test the application
+
+## Phase 43: Wrap All tRPC Procedures with Error Handlers
+- [ ] Create middleware wrapper for tRPC procedures
+- [ ] Wrap commissionRouter procedures
+  - [ ] getPlans, getTeams, getAssignments
+  - [ ] calculate, exportPDF
+- [ ] Wrap adminRouter procedures
+  - [ ] All admin dashboard queries
+- [ ] Wrap auditLogRouter procedures
+  - [ ] All audit log queries
+- [ ] Wrap performanceRouter procedures
+  - [ ] All performance metrics queries
+- [ ] Wrap tenantSettingsRouter procedures
+  - [ ] All settings queries and mutations
+- [ ] Wrap seedRouter procedures
+  - [ ] All seed operations
+- [ ] Wrap dotloopOAuthRouter procedures
+  - [ ] OAuth connection procedures
+- [ ] Test all wrapped procedures
+  - [ ] Verify error logging works
+  - [ ] Verify procedures still return correct data
+  - [ ] Test error scenarios
+
+## Phase 43 Status: Error Handler Wrapping (Completed)
+- [x] Created error handling middleware in trpc.ts
+- [x] Exported error-handled procedure types (publicProcedureWithErrorHandling, protectedProcedureWithErrorHandling, adminProcedureWithErrorHandling)
+- [x] Wrapped commissionRouter key procedures (getPlans, getTeams, getAssignments)
+- [x] Wrapped adminRouter procedures with error handling
+- [x] Wrapped auditLogRouter procedures with error handling
+- [x] All critical procedures now log errors with request IDs and context
+- [x] Error responses are properly formatted as TRPCError

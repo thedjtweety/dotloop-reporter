@@ -43,3 +43,116 @@ export const adminProcedure = t.procedure.use(
     });
   }),
 );
+
+
+/**
+ * Error handling middleware for all procedures
+ */
+const errorHandlingMiddleware = t.middleware(async ({ ctx, next, path, type }) => {
+  const { generateRequestId, logEntry } = await import('../lib/error-handler');
+  const startTime = Date.now();
+  const requestId = generateRequestId();
+
+  try {
+    logEntry({
+      level: 'debug',
+      message: `[${type.toUpperCase()}] ${path} started`,
+      context: {
+        timestamp: new Date().toISOString(),
+        requestId,
+        metadata: {
+          userId: ctx.user?.id,
+          tenantId: ctx.user?.tenantId,
+          path,
+          type,
+        },
+      },
+    });
+
+    const result = await next();
+
+    const duration = Date.now() - startTime;
+    logEntry({
+      level: 'debug',
+      message: `[${type.toUpperCase()}] ${path} completed successfully`,
+      context: {
+        timestamp: new Date().toISOString(),
+        requestId,
+        metadata: {
+          userId: ctx.user?.id,
+          tenantId: ctx.user?.tenantId,
+          path,
+          type,
+          duration,
+        },
+      },
+    });
+
+    return result;
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    const errorName = error instanceof Error ? error.name : 'UnknownError';
+
+    logEntry({
+      level: 'error',
+      message: `[${type.toUpperCase()}] ${path} failed: ${errorMsg}`,
+      context: {
+        timestamp: new Date().toISOString(),
+        requestId,
+        metadata: {
+          userId: ctx.user?.id,
+          tenantId: ctx.user?.tenantId,
+          path,
+          type,
+          duration,
+        },
+      },
+      error: {
+        name: errorName,
+        message: errorMsg,
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+    });
+
+    if (error instanceof TRPCError) {
+      throw error;
+    }
+
+    if (error instanceof Error) {
+      const code = errorMsg.includes('not found')
+        ? 'NOT_FOUND'
+        : errorMsg.includes('unauthorized')
+          ? 'UNAUTHORIZED'
+          : errorMsg.includes('forbidden')
+            ? 'FORBIDDEN'
+            : 'INTERNAL_SERVER_ERROR';
+
+      throw new TRPCError({
+        code: code as any,
+        message: errorMsg,
+        cause: error,
+      });
+    }
+
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'An unexpected error occurred',
+    });
+  }
+});
+
+/**
+ * Public procedure with error handling
+ */
+export const publicProcedureWithErrorHandling = publicProcedure.use(errorHandlingMiddleware);
+
+/**
+ * Protected procedure with error handling
+ */
+export const protectedProcedureWithErrorHandling = protectedProcedure.use(errorHandlingMiddleware);
+
+/**
+ * Admin procedure with error handling
+ */
+export const adminProcedureWithErrorHandling = adminProcedure.use(errorHandlingMiddleware);

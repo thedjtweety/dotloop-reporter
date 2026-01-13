@@ -1,4 +1,4 @@
-import { router, adminProcedure } from './_core/trpc';
+import { router, adminProcedure, adminProcedureWithErrorHandling } from './_core/trpc';
 import { z } from 'zod';
 import { getDb } from './db';
 import { auditLogs } from '../drizzle/schema';
@@ -14,7 +14,7 @@ export const auditLogRouter = router({
    * Create a new audit log entry
    * Called automatically by admin actions
    */
-  create: adminProcedure
+  create: adminProcedureWithErrorHandling
     .input(z.object({
       action: z.enum([
         'user_created',
@@ -60,7 +60,7 @@ export const auditLogRouter = router({
   /**
    * List audit logs with filtering and pagination
    */
-  list: adminProcedure
+  list: adminProcedureWithErrorHandling
     .input(z.object({
       limit: z.number().min(1).max(100).default(50),
       offset: z.number().min(0).default(0),
@@ -132,7 +132,7 @@ export const auditLogRouter = router({
   /**
    * Get audit log statistics
    */
-  getStats: adminProcedure
+  getStats: adminProcedureWithErrorHandling
     .query(async () => {
       const db = await getDb();
       if (!db) throw new Error('Database not available');

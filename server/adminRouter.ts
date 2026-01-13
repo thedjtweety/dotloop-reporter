@@ -1,5 +1,4 @@
-import { router } from './_core/trpc';
-import { protectedProcedure } from './_core/trpc';
+import { protectedProcedure, protectedProcedureWithErrorHandling, router } from './_core/trpc';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { getDb } from './db';
@@ -8,10 +7,10 @@ import { deleteUpload } from './uploadDb';
 import { eq, desc, sql } from 'drizzle-orm';
 
 /**
- * Admin-only middleware
+ * Admin-only middleware with error handling
  * Ensures the user has admin role before allowing access to admin endpoints
  */
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+const adminProcedure = protectedProcedureWithErrorHandling.use(({ ctx, next }) => {
   if (ctx.user.role !== 'admin') {
     throw new TRPCError({
       code: 'FORBIDDEN',
