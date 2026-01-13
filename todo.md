@@ -1529,3 +1529,19 @@
 - [ ] Test upload history UI in browser
 - [ ] Test comparison modal in browser
 - [ ] Save checkpoint with upload history system
+
+## Phase 28: Agent Performance Leaderboard Navigation
+- [x] Add pagination state (current page, items per page)
+- [x] Add search/filter input for agent names
+- [x] Implement quick filter buttons (Top 10, Bottom 10, By Team)
+- [x] Add column sorting (click header to sort)
+- [x] Create sticky table header
+- [x] Build floating action bar with Jump to Agent search
+- [x] Add Export Page and Compare Agents buttons
+- [x] Implement agent comparison modal
+- [x] Test pagination with various agent counts
+- [x] Test search and filter functionality
+- [x] Test sorting by different columns
+- [x] Test sticky header and floating bar
+- [x] Debug component rendering issue
+- [x] Save checkpoint with leaderboard improvements

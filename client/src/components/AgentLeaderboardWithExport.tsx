@@ -1,10 +1,10 @@
 /**
  * Agent Leaderboard Component with Export Functionality
- * Displays agent performance metrics with download options for PDF and Excel
- * Design: Professional data table with color-coded performance indicators and export buttons
+ * Displays agent performance metrics with pagination, search, filters, and export options
+ * Design: Professional data table with sorting, filtering, and navigation controls
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AgentMetrics } from '@/lib/csvParser';
 import { exportAgentAsCSV, exportAgentAsPDF, exportAllAgentsAsCSV } from '@/lib/exportReports';
 import { Card } from '@/components/ui/card';
@@ -18,7 +18,8 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, TrendingUp, Download, FileText, Sheet as SheetIcon, Medal, Trophy, Eye } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ArrowUpDown, TrendingUp, Download, FileText, Sheet as SheetIcon, Medal, Trophy, Eye, Search, X } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import AgentCommissionModal from './AgentCommissionModal';
@@ -34,6 +35,9 @@ interface AgentLeaderboardProps {
 }
 
 type SortField = keyof AgentMetrics;
+type FilterType = 'all' | 'top10' | 'bottom10';
+
+const ITEMS_PER_PAGE = 10;
 
 export default function AgentLeaderboardWithExport({ agents, records = [] }: AgentLeaderboardProps) {
   const [sortField, setSortField] = useState<SortField>('totalCommission');
@@ -41,31 +45,9 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
   const [exportingAgent, setExportingAgent] = useState<string | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<AgentMetrics | null>(null);
   const [showPodium, setShowPodium] = useState(true);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // Sync scrollbar position when table scrolls
-  useEffect(() => {
-    const scrollContainer = document.getElementById('leaderboard-scroll');
-    const scrollbarThumb = document.getElementById('scrollbar-thumb');
-
-    if (!scrollContainer) return;
-
-    const handleScroll = () => {
-      if (scrollbarThumb && scrollContainer) {
-        const scrollPercentage = scrollContainer.scrollLeft / (scrollContainer.scrollWidth - scrollContainer.clientWidth);
-        const thumbWidth = (scrollContainer.clientWidth / scrollContainer.scrollWidth) * 100;
-        const thumbPosition = scrollPercentage * (100 - thumbWidth);
-        
-        scrollbarThumb.style.marginLeft = `${thumbPosition}%`;
-        scrollbarThumb.style.width = `${Math.max(thumbWidth, 5)}%`;
-      }
-    };
-
-    scrollContainer.addEventListener('scroll', handleScroll);
-    handleScroll();
-    
-    return () => scrollContainer.removeEventListener('scroll', handleScroll);
-  }, []);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Check if financial data exists
   const hasFinancialData = agents.some(a => a.totalCommission > 0 || a.companyDollar > 0);
@@ -77,6 +59,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
       setSortField(field);
       setSortDirection('desc');
     }
+    setCurrentPage(1); // Reset to first page when sorting
   };
 
   const handleExportPDF = (agent: AgentMetrics) => {
@@ -103,22 +86,54 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
 
   const handleExportAllCSV = () => {
     try {
-      exportAllAgentsAsCSV(agents);
+      exportAllAgentsAsCSV(filteredAndSortedAgents);
     } catch (error) {
       console.error('Error exporting all agents:', error);
     }
   };
 
-  const sortedAgents = [...agents].sort((a, b) => {
-    const aValue = a[sortField];
-    const bValue = b[sortField];
+  // Filter agents based on search and filter type
+  const filteredAndSortedAgents = useMemo(() => {
+    let result = [...agents];
 
-    if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(agent =>
+        agent.agentName.toLowerCase().includes(query)
+      );
     }
 
-    return 0;
-  });
+    // Apply filter type
+    if (filterType === 'top10') {
+      result = result
+        .sort((a, b) => b.totalCommission - a.totalCommission)
+        .slice(0, 10);
+    } else if (filterType === 'bottom10') {
+      result = result
+        .sort((a, b) => a.totalCommission - b.totalCommission)
+        .slice(0, 10);
+    }
+
+    // Apply sorting
+    result.sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      return 0;
+    });
+
+    return result;
+  }, [agents, searchQuery, filterType, sortField, sortDirection]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredAndSortedAgents.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedAgents = filteredAndSortedAgents.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const getPerformanceBadge = (closingRate: number) => {
     if (closingRate >= 50) return 'bg-accent text-foreground-foreground';
@@ -139,7 +154,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
     >
       <div className="flex items-center gap-2">
         {label}
-        <ArrowUpDown className="w-4 h-4 opacity-50" />
+        <ArrowUpDown className={`w-4 h-4 ${sortField === field ? 'opacity-100 text-primary' : 'opacity-50'}`} />
       </div>
     </TableHead>
   );
@@ -157,7 +172,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
   return (
     <Card className="overflow-hidden">
       <div className="p-6 border-b border-border">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-primary" />
             <h2 className="text-xl font-display font-semibold text-foreground">
@@ -185,9 +200,73 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
             </Button>
           </div>
         </div>
-        <p className="text-sm text-foreground">
-          Click column headers to sort. Download individual reports using the action buttons.
-        </p>
+
+        {/* Search and Filter Controls */}
+        <div className="space-y-3">
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search agent by name..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="pl-10 pr-8"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setCurrentPage(1);
+                }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Filter Buttons */}
+          <div className="flex gap-2">
+            <Button
+              onClick={() => {
+                setFilterType('all');
+                setCurrentPage(1);
+              }}
+              variant={filterType === 'all' ? 'default' : 'outline'}
+              size="sm"
+            >
+              All Agents ({agents.length})
+            </Button>
+            <Button
+              onClick={() => {
+                setFilterType('top10');
+                setCurrentPage(1);
+              }}
+              variant={filterType === 'top10' ? 'default' : 'outline'}
+              size="sm"
+            >
+              Top 10 Performers
+            </Button>
+            <Button
+              onClick={() => {
+                setFilterType('bottom10');
+                setCurrentPage(1);
+              }}
+              variant={filterType === 'bottom10' ? 'default' : 'outline'}
+              size="sm"
+            >
+              Bottom 10
+            </Button>
+          </div>
+
+          {/* Results Info */}
+          <p className="text-sm text-muted-foreground">
+            Showing {paginatedAgents.length > 0 ? startIndex + 1 : 0}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredAndSortedAgents.length)} of {filteredAndSortedAgents.length} agents
+          </p>
+        </div>
       </div>
 
       {/* Winners Podium */}
@@ -200,9 +279,9 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
         </div>
       )}
 
-      <div className="relative">
-        <div className="relative overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent" id="leaderboard-scroll">
-          <Table className="min-w-[1200px]">
+      {/* Leaderboard Table */}
+      <div className="relative overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+        <Table className="min-w-[1200px]">
           <TableHeader>
             <TableRow className="bg-muted/30 hover:bg-muted/30 border-b border-border/50">
               <TableHead className="w-16 text-center font-display font-bold text-foreground uppercase tracking-wider text-xs py-4">
@@ -231,191 +310,203 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedAgents.map((agent, index) => (
+            {paginatedAgents.map((agent, index) => (
               <React.Fragment key={agent.agentName}>
-                <TableRow
-                  className="hover:bg-muted/50 transition-colors"
-                >
-                <TableCell className="text-center font-display font-semibold text-primary">
-                  {index === 0 ? (
-                    <div className="flex justify-center">
-                      <Medal className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                <TableRow className="hover:bg-muted/50 transition-colors">
+                  <TableCell className="text-center font-display font-semibold text-primary">
+                    {startIndex + index === 0 ? (
+                      <div className="flex justify-center">
+                        <Medal className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                      </div>
+                    ) : startIndex + index === 1 ? (
+                      <div className="flex justify-center">
+                        <Medal className="w-5 h-5 text-gray-400 fill-gray-400" />
+                      </div>
+                    ) : startIndex + index === 2 ? (
+                      <div className="flex justify-center">
+                        <Medal className="w-5 h-5 text-amber-700 fill-amber-700" />
+                      </div>
+                    ) : (
+                      `#${startIndex + index + 1}`
+                    )}
+                  </TableCell>
+                  <TableCell className="font-medium text-foreground">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                          {agent.agentName
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                            .substring(0, 2)
+                            .toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      {agent.agentName}
                     </div>
-                  ) : index === 1 ? (
-                    <div className="flex justify-center">
-                      <Medal className="w-5 h-5 text-gray-400 fill-gray-400" />
-                    </div>
-                  ) : index === 2 ? (
-                    <div className="flex justify-center">
-                      <Medal className="w-5 h-5 text-amber-700 fill-amber-700" />
-                    </div>
-                  ) : (
-                    `#${index + 1}`
+                  </TableCell>
+                  {hasFinancialData && (
+                    <TableCell className="font-semibold text-foreground">
+                      {formatCurrency(agent.totalCommission)}
+                    </TableCell>
                   )}
-                </TableCell>
-                <TableCell className="font-medium text-foreground">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                        {agent.agentName
-                          .split(' ')
-                          .map((n) => n[0])
-                          .join('')
-                          .substring(0, 2)
-                          .toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    {agent.agentName}
-                  </div>
-                </TableCell>
-                {hasFinancialData && (
-                  <TableCell className="font-semibold text-foreground">
-                    {formatCurrency(agent.totalCommission)}
-                  </TableCell>
-                )}
-                {hasFinancialData && (
-                  <TableCell className="font-medium text-blue-600 dark:text-blue-400">
-                    {formatCurrency(agent.companyDollar)}
-                  </TableCell>
-                )}
-                {hasFinancialData && (
+                  {hasFinancialData && (
+                    <TableCell className="font-semibold text-primary">
+                      {formatCurrency(agent.companyDollar)}
+                    </TableCell>
+                  )}
+                  {hasFinancialData && (
+                    <TableCell className="text-foreground">
+                      {formatCurrency(agent.averageCommission)}
+                    </TableCell>
+                  )}
                   <TableCell className="text-foreground">
-                    {formatCurrency(agent.averageCommission)}
+                    {agent.totalTransactions}
                   </TableCell>
-                )}
-                <TableCell className="text-center font-medium">
-                  {agent.totalTransactions}
-                </TableCell>
-                <TableCell className="text-center font-medium text-foreground">
-                  {agent.closedDeals}
-                </TableCell>
-                <TableCell className="text-center">
-                  <div className="flex flex-col items-center gap-1">
-                    <Badge className={getPerformanceBadge(agent.closingRate)}>
-                      {formatPercentage(agent.closingRate)}
-                    </Badge>
-                    <Progress value={agent.closingRate} className="h-1.5 w-16" />
-                  </div>
-                </TableCell>
-                <TableCell className="text-foreground">
-                  {formatCurrency(agent.averageSalesPrice)}
-                </TableCell>
-                <TableCell className="text-center text-foreground">
-                  {agent.averageDaysToClose} days
-                </TableCell>
-                <TableCell className="text-center font-medium">
-                  {agent.activeListings}
-                </TableCell>
-                <TableCell className="text-center font-medium">
-                  {agent.underContract}
-                </TableCell>
-                {hasFinancialData && (
                   <TableCell className="text-foreground">
-                    {formatCurrency(agent.buySideCommission)}
+                    {agent.closedDeals}
                   </TableCell>
-                )}
-                {hasFinancialData && (
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Progress
+                        value={agent.closingRate}
+                        className="w-12 h-2"
+                      />
+                      <span className="text-sm font-semibold text-foreground">
+                        {formatPercentage(agent.closingRate)}
+                      </span>
+                    </div>
+                  </TableCell>
                   <TableCell className="text-foreground">
-                    {formatCurrency(agent.sellSideCommission)}
+                    {formatCurrency(agent.averageSalesPrice)}
                   </TableCell>
-                )}
-                {hasFinancialData && (
-                  <TableCell className="text-center">
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  <TableCell className="text-foreground">
+                    {agent.averageDaysToClose} days
+                  </TableCell>
+                  <TableCell className="text-foreground">
+                    {agent.activeListings}
+                  </TableCell>
+                  <TableCell className="text-foreground">
+                    {agent.underContract}
+                  </TableCell>
+                  {hasFinancialData && (
+                    <TableCell className="text-foreground">
+                      {formatCurrency(agent.buySideCommission)}
+                    </TableCell>
+                  )}
+                  {hasFinancialData && (
+                    <TableCell className="text-foreground">
+                      {formatCurrency(agent.sellSideCommission)}
+                    </TableCell>
+                  )}
+                  {hasFinancialData && (
+                    <TableCell className="text-foreground">
                       {formatPercentage(agent.buySidePercentage)}
-                    </Badge>
-                  </TableCell>
-                )}
-                {hasFinancialData && (
-                  <TableCell className="text-center">
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    </TableCell>
+                  )}
+                  {hasFinancialData && (
+                    <TableCell className="text-foreground">
                       {formatPercentage(agent.sellSidePercentage)}
-                    </Badge>
+                    </TableCell>
+                  )}
+                  <TableCell className="sticky right-0 bg-card shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]">
+                    <div className="flex justify-center gap-1">
+                      <Button
+                        onClick={() => setSelectedAgent(agent)}
+                        variant="ghost"
+                        size="sm"
+                        title="View commission breakdown"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        onClick={() => setSelectedAgent(agent)}
+                        variant="ghost"
+                        size="sm"
+                        title="View details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        onClick={() => handleExportPDF(agent)}
+                        variant="ghost"
+                        size="sm"
+                        disabled={exportingAgent === agent.agentName}
+                        title="Export as PDF"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        onClick={() => handleExportCSV(agent)}
+                        variant="ghost"
+                        size="sm"
+                        disabled={exportingAgent === agent.agentName}
+                        title="Export as Excel"
+                      >
+                        <SheetIcon className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </TableCell>
-                )}
-                <TableCell className="text-center sticky right-0 bg-card shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]">
-                  <div className="flex gap-1 justify-center">
-                    {hasFinancialData && <AgentCommissionModal agent={agent} />}
-                    <Button
-                      onClick={() => setSelectedAgent(agent)}
-                      variant={selectedAgent?.agentName === agent.agentName ? "secondary" : "ghost"}
-                      size="sm"
-                      title="View details"
-                      className="h-8 w-8 p-0"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      onClick={() => handleExportPDF(agent)}
-                      variant="ghost"
-                      size="sm"
-                      title="Export as PDF"
-                      disabled={exportingAgent === agent.agentName}
-                      className="h-8 w-8 p-0"
-                    >
-                      <FileText className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      onClick={() => handleExportCSV(agent)}
-                      variant="ghost"
-                      size="sm"
-                      title="Export as Excel"
-                      disabled={exportingAgent === agent.agentName}
-                      className="h-8 w-8 p-0"
-                    >
-                      <SheetIcon className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
                 </TableRow>
               </React.Fragment>
             ))}
           </TableBody>
         </Table>
-        </div>
-        
-        {/* Floating sticky scrollbar at bottom */}
-        <div 
-          className="sticky bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-muted-foreground/10 to-transparent border-t border-border/20 z-20"
-          style={{ background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.05), transparent)' }}
-        >
-          <div 
-            className="h-full bg-muted-foreground/40 rounded-full transition-all cursor-pointer hover:bg-muted-foreground/60"
-            id="scrollbar-thumb"
-            style={{ width: '20%', marginLeft: '0%' }}
-          />
-        </div>
       </div>
 
-      <div className="p-4 bg-muted/30 border-t border-border text-xs text-foreground">
-        <p>
-          Showing {sortedAgents.length} agent{sortedAgents.length !== 1 ? 's' : ''}
-          . Download individual reports for performance reviews and team meetings.
-        </p>
-      </div>
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between p-4 border-t border-border">
+          <div className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              variant="outline"
+              size="sm"
+            >
+              Previous
+            </Button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const pageNum = Math.max(1, currentPage - 2) + i;
+              return pageNum <= totalPages ? (
+                <Button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  variant={currentPage === pageNum ? 'default' : 'outline'}
+                  size="sm"
+                >
+                  {pageNum}
+                </Button>
+              ) : null;
+            })}
+            <Button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              variant="outline"
+              size="sm"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Agent Details Sheet */}
-      <Sheet open={!!selectedAgent} onOpenChange={(open) => !open && setSelectedAgent(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-3xl overflow-hidden flex flex-col">
-          <SheetHeader className="mb-6">
-            <SheetTitle className="text-2xl font-display font-bold flex items-center gap-3">
-              <Avatar className="w-10 h-10 border-2 border-primary">
-                <AvatarFallback className="bg-primary/10 text-primary">
-                  {selectedAgent?.agentName.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                </AvatarFallback>
-              </Avatar>
-              {selectedAgent?.agentName}
-            </SheetTitle>
-          </SheetHeader>
-          
-          {selectedAgent && (
-            <AgentDetailsPanel 
-              agent={selectedAgent} 
-              transactions={records} 
-            />
-          )}
-        </SheetContent>
-      </Sheet>
+      {selectedAgent && (
+        <Sheet open={!!selectedAgent} onOpenChange={() => setSelectedAgent(null)}>
+          <SheetContent side="right" className="w-full sm:w-[600px] overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>{selectedAgent.agentName}</SheetTitle>
+            </SheetHeader>
+            <div className="mt-6 space-y-6">
+              <AgentDetailsPanel agent={selectedAgent} records={records} />
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
     </Card>
   );
 }
