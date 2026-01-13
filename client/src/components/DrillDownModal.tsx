@@ -29,42 +29,51 @@ export default function DrillDownModal({
   transactions,
 }: DrillDownModalProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const floatingScrollbarRef = useRef<HTMLDivElement>(null);
+  const scrollbarThumbRef = useRef<HTMLDivElement>(null);
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Sync floating scrollbar with table scroll
+  // Update scrollbar width and position when content changes
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
+    const updateScrollbar = () => {
+      const scrollPercentage = container.clientWidth / container.scrollWidth;
+      const thumbWidth = Math.max(40, scrollPercentage * container.clientWidth);
+      setScrollbarWidth(thumbWidth);
+      
+      // Update thumb position
+      if (scrollbarThumbRef.current) {
+        const scrollLeft = container.scrollLeft;
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        const thumbPosition = (scrollLeft / maxScroll) * (container.clientWidth - thumbWidth);
+        scrollbarThumbRef.current.style.transform = `translateX(${thumbPosition}px)`;
+      }
+    };
+
     const handleScroll = () => {
-      if (floatingScrollbarRef.current) {
-        const scrollPercentage = container.scrollLeft / (container.scrollWidth - container.clientWidth);
-        const maxThumbWidth = container.clientWidth - 40; // Account for padding
-        floatingScrollbarRef.current.style.setProperty('--scroll-percentage', `${scrollPercentage * 100}%`);
+      if (scrollbarThumbRef.current && scrollContainerRef.current) {
+        const container = scrollContainerRef.current;
+        const scrollLeft = container.scrollLeft;
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        const thumbWidth = scrollbarWidth;
+        const thumbPosition = (scrollLeft / maxScroll) * (container.clientWidth - thumbWidth);
+        scrollbarThumbRef.current.style.transform = `translateX(${thumbPosition}px)`;
       }
     };
 
-    const updateScrollbarWidth = () => {
-      if (container && floatingScrollbarRef.current) {
-        const scrollPercentage = container.clientWidth / container.scrollWidth;
-        const thumbWidth = Math.max(40, scrollPercentage * container.clientWidth);
-        setScrollbarWidth(thumbWidth);
-      }
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    window.addEventListener('resize', updateScrollbarWidth);
-    
     // Initial calculation
-    setTimeout(updateScrollbarWidth, 100);
+    updateScrollbar();
+    
+    container.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', updateScrollbar);
 
     return () => {
       container.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', updateScrollbarWidth);
+      window.removeEventListener('resize', updateScrollbar);
     };
-  }, []);
+  }, [scrollbarWidth]);
 
   // Handle floating scrollbar dragging
   const handleScrollbarMouseDown = (e: React.MouseEvent) => {
@@ -77,15 +86,15 @@ export default function DrillDownModal({
 
     const handleMouseMove = (e: MouseEvent) => {
       const container = scrollContainerRef.current;
-      if (!container) return;
-
-      const scrollbar = floatingScrollbarRef.current;
-      if (!scrollbar) return;
+      const scrollbar = scrollContainerRef.current?.parentElement?.querySelector('[data-scrollbar-track]') as HTMLElement;
+      
+      if (!container || !scrollbar) return;
 
       const scrollbarRect = scrollbar.getBoundingClientRect();
-      const scrollPercentage = (e.clientX - scrollbarRect.left) / scrollbarRect.width;
+      const clickX = e.clientX - scrollbarRect.left;
+      const scrollPercentage = Math.max(0, Math.min(1, clickX / scrollbarRect.width));
       const maxScroll = container.scrollWidth - container.clientWidth;
-      container.scrollLeft = Math.max(0, Math.min(maxScroll, scrollPercentage * maxScroll));
+      container.scrollLeft = scrollPercentage * maxScroll;
     };
 
     const handleMouseUp = () => {
@@ -111,40 +120,39 @@ export default function DrillDownModal({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Scrollable table container */}
-        <div
-          ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto overflow-x-auto mt-2 sm:mt-4 -mx-3 sm:mx-0 relative"
-          style={{
-            '--scroll-percentage': '0%',
-          } as React.CSSProperties}
-        >
-          <TransactionTable transactions={transactions} compact />
-        </div>
-
-        {/* Floating Horizontal Scrollbar */}
-        {scrollbarWidth > 0 && (
+        {/* Main content area with table and scrollbar */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Scrollable table container */}
           <div
-            ref={floatingScrollbarRef}
-            className="sticky bottom-0 left-0 right-0 h-2 bg-muted/30 rounded-full mx-3 sm:mx-0 my-2 cursor-pointer hover:bg-muted/50 transition-colors"
-            onMouseDown={handleScrollbarMouseDown}
-            style={{
-              position: 'sticky',
-              bottom: '8px',
-              zIndex: 10,
-            }}
+            ref={scrollContainerRef}
+            id="drilldown-scroll"
+            className="flex-1 overflow-y-auto overflow-x-auto mt-2 sm:mt-4 -mx-3 sm:mx-0"
           >
-            {/* Scrollbar thumb */}
-            <div
-              className="h-full bg-primary/60 rounded-full transition-all duration-75 hover:bg-primary/80"
-              style={{
-                width: `${scrollbarWidth}px`,
-                transform: `translateX(calc(var(--scroll-percentage, 0%) * (100% - ${scrollbarWidth}px)))`,
-                cursor: isDragging ? 'grabbing' : 'grab',
-              }}
-            />
+            <TransactionTable transactions={transactions} compact />
           </div>
-        )}
+
+          {/* Floating Horizontal Scrollbar */}
+          {scrollbarWidth > 0 && (
+            <div
+              data-scrollbar-track
+              className="h-2 bg-muted/30 rounded-full mx-3 sm:mx-0 my-2 cursor-pointer hover:bg-muted/50 transition-colors relative"
+              onMouseDown={handleScrollbarMouseDown}
+              style={{
+                minHeight: '8px',
+              }}
+            >
+              {/* Scrollbar thumb */}
+              <div
+                ref={scrollbarThumbRef}
+                className="absolute top-0 h-full bg-primary/60 rounded-full transition-colors hover:bg-primary/80"
+                style={{
+                  width: `${scrollbarWidth}px`,
+                  cursor: isDragging ? 'grabbing' : 'grab',
+                }}
+              />
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
