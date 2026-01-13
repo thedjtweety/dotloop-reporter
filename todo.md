@@ -1478,3 +1478,19 @@
 - [x] Test export/print from full details view (DrillDownModal)
 - [x] Verify file naming includes drill-down context and date
 - [x] Test print preview in browser (Chrome, Firefox)
+
+## Phase 24: Search/Filter and Column Sorting in Drill-Downs
+- [x] Add search input to DrillDownModal header
+- [x] Add filter controls for Status, Agent, and Date Range
+- [x] Implement search across all transaction fields
+- [x] Add column sorting to full details table
+- [x] Implement sort indicators (ascending/descending arrows)
+- [x] Add sort state management to Home.tsx
+- [x] Update DrillDownModal to accept sort state
+- [x] Write vitest tests for search/filter logic
+- [x] Write vitest tests for sorting logic
+- [x] Test search functionality in browser
+- [x] Test filter functionality in browser
+- [x] Test sorting functionality in browser
+- [x] Verify export includes filtered/sorted data
+- [x] Save checkpoint with search/filter/sort features

@@ -5,16 +5,26 @@
  */
 
 import { useRef, useEffect, useState } from 'react';
-import { X, Download, Printer } from 'lucide-react';
+import { X, Download, Printer, Search, ChevronDown } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import TransactionTable from './TransactionTable';
 import { exportAsCSV, exportAsExcel, openPrintDialog } from '@/lib/exportUtils';
+import { filterAndSortTransactions, DrillDownFilters, SortState, getUniqueValues } from '@/lib/filterUtils';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface DrillDownModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   transactions: DotloopRecord[];
+  onSortChange?: (sortState: SortState | null) => void;
 }
 
 export default function DrillDownModal({
@@ -22,11 +32,25 @@ export default function DrillDownModal({
   onClose,
   title,
   transactions,
+  onSortChange,
 }: DrillDownModalProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollbarRef = useRef<HTMLDivElement>(null);
   const scrollbarThumbRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [filters, setFilters] = useState<DrillDownFilters>({
+    searchQuery: '',
+    status: 'All',
+    agent: 'All',
+  });
+  const [sortState, setSortState] = useState<SortState | null>(null);
+
+  // Get unique values for filters
+  const uniqueStatuses = ['All', ...getUniqueValues(transactions, 'status')];
+  const uniqueAgents = ['All', ...getUniqueValues(transactions, 'agentName')];
+
+  // Apply filters and sorting
+  const filteredTransactions = filterAndSortTransactions(transactions, filters, sortState);
 
   // Sync scrollbar with table scroll
   useEffect(() => {
@@ -96,12 +120,12 @@ export default function DrillDownModal({
           <div>
             <h2 className="text-xl font-display font-semibold text-white">{title}</h2>
             <p className="text-sm text-slate-400 mt-1">
-              Showing {transactions.length} transaction{transactions.length !== 1 ? 's' : ''}
+              Showing {filteredTransactions.length} of {transactions.length} transaction{transactions.length !== 1 ? 's' : ''}
             </p>
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => exportAsCSV({ title, records: transactions })}
+              onClick={() => exportAsCSV({ title, records: filteredTransactions })}
               className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
               aria-label="Export as CSV"
             >
@@ -109,7 +133,7 @@ export default function DrillDownModal({
               CSV
             </button>
             <button
-              onClick={() => exportAsExcel({ title, records: transactions })}
+              onClick={() => exportAsExcel({ title, records: filteredTransactions })}
               className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
               aria-label="Export as Excel"
             >
@@ -117,7 +141,7 @@ export default function DrillDownModal({
               Excel
             </button>
             <button
-              onClick={() => openPrintDialog({ title, records: transactions })}
+              onClick={() => openPrintDialog({ title, records: filteredTransactions })}
               className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
               aria-label="Print"
             >
@@ -134,6 +158,48 @@ export default function DrillDownModal({
           </div>
         </div>
 
+        {/* Filter Controls */}
+        <div className="flex-shrink-0 px-6 py-4 border-b border-slate-700 bg-slate-800 space-y-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Input
+                  type="text"
+                  placeholder="Search by address, agent, property type..."
+                  value={filters.searchQuery}
+                  onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
+                  className="pl-10 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                />
+              </div>
+            </div>
+            <Select value={filters.status || 'All'} onValueChange={(value) => setFilters({ ...filters, status: value })}>
+              <SelectTrigger className="w-[150px] bg-slate-700 border-slate-600 text-white">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-700 border-slate-600">
+                {uniqueStatuses.map(status => (
+                  <SelectItem key={status} value={status} className="text-white hover:bg-slate-600">
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filters.agent || 'All'} onValueChange={(value) => setFilters({ ...filters, agent: value })}>
+              <SelectTrigger className="w-[150px] bg-slate-700 border-slate-600 text-white">
+                <SelectValue placeholder="Agent" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-700 border-slate-600">
+                {uniqueAgents.map(agent => (
+                  <SelectItem key={agent} value={agent} className="text-white hover:bg-slate-600">
+                    {agent}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Scrollable Table Container */}
@@ -141,7 +207,7 @@ export default function DrillDownModal({
             ref={scrollContainerRef}
             className="flex-1 overflow-x-auto overflow-y-auto"
           >
-            <TransactionTable transactions={transactions} />
+            <TransactionTable transactions={filteredTransactions} />
           </div>
 
           {/* Floating Scrollbar */}
