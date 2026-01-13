@@ -12,6 +12,7 @@ import PerformanceDashboard from "./pages/PerformanceDashboard";
 import AuditLog from "./pages/AuditLog";
 import RoleManagement from "./pages/RoleManagement";
 import TenantSettings from "./pages/TenantSettings";
+import CommissionManagement from "./pages/CommissionManagement";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/performance" component={PerformanceDashboard} />
       <Route path="/creative" component={CreativeDashboard} />
       <Route path="/settings" component={TenantSettings} />
+      <Route path="/commission" component={CommissionManagement} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

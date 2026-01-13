@@ -47,25 +47,6 @@ export default function AdminDashboard() {
   const [roleChangeUserId, setRoleChangeUserId] = useState<number | null>(null);
   const [newRole, setNewRole] = useState<'user' | 'admin'>('user');
 
-  // Redirect if not admin
-  if (!isAuthenticated || user?.role !== 'admin') {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="p-8 max-w-md text-center">
-          <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-foreground mb-2">Access Denied</h2>
-          <p className="text-foreground mb-6">
-            You need admin privileges to access this page.
-          </p>
-          <Button onClick={() => setLocation('/')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Button>
-        </Card>
-      </div>
-    );
-  }
-
   const { data: stats, isLoading: statsLoading } = trpc.admin.getStats.useQuery();
   const { data: users, refetch: refetchUsers } = trpc.admin.listUsers.useQuery({ limit: 50, offset: 0 });
   const { data: uploads, refetch: refetchUploads } = trpc.admin.listAllUploads.useQuery({ limit: 50, offset: 0 });
@@ -84,6 +65,25 @@ export default function AdminDashboard() {
       setRoleChangeUserId(null);
     },
   });
+
+  // Redirect if not admin
+  if (!isAuthenticated || user?.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="p-8 max-w-md text-center">
+          <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">Access Denied</h2>
+          <p className="text-foreground mb-6">
+            You need admin privileges to access this page.
+          </p>
+          <Button onClick={() => setLocation('/')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

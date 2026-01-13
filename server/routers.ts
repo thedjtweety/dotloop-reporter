@@ -13,6 +13,7 @@ import { dotloopOAuthRouter } from './dotloopOAuthRouter';
 import { tenantSettingsRouter } from './tenantSettingsRouter';
 import { commissionRouter } from './commissionRouter';
 // import { tierHistoryRouter } from './tierHistoryRouter'; // Removed: tierHistory table was dropped in migration
+// Note: tierHistoryRouter.ts file contains imports of the removed tierHistory table
 import { seedRouter } from './seedRouter';
 import {
   createUpload,

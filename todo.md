@@ -891,3 +891,10 @@
 - [x] Add data validation before database insertion
 - [x] Add upload record cleanup on validation/insertion failure
 - [x] Test transaction validator with edge cases (all 26 tests passing)
+
+## Recent Fixes (Jan 12, 2026)
+- [x] Fix Zod validation error in seedRouter (accept null values for optional fields)
+- [x] Fix AdminDashboard hook ordering issue (conditional rendering causing hook mismatch)
+- [x] Remove CSVUploadWidget from CommissionCalculator (transactions already uploaded)
+- [x] Add CommissionManagement route to App.tsx
+- [x] Resolve TypeScript errors (tierHistory import, CommissionTier exports)
