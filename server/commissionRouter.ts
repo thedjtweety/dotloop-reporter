@@ -18,7 +18,14 @@ import {
   type Team,
   type AgentPlanAssignment,
   type TransactionInput,
+  type CommissionBreakdown,
+  type AgentYTDSummary,
 } from "./lib/commission-calculator";
+import {
+  generateReportHTML,
+  type PDFReportData,
+  type PDFReportOptions,
+} from "./lib/pdf-generator";
 import {
   commissionPlans,
   teams,
@@ -556,6 +563,52 @@ export const commissionRouter = router({
         console.error("Delete assignment error:", error);
         throw new Error(
           `Failed to delete agent assignment: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
+      }
+    }),
+
+  exportPDF: protectedProcedure
+    .input(
+      z.object({
+        breakdowns: z.array(z.any()),
+        ytdSummaries: z.array(z.any()),
+        brokerageName: z.string().optional(),
+        reportTitle: z.string().optional().default('Commission Report'),
+        options: z.object({
+          includeTransactionDetails: z.boolean().optional().default(true),
+          includeAgentSummaries: z.boolean().optional().default(true),
+          groupByAgent: z.boolean().optional().default(true),
+          pageSize: z.enum(['letter', 'a4']).optional().default('letter'),
+        }).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const reportData: PDFReportData = {
+          breakdowns: input.breakdowns as CommissionBreakdown[],
+          ytdSummaries: input.ytdSummaries as AgentYTDSummary[],
+          generatedDate: new Date().toISOString(),
+          brokerageName: input.brokerageName,
+          reportTitle: input.reportTitle,
+        };
+
+        const options: PDFReportOptions = input.options || {};
+
+        const html = generateReportHTML(reportData, options);
+
+        const timestamp = new Date().toISOString().split('T')[0];
+        const fileName = `commission-report-${timestamp}.pdf`;
+
+        return {
+          success: true,
+          html,
+          fileName,
+          timestamp: new Date().toISOString(),
+        };
+      } catch (error) {
+        console.error("PDF export error:", error);
+        throw new Error(
+          `Failed to generate PDF report: ${error instanceof Error ? error.message : "Unknown error"}`
         );
       }
     }),

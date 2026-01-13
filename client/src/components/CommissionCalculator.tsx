@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle, Loader2, Download, RefreshCw } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { getRecentFiles } from '@/lib/storage';
+import ExportPDFButton from '@/components/ExportPDFButton';
 // CSV upload is handled on the main Analytics page
 import type { DotloopRecord } from '@/lib/csvParser';
 
@@ -310,15 +311,22 @@ export default function CommissionCalculator() {
               >
                 YTD Summaries ({result.data.ytdSummaries.length})
               </TabsTrigger>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleExportCSV}
-                className="ml-auto gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Export CSV
-              </Button>
+              <div className="ml-auto flex gap-2">
+                <ExportPDFButton
+                  breakdowns={result.data.breakdowns}
+                  ytdSummaries={result.data.ytdSummaries}
+                  disabled={result.data.breakdowns.length === 0}
+                />
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleExportCSV}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Export CSV
+                </Button>
+              </div>
             </TabsList>
 
             {/* Breakdowns Tab */}

@@ -899,3 +899,15 @@
 - [x] Add CommissionManagement route to App.tsx
 - [x] Resolve TypeScript errors (tierHistory import, CommissionTier exports)
 - [x] Fix $NaN issue in Commission Calculator (removed incorrect /100 division, fixed field names)
+
+## Phase 40: Commission Report PDF Export Feature
+- [x] Design PDF report structure (cover page, agent summaries, transaction details, totals)
+- [x] Create PDF generation service using ReportLab
+- [x] Implement PDF styling (headers, footers, tables, formatting)
+- [x] Build ExportPDFButton component for Commission Calculator
+- [x] Create backend endpoint for PDF generation
+- [x] Implement data aggregation for PDF (agent summaries, transaction grouping)
+- [x] Add PDF download functionality to Commission Breakdowns
+- [x] Create comprehensive vitest tests for PDF generator (18 test cases)
+- [x] Fix date formatting in tests and implementation
+- [x] Add error handling for PDF generation failures
