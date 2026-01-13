@@ -77,10 +77,18 @@ const AgentAssignmentSchema = z.object({
   id: z.string(), // Required for database insert
   agentName: z.string(),
   planId: z.string(),
-  teamId: z.string().optional(),
-  startDate: z.string().optional(),
-  anniversaryDate: z.string().optional(),
+  teamId: z.string().nullable().optional(),
+  startDate: z.string().nullable().optional(),
+  anniversaryDate: z.string().nullable().optional(),
 });
+
+// Preprocess to convert null to undefined for database compatibility
+const AgentAssignmentSchemaProcessed = AgentAssignmentSchema.transform((data) => ({
+  ...data,
+  teamId: data.teamId ?? undefined,
+  startDate: data.startDate ?? undefined,
+  anniversaryDate: data.anniversaryDate ?? undefined,
+}));
 
 export const commissionRouter = router({
   /**
@@ -103,7 +111,7 @@ export const commissionRouter = router({
         transactions: z.array(TransactionInputSchema),
         planIds: z.array(z.string()).optional(),
         teamIds: z.array(z.string()).optional(),
-        agentAssignments: z.array(AgentAssignmentSchema),
+        agentAssignments: z.array(AgentAssignmentSchemaProcessed),
       })
     )
     .mutation(async ({ ctx, input }) => {
