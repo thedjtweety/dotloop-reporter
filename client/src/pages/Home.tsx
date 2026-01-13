@@ -47,7 +47,7 @@ import { UploadProgress, useUploadProgress } from '@/components/UploadProgress';
 import { filterRecordsByDate, getPreviousPeriod } from '@/lib/dateUtils';
 import { cleanDate, cleanNumber, cleanPercentage, cleanText } from '@/lib/dataCleaning';
 import { findMatchingTemplate, saveTemplate } from '@/lib/importTemplates';
-import { generateSampleData } from '@/lib/sampleData';
+import { generateDemoData } from '@/lib/demoGenerator';
 import { getRecentFiles, saveRecentFile, deleteRecentFile } from '@/lib/storage';
 import UploadZone from '@/components/UploadZone';
 import CommissionProjector from '@/components/CommissionProjector';
@@ -187,7 +187,8 @@ function HomeContent() {
   const handleDemoMode = () => {
     setIsLoading(true);
     setTimeout(() => {
-      const sampleData = generateSampleData(150);
+      const { data: sampleData, stats } = generateDemoData({ complexity: 'random' });
+      console.log(`Demo generated: ${stats.agentCount} agents, ${stats.transactionCount} transactions, $${stats.totalGCI.toLocaleString()} total GCI`);
       setAllRecords(sampleData);
       setFilteredRecords(sampleData);
       setMetrics(calculateMetrics(sampleData));
