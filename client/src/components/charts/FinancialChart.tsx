@@ -4,7 +4,7 @@
  */
 
 import { DashboardMetrics } from '@/lib/csvParser';
-import { DollarSign, TrendingUp, Percent, ArrowUp, ArrowDown } from 'lucide-react';
+import { TrendingUp, ArrowUp, ArrowDown } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 
 interface FinancialChartProps {
@@ -34,7 +34,7 @@ function generateTrendData(currentValue: number, variance: number = 0.15): numbe
 /**
  * Simple SVG sparkline component
  */
-function Sparkline({ data, color = '#3b82f6', height = 40 }: { data: number[]; color?: string; height?: number }) {
+function Sparkline({ data, color = '#3b82f6', height = 60 }: { data: number[]; color?: string; height?: number }) {
   if (data.length < 2) return null;
   
   const min = Math.min(...data);
@@ -55,7 +55,7 @@ function Sparkline({ data, color = '#3b82f6', height = 40 }: { data: number[]; c
         points={points}
         fill="none"
         stroke={color}
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -79,7 +79,6 @@ export default function FinancialChart({ metrics, records = [] }: FinancialChart
       label: 'Total Sales Volume',
       value: `$${(metrics.totalSalesVolume / 1000000).toFixed(2)}M`,
       change: salesVolumeChange,
-      icon: DollarSign,
       color: 'from-emerald-500 to-green-600',
       sparklineColor: '#10b981',
       trendData: salesVolumeTrend,
@@ -88,7 +87,6 @@ export default function FinancialChart({ metrics, records = [] }: FinancialChart
       label: 'Average Price',
       value: `$${metrics.averagePrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
       change: avgPriceChange,
-      icon: TrendingUp,
       color: 'from-blue-500 to-cyan-600',
       sparklineColor: '#0ea5e9',
       trendData: avgPriceTrend,
@@ -97,7 +95,6 @@ export default function FinancialChart({ metrics, records = [] }: FinancialChart
       label: 'Total Commission',
       value: `$${metrics.totalCommission.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
       change: commissionChange,
-      icon: Percent,
       color: 'from-violet-500 to-purple-600',
       sparklineColor: '#a855f7',
       trendData: commissionTrend,
@@ -107,43 +104,40 @@ export default function FinancialChart({ metrics, records = [] }: FinancialChart
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {financialMetrics.map((metric, index) => {
-        const Icon = metric.change >= 0 ? ArrowUp : ArrowDown;
         const isPositive = metric.change >= 0;
+        const Icon = isPositive ? ArrowUp : ArrowDown;
         
         return (
           <div
             key={index}
-            className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 from-slate-50 to-slate-100 p-6 hover:shadow-lg transition-all duration-300 group"
+            className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 from-slate-50 to-slate-100 p-6 hover:shadow-lg transition-all duration-300 group flex flex-col h-full"
           >
             {/* Gradient background accent */}
             <div className={`absolute inset-0 bg-gradient-to-br ${metric.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
             
-            <div className="relative z-10">
-              {/* Header with label and change indicator */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
-                    {metric.label}
-                  </p>
-                  <p className="text-3xl font-display font-bold text-slate-900 dark:text-white">
-                    {metric.value}
-                  </p>
-                </div>
-                
-                {/* Icon with gradient background */}
-                <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${metric.color} flex items-center justify-center flex-shrink-0 shadow-md`}>
-                  <Icon className="w-6 h-6 text-white" />
-                </div>
+            <div className="relative z-10 flex flex-col h-full">
+              {/* Header with label */}
+              <div className="mb-4">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                  {metric.label}
+                </p>
               </div>
 
-              {/* Sparkline chart */}
-              <div className="mb-4 h-10 -mx-2">
-                <Sparkline data={metric.trendData} color={metric.sparklineColor} height={40} />
+              {/* Main value */}
+              <div className="mb-6">
+                <p className="text-4xl font-display font-bold text-slate-900 dark:text-white leading-tight">
+                  {metric.value}
+                </p>
               </div>
 
-              {/* Change indicator */}
-              <div className="flex items-center gap-2">
-                <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${
+              {/* Sparkline chart - takes up remaining space */}
+              <div className="flex-1 mb-6 -mx-2 flex items-center justify-center">
+                <Sparkline data={metric.trendData} color={metric.sparklineColor} height={60} />
+              </div>
+
+              {/* Change indicator at bottom */}
+              <div className="flex items-center gap-2 mt-auto">
+                <div className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full ${
                   isPositive 
                     ? 'bg-emerald-100 dark:bg-emerald-900/30' 
                     : 'bg-red-100 dark:bg-red-900/30'
