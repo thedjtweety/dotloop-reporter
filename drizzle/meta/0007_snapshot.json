@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "bb73256c-ea5c-430e-a450-b828827d841a",
+  "id": "851d5e31-64d5-4a34-b763-26a580a7d33f",
   "prevId": "600653ce-739f-43f9-9062-05bfbc4e0763",
   "tables": {
     "agent_assignments": {
@@ -70,7 +70,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(now())"
+          "default": "'CURRENT_TIMESTAMP'"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -83,6 +83,14 @@
         }
       },
       "indexes": {
+        "agent_assignments_tenant_agent_unique": {
+          "name": "agent_assignments_tenant_agent_unique",
+          "columns": [
+            "tenantId",
+            "agentName"
+          ],
+          "isUnique": false
+        },
         "agent_assignments_tenant_idx": {
           "name": "agent_assignments_tenant_idx",
           "columns": [
@@ -120,23 +128,8 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "agent_assignments_id": {
-          "name": "agent_assignments_id",
-          "columns": [
-            "id"
-          ]
-        }
-      },
-      "uniqueConstraints": {
-        "agent_assignments_tenant_agent_unique": {
-          "name": "agent_assignments_tenant_agent_unique",
-          "columns": [
-            "tenantId",
-            "agentName"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "checkConstraint": {}
     },
     "audit_logs": {
@@ -232,7 +225,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(now())"
+          "default": "'CURRENT_TIMESTAMP'"
         }
       },
       "indexes": {
@@ -283,14 +276,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "audit_logs_id": {
-          "name": "audit_logs_id",
-          "columns": [
-            "id"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -380,7 +366,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(now())"
+          "default": "'CURRENT_TIMESTAMP'"
         }
       },
       "indexes": {
@@ -407,14 +393,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "commission_calculations_id": {
-          "name": "commission_calculations_id",
-          "columns": [
-            "id"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -486,21 +465,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "useSliding": {
-          "name": "useSliding",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "tiers": {
-          "name": "tiers",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "description": {
           "name": "description",
           "type": "text",
@@ -516,13 +480,28 @@
           "autoincrement": false,
           "default": 1
         },
+        "useSliding": {
+          "name": "useSliding",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "tiers": {
+          "name": "tiers",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(now())"
+          "default": "'CURRENT_TIMESTAMP'"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -551,14 +530,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "commission_plans_id": {
-          "name": "commission_plans_id",
-          "columns": [
-            "id"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -657,7 +629,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(now())"
+          "default": "'CURRENT_TIMESTAMP'"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -684,6 +656,13 @@
         }
       },
       "indexes": {
+        "oauth_tokens_tokenHash_unique": {
+          "name": "oauth_tokens_tokenHash_unique",
+          "columns": [
+            "tokenHash"
+          ],
+          "isUnique": false
+        },
         "tenant_idx": {
           "name": "tenant_idx",
           "columns": [
@@ -731,22 +710,8 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "oauth_tokens_id": {
-          "name": "oauth_tokens_id",
-          "columns": [
-            "id"
-          ]
-        }
-      },
-      "uniqueConstraints": {
-        "oauth_tokens_tokenHash_unique": {
-          "name": "oauth_tokens_tokenHash_unique",
-          "columns": [
-            "tokenHash"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "checkConstraint": {}
     },
     "platform_admin_logs": {
@@ -814,7 +779,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(now())"
+          "default": "'CURRENT_TIMESTAMP'"
         }
       },
       "indexes": {
@@ -857,14 +822,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "platform_admin_logs_id": {
-          "name": "platform_admin_logs_id",
-          "columns": [
-            "id"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -927,7 +885,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(now())"
+          "default": "'CURRENT_TIMESTAMP'"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -956,14 +914,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "teams_id": {
-          "name": "teams_id",
-          "columns": [
-            "id"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -1027,7 +978,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(now())"
+          "default": "'CURRENT_TIMESTAMP'"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -1040,6 +991,20 @@
         }
       },
       "indexes": {
+        "tenants_subdomain_unique": {
+          "name": "tenants_subdomain_unique",
+          "columns": [
+            "subdomain"
+          ],
+          "isUnique": false
+        },
+        "tenants_customDomain_unique": {
+          "name": "tenants_customDomain_unique",
+          "columns": [
+            "customDomain"
+          ],
+          "isUnique": false
+        },
         "subdomain_idx": {
           "name": "subdomain_idx",
           "columns": [
@@ -1056,28 +1021,8 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "tenants_id": {
-          "name": "tenants_id",
-          "columns": [
-            "id"
-          ]
-        }
-      },
-      "uniqueConstraints": {
-        "tenants_subdomain_unique": {
-          "name": "tenants_subdomain_unique",
-          "columns": [
-            "subdomain"
-          ]
-        },
-        "tenants_customDomain_unique": {
-          "name": "tenants_customDomain_unique",
-          "columns": [
-            "customDomain"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "checkConstraint": {}
     },
     "token_audit_logs": {
@@ -1166,7 +1111,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(now())"
+          "default": "'CURRENT_TIMESTAMP'"
         }
       },
       "indexes": {
@@ -1197,14 +1142,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "token_audit_logs_id": {
-          "name": "token_audit_logs_id",
-          "columns": [
-            "id"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -1490,10 +1428,18 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(now())"
+          "default": "'CURRENT_TIMESTAMP'"
         }
       },
       "indexes": {
+        "loopId_tenant_unique": {
+          "name": "loopId_tenant_unique",
+          "columns": [
+            "loopId",
+            "tenantId"
+          ],
+          "isUnique": false
+        },
         "tenant_idx": {
           "name": "tenant_idx",
           "columns": [
@@ -1541,23 +1487,8 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "transactions_id": {
-          "name": "transactions_id",
-          "columns": [
-            "id"
-          ]
-        }
-      },
-      "uniqueConstraints": {
-        "loopId_tenant_unique": {
-          "name": "loopId_tenant_unique",
-          "columns": [
-            "loopId",
-            "tenantId"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "checkConstraint": {}
     },
     "uploads": {
@@ -1604,7 +1535,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(now())"
+          "default": "'CURRENT_TIMESTAMP'"
         },
         "fileSize": {
           "name": "fileSize",
@@ -1690,14 +1621,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "uploads_id": {
-          "name": "uploads_id",
-          "columns": [
-            "id"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -1768,7 +1692,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(now())"
+          "default": "'CURRENT_TIMESTAMP'"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -1785,10 +1709,26 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(now())"
+          "default": "'CURRENT_TIMESTAMP'"
         }
       },
       "indexes": {
+        "openId_tenant_unique": {
+          "name": "openId_tenant_unique",
+          "columns": [
+            "openId",
+            "tenantId"
+          ],
+          "isUnique": false
+        },
+        "email_tenant_unique": {
+          "name": "email_tenant_unique",
+          "columns": [
+            "email",
+            "tenantId"
+          ],
+          "isUnique": false
+        },
         "tenant_idx": {
           "name": "tenant_idx",
           "columns": [
@@ -1798,30 +1738,8 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "users_id": {
-          "name": "users_id",
-          "columns": [
-            "id"
-          ]
-        }
-      },
-      "uniqueConstraints": {
-        "openId_tenant_unique": {
-          "name": "openId_tenant_unique",
-          "columns": [
-            "openId",
-            "tenantId"
-          ]
-        },
-        "email_tenant_unique": {
-          "name": "email_tenant_unique",
-          "columns": [
-            "email",
-            "tenantId"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "checkConstraint": {}
     }
   },

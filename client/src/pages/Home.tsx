@@ -351,32 +351,7 @@ function HomeContent() {
     }
   };
 
-  const [currentUploadId, setCurrentUploadId] = useState<number | undefined>();
-  const utils = trpc.useUtils();
-
-  const uploadMutation = trpc.uploads.create.useMutation({
-    onSuccess: (result) => {
-      // Refetch the uploads list
-      utils.uploads.list.invalidate();
-      // Set the current upload ID
-      setCurrentUploadId(result.uploadId);
-    },
-  });
-
-  const { data: uploadTransactions } = trpc.uploads.getTransactions.useQuery(
-    { uploadId: currentUploadId! },
-    { enabled: !!currentUploadId }
-  );
-
-  // Load transactions when uploadId changes
-  useEffect(() => {
-    if (uploadTransactions && uploadTransactions.length > 0) {
-      setAllRecords(uploadTransactions);
-      setFilteredRecords(uploadTransactions);
-      setMetrics(calculateMetrics(uploadTransactions));
-      setAgentMetrics(calculateAgentMetrics(uploadTransactions));
-    }
-  }, [uploadTransactions]);
+  // Client-side only - no database persistence needed
 
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
@@ -457,32 +432,13 @@ function HomeContent() {
         uploadProgress.completeStage('parsing', `Parsed ${records.length} records`);
       }
       
-      // Step 3: Upload to database
-      if (isAuthenticated && user) {
-        if (shouldShowProgress) {
-          uploadProgress.startStage('upload', 'Saving to database...');
-        }
-        
-        performanceMetrics.totalTimeMs = Date.now() - overallStartTime;
-        
-        // Save to database via tRPC with performance metrics
-        await uploadMutation.mutateAsync({
-          fileName: file.name,
-          transactions: records,
-          fileSize: performanceMetrics.fileSize,
-          validationTimeMs: performanceMetrics.validationTimeMs,
-          parsingTimeMs: performanceMetrics.parsingTimeMs,
-          totalTimeMs: performanceMetrics.totalTimeMs,
-        });
-        
-        if (shouldShowProgress) {
-          uploadProgress.completeStage('upload', 'Upload complete');
-        }
-      } else if (shouldShowProgress) {
-        // Skip upload stage for non-authenticated users
-        uploadProgress.startStage('upload', 'Skipping database upload (not logged in)');
-        uploadProgress.completeStage('upload', 'Processing complete');
+      // Step 3: Complete - no database upload needed for MVP
+      if (shouldShowProgress) {
+        uploadProgress.startStage('upload', 'Processing complete');
+        uploadProgress.completeStage('upload', 'Ready to analyze');
       }
+      
+      performanceMetrics.totalTimeMs = Date.now() - overallStartTime;
       
       // Process the records for immediate display
       setAllRecords(records);
@@ -491,10 +447,8 @@ function HomeContent() {
       setAgentMetrics(calculateAgentMetrics(records));
       setIsLoading(false);
       
-      // Save to recent files (localStorage fallback for non-authenticated users)
-      if (!isAuthenticated) {
-        await handleSaveRecent(file.name, records);
-      }
+      // Save to recent files (localStorage)
+      await handleSaveRecent(file.name, records);
       
       // Hide progress dialog after a short delay
       if (shouldShowProgress) {
@@ -606,10 +560,10 @@ function HomeContent() {
             {isAuthenticated && user ? (
               <div className="mt-12 text-left">
                 <UploadHistory 
-                  onSelectUpload={(uploadId) => {
-                    setCurrentUploadId(uploadId);
+                  onSelectUpload={(file) => {
+                    handleRecentSelect(file);
                   }}
-                  currentUploadId={currentUploadId}
+                  currentUploadId={recentFiles.find(f => f.data === allRecords)?.id}
                 />
               </div>
             ) : recentFiles.length > 0 && (

@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { trpc } from '@/lib/trpc';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,22 +14,39 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { RecentFile } from './RecentUploads';
 
 interface UploadHistoryProps {
-  onSelectUpload: (uploadId: number) => void;
-  currentUploadId?: number;
+  onSelectUpload: (file: RecentFile) => void;
+  currentUploadId?: string;
 }
 
 export default function UploadHistory({ onSelectUpload, currentUploadId }: UploadHistoryProps) {
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
-  
-  const { data: uploads, isLoading, refetch } = trpc.uploads.list.useQuery();
-  const deleteMutation = trpc.uploads.delete.useMutation({
-    onSuccess: () => {
-      refetch();
-      setDeleteConfirmId(null);
-    },
-  });
+  const [uploads, setUploads] = useState<RecentFile[]>([]);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load uploads from localStorage
+  useEffect(() => {
+    try {
+      const savedFiles = localStorage.getItem('dotloop_recent_files');
+      if (savedFiles) {
+        const parsed = JSON.parse(savedFiles);
+        setUploads(parsed);
+      }
+    } catch (e) {
+      console.error('Failed to load upload history', e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleDelete = (id: string) => {
+    const updated = uploads.filter(f => f.id !== id);
+    setUploads(updated);
+    localStorage.setItem('dotloop_recent_files', JSON.stringify(updated));
+    setDeleteConfirmId(null);
+  };
 
   if (isLoading) {
     return (
@@ -83,14 +99,14 @@ export default function UploadHistory({ onSelectUpload, currentUploadId }: Uploa
                     : 'bg-card border-border hover:bg-muted/50 hover:border-primary/50'
                   }
                 `}
-                onClick={() => onSelectUpload(upload.id)}
+                onClick={() => onSelectUpload(upload)}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <FileText className={`w-4 h-4 flex-shrink-0 ${currentUploadId === upload.id ? 'text-primary' : 'text-foreground'}`} />
                       <h4 className="font-medium text-sm text-foreground truncate">
-                        {upload.fileName}
+                        {upload.name}
                       </h4>
                     </div>
                     
@@ -98,12 +114,12 @@ export default function UploadHistory({ onSelectUpload, currentUploadId }: Uploa
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         <span>
-                          {formatDistanceToNow(new Date(upload.uploadedAt), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(upload.timestamp), { addSuffix: true })}
                         </span>
                       </div>
                       <span className="text-foreground/50">•</span>
                       <span className="font-medium">
-                        {upload.recordCount} {upload.recordCount === 1 ? 'record' : 'records'}
+                        {upload.data.length} {upload.data.length === 1 ? 'record' : 'records'}
                       </span>
                     </div>
                   </div>
@@ -142,7 +158,7 @@ export default function UploadHistory({ onSelectUpload, currentUploadId }: Uploa
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Upload?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this upload and all its transaction data. This action cannot be undone.
+              This will permanently delete this upload from your history. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -151,7 +167,7 @@ export default function UploadHistory({ onSelectUpload, currentUploadId }: Uploa
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
                 if (deleteConfirmId) {
-                  deleteMutation.mutate({ uploadId: deleteConfirmId });
+                  handleDelete(deleteConfirmId);
                 }
               }}
             >
