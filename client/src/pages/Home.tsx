@@ -811,13 +811,13 @@ function HomeContent() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-foreground font-medium">Closed</p>
-                <p className="text-2xl font-display font-bold text-accent">
+                <p className="text-sm text-foreground dark:text-white font-medium">Closed</p>
+                <p className="text-2xl font-display font-bold text-foreground dark:text-white">
                   {metrics.closed}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-accent" />
+              <div className="w-12 h-12 rounded-lg bg-green-500/20 dark:bg-green-500/30 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
           </Card>
@@ -828,13 +828,13 @@ function HomeContent() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-foreground font-medium">Archived</p>
-                <p className="text-2xl font-display font-bold text-foreground">
+                <p className="text-sm text-foreground dark:text-white font-medium">Archived</p>
+                <p className="text-2xl font-display font-bold text-foreground dark:text-white">
                   {metrics.archived}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                <HomeIcon className="w-6 h-6 text-foreground" />
+              <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                <HomeIcon className="w-6 h-6 text-gray-700 dark:text-gray-300" />
               </div>
             </div>
           </Card>

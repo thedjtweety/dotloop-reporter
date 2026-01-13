@@ -1134,3 +1134,11 @@
 - [x] Update demo generator to match exact field structure
 - [ ] Test all dashboard components (metrics, charts, podium, calculator, projector)
 - [ ] Verify data flows correctly through all views
+
+
+## Phase 52: Fix Metric Card Contrast Issues
+- [x] Locate metric card components (Closed, Archived cards)
+- [x] Fix text color contrast (labels and numbers with dark:text-white)
+- [x] Fix icon visibility in Archived card (gray-700 dark:gray-300)
+- [x] Ensure theme-aware colors (foreground in light, white in dark)
+- [ ] Test in both dark and light themes
