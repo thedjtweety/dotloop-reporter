@@ -57,7 +57,7 @@ export default function TransactionTable({ transactions, limit, compact = false 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
-  const itemsPerPage = 12;
+  const itemsPerPage = 20;
 
   // Load column preferences from localStorage on mount
   useEffect(() => {
@@ -214,25 +214,25 @@ export default function TransactionTable({ transactions, limit, compact = false 
         <TableHeader>
           <TableRow className="border-border">
             {isColumnVisible('status') && (
-              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[140px]">Status</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-4 w-[140px]">Status</TableHead>
             )}
             {isColumnVisible('property') && (
-              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[200px]">Property</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-4 w-[300px]">Property</TableHead>
             )}
             {isColumnVisible('agent') && (
-              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[120px]">Agent</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-4 w-[150px]">Agent</TableHead>
             )}
             {isColumnVisible('price') && (
-              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[100px]">Price</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-4 w-[120px]">Price</TableHead>
             )}
             {isColumnVisible('commission') && (
-              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[110px]">Commission</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-4 w-[130px]">Commission</TableHead>
             )}
             {isColumnVisible('date') && (
-              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[110px]">Date</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-4 w-[130px]">Date</TableHead>
             )}
             {isColumnVisible('actions') && (
-              <TableHead className="font-semibold text-xs py-2 px-3 min-w-[100px]">Actions</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-4 w-[120px]">Actions</TableHead>
             )}
           </TableRow>
         </TableHeader>
@@ -289,7 +289,7 @@ export default function TransactionTable({ transactions, limit, compact = false 
                 </TableCell>
               )}
               {isColumnVisible('actions') && (
-                <TableCell className="py-2 px-3">
+                <TableCell className="py-2 px-4 w-[120px]">
                   {transaction.loopViewUrl && (
                     <a
                       href={transaction.loopViewUrl}
@@ -310,8 +310,8 @@ export default function TransactionTable({ transactions, limit, compact = false 
         </TableBody>
       </Table>
 
-      {/* Pagination Controls - only show if not using limit prop */}
-      {!limit && totalPages > 1 && (
+      {/* Pagination Controls - only show if many pages */}
+      {!limit && totalPages > 2 && (
         <div className="flex items-center justify-between pt-4 border-t border-border">
           <Button
             variant="outline"
