@@ -263,7 +263,36 @@ export const uploads = mysqlTable("uploads", {
 	index("tenant_uploadedAt_idx").on(table.tenantId, table.uploadedAt),
 ]);
 
-export const users = mysqlTable("users", {
+	export const uploadSnapshots = mysqlTable("upload_snapshots", {
+		id: int().autoincrement().notNull(),
+		tenantId: int().notNull(),
+		uploadId: int().notNull(),
+		fileName: varchar({ length: 255 }).notNull(),
+		uploadedAt: timestamp({ mode: 'string' }).notNull(),
+		totalTransactions: int().notNull(),
+		totalSalesVolume: int().notNull(),
+		averagePrice: int().notNull(),
+		totalCommission: int().notNull(),
+		closingRate: int().notNull(),
+		avgDaysToClose: int().notNull(),
+		activeListings: int().notNull(),
+		underContract: int().notNull(),
+		closedDeals: int().notNull(),
+		archivedDeals: int().notNull(),
+		totalCompanyDollar: int().notNull(),
+		buySideCommission: int().notNull(),
+		sellSideCommission: int().notNull(),
+		metricsJson: text().notNull(),
+		createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	},
+	(table) => [
+		index("upload_snapshots_tenant_idx").on(table.tenantId),
+		index("upload_snapshots_upload_idx").on(table.uploadId),
+		index("upload_snapshots_tenant_uploadedAt_idx").on(table.tenantId, table.uploadedAt),
+		index("upload_snapshots_createdAt_idx").on(table.createdAt),
+	]);
+
+	export const users = mysqlTable("users", {
 	id: int().autoincrement().notNull(),
 	tenantId: int().notNull(),
 	openId: varchar({ length: 64 }).notNull(),

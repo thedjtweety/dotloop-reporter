@@ -1512,3 +1512,20 @@
 - [x] Improve visual hierarchy
 - [x] Test layout in browser
 - [x] Save checkpoint with refined layout
+
+## Phase 27: Upload History & Comparison System (PAUSED)
+- [x] Design and create uploads table schema in database
+- [x] Create uploadSnapshotDb.ts with backend utilities
+- [ ] Add upload metadata capture (date, filename, metrics snapshot)
+- [ ] Create upload tracking on CSV import
+- [ ] Build upload history UI component
+- [ ] Create comparison modal component
+- [ ] Add side-by-side metric comparison in modal
+- [ ] Add sparkline comparison charts
+- [ ] Implement 90-day auto-cleanup job
+- [ ] Add "Compare with Previous" quick action to dashboard
+- [ ] Write vitest tests for upload tracking
+- [ ] Write vitest tests for comparison logic
+- [ ] Test upload history UI in browser
+- [ ] Test comparison modal in browser
+- [ ] Save checkpoint with upload history system
