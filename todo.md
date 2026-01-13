@@ -1057,7 +1057,7 @@
 - [ ] Implement mapping cache and persistence
   - [ ] Store successful mappings per user
   - [ ] Cache format signatures for quick recognition
-  - [ ] Retrieve cached mappings for similar CSVs
+  - [x] Retrieve cached mappings for similar CSVs
   - [ ] Allow users to save custom mapping profiles
 - [ ] Integrate into CSVPreview
   - [ ] Auto-detect headers on file load
@@ -1069,3 +1069,35 @@
   - [ ] Test with custom headers (should show minimal UI)
   - [ ] Test with cached mappings (should recognize format)
   - [ ] Verify no extra clicks for standard formats
+
+
+## Phase 47: Conditional Mapping UI, Cache, and CSVPreview Integration
+- [x] Build conditional mapping UI component
+  - [x] Create ColumnMappingSelector component
+  - [x] Show only for unmatched/low-confidence columns
+  - [x] Minimal inline design (dropdown per column)
+  - [x] Display confidence indicators
+  - [x] Allow user to override suggestions
+- [ ] Implement mapping cache and persistence
+  - [x] Create mapping cache service
+  - [x] Store mappings by format signature
+  - [x] Retrieve cached mappings for similar CSVs
+  - [x] Allow users to save/manage custom profiles
+  - [x] Store in localStorage for persistence
+- [ ] Integrate header matcher into CSVPreview
+  - [x] Add header matching logic on file select
+  - [x] Auto-detect headers and calculate confidence
+  - [x] Show mapping UI conditionally (<90% confidence)
+  - [x] Display confidence score to user
+  - [x] Allow user to confirm or adjust mappings
+- [ ] Test end-to-end with various CSV formats
+  - [ ] Test with perfect Dotloop exports (100% confidence)
+  - [ ] Test with custom headers (fuzzy matching)
+  - [ ] Test with typos and variations
+  - [ ] Test mapping cache retrieval
+  - [ ] Test zero-click experience
+- [ ] Verify and save checkpoint
+  - [ ] Confirm no extra clicks for standard formats
+  - [ ] Verify mapping UI appears only when needed
+  - [ ] Test cache persistence across sessions
+  - [ ] Performance test with large files
