@@ -60,6 +60,7 @@ import FieldMapper, { ColumnMapping as FieldMapping } from '@/components/FieldMa
 import { DatePickerWithRange } from '@/components/DateRangePicker';
 import { normalizeRecord } from '@/lib/csvParser';
 import PipelineChart from '@/components/charts/PipelineChart';
+import PipelineChartDrillDown from '@/components/PipelineChartDrillDown';
 import FinancialChart from '@/components/charts/FinancialChart';
 import CommissionBreakdownChart from '@/components/CommissionBreakdownChart';
 import RevenueDistributionChart from '@/components/charts/RevenueDistributionChart';
@@ -114,6 +115,10 @@ function HomeContent() {
   const [drillDownOpen, setDrillDownOpen] = useState(false);
   const [drillDownTitle, setDrillDownTitle] = useState('');
   const [drillDownTransactions, setDrillDownTransactions] = useState<DotloopRecord[]>([]);
+  
+  // Pipeline chart drill-down state
+  const [pipelineDrillDownOpen, setPipelineDrillDownOpen] = useState(false);
+  const [pipelineDrillDownStatus, setPipelineDrillDownStatus] = useState('');
 
   // Import Wizard State
   const [showMapping, setShowMapping] = useState(false);
@@ -867,7 +872,10 @@ function HomeContent() {
                 </h2>
                 <PipelineChart 
                   data={getPipelineData(allRecords)} 
-                  onBarClick={(label) => handleChartClick('pipeline', label)}
+                  onBarClick={(label) => {
+                    setPipelineDrillDownStatus(label);
+                    setPipelineDrillDownOpen(true);
+                  }}
                 />
               </Card>
             </TabsContent>
@@ -1089,6 +1097,14 @@ function HomeContent() {
           onSkip={skipTour}
         />
       )}
+      
+      {/* Pipeline Chart Drill-Down Modal */}
+      <PipelineChartDrillDown
+        isOpen={pipelineDrillDownOpen}
+        onClose={() => setPipelineDrillDownOpen(false)}
+        status={pipelineDrillDownStatus}
+        records={allRecords}
+      />
     </div>
   );
 }

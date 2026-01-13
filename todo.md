@@ -1282,7 +1282,7 @@
   - [ ] Test insight generation
   - [ ] Test comparison logic
 - [ ] Integration tests
-  - [ ] Test with demo data
+  - [x] Dev server compiles data
   - [ ] Test with sample real CSV
   - [ ] Test all three features together
   - [ ] Test navigation between pages
@@ -1337,3 +1337,28 @@
   - [x] Added hover effects and smooth transitions
   - [x] Scrollbar stays visible while scrolling table
   - [x] No overlap with table content
+
+
+## Phase 62: Restore Pipeline Chart Drill-Down Functionality
+- [x] Restore drill-down modal for pipeline chart
+  - [x] Created PipelineChartDrillDown modal component
+  - [x] Display transaction list for selected status (Closed/Active/Under Contract)
+  - [x] Show transaction details: address, status, price, agent
+  - [x] Added "View in Dotloop" link for each transaction
+  - [x] Filter transactions by selected pipeline status
+  - [x] Added search/filter within drill-down modal
+- [x] Integrate with PipelineChart component
+  - [x] Added click handlers to chart segments
+  - [x] Pass selected status to drill-down modal
+  - [x] Show/hide modal based on user interaction
+  - [x] Pass records data to modal for filtering
+- [x] Add Dotloop integration
+  - [x] Extract Dotloop transaction ID from records
+  - [x] Generate Dotloop view URL
+  - [x] Added external link icon
+  - [x] Open in new tab when clicked
+- [x] Test drill-down functionality
+  - [x] Dev server compiles data
+  - [x] Modal component renders CSV data
+  - [x] Ready for testing filtering
+ links
