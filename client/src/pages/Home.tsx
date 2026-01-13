@@ -61,6 +61,7 @@ import { DatePickerWithRange } from '@/components/DateRangePicker';
 import { normalizeRecord } from '@/lib/csvParser';
 import PipelineChart from '@/components/charts/PipelineChart';
 import PipelineChartDrillDown from '@/components/PipelineChartDrillDown';
+import ChartDrillDown from '@/components/ChartDrillDown';
 import FinancialChart from '@/components/charts/FinancialChart';
 import CommissionBreakdownChart from '@/components/CommissionBreakdownChart';
 import RevenueDistributionChart from '@/components/charts/RevenueDistributionChart';
@@ -119,6 +120,20 @@ function HomeContent() {
   // Pipeline chart drill-down state
   const [pipelineDrillDownOpen, setPipelineDrillDownOpen] = useState(false);
   const [pipelineDrillDownStatus, setPipelineDrillDownStatus] = useState('');
+  
+  // Generic chart drill-down state
+  const [chartDrillDownOpen, setChartDrillDownOpen] = useState(false);
+  const [chartDrillDownType, setChartDrillDownType] = useState<'leadSource' | 'propertyType' | 'geographic' | 'commission'>('leadSource');
+  const [chartDrillDownValue, setChartDrillDownValue] = useState('');
+  const [chartDrillDownTitle, setChartDrillDownTitle] = useState('');
+  
+  // Helper function to open chart drill-down
+  const openChartDrillDown = (type: 'leadSource' | 'propertyType' | 'geographic' | 'commission', value: string, title: string) => {
+    setChartDrillDownType(type);
+    setChartDrillDownValue(value);
+    setChartDrillDownTitle(title);
+    setChartDrillDownOpen(true);
+  };
 
   // Import Wizard State
   const [showMapping, setShowMapping] = useState(false);
@@ -906,7 +921,7 @@ function HomeContent() {
                 </h2>
                 <LeadSourceChart 
                   data={getLeadSourceData(allRecords)} 
-                  onSliceClick={(label) => handleChartClick('leadSource', label)}
+                  onSliceClick={(label) => openChartDrillDown('leadSource', label, `Lead Source: ${label}`)}
                 />
               </Card>
             </TabsContent>
@@ -918,7 +933,7 @@ function HomeContent() {
                 </h2>
                 <PropertyTypeChart 
                   data={getPropertyTypeData(allRecords)} 
-                  onBarClick={(label) => handleChartClick('propertyType', label)}
+                  onBarClick={(label) => openChartDrillDown('propertyType', label, `Property Type: ${label}`)}
                 />
               </Card>
             </TabsContent>
@@ -930,7 +945,7 @@ function HomeContent() {
                 </h2>
                 <GeographicChart 
                   data={getGeographicData(allRecords)} 
-                  onBarClick={(label) => handleChartClick('geographic', label)}
+                  onBarClick={(label) => openChartDrillDown('geographic', label, `Location: ${label}`)}
                 />
               </Card>
             </TabsContent>
@@ -952,6 +967,7 @@ function HomeContent() {
                       <CommissionBreakdownChart 
                         buySide={filteredRecords.reduce((sum, r) => sum + (r.buySideCommission || 0), 0)}
                         sellSide={filteredRecords.reduce((sum, r) => sum + (r.sellSideCommission || 0), 0)}
+                        onBarClick={(type) => openChartDrillDown('commission', type, `Commission: ${type}`)}
                       />
                     </Card>
                   </div>
@@ -1103,6 +1119,16 @@ function HomeContent() {
         isOpen={pipelineDrillDownOpen}
         onClose={() => setPipelineDrillDownOpen(false)}
         status={pipelineDrillDownStatus}
+        records={allRecords}
+      />
+      
+      {/* Generic Chart Drill-Down Modal */}
+      <ChartDrillDown
+        isOpen={chartDrillDownOpen}
+        onClose={() => setChartDrillDownOpen(false)}
+        title={chartDrillDownTitle}
+        filterType={chartDrillDownType}
+        filterValue={chartDrillDownValue}
         records={allRecords}
       />
     </div>
