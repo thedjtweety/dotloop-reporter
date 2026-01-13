@@ -15,6 +15,7 @@ import { commissionRouter } from './commissionRouter';
 // import { tierHistoryRouter } from './tierHistoryRouter'; // Removed: tierHistory table was dropped in migration
 // Note: tierHistoryRouter.ts file contains imports of the removed tierHistory table
 import { seedRouter } from './seedRouter';
+import { healthRouter } from './healthRouter';
 import {
   createUpload,
   getUserUploads,
@@ -223,6 +224,7 @@ export const appRouter = router({
   commission: commissionRouter,
   // tierHistory: tierHistoryRouter, // Removed: tierHistory table was dropped in migration
   seed: seedRouter,
+  health: healthRouter,
 });
 
 export type AppRouter = typeof appRouter;
