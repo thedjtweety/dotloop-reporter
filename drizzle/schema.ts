@@ -292,6 +292,65 @@ export const uploads = mysqlTable("uploads", {
 		index("upload_snapshots_createdAt_idx").on(table.createdAt),
 	]);
 
+	export const userTeams = mysqlTable("user_teams", {
+		id: int().autoincrement().notNull(),
+		tenantId: int().notNull(),
+		ownerId: int().notNull(),
+		name: varchar({ length: 255 }).notNull(),
+		description: text(),
+		createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+		updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	},
+	(table) => [
+		index("tenant_idx").on(table.tenantId),
+		index("owner_idx").on(table.ownerId),
+		index("tenant_owner_idx").on(table.tenantId, table.ownerId),
+	]);
+
+	export const userTeamMembers = mysqlTable("user_team_members", {
+		id: int().autoincrement().notNull(),
+		userTeamId: int().notNull(),
+		userId: int().notNull(),
+		role: mysqlEnum(['owner','editor','viewer']).default('viewer').notNull(),
+		addedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+		addedBy: int().notNull(),
+	},
+	(table) => [
+		index("user_team_idx").on(table.userTeamId),
+		index("user_idx").on(table.userId),
+		index("user_team_user_unique").on(table.userTeamId, table.userId),
+	]);
+
+	export const uploadSharing = mysqlTable("upload_sharing", {
+		id: int().autoincrement().notNull(),
+		uploadId: int().notNull(),
+		userTeamId: int().notNull(),
+		sharedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+		sharedBy: int().notNull(),
+	},
+	(table) => [
+		index("upload_idx").on(table.uploadId),
+		index("user_team_idx").on(table.userTeamId),
+		index("upload_user_team_unique").on(table.uploadId, table.userTeamId),
+		index("shared_at_idx").on(table.sharedAt),
+	]);
+
+	export const uploadActivityLog = mysqlTable("upload_activity_log", {
+		id: int().autoincrement().notNull(),
+		uploadId: int().notNull(),
+		userTeamId: int().notNull(),
+		userId: int().notNull(),
+		action: mysqlEnum(['shared','viewed','downloaded','deleted']).notNull(),
+		details: text(),
+		createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	},
+	(table) => [
+		index("upload_idx").on(table.uploadId),
+		index("user_team_idx").on(table.userTeamId),
+		index("user_idx").on(table.userId),
+		index("created_at_idx").on(table.createdAt),
+	]);
+
 	export const users = mysqlTable("users", {
 	id: int().autoincrement().notNull(),
 	tenantId: int().notNull(),
