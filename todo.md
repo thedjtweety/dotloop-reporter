@@ -1040,3 +1040,32 @@
   - [ ] Test full upload workflow with various CSVs
   - [ ] Verify reports generate from imperfect data
   - [ ] Test error recovery and graceful degradation
+
+
+## Phase 46: Smart Conditional Column Mapping
+- [x] Create header matching and confidence scoring
+  - [x] Implement fuzzy matching algorithm for column names (Levenshtein distance)
+  - [x] Calculate confidence scores (0-100%) for each match
+  - [x] Auto-detect standard Dotloop headers
+  - [x] Support alternative column name variations
+  - [x] Create 26 comprehensive tests for header matching
+- [ ] Build conditional mapping UI
+  - [ ] Create inline mapping selector (minimal UI)
+  - [ ] Show only for unmatched columns
+  - [ ] Quick dropdown for field selection
+  - [ ] Visual confidence indicators
+- [ ] Implement mapping cache and persistence
+  - [ ] Store successful mappings per user
+  - [ ] Cache format signatures for quick recognition
+  - [ ] Retrieve cached mappings for similar CSVs
+  - [ ] Allow users to save custom mapping profiles
+- [ ] Integrate into CSVPreview
+  - [ ] Auto-detect headers on file load
+  - [ ] Calculate confidence scores
+  - [ ] Show mapping UI only if needed (<90% confidence)
+  - [ ] Display inline mapping for partial matches
+- [ ] Test and verify zero-click experience
+  - [ ] Test with perfect Dotloop exports (should skip mapping)
+  - [ ] Test with custom headers (should show minimal UI)
+  - [ ] Test with cached mappings (should recognize format)
+  - [ ] Verify no extra clicks for standard formats
