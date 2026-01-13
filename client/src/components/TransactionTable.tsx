@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
+  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -170,17 +171,16 @@ export default function TransactionTable({ transactions, limit, compact = false 
 
           {/* Column Visibility Toggle */}
           <DropdownMenu>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              asChild
-            >
-              <div className="cursor-pointer">
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
                 <Settings className="w-4 h-4" />
                 <span className="hidden sm:inline">Columns</span>
-              </div>
-            </Button>
+              </Button>
+            </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Show/Hide Columns</DropdownMenuLabel>
               <DropdownMenuSeparator />
