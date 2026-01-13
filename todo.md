@@ -978,3 +978,65 @@
 - [x] Wrapped auditLogRouter procedures with error handling
 - [x] All critical procedures now log errors with request IDs and context
 - [x] Error responses are properly formatted as TRPCError
+
+
+## Phase 44: Pre-Launch Features (Deferred - Implement Closer to Launch)
+- [ ] Create admin monitoring dashboard
+  - [ ] Display real-time error logs with filtering
+  - [ ] Show request metrics and health status
+  - [ ] Filter by procedure, user, and date range
+- [ ] Set up automated alerting
+  - [ ] Configure notifications for high error rates
+  - [ ] Alert on critical procedure failures
+  - [ ] Implement retry logic for transient failures
+- [ ] Implement database query logging
+  - [ ] Add error handling to database operations
+  - [ ] Catch schema mismatches before crashes
+  - [ ] Monitor connection pool health
+
+
+## Phase 45: CSV Robustness & Validation System
+- [x] Create data quality scoring framework
+  - [x] Build validation schema for Dotloop CSV format
+  - [x] Implement field-level validation rules
+  - [x] Create data quality scoring algorithm (0-100%)
+  - [x] Detect and categorize data issues
+  - [x] Create 32 comprehensive test cases for validator
+- [x] Implement auto-correction and graceful degradation
+  - [x] Auto-trim whitespace from all fields
+  - [x] Normalize date formats (detect multiple formats)
+  - [x] Handle currency parsing ($, commas, decimals)
+  - [x] Skip malformed rows while processing valid ones
+  - [x] Provide sensible defaults for missing optional fields
+  - [x] Create CSV processor with 21 test cases
+- [x] Build pre-upload validation UI
+  - [x] Show file preview (first 5 rows)
+  - [x] Highlight potential issues in real-time
+  - [x] Suggest column mappings for mismatched headers
+  - [x] Warn about encoding issues
+  - [x] Create CSVPreview component
+- [x] Create post-upload diagnostic report
+  - [x] Summary: rows processed, skipped, quality score
+  - [x] Detailed error log with row numbers and reasons
+  - [x] Data suggestions and recommendations
+  - [x] Allow users to download diagnostic report
+  - [x] Create CSVDiagnosticReport component
+- [x] Build comprehensive test suite
+  - [x] Create 3 sample CSV files (perfect, minimal, varied quality)
+  - [x] Test missing columns and wrong data types
+  - [x] Test special characters and encoding issues
+  - [x] Test empty rows and duplicate headers
+  - [x] Test large files (100+ rows)
+  - [x] Write 21 vitest tests for CSV processor
+  - [x] Write 32 vitest tests for CSV validator
+- [x] Create demo data and templates
+  - [x] Build "perfect" CSV template (perfect-data.csv)
+  - [x] Create minimal data example (minimal-data.csv)
+  - [x] Create varied quality example (varied-quality.csv)
+  - [x] Show users what good data looks like
+- [ ] End-to-end testing and integration
+  - [ ] Integrate CSVPreview into upload workflow
+  - [ ] Integrate CSVDiagnosticReport into results page
+  - [ ] Test full upload workflow with various CSVs
+  - [ ] Verify reports generate from imperfect data
+  - [ ] Test error recovery and graceful degradation
