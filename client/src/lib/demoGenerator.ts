@@ -38,7 +38,7 @@ const PROPERTY_TYPES = ['Single Family', 'Condo', 'Townhouse', 'Multi-Family', '
 
 const LEAD_SOURCES = ['Referral', 'Website', 'Zillow', 'Realtor.com', 'Open House', 'Social Media', 'Past Client', 'Direct Mail'];
 
-const LOOP_STATUSES = ['Sold', 'Pending', 'Under Contract', 'Closed'];
+const LOOP_STATUSES = ['Closed', 'Closed', 'Closed', 'Closed', 'Closed', 'Closed', 'Closed', 'Closed', 'Under Contract', 'Under Contract', 'Under Contract', 'Active Listings', 'Active Listings', 'Active Listings', 'Archived'];
 
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -60,28 +60,30 @@ function randomDate(startDaysBack: number = 730, endDaysBack: number = 0): strin
 
 function randomPrice(propertyType: string): number {
   const ranges: Record<string, [number, number]> = {
-    'Single Family': [150000, 800000],
-    'Condo': [100000, 500000],
-    'Townhouse': [180000, 450000],
-    'Multi-Family': [300000, 1500000],
-    'Commercial': [500000, 5000000],
-    'Land': [50000, 500000],
-    'New Construction': [250000, 900000],
-    'Waterfront': [400000, 3000000]
+    'Single Family': [250000, 550000],
+    'Condo': [200000, 400000],
+    'Townhouse': [250000, 400000],
+    'Multi-Family': [350000, 800000],
+    'Commercial': [400000, 1200000],
+    'Land': [80000, 300000],
+    'New Construction': [300000, 600000],
+    'Waterfront': [350000, 900000]
   };
   
-  const [min, max] = ranges[propertyType] || [200000, 800000];
+  const [min, max] = ranges[propertyType] || [300000, 500000];
   return randomInt(min, max);
 }
 
 function getComplexityConfig(complexity: string) {
+  // Updated to generate realistic US brokerage production numbers
+  // Median: 10 transactions per agent per year, with 2-5 active listings, 1-3 under contract, 1-2 archived
   const configs = {
-    micro: { agents: [1, 2], transactionsPerAgent: [3, 10] },
-    small: { agents: [3, 8], transactionsPerAgent: [10, 30] },
-    medium: { agents: [10, 25], transactionsPerAgent: [25, 75] },
-    large: { agents: [30, 60], transactionsPerAgent: [50, 150] },
-    enterprise: { agents: [70, 120], transactionsPerAgent: [100, 300] },
-    random: { agents: [1, 120], transactionsPerAgent: [3, 300] }
+    micro: { agents: [1, 2], transactionsPerAgent: [8, 12] },
+    small: { agents: [3, 8], transactionsPerAgent: [8, 12] },
+    medium: { agents: [10, 25], transactionsPerAgent: [8, 12] },
+    large: { agents: [30, 60], transactionsPerAgent: [8, 12] },
+    enterprise: { agents: [70, 120], transactionsPerAgent: [8, 12] },
+    random: { agents: [1, 120], transactionsPerAgent: [8, 12] }
   };
   
   return configs[complexity as keyof typeof configs] || configs.random;

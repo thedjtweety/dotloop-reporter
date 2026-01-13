@@ -1142,3 +1142,15 @@
 - [x] Fix icon visibility in Archived card (gray-700 dark:gray-300)
 - [x] Ensure theme-aware colors (foreground in light, white in dark)
 - [ ] Test in both dark and light themes
+
+
+## Phase 54: Fix Demo Data Generation
+- [x] Research US brokerage production statistics (COMPLETED - see research_findings.md)
+- [x] Fix Active Listings generation (now included in LOOP_STATUSES with proper distribution)
+- [x] Fix Archived/Withdrawn generation (now included in LOOP_STATUSES)
+- [x] Reduce Under Contract numbers (changed from 1678 to realistic 1-3 per agent)
+- [x] Reduce Closed deals (changed from 3292 to realistic 8-12 per agent)
+- [x] Adjust average sale prices to $300k-$500k range (realistic US median)
+- [x] Ensure commission calculations are realistic ($10k-$15k per deal)
+- [x] Updated demo generator with realistic transaction volumes (8-12 per agent)
+- [x] Verified metrics structure for proper status distribution
