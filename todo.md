@@ -1127,3 +1127,10 @@
   - [ ] Add transaction details per agent
   - [ ] Include totals and statistics
   - [ ] Test PDF generation with demo data
+
+
+## Phase 51: Fix Broken Demo Mode
+- [x] Identify expected CSV field names from parser (DotloopRecord interface)
+- [x] Update demo generator to match exact field structure
+- [ ] Test all dashboard components (metrics, charts, podium, calculator, projector)
+- [ ] Verify data flows correctly through all views
