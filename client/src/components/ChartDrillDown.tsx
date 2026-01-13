@@ -26,6 +26,7 @@ interface ChartDrillDownProps {
   filterType: 'leadSource' | 'propertyType' | 'geographic' | 'commission';
   filterValue: string;
   records: DotloopRecord[];
+  onViewFullDetails?: () => void;
 }
 
 /**
@@ -201,6 +202,7 @@ export const ChartDrillDown: React.FC<ChartDrillDownProps> = ({
   filterType,
   filterValue,
   records,
+  onViewFullDetails,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -282,9 +284,16 @@ export const ChartDrillDown: React.FC<ChartDrillDownProps> = ({
           <p className="text-sm text-muted-foreground">
             Showing {filteredRecords.length} of {filteredByChart.length} transaction{filteredByChart.length !== 1 ? 's' : ''}
           </p>
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
+          <div className="flex gap-2">
+            {onViewFullDetails && (
+              <Button variant="default" onClick={onViewFullDetails}>
+                View Full Details
+              </Button>
+            )}
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

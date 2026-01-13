@@ -120,12 +120,20 @@ function HomeContent() {
   // Pipeline chart drill-down state
   const [pipelineDrillDownOpen, setPipelineDrillDownOpen] = useState(false);
   const [pipelineDrillDownStatus, setPipelineDrillDownStatus] = useState('');
+  const [pipelineFullDetailsOpen, setPipelineFullDetailsOpen] = useState(false);
+  
+  // Helper function to open full details view from pipeline drill-down
+  const openPipelineFullDetails = () => {
+    setPipelineDrillDownOpen(false);
+    setPipelineFullDetailsOpen(true);
+  };
   
   // Generic chart drill-down state
   const [chartDrillDownOpen, setChartDrillDownOpen] = useState(false);
   const [chartDrillDownType, setChartDrillDownType] = useState<'leadSource' | 'propertyType' | 'geographic' | 'commission'>('leadSource');
   const [chartDrillDownValue, setChartDrillDownValue] = useState('');
   const [chartDrillDownTitle, setChartDrillDownTitle] = useState('');
+  const [chartFullDetailsOpen, setChartFullDetailsOpen] = useState(false);
   
   // Helper function to open chart drill-down
   const openChartDrillDown = (type: 'leadSource' | 'propertyType' | 'geographic' | 'commission', value: string, title: string) => {
@@ -133,6 +141,12 @@ function HomeContent() {
     setChartDrillDownValue(value);
     setChartDrillDownTitle(title);
     setChartDrillDownOpen(true);
+  };
+  
+  // Helper function to open full details view from chart drill-down
+  const openChartFullDetails = () => {
+    setChartDrillDownOpen(false);
+    setChartFullDetailsOpen(true);
   };
 
   // Import Wizard State
@@ -1120,7 +1134,18 @@ function HomeContent() {
         onClose={() => setPipelineDrillDownOpen(false)}
         status={pipelineDrillDownStatus}
         records={allRecords}
+        onViewFullDetails={openPipelineFullDetails}
       />
+      
+      {/* Pipeline Full Details Modal */}
+      {pipelineFullDetailsOpen && (
+        <DrillDownModal
+          isOpen={pipelineFullDetailsOpen}
+          onClose={() => setPipelineFullDetailsOpen(false)}
+          title={`Pipeline: ${pipelineDrillDownStatus}`}
+          transactions={filteredRecords}
+        />
+      )}
       
       {/* Generic Chart Drill-Down Modal */}
       <ChartDrillDown
@@ -1130,7 +1155,18 @@ function HomeContent() {
         filterType={chartDrillDownType}
         filterValue={chartDrillDownValue}
         records={allRecords}
+        onViewFullDetails={openChartFullDetails}
       />
+      
+      {/* Chart Full Details Modal */}
+      {chartFullDetailsOpen && (
+        <DrillDownModal
+          isOpen={chartFullDetailsOpen}
+          onClose={() => setChartFullDetailsOpen(false)}
+          title={chartDrillDownTitle}
+          transactions={filteredRecords}
+        />
+      )}
     </div>
   );
 }

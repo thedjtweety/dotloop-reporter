@@ -24,6 +24,7 @@ interface PipelineChartDrillDownProps {
   onClose: () => void;
   status: string;
   records: DotloopRecord[];
+  onViewFullDetails?: () => void;
 }
 
 /**
@@ -135,6 +136,7 @@ export const PipelineChartDrillDown: React.FC<PipelineChartDrillDownProps> = ({
   onClose,
   status,
   records,
+  onViewFullDetails,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -216,9 +218,16 @@ export const PipelineChartDrillDown: React.FC<PipelineChartDrillDownProps> = ({
           <p className="text-sm text-muted-foreground">
             Showing {filteredRecords.length} of {filteredByStatus.length} transaction{filteredByStatus.length !== 1 ? 's' : ''}
           </p>
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
+          <div className="flex gap-2">
+            {onViewFullDetails && (
+              <Button variant="default" onClick={onViewFullDetails}>
+                View Full Details
+              </Button>
+            )}
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

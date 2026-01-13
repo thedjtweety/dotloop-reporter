@@ -1446,3 +1446,20 @@
   - [ ] Test localStorage persistence
   - [ ] Test with different screen sizes
   - [ ] Verify floating scrollbar still works
+
+
+## Phase 66: Dual Drill-Down Views for Charts
+- [ ] Add "View Full Details" button to ChartDrillDown
+  - [ ] Button in card view header
+  - [ ] Opens full-screen table view
+  - [ ] Maintains filter context
+- [ ] Add "View Full Details" button to PipelineChartDrillDown
+  - [ ] Button in card view header
+  - [ ] Opens full-screen table view
+  - [ ] Maintains pipeline status filter
+- [ ] Test both drill-down views
+  - [ ] Card view displays correctly
+  - [ ] Full details view opens and fills screen
+  - [ ] Can switch between views
+  - [ ] Can close from either view
+- [ ] Save checkpoint with dual drill-down views
