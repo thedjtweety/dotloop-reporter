@@ -1463,3 +1463,18 @@
   - [ ] Can switch between views
   - [ ] Can close from either view
 - [ ] Save checkpoint with dual drill-down views
+
+## Phase 23: Export and Print Functionality for Drill-Downs
+- [x] Create export utility functions (CSV and Excel export)
+- [x] Create print utility function with header formatting
+- [x] Add export/print buttons to ChartDrillDown component
+- [x] Add export/print buttons to PipelineChartDrillDown component
+- [x] Add export/print buttons to DrillDownModal (full details view)
+- [x] Implement CSV export with drill-down title and filters in header
+- [x] Implement Excel export with drill-down title and filters in header
+- [x] Implement print functionality with styled headers and transaction table
+- [x] Test export/print from card view (ChartDrillDown)
+- [x] Test export/print from card view (PipelineChartDrillDown)
+- [x] Test export/print from full details view (DrillDownModal)
+- [x] Verify file naming includes drill-down context and date
+- [x] Test print preview in browser (Chrome, Firefox)

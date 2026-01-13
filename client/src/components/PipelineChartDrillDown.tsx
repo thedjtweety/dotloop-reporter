@@ -16,8 +16,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Search, X } from 'lucide-react';
+import { ExternalLink, Search, X, Download, Printer } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatUtils';
+import { exportAsCSV, exportAsExcel, openPrintDialog } from '@/lib/exportUtils';
 
 interface PipelineChartDrillDownProps {
   isOpen: boolean;
@@ -219,6 +220,45 @@ export const PipelineChartDrillDown: React.FC<PipelineChartDrillDownProps> = ({
             Showing {filteredRecords.length} of {filteredByStatus.length} transaction{filteredByStatus.length !== 1 ? 's' : ''}
           </p>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportAsCSV({
+                title: `Pipeline: ${status}`,
+                records: filteredByStatus,
+                filters: { type: 'Pipeline Status', value: status }
+              })}
+              className="gap-2"
+            >
+              <Download className="w-4 h-4" />
+              CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportAsExcel({
+                title: `Pipeline: ${status}`,
+                records: filteredByStatus,
+                filters: { type: 'Pipeline Status', value: status }
+              })}
+              className="gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Excel
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openPrintDialog({
+                title: `Pipeline: ${status}`,
+                records: filteredByStatus,
+                filters: { type: 'Pipeline Status', value: status }
+              })}
+              className="gap-2"
+            >
+              <Printer className="w-4 h-4" />
+              Print
+            </Button>
             {onViewFullDetails && (
               <Button variant="default" onClick={onViewFullDetails}>
                 View Full Details

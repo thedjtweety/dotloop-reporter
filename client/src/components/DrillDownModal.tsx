@@ -5,9 +5,10 @@
  */
 
 import { useRef, useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Download, Printer } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import TransactionTable from './TransactionTable';
+import { exportAsCSV, exportAsExcel, openPrintDialog } from '@/lib/exportUtils';
 
 interface DrillDownModalProps {
   isOpen: boolean;
@@ -98,13 +99,39 @@ export default function DrillDownModal({
               Showing {transactions.length} transaction{transactions.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5 text-slate-400" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => exportAsCSV({ title, records: transactions })}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
+              aria-label="Export as CSV"
+            >
+              <Download className="w-4 h-4" />
+              CSV
+            </button>
+            <button
+              onClick={() => exportAsExcel({ title, records: transactions })}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
+              aria-label="Export as Excel"
+            >
+              <Download className="w-4 h-4" />
+              Excel
+            </button>
+            <button
+              onClick={() => openPrintDialog({ title, records: transactions })}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
+              aria-label="Print"
+            >
+              <Printer className="w-4 h-4" />
+              Print
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5 text-slate-400" />
+            </button>
+          </div>
         </div>
 
         {/* Main Content Area */}
