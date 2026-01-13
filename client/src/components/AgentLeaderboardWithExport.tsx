@@ -4,7 +4,7 @@
  * Design: Professional data table with color-coded performance indicators and export buttons
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AgentMetrics } from '@/lib/csvParser';
 import { exportAgentAsCSV, exportAgentAsPDF, exportAllAgentsAsCSV } from '@/lib/exportReports';
 import { Card } from '@/components/ui/card';
@@ -41,6 +41,31 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
   const [exportingAgent, setExportingAgent] = useState<string | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<AgentMetrics | null>(null);
   const [showPodium, setShowPodium] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Sync scrollbar position when table scrolls
+  useEffect(() => {
+    const scrollContainer = document.getElementById('leaderboard-scroll');
+    const scrollbarThumb = document.getElementById('scrollbar-thumb');
+
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      if (scrollbarThumb && scrollContainer) {
+        const scrollPercentage = scrollContainer.scrollLeft / (scrollContainer.scrollWidth - scrollContainer.clientWidth);
+        const thumbWidth = (scrollContainer.clientWidth / scrollContainer.scrollWidth) * 100;
+        const thumbPosition = scrollPercentage * (100 - thumbWidth);
+        
+        scrollbarThumb.style.marginLeft = `${thumbPosition}%`;
+        scrollbarThumb.style.width = `${Math.max(thumbWidth, 5)}%`;
+      }
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+    handleScroll();
+    
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Check if financial data exists
   const hasFinancialData = agents.some(a => a.totalCommission > 0 || a.companyDollar > 0);
@@ -175,8 +200,9 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
         </div>
       )}
 
-      <div className="relative overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent pb-4">
-        <Table className="min-w-[1200px]">
+      <div className="relative">
+        <div className="relative overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent" id="leaderboard-scroll">
+          <Table className="min-w-[1200px]">
           <TableHeader>
             <TableRow className="bg-muted/30 hover:bg-muted/30 border-b border-border/50">
               <TableHead className="w-16 text-center font-display font-bold text-foreground uppercase tracking-wider text-xs py-4">
@@ -346,6 +372,19 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
             ))}
           </TableBody>
         </Table>
+        </div>
+        
+        {/* Floating sticky scrollbar at bottom */}
+        <div 
+          className="sticky bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-muted-foreground/10 to-transparent border-t border-border/20 z-20"
+          style={{ background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.05), transparent)' }}
+        >
+          <div 
+            className="h-full bg-muted-foreground/40 rounded-full transition-all cursor-pointer hover:bg-muted-foreground/60"
+            id="scrollbar-thumb"
+            style={{ width: '20%', marginLeft: '0%' }}
+          />
+        </div>
       </div>
 
       <div className="p-4 bg-muted/30 border-t border-border text-xs text-foreground">

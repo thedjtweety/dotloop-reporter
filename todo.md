@@ -1325,3 +1325,15 @@
   - [ ] Commit all changes
   - [ ] Tag version
   - [ ] Document changes in checkpoint
+
+
+## Phase 61: Floating Scrollbar for Agent Leaderboard
+- [x] Add sticky horizontal scrollbar to agent leaderboard table
+  - [x] Created inner div with id="leaderboard-scroll" for table container
+  - [x] Added sticky positioning to scrollbar at bottom
+  - [x] Styled scrollbar with gradient background and thumb
+  - [x] Implemented scroll synchronization with useEffect hook
+  - [x] Added interactive dragging support for scrollbar thumb
+  - [x] Added hover effects and smooth transitions
+  - [x] Scrollbar stays visible while scrolling table
+  - [x] No overlap with table content
