@@ -57,7 +57,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
   const handleExportPDF = (agent: AgentMetrics) => {
     setExportingAgent(agent.agentName);
     try {
-      exportAgentAsPDF(agent);
+      exportAgentAsPDF(agent, records);
       setTimeout(() => setExportingAgent(null), 1000);
     } catch (error) {
       console.error('Error exporting PDF:', error);
