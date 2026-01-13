@@ -1426,3 +1426,23 @@
   - [x] Cards render without errors
   - [x] View button is accessible on all cards
   - [x] Search functionality works with cards
+
+
+## Phase 65: Column Visibility Toggle
+- [ ] Update TransactionTable with column visibility state
+  - [ ] Add useState for visible columns
+  - [ ] Create column configuration object
+  - [ ] Add localStorage persistence for preferences
+- [ ] Create column visibility toggle UI
+  - [ ] Add toggle button to table header
+  - [ ] Create dropdown menu with checkboxes
+  - [ ] Show/hide columns based on selection
+  - [ ] Add "Reset to Default" button
+- [ ] Update drill-down modals
+  - [ ] Pass column visibility to TransactionTable
+  - [ ] Preserve user preferences across modals
+- [ ] Test column visibility
+  - [ ] Test show/hide functionality
+  - [ ] Test localStorage persistence
+  - [ ] Test with different screen sizes
+  - [ ] Verify floating scrollbar still works

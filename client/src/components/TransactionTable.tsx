@@ -1,7 +1,7 @@
 /**
  * Transaction Table Component
  * Reusable component to display a list of transactions
- * Optimized for mobile responsiveness
+ * Optimized for mobile responsiveness with column visibility toggle
  */
 
 import { DotloopRecord } from '@/lib/csvParser';
@@ -16,9 +16,17 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CheckCircle2, Clock, Archive, AlertCircle, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+} from '@/components/ui/dropdown-menu';
+import { CheckCircle2, Clock, Archive, AlertCircle, ChevronLeft, ChevronRight, Search, Settings } from 'lucide-react';
 import DotloopLogo from './DotloopLogo';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 interface TransactionTableProps {
   transactions: DotloopRecord[];
@@ -26,10 +34,57 @@ interface TransactionTableProps {
   compact?: boolean;
 }
 
+type ColumnKey = 'status' | 'property' | 'agent' | 'price' | 'commission' | 'date' | 'actions';
+
+interface ColumnConfig {
+  key: ColumnKey;
+  label: string;
+  visible: boolean;
+}
+
+const DEFAULT_COLUMNS: ColumnConfig[] = [
+  { key: 'status', label: 'Status', visible: true },
+  { key: 'property', label: 'Property', visible: true },
+  { key: 'agent', label: 'Agent', visible: true },
+  { key: 'price', label: 'Price', visible: true },
+  { key: 'commission', label: 'Commission', visible: true },
+  { key: 'date', label: 'Date', visible: true },
+  { key: 'actions', label: 'Actions', visible: true },
+];
+
 export default function TransactionTable({ transactions, limit, compact = false }: TransactionTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
   const itemsPerPage = 12;
+
+  // Load column preferences from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('transactionTableColumns');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setColumns(parsed);
+      } catch (e) {
+        // If parsing fails, use defaults
+        setColumns(DEFAULT_COLUMNS);
+      }
+    }
+  }, []);
+
+  // Save column preferences to localStorage when they change
+  const updateColumnVisibility = (key: ColumnKey, visible: boolean) => {
+    const updated = columns.map(col => 
+      col.key === key ? { ...col, visible } : col
+    );
+    setColumns(updated);
+    localStorage.setItem('transactionTableColumns', JSON.stringify(updated));
+  };
+
+  const resetColumns = () => {
+    setColumns(DEFAULT_COLUMNS);
+    localStorage.setItem('transactionTableColumns', JSON.stringify(DEFAULT_COLUMNS));
+  };
 
   // Filter transactions based on search query
   const filteredTransactions = useMemo(() => {
@@ -85,6 +140,10 @@ export default function TransactionTable({ transactions, limit, compact = false 
     }
   };
 
+  const isColumnVisible = (key: ColumnKey) => {
+    return columns.find(col => col.key === key)?.visible ?? true;
+  };
+
   if (transactions.length === 0) {
     return (
       <div className="text-center py-8 text-foreground">
@@ -95,17 +154,51 @@ export default function TransactionTable({ transactions, limit, compact = false 
 
   return (
     <div className="w-full space-y-4">
-      {/* Search Box - only show if not using limit prop */}
+      {/* Search Box and Column Toggle - only show if not using limit prop */}
       {!limit && (
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search by property, address, status, or agent..."
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-10 pr-4 py-2"
-          />
+        <div className="flex gap-2 items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search by property, address, status, or agent..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="pl-10 pr-4 py-2"
+            />
+          </div>
+
+          {/* Column Visibility Toggle */}
+          <DropdownMenu>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              asChild
+            >
+              <div className="cursor-pointer">
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Columns</span>
+              </div>
+            </Button>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel>Show/Hide Columns</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {columns.map(col => (
+                <DropdownMenuCheckboxItem
+                  key={col.key}
+                  checked={col.visible}
+                  onCheckedChange={(checked) => updateColumnVisibility(col.key, checked)}
+                >
+                  {col.label}
+                </DropdownMenuCheckboxItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={resetColumns} className="text-xs text-muted-foreground">
+                Reset to Default
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
 
@@ -118,20 +211,35 @@ export default function TransactionTable({ transactions, limit, compact = false 
       )}
 
       <Table className="w-full">
-          <TableHeader>
-            <TableRow className="border-border">
+        <TableHeader>
+          <TableRow className="border-border">
+            {isColumnVisible('status') && (
               <TableHead className="font-semibold text-xs py-2 px-3 min-w-[140px]">Status</TableHead>
+            )}
+            {isColumnVisible('property') && (
               <TableHead className="font-semibold text-xs py-2 px-3 min-w-[200px]">Property</TableHead>
+            )}
+            {isColumnVisible('agent') && (
               <TableHead className="font-semibold text-xs py-2 px-3 min-w-[120px]">Agent</TableHead>
+            )}
+            {isColumnVisible('price') && (
               <TableHead className="font-semibold text-xs py-2 px-3 min-w-[100px]">Price</TableHead>
+            )}
+            {isColumnVisible('commission') && (
               <TableHead className="font-semibold text-xs py-2 px-3 min-w-[110px]">Commission</TableHead>
+            )}
+            {isColumnVisible('date') && (
               <TableHead className="font-semibold text-xs py-2 px-3 min-w-[110px]">Date</TableHead>
+            )}
+            {isColumnVisible('actions') && (
               <TableHead className="font-semibold text-xs py-2 px-3 min-w-[100px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {displayTransactions.map((transaction, idx) => (
-              <TableRow key={idx} className="border-border hover:bg-muted/50">
+            )}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {displayTransactions.map((transaction, idx) => (
+            <TableRow key={idx} className="border-border hover:bg-muted/50">
+              {isColumnVisible('status') && (
                 <TableCell className="py-2 px-3">
                   <div className="flex items-center gap-1 sm:gap-2">
                     {getStatusIcon(transaction.loopStatus)}
@@ -143,6 +251,8 @@ export default function TransactionTable({ transactions, limit, compact = false 
                     </span>
                   </div>
                 </TableCell>
+              )}
+              {isColumnVisible('property') && (
                 <TableCell className="py-2 px-3">
                   <div className="flex flex-col gap-0">
                     <span className="font-medium text-xs text-foreground line-clamp-1">
@@ -153,22 +263,32 @@ export default function TransactionTable({ transactions, limit, compact = false 
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground py-2 px-3">
+              )}
+              {isColumnVisible('agent') && (
+                <TableCell className="text-xs text-foreground py-2 px-3">
                   <span className="line-clamp-1">
                     {transaction.agents || 'N/A'}
                   </span>
                 </TableCell>
+              )}
+              {isColumnVisible('price') && (
                 <TableCell className="text-xs font-medium text-foreground py-2 px-3">
                   ${(transaction.price / 1000).toFixed(0)}K
                 </TableCell>
+              )}
+              {isColumnVisible('commission') && (
                 <TableCell className="text-xs font-semibold text-foreground py-2 px-3">
                   ${(transaction.commissionTotal / 1000).toFixed(1)}K
                 </TableCell>
+              )}
+              {isColumnVisible('date') && (
                 <TableCell className="text-xs text-foreground py-2 px-3">
                   {transaction.createdDate
                     ? new Date(transaction.createdDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
                     : 'N/A'}
                 </TableCell>
+              )}
+              {isColumnVisible('actions') && (
                 <TableCell className="py-2 px-3">
                   {transaction.loopViewUrl && (
                     <a
@@ -184,10 +304,11 @@ export default function TransactionTable({ transactions, limit, compact = false 
                     </a>
                   )}
                 </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
       {/* Pagination Controls - only show if not using limit prop */}
       {!limit && totalPages > 1 && (
