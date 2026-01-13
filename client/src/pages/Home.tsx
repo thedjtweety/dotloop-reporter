@@ -188,7 +188,7 @@ function HomeContent() {
     setIsLoading(true);
     setTimeout(() => {
       const { data: sampleData, stats } = generateDemoData({ complexity: 'random' });
-      console.log(`Demo generated: ${stats.agentCount} agents, ${stats.transactionCount} transactions, $${stats.totalGCI.toLocaleString()} total GCI`);
+      console.log(`🎯 Demo Generated [${stats.complexity}]:\n  📊 ${stats.agentCount} agents | ${stats.transactionCount} transactions\n  💰 $${stats.totalGCI.toLocaleString()} GCI | $${stats.totalVolume.toLocaleString()} volume\n  🌎 ${stats.stateCount} states | ${stats.propertyTypeCount} property types\n  📅 ${stats.dateRange.earliest} to ${stats.dateRange.latest}`);
       setAllRecords(sampleData);
       setFilteredRecords(sampleData);
       setMetrics(calculateMetrics(sampleData));
