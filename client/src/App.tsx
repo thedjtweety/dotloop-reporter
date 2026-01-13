@@ -13,12 +13,14 @@ import AuditLog from "./pages/AuditLog";
 import RoleManagement from "./pages/RoleManagement";
 import TenantSettings from "./pages/TenantSettings";
 import CommissionManagement from "./pages/CommissionManagement";
+import PerformanceTrendsPage from "./pages/PerformanceTrendsPage";
+import BenchmarkComparisonPage from "./pages/BenchmarkComparisonPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
+       <Route path="/" component={Home} />
 
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/audit-log" component={AuditLog} />
@@ -27,6 +29,8 @@ function Router() {
       <Route path="/creative" component={CreativeDashboard} />
       <Route path="/settings" component={TenantSettings} />
       <Route path="/commission" component={CommissionManagement} />
+      <Route path="/trends" component={PerformanceTrendsPage} />
+      <Route path="/benchmarks" component={BenchmarkComparisonPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
