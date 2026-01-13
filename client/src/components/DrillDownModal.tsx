@@ -112,7 +112,7 @@ export default function DrillDownModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] w-screen flex flex-col p-3 sm:p-6">
+      <DialogContent className="w-[95vw] h-[95vh] flex flex-col p-3 sm:p-6">
         <DialogHeader className="flex-shrink-0 pb-2 sm:pb-4 border-b">
           <DialogTitle className="text-lg sm:text-xl font-display">{title}</DialogTitle>
           <DialogDescription className="text-xs sm:text-sm">

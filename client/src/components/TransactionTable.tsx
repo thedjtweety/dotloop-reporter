@@ -214,25 +214,25 @@ export default function TransactionTable({ transactions, limit, compact = false 
         <TableHeader>
           <TableRow className="border-border">
             {isColumnVisible('status') && (
-              <TableHead className="font-semibold text-xs py-2 px-4 w-[140px]">Status</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-2 w-[100px]">Status</TableHead>
             )}
             {isColumnVisible('property') && (
-              <TableHead className="font-semibold text-xs py-2 px-4 w-[300px]">Property</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-2 w-[220px]">Property</TableHead>
             )}
             {isColumnVisible('agent') && (
-              <TableHead className="font-semibold text-xs py-2 px-4 w-[150px]">Agent</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-2 w-[110px]">Agent</TableHead>
             )}
             {isColumnVisible('price') && (
-              <TableHead className="font-semibold text-xs py-2 px-4 w-[120px]">Price</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-2 w-[90px]">Price</TableHead>
             )}
             {isColumnVisible('commission') && (
-              <TableHead className="font-semibold text-xs py-2 px-4 w-[130px]">Commission</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-2 w-[100px]">Commission</TableHead>
             )}
             {isColumnVisible('date') && (
-              <TableHead className="font-semibold text-xs py-2 px-4 w-[130px]">Date</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-2 w-[100px]">Date</TableHead>
             )}
             {isColumnVisible('actions') && (
-              <TableHead className="font-semibold text-xs py-2 px-4 w-[120px]">Actions</TableHead>
+              <TableHead className="font-semibold text-xs py-2 px-2 w-[90px]">Actions</TableHead>
             )}
           </TableRow>
         </TableHeader>
@@ -240,7 +240,7 @@ export default function TransactionTable({ transactions, limit, compact = false 
           {displayTransactions.map((transaction, idx) => (
             <TableRow key={idx} className="border-border hover:bg-muted/50">
               {isColumnVisible('status') && (
-                <TableCell className="py-2 px-3">
+                <TableCell className="py-2 px-2 w-[100px]">
                   <div className="flex items-center gap-1 sm:gap-2">
                     {getStatusIcon(transaction.loopStatus)}
                     <span className="hidden sm:inline-block">
@@ -253,7 +253,7 @@ export default function TransactionTable({ transactions, limit, compact = false 
                 </TableCell>
               )}
               {isColumnVisible('property') && (
-                <TableCell className="py-2 px-3">
+                <TableCell className="py-2 px-2 w-[220px]">
                   <div className="flex flex-col gap-0">
                     <span className="font-medium text-xs text-foreground line-clamp-1">
                       {transaction.loopName || 'N/A'}
@@ -265,31 +265,31 @@ export default function TransactionTable({ transactions, limit, compact = false 
                 </TableCell>
               )}
               {isColumnVisible('agent') && (
-                <TableCell className="text-xs text-foreground py-2 px-3">
+                <TableCell className="text-xs text-foreground py-2 px-2 w-[110px]">
                   <span className="line-clamp-1">
                     {transaction.agents || 'N/A'}
                   </span>
                 </TableCell>
               )}
               {isColumnVisible('price') && (
-                <TableCell className="text-xs font-medium text-foreground py-2 px-3">
+                <TableCell className="text-xs font-medium text-foreground py-2 px-2 w-[90px]">
                   ${(transaction.price / 1000).toFixed(0)}K
                 </TableCell>
               )}
               {isColumnVisible('commission') && (
-                <TableCell className="text-xs font-semibold text-foreground py-2 px-3">
+                <TableCell className="text-xs font-semibold text-foreground py-2 px-2 w-[100px]">
                   ${(transaction.commissionTotal / 1000).toFixed(1)}K
                 </TableCell>
               )}
               {isColumnVisible('date') && (
-                <TableCell className="text-xs text-foreground py-2 px-3">
+                <TableCell className="text-xs text-foreground py-2 px-2 w-[100px]">
                   {transaction.createdDate
                     ? new Date(transaction.createdDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
                     : 'N/A'}
                 </TableCell>
               )}
               {isColumnVisible('actions') && (
-                <TableCell className="py-2 px-4 w-[120px]">
+                <TableCell className="py-2 px-2 w-[90px]">
                   {transaction.loopViewUrl && (
                     <a
                       href={transaction.loopViewUrl}
