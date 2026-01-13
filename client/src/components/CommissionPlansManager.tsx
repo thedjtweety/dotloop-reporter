@@ -4,8 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Save, Edit2, X, Settings } from 'lucide-react';
+import { Plus, Trash2, Save, Edit2, X, Settings, Loader2 } from 'lucide-react';
 import { Deduction } from '@/lib/commission';
+import { SlidingScaleTierManager } from '@/components/SlidingScaleTierManager';
+import { trpc } from '@/lib/trpc';
+import toast from 'react-hot-toast';
 import {
   Dialog,
   DialogContent,
@@ -21,43 +24,80 @@ export default function CommissionPlansManager() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<Partial<CommissionPlan>>({});
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Fetch plans from database
+  const { data: dbPlans, refetch } = trpc.commission.getPlans.useQuery();
+  const savePlanMutation = trpc.commission.savePlan.useMutation();
+  const deletePlanMutation = trpc.commission.deletePlan.useMutation();
 
   useEffect(() => {
-    setPlans(getCommissionPlans());
-  }, []);
+    // Use database plans if available, otherwise fall back to local storage
+    if (dbPlans && dbPlans.length > 0) {
+      setPlans(dbPlans);
+    } else {
+      setPlans(getCommissionPlans());
+    }
+  }, [dbPlans]);
 
-  const handleSavePlan = () => {
+  const handleSavePlan = async () => {
     if (!currentPlan.name || currentPlan.splitPercentage === undefined) return;
 
-    const newPlan: CommissionPlan = {
-      id: currentPlan.id || Math.random().toString(36).substr(2, 9),
-      name: currentPlan.name,
-      splitPercentage: Number(currentPlan.splitPercentage),
-      capAmount: Number(currentPlan.capAmount || 0),
-      postCapSplit: Number(currentPlan.postCapSplit || 100),
-      royaltyPercentage: Number(currentPlan.royaltyPercentage || 0),
-      royaltyCap: Number(currentPlan.royaltyCap || 0),
-      deductions: currentPlan.deductions || [],
-    };
+    try {
+      setIsSaving(true);
+      const newPlan: CommissionPlan = {
+        id: currentPlan.id || Math.random().toString(36).substr(2, 9),
+        name: currentPlan.name,
+        splitPercentage: Number(currentPlan.splitPercentage),
+        capAmount: Number(currentPlan.capAmount || 0),
+        postCapSplit: Number(currentPlan.postCapSplit || 100),
+        royaltyPercentage: Number(currentPlan.royaltyPercentage || 0),
+        royaltyCap: Number(currentPlan.royaltyCap || 0),
+        deductions: currentPlan.deductions || [],
+        useSliding: currentPlan.useSliding || false,
+        tiers: currentPlan.tiers || [],
+      };
 
-    let updatedPlans;
-    if (currentPlan.id) {
-      updatedPlans = plans.map(p => p.id === currentPlan.id ? newPlan : p);
-    } else {
-      updatedPlans = [...plans, newPlan];
-    }
+      // Save to database via tRPC
+      await savePlanMutation.mutateAsync(newPlan);
 
-    setPlans(updatedPlans);
-    saveCommissionPlans(updatedPlans);
-    setIsDialogOpen(false);
-    setCurrentPlan({});
-  };
+      let updatedPlans;
+      if (currentPlan.id) {
+        updatedPlans = plans.map(p => p.id === currentPlan.id ? newPlan : p);
+      } else {
+        updatedPlans = [...plans, newPlan];
+      }
 
-  const handleDeletePlan = (id: string) => {
-    if (confirm('Are you sure you want to delete this plan?')) {
-      const updatedPlans = plans.filter(p => p.id !== id);
       setPlans(updatedPlans);
       saveCommissionPlans(updatedPlans);
+      await refetch();
+      setIsDialogOpen(false);
+      setCurrentPlan({});
+      toast.success('Commission plan saved successfully');
+    } catch (error) {
+      toast.error(`Failed to save plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeletePlan = async (id: string) => {
+    if (confirm('Are you sure you want to delete this plan?')) {
+      try {
+        setIsSaving(true);
+        // Delete from database via tRPC
+        await deletePlanMutation.mutateAsync(id);
+        
+        const updatedPlans = plans.filter(p => p.id !== id);
+        setPlans(updatedPlans);
+        saveCommissionPlans(updatedPlans);
+        await refetch();
+        toast.success('Commission plan deleted successfully');
+      } catch (error) {
+        toast.error(`Failed to delete plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 
@@ -119,14 +159,14 @@ export default function CommissionPlansManager() {
               <Settings className="h-4 w-4" /> Commission Plan Settings
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>{isEditing ? 'Edit Plan' : 'Create New Plan'}</DialogTitle>
               <DialogDescription>
                 Configure the split percentage, cap amount, and post-cap rules.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 overflow-y-auto flex-1 pr-4">
               <div className="grid gap-2">
                 <Label htmlFor="name">Plan Name</Label>
                 <Input
@@ -192,6 +232,15 @@ export default function CommissionPlansManager() {
               </div>
 
               <div className="border-t pt-4 mt-2">
+                <SlidingScaleTierManager
+                  tiers={currentPlan.tiers || []}
+                  onTiersChange={(tiers) => setCurrentPlan({ ...currentPlan, tiers })}
+                  useSliding={currentPlan.useSliding || false}
+                  onUseSlidingChange={(useSliding) => setCurrentPlan({ ...currentPlan, useSliding })}
+                />
+              </div>
+
+              <div className="border-t pt-4 mt-2">
                 <div className="flex justify-between items-center mb-3">
                   <h4 className="text-sm font-medium">Standard Deductions</h4>
                   <Button type="button" variant="outline" size="sm" onClick={addDeduction} className="h-7 text-xs">
@@ -248,9 +297,12 @@ export default function CommissionPlansManager() {
                 </div>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-              <Button onClick={handleSavePlan}>Save Plan</Button>
+            <DialogFooter className="mt-4 border-t pt-4">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSaving}>Cancel</Button>
+              <Button onClick={handleSavePlan} disabled={isSaving} className="gap-2">
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {isSaving ? 'Saving...' : 'Save Plan'}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

@@ -307,13 +307,7 @@ export default function PerformanceDashboard() {
                         <div className="text-right">
                           <p className="text-lg font-bold">{formatTime(upload.totalTimeMs)}</p>
                           <p className="text-xs text-foreground">
-                            {(
-                              typeof upload.createdAt === 'string' 
-                                ? new Date(upload.createdAt) 
-                                : upload.createdAt instanceof Date
-                                ? upload.createdAt
-                                : new Date()
-                            ).toLocaleDateString()}
+                            {new Date(upload.uploadedAt).toLocaleDateString()}
                           </p>
                         </div>
                       </div>

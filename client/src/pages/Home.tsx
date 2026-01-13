@@ -79,8 +79,8 @@ import DataHealthCheck from '@/components/DataHealthCheck';
 import CommissionPlansManager from '@/components/CommissionPlansManager';
 import TeamManager from '@/components/TeamManager';
 import AgentAssignment from '@/components/AgentAssignment';
-import CommissionCalculator from '@/components/CommissionCalculator';
 import CommissionAuditReport from '@/components/CommissionAuditReport';
+import CommissionManagementPanel from '@/components/CommissionManagementPanel';
 import DataValidationReport from '@/components/DataValidationReport';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ModeToggle } from '@/components/ModeToggle';
@@ -772,10 +772,9 @@ function HomeContent() {
       </header>
 
       {/* Main Dashboard */}
-      {metrics && allRecords.length > 0 ? (
-        <main className="container py-8">
-          {/* Filter Badge */}
-          <FilterBadge />
+      <main className="container py-8">
+        {/* Filter Badge */}
+        <FilterBadge />
         
         {/* Top Metrics Row */}
         <div data-section="metrics" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" data-tour="metrics">
@@ -858,12 +857,12 @@ function HomeContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-foreground font-medium">Closed</p>
-                <p className="text-2xl font-display font-bold text-white dark:text-white">
+                <p className="text-2xl font-display font-bold text-accent">
                   {metrics.closed}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-green-600 dark:bg-green-700 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-accent" />
               </div>
             </div>
           </Card>
@@ -875,12 +874,12 @@ function HomeContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-foreground font-medium">Archived</p>
-                <p className="text-2xl font-display font-bold text-white dark:text-white">
+                <p className="text-2xl font-display font-bold text-foreground">
                   {metrics.archived}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-gray-700 dark:bg-gray-800 flex items-center justify-center">
-                <HomeIcon className="w-6 h-6 text-white dark:text-white" />
+              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                <HomeIcon className="w-6 h-6 text-foreground" />
               </div>
             </div>
           </Card>
@@ -1062,10 +1061,16 @@ function HomeContent() {
               />
             </TabsContent>
 
-            <TabsContent value="settings" className="space-y-6 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-              <div className="space-y-4">
-                <CommissionPlansManager records={filteredRecords} />
-              </div>
+            <TabsContent value="settings" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+              <Card className="p-6">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold mb-2">Settings</h3>
+                  <p className="text-sm text-muted-foreground">Manage your account and application settings.</p>
+                </div>
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Settings functionality coming soon</p>
+                </div>
+              </Card>
             </TabsContent>
           </Tabs>
           </CollapsibleSection>
@@ -1080,37 +1085,10 @@ function HomeContent() {
           </div>
         )}
 
-        {/* Commission Management Section */}
-        {metrics?.hasFinancialData && (
-          <div data-section="commission-management">
-            <Card className="p-6 bg-card border border-border">
-              <div className="mb-6">
-                <h2 className="text-2xl font-display font-bold text-foreground mb-2">Commission Management</h2>
-                <p className="text-foreground">Configure plans, teams, and calculate commissions</p>
-              </div>
-              <Tabs defaultValue="plans" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 mb-6">
-                  <TabsTrigger value="plans">Plans</TabsTrigger>
-                  <TabsTrigger value="teams">Teams</TabsTrigger>
-                  <TabsTrigger value="agents">Agents</TabsTrigger>
-                  <TabsTrigger value="calculator">Calculator</TabsTrigger>
-                </TabsList>
-                <TabsContent value="plans" className="space-y-4">
-                  <CommissionPlansManager />
-                </TabsContent>
-                <TabsContent value="teams" className="space-y-4">
-                  <TeamManager />
-                </TabsContent>
-                <TabsContent value="agents" className="space-y-4">
-                  <AgentAssignment records={allRecords} />
-                </TabsContent>
-                <TabsContent value="calculator" className="space-y-4">
-                  <CommissionCalculator />
-                </TabsContent>
-              </Tabs>
-            </Card>
-          </div>
-        )}
+        {/* Commission Management Panel */}
+        <div data-section="commission-management">
+          <CommissionManagementPanel records={filteredRecords} hasData={filteredRecords.length > 0} />
+        </div>
 
         {/* Commission Projector Section */}
         {metrics?.hasFinancialData && (
@@ -1121,7 +1099,6 @@ function HomeContent() {
           </div>
         )}
       </main>
-      ) : null}
 
       {/* Drill Down Modal */}
       <DrillDownModal

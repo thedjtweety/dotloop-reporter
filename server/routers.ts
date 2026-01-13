@@ -1,53 +1,98 @@
+import { COOKIE_NAME } from "@shared/const";
+import { getSessionCookieOptions } from "./_core/cookies";
+import { systemRouter } from "./_core/systemRouter";
+import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { protectedProcedure, router } from "./_core/trpc";
+import { eq } from 'drizzle-orm';
+import { uploads } from '../drizzle/schema';
+import { validateTransactionBatch } from './transactionValidator';
+import { adminRouter } from './adminRouter';
+import { performanceRouter } from './performanceRouter';
+import { auditLogRouter } from './auditLogRouter';
+import { dotloopOAuthRouter } from './dotloopOAuthRouter';
+import { tenantSettingsRouter } from './tenantSettingsRouter';
+import { commissionRouter } from './commissionRouter';
+// import { tierHistoryRouter } from './tierHistoryRouter'; // Removed: tierHistory table was dropped in migration
+import { seedRouter } from './seedRouter';
 import {
   createUpload,
-  getUploadById,
-  getTransactionsByUploadId,
-  createTransactions,
-  deleteUpload,
   getUserUploads,
+  getUploadById,
+  createTransactions,
+  getTransactionsByUploadId,
+  getUserTransactions,
+  deleteUpload,
 } from "./uploadDb";
-import { commissionRouter } from "./commissionRouter";
-import type { DotloopRecord } from "../shared/types";
+// InsertTransaction is now inferred in uploadDb.ts
 
-export const uploadsRouter = router({
-  // Create a new upload
-  create: protectedProcedure
-    .input(
-      z.object({
-        fileName: z.string(),
-        transactions: z.array(z.record(z.unknown())),
-        fileSize: z.number().optional(),
-        validationTimeMs: z.number().optional(),
-        parsingTimeMs: z.number().optional(),
-        totalTimeMs: z.number().optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Create the upload record
-      const uploadId = await createUpload({
-        fileName: input.fileName,
-        recordCount: input.transactions.length,
-        userId: ctx.user.id,
-        tenantId: ctx.user.tenantId,
-        fileSize: input.fileSize,
-        validationTimeMs: input.validationTimeMs,
-        parsingTimeMs: input.parsingTimeMs,
-        totalTimeMs: input.totalTimeMs,
-      });
+export const appRouter = router({
+    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
+  system: systemRouter,
+  auth: router({
+    me: publicProcedure.query(opts => opts.ctx.user),
+    logout: publicProcedure.mutation(({ ctx }) => {
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      return {
+        success: true,
+      } as const;
+    }),
+  }),
 
-      // Transform transactions to database format
-      const transactionsToInsert = input.transactions.map((t: any) => ({
-          loopId: t.loopId || "",
-          loopViewUrl: t.loopViewUrl || "",
-          loopName: t.loopName || "",
-          loopStatus: t.loopStatus || "",
-          createdDate: t.createdDate || "",
-          closingDate: t.closingDate || "",
-          listingDate: t.listingDate || "",
-          offerDate: t.offerDate || "",
-          address: t.address || "",
+  uploads: router({
+    // Get all uploads for the current user
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return await getUserUploads(ctx.user.id);
+    }),
+
+    // Create a new upload with transactions
+    create: protectedProcedure
+      .input(
+        z.object({
+          fileName: z.string(),
+          transactions: z.array(z.any()),
+          fileSize: z.number().optional(),
+          validationTimeMs: z.number().optional(),
+          parsingTimeMs: z.number().optional(),
+          uploadTimeMs: z.number().optional(),
+          totalTimeMs: z.number().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const uploadStartTime = Date.now();
+        
+        // Get tenant context
+        const { getTenantIdFromUser } = await import('./lib/tenant-context');
+        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        
+        // Create upload record
+        const uploadId = await createUpload({
+          tenantId,
+          userId: ctx.user.id,
+          fileName: input.fileName,
+          recordCount: input.transactions.length,
+          fileSize: input.fileSize ?? null,
+          validationTimeMs: input.validationTimeMs ?? null,
+          parsingTimeMs: input.parsingTimeMs ?? null,
+          uploadTimeMs: input.uploadTimeMs ?? null, // Will be calculated after transaction insert
+          totalTimeMs: input.totalTimeMs ?? null,
+          status: 'success',
+        });
+
+        // Prepare transactions for bulk insert
+        const transactionsToInsert = input.transactions.map((t: any) => ({
+          tenantId,
+          uploadId,
+          userId: ctx.user.id,
+          loopId: t.loopId || null,
+          loopViewUrl: t.loopViewUrl || null,
+          loopName: t.loopName || null,
+          loopStatus: t.loopStatus || null,
+          createdDate: t.createdDate || null,
+          closingDate: t.closingDate || null,
+          listingDate: t.listingDate || null,
+          offerDate: t.offerDate || null,
+          address: t.address || null,
           price: t.price || 0,
           propertyType: t.propertyType || null,
           bedrooms: t.bedrooms || 0,
@@ -74,12 +119,39 @@ export const uploadsRouter = router({
           yearBuilt: t.yearBuilt || 0,
           lotSize: t.lotSize || 0,
           subdivision: t.subdivision || null,
-          uploadId,
-          userId: ctx.user.id,
         }));
 
+        // Validate transactions before insertion
+        const validationResult = validateTransactionBatch(transactionsToInsert);
+        if (!validationResult.valid && validationResult.errors) {
+          // If validation fails, delete the upload record to keep database clean
+          const db = await import('./db').then(m => m.getDb());
+          if (db) {
+            await db.delete(uploads).where(eq(uploads.id, uploadId));
+          }
+          
+          const errorSummary = validationResult.errors.slice(0, 5).join('; ');
+          const moreErrors = validationResult.errors.length > 5 ? ` (and ${validationResult.errors.length - 5} more errors)` : '';
+          throw new Error(`Data validation failed: ${errorSummary}${moreErrors}`);
+        }
+
         // Bulk insert transactions
-        await createTransactions(transactionsToInsert);
+        try {
+          await createTransactions(validationResult.validData || transactionsToInsert);
+        } catch (error) {
+          // If transaction insertion fails, delete the upload record to keep database clean
+          const db = await import('./db').then(m => m.getDb());
+          if (db) {
+            await db.delete(uploads).where(eq(uploads.id, uploadId));
+          }
+          
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          console.error('Transaction insertion failed:', errorMsg);
+          throw new Error(
+            `Failed to save transaction data: ${errorMsg}. ` +
+            `This typically happens with very large files. Please try uploading a smaller CSV file or contact support.`
+          );
+        }
 
         return { uploadId, recordCount: input.transactions.length };
       }),
@@ -140,38 +212,16 @@ export const uploadsRouter = router({
         await deleteUpload(input.uploadId, ctx.user.id);
         return { success: true };
       }),
+  }),
 
-    // Get upload history for the current user
-    getHistory: protectedProcedure.query(async ({ ctx }) => {
-      const uploads = await getUserUploads(ctx.user.id);
-      return uploads.map((u) => ({
-        id: u.id,
-        fileName: u.fileName,
-        recordCount: u.recordCount,
-        createdAt: u.createdAt,
-      }));
-    }),
-
-    // List all uploads for the current user (alias for getHistory)
-    list: protectedProcedure.query(async ({ ctx }) => {
-      const uploads = await getUserUploads(ctx.user.id);
-      return uploads.map((u) => ({
-        id: u.id,
-        fileName: u.fileName,
-        recordCount: u.recordCount,
-        createdAt: u.createdAt,
-      }));
-    }),
-});
-
-const authRouter = router({
-  me: protectedProcedure.query(({ ctx }) => ctx.user),
-});
-
-export const appRouter = router({
-  auth: authRouter,
-  uploads: uploadsRouter,
+  admin: adminRouter,
+  performance: performanceRouter,
+  auditLogs: auditLogRouter,
+  dotloopOAuth: dotloopOAuthRouter,
+  tenantSettings: tenantSettingsRouter,
   commission: commissionRouter,
+  // tierHistory: tierHistoryRouter, // Removed: tierHistory table was dropped in migration
+  seed: seedRouter,
 });
 
 export type AppRouter = typeof appRouter;

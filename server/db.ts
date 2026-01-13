@@ -1,43 +1,24 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
-import { InsertUser, users } from "../drizzle/schema";
+import { users } from "../drizzle/schema";
+import type { InferInsertModel } from 'drizzle-orm';
+
+type InsertUser = InferInsertModel<typeof users>;
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-/**
- * Get or create the drizzle database instance
- */
+// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
-  if (_db) {
-    return _db;
+  if (!_db && process.env.DATABASE_URL) {
+    try {
+      _db = drizzle(process.env.DATABASE_URL);
+    } catch (error) {
+      console.warn("[Database] Failed to connect:", error);
+      _db = null;
+    }
   }
-
-  if (!process.env.DATABASE_URL) {
-    console.warn("[Database] DATABASE_URL not set");
-    return null;
-  }
-
-  try {
-    const pool = mysql.createPool(process.env.DATABASE_URL);
-    _db = drizzle(pool);
-    console.log("[Database] Connected successfully");
-    return _db;
-  } catch (error) {
-    console.error("[Database] Failed to connect:", error);
-    _db = null;
-    return null;
-  }
-}
-
-/**
- * Close the database connection
- */
-export async function closeDb() {
-  if (_db) {
-    _db = null;
-  }
+  return _db;
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
@@ -88,11 +69,11 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     }
 
     if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
+      values.lastSignedIn = new Date().toISOString();
     }
 
     if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
+      updateSet.lastSignedIn = new Date().toISOString();
     }
 
     await db.insert(users).values(values).onDuplicateKeyUpdate({

@@ -1,5 +1,9 @@
 import { eq, desc } from "drizzle-orm";
-import { uploads, transactions, InsertUpload, InsertTransaction, auditLogs, users } from "../drizzle/schema";
+import { uploads, transactions, auditLogs, users } from "../drizzle/schema";
+import type { InferInsertModel } from 'drizzle-orm';
+
+type InsertUpload = InferInsertModel<typeof uploads>;
+type InsertTransaction = InferInsertModel<typeof transactions>;
 import { getDb } from "./db";
 
 /**
@@ -52,17 +56,58 @@ export async function getUploadById(uploadId: number, userId: number) {
 }
 
 /**
- * Bulk insert transactions
+ * Bulk insert transactions with error handling and retry logic
  */
 export async function createTransactions(transactionList: InsertTransaction[]) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  // Insert in batches of 1000 to avoid query size limits
-  const batchSize = 1000;
+  // Insert in batches of 100 to avoid MySQL max_allowed_packet limit (default 4MB)
+  // Each transaction row can be ~1-2KB, so 100 rows = ~100-200KB per batch
+  const batchSize = 100;
+  const failedBatches: { batchIndex: number; error: Error }[] = [];
+  
   for (let i = 0; i < transactionList.length; i += batchSize) {
+    const batchIndex = Math.floor(i / batchSize);
     const batch = transactionList.slice(i, i + batchSize);
-    await db.insert(transactions).values(batch);
+    
+    try {
+      await db.insert(transactions).values(batch);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      console.error(`Failed to insert batch ${batchIndex} (rows ${i}-${Math.min(i + batchSize, transactionList.length)})`, err);
+      
+      // Try smaller batch size if this batch failed (50 rows per retry)
+      if (batch.length > 50) {
+        console.log(`Retrying batch ${batchIndex} with smaller size (50 rows)...`);
+        try {
+          const smallBatchSize = 50;
+          for (let j = 0; j < batch.length; j += smallBatchSize) {
+            const smallBatch = batch.slice(j, j + smallBatchSize);
+            await db.insert(transactions).values(smallBatch);
+          }
+          console.log(`Successfully inserted batch ${batchIndex} with smaller batch size`);
+          continue;
+        } catch (retryError) {
+          const retryErr = retryError instanceof Error ? retryError : new Error(String(retryError));
+          console.error(`Retry failed for batch ${batchIndex}`, retryErr);
+          failedBatches.push({ batchIndex, error: retryErr });
+        }
+      } else {
+        failedBatches.push({ batchIndex, error: err });
+      }
+    }
+  }
+  
+  // If there were failed batches, throw an error with details
+  if (failedBatches.length > 0) {
+    const failedBatchIndices = failedBatches.map(fb => fb.batchIndex).join(', ');
+    const firstError = failedBatches[0].error.message;
+    throw new Error(
+      `Failed to insert ${failedBatches.length} batch(es) (indices: ${failedBatchIndices}). ` +
+      `First error: ${firstError}. ` +
+      `Total records attempted: ${transactionList.length}`
+    );
   }
 }
 

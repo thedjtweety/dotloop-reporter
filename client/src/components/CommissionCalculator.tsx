@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle, Loader2, Download, RefreshCw } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { getRecentFiles } from '@/lib/storage';
+import CSVUploadWidget from '@/components/CSVUploadWidget';
 import type { DotloopRecord } from '@/lib/csvParser';
 
 interface CalculationResult {
@@ -37,12 +38,31 @@ export default function CommissionCalculator() {
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [transactions, setTransactions] = useState<DotloopRecord[]>([]);
   const [hasData, setHasData] = useState(false);
+  const [fileName, setFileName] = useState<string>('');
 
-  // Fetch data from tRPC
-  const { data: plans } = trpc.commission.getPlans.useQuery();
-  const { data: teams } = trpc.commission.getTeams.useQuery();
-  const { data: assignments } = trpc.commission.getAssignments.useQuery();
+  // Fetch data from tRPC with staleTime: 0 to ensure fresh data
+  const { data: plans, isLoading: plansLoading, error: plansError, refetch: refetchPlans } = trpc.commission.getPlans.useQuery(undefined, { staleTime: 0 });
+  const { data: teams, isLoading: teamsLoading, error: teamsError, refetch: refetchTeams } = trpc.commission.getTeams.useQuery(undefined, { staleTime: 0 });
+  const { data: assignments, isLoading: assignmentsLoading, error: assignmentsError, refetch: refetchAssignments } = trpc.commission.getAssignments.useQuery(undefined, { staleTime: 0 });
   const calculateMutation = trpc.commission.calculate.useMutation();
+
+  // Log query status for debugging
+  useEffect(() => {
+    if (plansError) console.error('Plans query error:', plansError);
+    if (teamsError) console.error('Teams query error:', teamsError);
+    if (assignmentsError) console.error('Assignments query error:', assignmentsError);
+    console.log('Plans:', plans?.length || 0, 'Teams:', teams?.length || 0, 'Assignments:', assignments?.length || 0);
+  }, [plans, teams, assignments, plansError, teamsError, assignmentsError]);
+
+  // Refetch data when component mounts to ensure latest plans and assignments
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetchPlans();
+      refetchTeams();
+      refetchAssignments();
+    }, 5000); // Refetch every 5 seconds to keep data fresh
+    return () => clearInterval(interval);
+  }, [refetchPlans, refetchTeams, refetchAssignments]);
 
   // Load recent transaction data on mount
   useEffect(() => {
@@ -77,21 +97,29 @@ export default function CommissionCalculator() {
       setCalculating(true);
       setError(null);
 
+      // Refetch latest data before calculating
+      const plansResult = await refetchPlans();
+      const assignmentsResult = await refetchAssignments();
+
       // Validate data
       if (!transactions || transactions.length === 0) {
-        setError('No transactions available to calculate');
+        setError('No transactions available to calculate. Please upload a Dotloop export first.');
         return;
       }
 
-      if (!plans || plans.length === 0) {
-        setError('No commission plans configured');
+      if (!plansResult?.data || plansResult.data.length === 0) {
+        setError('No commission plans configured. Please create a plan in the Plans tab first.');
         return;
       }
 
-      if (!assignments || assignments.length === 0) {
-        setError('No agent assignments configured');
+      if (!assignmentsResult?.data || assignmentsResult.data.length === 0) {
+        setError('No agent assignments configured. Please assign agents to plans in the Agents tab first.');
         return;
       }
+
+      // Use the refetched data
+      const currentPlans = plansResult.data;
+      const currentAssignments = assignmentsResult.data;
 
       // Transform transactions to match API schema
       const transactionInputs = transactions.map(t => ({
@@ -108,9 +136,10 @@ export default function CommissionCalculator() {
       // Call calculation API
       const response = await calculateMutation.mutateAsync({
         transactions: transactionInputs,
-        planIds: plans.map(p => p.id),
+        planIds: currentPlans.map(p => p.id),
         teamIds: teams?.map(t => t.id) || [],
-        agentAssignments: assignments.map(a => ({
+        agentAssignments: currentAssignments.map(a => ({
+          id: a.id || Math.random().toString(36).substr(2, 9),
           agentName: a.agentName,
           planId: a.planId,
           teamId: a.teamId,
@@ -152,17 +181,42 @@ export default function CommissionCalculator() {
     a.click();
   };
 
-  if (loading) {
+  if (loading || plansLoading || teamsLoading || assignmentsLoading) {
     return (
       <Card className="p-8 text-center">
         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-        <p className="text-muted-foreground">Loading transaction data...</p>
+        <p className="text-muted-foreground">Loading data...</p>
       </Card>
     );
   }
 
+  // Show errors if queries failed
+  if (plansError || teamsError || assignmentsError) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Failed to load configuration data. Please try refreshing the page.
+          {plansError && <div>Plans error: {String(plansError)}</div>}
+          {teamsError && <div>Teams error: {String(teamsError)}</div>}
+          {assignmentsError && <div>Assignments error: {String(assignmentsError)}</div>}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  const handleDataLoaded = (data: DotloopRecord[], uploadFileName: string) => {
+    setTransactions(data);
+    setFileName(uploadFileName);
+    setHasData(true);
+    setError(null);
+  };
+
   return (
     <div className="space-y-6">
+      {/* CSV Upload Widget */}
+      <CSVUploadWidget onDataLoaded={handleDataLoaded} isLoading={plansLoading || teamsLoading || assignmentsLoading} />
+
       {/* Status Card */}
       <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
         <div className="flex items-start justify-between">

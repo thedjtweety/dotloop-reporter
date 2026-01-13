@@ -7,7 +7,6 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { closeDb } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -61,24 +60,6 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
   });
-
-  // Handle graceful shutdown
-  const gracefulShutdown = async (signal: string) => {
-    console.log(`\n${signal} received. Closing database connections...`);
-    await closeDb();
-    server.close(() => {
-      console.log("Server closed");
-      process.exit(0);
-    });
-    // Force exit after 10 seconds if graceful shutdown fails
-    setTimeout(() => {
-      console.error("Forced shutdown after timeout");
-      process.exit(1);
-    }, 10000);
-  };
-
-  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 }
 
 startServer().catch(console.error);

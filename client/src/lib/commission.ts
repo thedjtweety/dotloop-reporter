@@ -6,6 +6,13 @@ export interface Deduction {
   frequency: 'per_transaction'; // For now, just per transaction
 }
 
+export interface CommissionTier {
+  id: string;
+  threshold: number; // YTD amount at which this tier starts (e.g., 0, 50000, 100000)
+  splitPercentage: number; // Agent's share at this tier (e.g., 60 for 60/40)
+  description: string; // e.g., "$0-$50K: 60/40"
+}
+
 export interface CommissionPlan {
   id: string;
   name: string;
@@ -15,6 +22,8 @@ export interface CommissionPlan {
   royaltyPercentage?: number; // Optional franchise fee (e.g., 6%)
   royaltyCap?: number; // Optional cap on royalty (e.g., 3000)
   deductions?: Deduction[]; // List of standard deductions
+  tiers?: CommissionTier[]; // Sliding scale tiers (optional)
+  useSliding?: boolean; // Whether to use tiered splits or flat split
 }
 
 export interface Team {
@@ -25,6 +34,7 @@ export interface Team {
 }
 
 export interface AgentPlanAssignment {
+  id: string;
   agentName: string;
   planId: string;
   teamId?: string; // Optional: link to a team

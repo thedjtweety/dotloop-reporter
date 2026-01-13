@@ -294,14 +294,7 @@ export default function AdminDashboard() {
                         </TableCell>
                         <TableCell>{upload.recordCount.toLocaleString()}</TableCell>
                         <TableCell className="text-foreground text-sm">
-                          {formatDistanceToNow(
-                            typeof upload.createdAt === 'string' 
-                              ? new Date(upload.createdAt) 
-                              : upload.createdAt instanceof Date
-                              ? upload.createdAt
-                              : new Date(),
-                            { addSuffix: true }
-                          )}
+                          {formatDistanceToNow(new Date(upload.uploadedAt), { addSuffix: true })}
                         </TableCell>
                       </TableRow>
                     ))}

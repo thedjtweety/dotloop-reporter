@@ -98,14 +98,7 @@ export default function UploadHistory({ onSelectUpload, currentUploadId }: Uploa
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         <span>
-                          {formatDistanceToNow(
-                            typeof upload.createdAt === 'string' 
-                              ? new Date(upload.createdAt) 
-                              : upload.createdAt instanceof Date
-                              ? upload.createdAt
-                              : new Date(),
-                            { addSuffix: true }
-                          )}
+                          {formatDistanceToNow(new Date(upload.uploadedAt), { addSuffix: true })}
                         </span>
                       </div>
                       <span className="text-foreground/50">•</span>
