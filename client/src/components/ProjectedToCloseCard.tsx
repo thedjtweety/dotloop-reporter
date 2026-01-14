@@ -10,9 +10,10 @@
  */
 
 import { useState, useMemo } from 'react';
+import { useLocation } from 'wouter';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Target, DollarSign, Download, FileText, BarChart3 } from 'lucide-react';
+import { TrendingUp, Target, DollarSign, Download, FileText, BarChart3, Eye } from 'lucide-react';
 import { formatCurrency, formatNumber } from '@/lib/formatUtils';
 import {
   calculateProjectedToClose,
@@ -30,9 +31,17 @@ interface ProjectedToCloseCardProps {
 }
 
 export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardProps) {
+  const [, setLocation] = useLocation();
   const [selectedTimeframe, setSelectedTimeframe] = useState<30 | 60 | 90>(30);
   const [showDealsModal, setShowDealsModal] = useState(false);
   const [showAccuracyDashboard, setShowAccuracyDashboard] = useState(false);
+
+  // Handle navigation to full-screen forecasted deals page
+  const handleViewFullScreen = () => {
+    sessionStorage.setItem('forecastedDealsRecords', JSON.stringify(records));
+    sessionStorage.setItem('forecastedDaysForecast', selectedTimeframe.toString());
+    setLocation('/forecasted-deals');
+  };
 
   // Get under contract deals
   const underContractDeals = useMemo(
@@ -158,7 +167,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
           {/* Projection Display */}
           <ProjectionDisplay 
             projection={current} 
-            onViewDeals={() => setShowDealsModal(true)}
+            onViewDeals={handleViewFullScreen}
           />
 
           {/* Footer with confidence level and export buttons */}

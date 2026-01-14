@@ -1660,3 +1660,11 @@
 - [x] Add accuracy tracking to ProjectedToCloseCard with "View Accuracy" toggle button
 - [x] Test end-to-end forecast accuracy tracking with demo data (displays empty state correctly)
 - [x] Save checkpoint with forecast accuracy tracking
+
+
+## Phase 45: Convert Fo## Phase 45: Convert Forecasted Deals Modal to Full-Screen Page
+- [x] Create ForecastedDealsPage as full-screen page component (full-width layout with sticky header)
+- [x] Add route to App.tsx for forecasted deals page (/forecasted-deals)
+- [x] Update ProjectedToCloseCard to navigate to page instead of opening modal (using sessionStorage)
+- [x] Test full-screen forecasted deals page in browser (navigation working perfectly, all deals displaying)
+- [x] Save checkpoint with full-screen forecasted deals page
