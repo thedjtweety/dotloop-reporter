@@ -369,3 +369,54 @@ export const uploads = mysqlTable("uploads", {
 	index("email_tenant_unique").on(table.email, table.tenantId),
 	index("tenant_idx").on(table.tenantId),
 ]);
+
+
+export const forecastSnapshots = mysqlTable("forecast_snapshots", {
+	id: varchar({ length: 64 }).notNull().primaryKey(),
+	tenantId: int().notNull(),
+	uploadId: int(),
+	timeframe: int().notNull(), // 30, 60, or 90 days
+	snapshotDate: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	projectedDeals: int().notNull(),
+	projectedRevenue: int().notNull(), // stored in cents
+	projectedCommission: int().notNull(), // stored in cents
+	avgProbability: int().notNull(), // percentage 0-100
+	confidenceLevel: int().notNull(), // percentage 0-100
+	pipelineCount: int().notNull(),
+	forecastedDealsJson: text().notNull(), // JSON array of forecasted deals
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("forecast_snapshots_tenant_idx").on(table.tenantId),
+	index("forecast_snapshots_upload_idx").on(table.uploadId),
+	index("forecast_snapshots_timeframe_idx").on(table.timeframe),
+	index("forecast_snapshots_tenant_date_idx").on(table.tenantId, table.snapshotDate),
+	index("forecast_snapshots_date_idx").on(table.snapshotDate),
+]);
+
+export const forecastResults = mysqlTable("forecast_results", {
+	id: varchar({ length: 64 }).notNull().primaryKey(),
+	snapshotId: varchar({ length: 64 }).notNull(),
+	tenantId: int().notNull(),
+	timeframe: int().notNull(), // 30, 60, or 90 days
+	resultDate: timestamp({ mode: 'string' }).notNull(), // when the forecast period ended
+	actualDeals: int().notNull(),
+	actualRevenue: int().notNull(), // stored in cents
+	actualCommission: int().notNull(), // stored in cents
+	dealsVariance: int(), // projected - actual
+	revenueVariance: int(), // projected - actual (in cents)
+	commissionVariance: int(), // projected - actual (in cents)
+	dealsAccuracy: int(), // percentage 0-100
+	revenueAccuracy: int(), // percentage 0-100
+	commissionAccuracy: int(), // percentage 0-100
+	hitRate: int(), // percentage of deals that actually closed
+	mape: int().notNull(), // Mean Absolute Percentage Error (0-100 as percentage)
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("forecast_results_snapshot_idx").on(table.snapshotId),
+	index("forecast_results_tenant_idx").on(table.tenantId),
+	index("forecast_results_timeframe_idx").on(table.timeframe),
+	index("forecast_results_tenant_date_idx").on(table.tenantId, table.resultDate),
+	index("forecast_results_date_idx").on(table.resultDate),
+]);

@@ -71,6 +71,13 @@
       "when": 1768347676992,
       "tag": "0009_left_maginty",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1768421387272,
+      "tag": "0010_normal_blonde_phantom",
+      "breakpoints": true
     }
   ]
 }
