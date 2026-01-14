@@ -981,7 +981,7 @@ function HomeContent() {
                       <CommissionBreakdownChart 
                         buySide={filteredRecords.reduce((sum, r) => sum + (r.buySideCommission || 0), 0)}
                         sellSide={filteredRecords.reduce((sum, r) => sum + (r.sellSideCommission || 0), 0)}
-                        onBarClick={(type) => openChartDrillDown('commission', type, `Commission: ${type}`)}
+                        onSliceClick={(type: string) => openChartDrillDown('commission', type, `Commission: ${type}`)}
                       />
                     </Card>
                   </div>

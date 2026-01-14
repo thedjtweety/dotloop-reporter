@@ -83,7 +83,7 @@ export default function AuditLog() {
       .join(' ');
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
