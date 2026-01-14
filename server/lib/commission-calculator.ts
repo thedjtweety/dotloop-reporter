@@ -386,8 +386,17 @@ export function calculateCommissions(
     const closingDate = new Date(transaction.closingDate);
     
     agents.forEach(agentName => {
-      const assignment = assignments.find(a => a.agentName === agentName);
-      if (!assignment) return; // Skip agents without plan assignments
+      // Normalize agent name for matching (case-insensitive, trim whitespace)
+      const normalizedAgentName = agentName.trim().toLowerCase();
+      const assignment = assignments.find(a => a.agentName.trim().toLowerCase() === normalizedAgentName);
+      if (!assignment) {
+        console.warn(`No assignment found for agent: "${agentName}" (normalized: "${normalizedAgentName}")`)
+        console.warn('Available assignments:', assignments.map(a => `"${a.agentName}" (normalized: "${a.agentName.trim().toLowerCase()}")`));
+        return; // Skip agents without plan assignments
+      }
+      
+      // Use the canonical agent name from the assignment for consistency
+      const canonicalAgentName = assignment.agentName;
       
       const plan = plans.find(p => p.id === assignment.planId);
       if (!plan) return; // Skip if plan not found
@@ -397,20 +406,20 @@ export function calculateCommissions(
       // Determine cycle start for this transaction
       const cycleStart = getCycleStartDate(closingDate, assignment.anniversaryDate);
       
-      // Get or initialize YTD for this agent
-      let agentYTD = agentYTDMap.get(agentName);
+      // Get or initialize YTD for this agent using canonical name
+      let agentYTD = agentYTDMap.get(canonicalAgentName);
       if (!agentYTD || agentYTD.cycleStart.getTime() !== cycleStart.getTime()) {
         // Reset YTD if new cycle or first transaction
         agentYTD = { ytd: 0, cycleStart };
       }
       
       // Get transaction-specific adjustments
-      const adjustments = adjustmentsMap?.get(`${transaction.id}:${agentName}`);
+      const adjustments = adjustmentsMap?.get(`${transaction.id}:${canonicalAgentName}`);
       
       // Calculate commission for this transaction
       const breakdown = calculateTransactionCommission(
         transaction,
-        agentName,
+        canonicalAgentName,
         plan,
         team,
         agentYTD.ytd,
@@ -419,9 +428,9 @@ export function calculateCommissions(
       
       breakdowns.push(breakdown);
       
-      // Update YTD
+      // Update YTD using canonical name
       agentYTD.ytd = breakdown.ytdAfterTransaction;
-      agentYTDMap.set(agentName, agentYTD);
+      agentYTDMap.set(canonicalAgentName, agentYTD);
     });
   });
   
@@ -451,8 +460,8 @@ export function calculateCommissions(
       };
     }
     
-    // Get agent's breakdowns
-    const agentBreakdowns = breakdowns.filter(b => b.agentName === assignment.agentName);
+    // Get agent's breakdowns (use canonical name from assignment)
+    const agentBreakdowns = breakdowns.filter(b => b.agentName.trim().toLowerCase() === assignment.agentName.trim().toLowerCase());
     
     // Determine cycle dates from the latest transaction (or current date if no transactions)
     let cycleStart: Date;

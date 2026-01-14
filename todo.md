@@ -1668,3 +1668,13 @@
 - [x] Update ProjectedToCloseCard to navigate to page instead of opening modal (using sessionStorage)
 - [x] Test full-screen forecasted deals page in browser (navigation working perfectly, all deals displaying)
 - [x] Save checkpoint with full-screen forecasted deals page
+
+
+## Phase 46: Commission Breakdowns - Agent Summary Table (CURRENT)
+- [ ] Investigate why only Amanda Garcia is showing in Commission Breakdowns view
+- [ ] Create AgentCommissionSummary component with table of all agents + total metrics
+- [ ] Create AgentTransactionDetails full-screen modal for drill-down
+- [ ] Update CommissionComparisonReport to use new agent summary table
+- [ ] Test all 29 agents display correctly in summary table
+- [ ] Test agent drill-down shows all their transactions full-screen
+- [ ] Save checkpoint with agent summary table
