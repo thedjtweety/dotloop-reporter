@@ -1644,3 +1644,10 @@
 - [x] Test PDF export with deal-level details and formatting (30-day and 60-day exports working)
 - [x] Test CSV export with proper column headers and data (30-day and 60-day exports working)
 - [x] Save checkpoint with export functionality
+
+
+## Phase 43: ForecastedDealsModal Width Optimization
+- [x] Expand ForecastedDealsModal to full-screen width (max-w-7xl w-[95vw] like metric card drill-downs)
+- [x] Improve deal card spacing and layout for better visibility (5-column grid for deal details, increased gaps)
+- [x] Test modal width on desktop and mobile viewports (tested on desktop - full width working perfectly)
+- [x] Save checkpoint with improved modal layout
