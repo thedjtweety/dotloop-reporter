@@ -1587,3 +1587,21 @@
 - [x] Add friendly warning messages for agents without assigned plans (globally)
 - [x] Update all commission display components to show plan info and warnings
 - [x] Test commission calculations with and without assigned plans
+
+## Phase 34: Commission Recalculation Based on Plans
+- [x] Create commission recalculation helper using plan split percentage and cap
+- [x] Integrate recalculation into AgentMetrics calculations
+- [x] Update commission breakdown to show plan-based vs CSV-based comparison
+- [x] Test recalculation with various plan configurations (9 vitest tests passing)
+
+## Phase 35: Bulk Plan Assignment
+- [ ] Add checkbox selection to agent list in Commission Management
+- [ ] Create bulk assignment modal/dialog
+- [ ] Implement bulk update API endpoint
+- [ ] Add success/error notifications for bulk operations
+
+## Phase 36: Commission Plan Templates
+- [ ] Create plan templates system (Standard 50/50, High-Volume 60/40, New Agent 70/30)
+- [ ] Add template selection UI in plan creation
+- [ ] Allow customization of template values
+- [ ] Add template management (edit, delete, create custom)

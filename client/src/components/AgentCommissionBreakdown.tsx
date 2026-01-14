@@ -9,6 +9,8 @@ import { AgentMetrics, DotloopRecord } from '@/lib/csvParser';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import CommissionPlanWarning from './CommissionPlanWarning';
+import { calculatePlanBasedCommission } from '@/lib/commissionRecalculator';
+import { getPlanForAgent } from '@/lib/commission';
 import {
   PieChart,
   Pie,
@@ -31,12 +33,14 @@ interface AgentCommissionBreakdownProps {
   agent: AgentMetrics;
   transactions: DotloopRecord[];
   hasCommissionPlan?: boolean;
+  showRecalculated?: boolean;
 }
 
 export default function AgentCommissionBreakdown({
   agent,
   transactions,
   hasCommissionPlan = true,
+  showRecalculated = false,
 }: AgentCommissionBreakdownProps) {
   // Filter transactions for this agent
   const agentTransactions = useMemo(() => {
@@ -45,6 +49,13 @@ export default function AgentCommissionBreakdown({
       return agents.includes(agent.agentName);
     });
   }, [agent.agentName, transactions]);
+
+  // Get plan and calculate recalculated commission
+  const plan = useMemo(() => getPlanForAgent(agent.agentName), [agent.agentName]);
+  const recalculatedMetrics = useMemo(() => {
+    if (!plan || !showRecalculated) return null;
+    return calculatePlanBasedCommission(agentTransactions, plan);
+  }, [plan, agentTransactions, showRecalculated]);
 
   // Commission breakdown by side
   const commissionBySide = useMemo(() => {
