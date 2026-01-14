@@ -1609,3 +1609,10 @@
 - [x] Show agents with significant differences (>5%)
 - [x] Highlight agents without assigned plans
 - [x] Display total variance and insights
+
+
+## Phase 38: CTE-Inspired Improvements
+- [x] Add trend lines (sparklines) to all key metrics showing direction over time (Sparkline + MetricWithTrend components)
+- [x] Implement "Projected to Close" forecasting based on pipeline and historical close rates (projectionUtils)
+- [x] Create horizontal bar comparison view for agents (alternative to table view) (AgentComparisonBars component)
+- [x] Add percentage change indicators (% change from previous period) to all metrics (integrated in sparkline utilities)
