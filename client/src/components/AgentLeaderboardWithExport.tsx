@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import AgentCommissionModal from './AgentCommissionModal';
 import AgentDetailsPanel from './AgentDetailsPanel';
+import AgentCommissionBreakdown from './AgentCommissionBreakdown';
 import { DotloopRecord } from '@/lib/csvParser';
 import WinnersPodium from './WinnersPodium';
 import { formatCurrency, formatPercentage } from '@/lib/formatUtils';
@@ -44,6 +45,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [exportingAgent, setExportingAgent] = useState<string | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<AgentMetrics | null>(null);
+  const [commissionBreakdownAgent, setCommissionBreakdownAgent] = useState<AgentMetrics | null>(null);
   const [showPodium, setShowPodium] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<FilterType>('all');
@@ -412,7 +414,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                   <TableCell className="sticky right-0 bg-card shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]">
                     <div className="flex justify-center gap-1">
                       <Button
-                        onClick={() => setSelectedAgent(agent)}
+                        onClick={() => setCommissionBreakdownAgent(agent)}
                         variant="ghost"
                         size="sm"
                         title="View commission breakdown"
@@ -492,6 +494,20 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Commission Breakdown Sheet */}
+      {commissionBreakdownAgent && (
+        <Sheet open={!!commissionBreakdownAgent} onOpenChange={() => setCommissionBreakdownAgent(null)}>
+          <SheetContent side="right" className="w-full sm:w-[700px] overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>{commissionBreakdownAgent.agentName} - Commission Breakdown</SheetTitle>
+            </SheetHeader>
+            <div className="mt-6">
+              <AgentCommissionBreakdown agent={commissionBreakdownAgent} transactions={records} />
+            </div>
+          </SheetContent>
+        </Sheet>
       )}
 
       {/* Agent Details Sheet */}

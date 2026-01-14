@@ -1570,3 +1570,7 @@
 - [ ] Test 6-month cleanup job
 - [ ] Test notifications and activity log
 - [ ] Save checkpoint with team sharing system
+
+## Phase 31: Differentiate Agent Leaderboard Views
+- [x] Create AgentCommissionBreakdown component with commission analysis charts
+- [x] Update AgentLeaderboardWithExport to use separate modals for "View Commission Breakdown" vs "View Details"
