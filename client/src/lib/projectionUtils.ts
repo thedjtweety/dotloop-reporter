@@ -127,8 +127,10 @@ export function projectFuturePerformance(
 export interface ForecastedDeal {
   id: string;
   loopName: string;
+  address: string;
   agent: string;
   price: number;
+  listPrice: number;
   commission: number;
   closingDate: Date | undefined;
   daysInContract: number;
@@ -218,8 +220,10 @@ export function calculateForecastedDeals(
       return {
         id: `deal-${index}`,
         loopName: deal.loopName || 'Unknown',
+        address: deal.address || 'Unknown Address',
         agent: deal.agent || 'Unknown',
         price: deal.price || 0,
+        listPrice: deal.price || 0,
         commission: deal.commissionTotal || 0,
         closingDate: deal.closingDate ? new Date(deal.closingDate) : undefined,
         daysInContract: Math.max(0, daysInContract),

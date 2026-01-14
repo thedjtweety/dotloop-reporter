@@ -11,7 +11,8 @@
 
 import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
-import { TrendingUp, Target, DollarSign } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { TrendingUp, Target, DollarSign, Download, FileText } from 'lucide-react';
 import { formatCurrency, formatNumber } from '@/lib/formatUtils';
 import {
   calculateProjectedToClose,
@@ -21,6 +22,7 @@ import {
 } from '@/lib/projectionUtils';
 import { DotloopRecord } from '@/lib/csvParser';
 import ForecastedDealsModal from './ForecastedDealsModal';
+import { exportForecastAsPDF, exportForecastAsCSV } from '@/lib/exportUtils';
 
 interface ProjectedToCloseCardProps {
   records: DotloopRecord[];
@@ -157,19 +159,51 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
             onViewDeals={() => setShowDealsModal(true)}
           />
 
-          {/* Footer with confidence level */}
-          <div className="pt-4 border-t border-border flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-foreground">
-                Close Rate: {historicalCloseRate}%
-              </span>
+          {/* Footer with confidence level and export buttons */}
+          <div className="pt-4 border-t border-border space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-foreground">
+                  Close Rate: {historicalCloseRate}%
+                </span>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-foreground mb-1">Confidence</p>
+                <p className={`text-sm font-bold ${confidenceColor}`}>
+                  {current.confidenceLevel}%
+                </p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-foreground mb-1">Confidence</p>
-              <p className={`text-sm font-bold ${confidenceColor}`}>
-                {current.confidenceLevel}%
-              </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportForecastAsPDF(selectedTimeframe, forecastedDeals, {
+                  totalDeals: forecastedDeals.length,
+                  avgProbability: historicalCloseRate / 100,
+                  projectedCommission: current.projectedCommission,
+                  pipelineCount: underContractDeals.length,
+                })}
+                className="gap-2 flex-1"
+              >
+                <FileText className="w-4 h-4" />
+                Export PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportForecastAsCSV(selectedTimeframe, forecastedDeals, {
+                  totalDeals: forecastedDeals.length,
+                  avgProbability: historicalCloseRate / 100,
+                  projectedCommission: current.projectedCommission,
+                  pipelineCount: underContractDeals.length,
+                })}
+                className="gap-2 flex-1"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </Button>
             </div>
           </div>
         </div>

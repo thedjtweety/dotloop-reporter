@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { X, TrendingUp } from 'lucide-react';
+import { X, TrendingUp, Download, FileText } from 'lucide-react';
 import { ForecastedDeal } from '@/lib/projectionUtils';
 import { formatCurrency, formatPercentage } from '@/lib/formatUtils';
+import { exportForecastAsPDF, exportForecastAsCSV } from '@/lib/exportUtils';
 
 interface ForecastedDealsModalProps {
   isOpen: boolean;
@@ -93,29 +94,61 @@ export default function ForecastedDealsModal({
           </Card>
         </div>
 
-        {/* Sort Controls */}
-        <div className="flex gap-2 mb-4">
-          <Button
-            variant={sortBy === 'probability' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSortBy('probability')}
-          >
-            Sort by Probability
-          </Button>
-          <Button
-            variant={sortBy === 'price' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSortBy('price')}
-          >
-            Sort by Price
-          </Button>
-          <Button
-            variant={sortBy === 'commission' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSortBy('commission')}
-          >
-            Sort by Commission
-          </Button>
+        {/* Sort and Export Controls */}
+        <div className="flex gap-2 mb-4 flex-wrap items-center justify-between">
+          <div className="flex gap-2">
+            <Button
+              variant={sortBy === 'probability' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSortBy('probability')}
+            >
+              Sort by Probability
+            </Button>
+            <Button
+              variant={sortBy === 'price' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSortBy('price')}
+            >
+              Sort by Price
+            </Button>
+            <Button
+              variant={sortBy === 'commission' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSortBy('commission')}
+            >
+              Sort by Commission
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportForecastAsPDF(timeframe, sortedDeals, {
+                totalDeals: deals.length,
+                avgProbability: avgProbability / 100,
+                projectedCommission: totalProjectedCommission,
+                pipelineCount: totalDealsInPipeline,
+              })}
+              className="gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              Export PDF
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportForecastAsCSV(timeframe, sortedDeals, {
+                totalDeals: deals.length,
+                avgProbability: avgProbability / 100,
+                projectedCommission: totalProjectedCommission,
+                pipelineCount: totalDealsInPipeline,
+              })}
+              className="gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Export CSV
+            </Button>
+          </div>
         </div>
 
         {/* Deals List */}

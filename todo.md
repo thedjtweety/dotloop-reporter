@@ -1636,3 +1636,11 @@
 - [x] Add deal sorting by probability (highest first) and filtering by timeframe
 - [x] Test deal-level forecasts in browser with demo data (all sorting options working)
 - [x] Save checkpoint with deal-level forecast feature
+
+## Phase 42: Export Functionality for Forecasts
+- [x] Create forecast export utilities (generateForecastPDF, generateForecastCSV)
+- [x] Add export buttons to ForecastedDealsModal (Export as PDF, Export as CSV)
+- [x] Add export button to ProjectedToCloseCard summary card
+- [x] Test PDF export with deal-level details and formatting (30-day and 60-day exports working)
+- [x] Test CSV export with proper column headers and data (30-day and 60-day exports working)
+- [x] Save checkpoint with export functionality
