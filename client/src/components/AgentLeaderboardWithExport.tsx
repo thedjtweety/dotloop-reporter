@@ -502,7 +502,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
               <SheetTitle>{selectedAgent.agentName}</SheetTitle>
             </SheetHeader>
             <div className="mt-6 space-y-6">
-              <AgentDetailsPanel agent={selectedAgent} records={records} />
+              <AgentDetailsPanel agent={selectedAgent} transactions={records} />
             </div>
           </SheetContent>
         </Sheet>
