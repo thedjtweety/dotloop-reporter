@@ -11,7 +11,6 @@
 
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, Target, DollarSign } from 'lucide-react';
 import { formatCurrency, formatNumber } from '@/lib/formatUtils';
 import {
@@ -79,29 +78,42 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
           </div>
         </div>
 
-        {/* Timeframe Selector */}
-        <Tabs value={selectedTimeframe.toString()} onValueChange={(v) => setSelectedTimeframe(parseInt(v) as 30 | 60 | 90)}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="30">30 Days</TabsTrigger>
-            <TabsTrigger value="60">60 Days</TabsTrigger>
-            <TabsTrigger value="90">90 Days</TabsTrigger>
-          </TabsList>
+        {/* Timeframe Selector - Using simple buttons instead of Tabs */}
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            onClick={() => setSelectedTimeframe(30)}
+            className={`py-2 px-3 rounded-lg font-medium transition-all ${
+              selectedTimeframe === 30
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-foreground hover:bg-muted/80'
+            }`}
+          >
+            30 Days
+          </button>
+          <button
+            onClick={() => setSelectedTimeframe(60)}
+            className={`py-2 px-3 rounded-lg font-medium transition-all ${
+              selectedTimeframe === 60
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-foreground hover:bg-muted/80'
+            }`}
+          >
+            60 Days
+          </button>
+          <button
+            onClick={() => setSelectedTimeframe(90)}
+            className={`py-2 px-3 rounded-lg font-medium transition-all ${
+              selectedTimeframe === 90
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-foreground hover:bg-muted/80'
+            }`}
+          >
+            90 Days
+          </button>
+        </div>
 
-          {/* 30 Days */}
-          <TabsContent value="30" className="space-y-4 mt-4">
-            <ProjectionDisplay projection={projection30} />
-          </TabsContent>
-
-          {/* 60 Days */}
-          <TabsContent value="60" className="space-y-4 mt-4">
-            <ProjectionDisplay projection={projection60} />
-          </TabsContent>
-
-          {/* 90 Days */}
-          <TabsContent value="90" className="space-y-4 mt-4">
-            <ProjectionDisplay projection={projection90} />
-          </TabsContent>
-        </Tabs>
+        {/* Projection Display */}
+        <ProjectionDisplay projection={current} />
 
         {/* Footer with confidence level */}
         <div className="pt-4 border-t border-border flex items-center justify-between">
