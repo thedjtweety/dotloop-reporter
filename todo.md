@@ -1580,3 +1580,10 @@
 - [x] Increase chart heights and spacing for better readability
 - [x] Add sticky header with agent name and key metrics
 - [x] Improve responsive layout for larger screens
+
+## Phase 33: Integrate Commission Plans into All Calculations
+- [x] Audit commission calculations to identify where commission plans should be applied
+- [x] Create commission calculation helper that uses agent's assigned plan
+- [x] Add friendly warning messages for agents without assigned plans (globally)
+- [x] Update all commission display components to show plan info and warnings
+- [x] Test commission calculations with and without assigned plans

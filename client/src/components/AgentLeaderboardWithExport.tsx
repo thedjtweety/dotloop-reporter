@@ -25,6 +25,7 @@ import { Progress } from '@/components/ui/progress';
 import AgentCommissionModal from './AgentCommissionModal';
 import AgentDetailsPanel from './AgentDetailsPanel';
 import AgentCommissionBreakdown from './AgentCommissionBreakdown';
+import CommissionPlanWarning from './CommissionPlanWarning';
 import { DotloopRecord } from '@/lib/csvParser';
 import WinnersPodium from './WinnersPodium';
 import { formatCurrency, formatPercentage } from '@/lib/formatUtils';
@@ -33,6 +34,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 interface AgentLeaderboardProps {
   agents: AgentMetrics[];
   records?: DotloopRecord[];
+  agentAssignments?: Array<{ agentName: string; planId: string; planName?: string }>;
 }
 
 type SortField = keyof AgentMetrics;
@@ -40,7 +42,7 @@ type FilterType = 'all' | 'top10' | 'bottom10';
 
 const ITEMS_PER_PAGE = 10;
 
-export default function AgentLeaderboardWithExport({ agents, records = [] }: AgentLeaderboardProps) {
+export default function AgentLeaderboardWithExport({ agents, records = [], agentAssignments = [] }: AgentLeaderboardProps) {
   const [sortField, setSortField] = useState<SortField>('totalCommission');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [exportingAgent, setExportingAgent] = useState<string | null>(null);
@@ -53,6 +55,11 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
 
   // Check if financial data exists
   const hasFinancialData = agents.some(a => a.totalCommission > 0 || a.companyDollar > 0);
+
+  // Helper to check if agent has commission plan assigned
+  const agentHasCommissionPlan = (agentName: string) => {
+    return agentAssignments.some(a => a.agentName === agentName);
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -325,7 +332,12 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
                           .toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="font-medium text-foreground">{agent.agentName}</span>
+                    <div className="flex-1">
+                      <span className="font-medium text-foreground">{agent.agentName}</span>
+                      {!agentHasCommissionPlan(agent.agentName) && (
+                        <CommissionPlanWarning agentName={agent.agentName} compact={true} />
+                      )}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell className="text-right text-foreground font-semibold">
@@ -456,7 +468,11 @@ export default function AgentLeaderboardWithExport({ agents, records = [] }: Age
             {/* Content */}
             <div className="flex-1 overflow-y-auto">
               <div className="px-8 py-8 max-w-7xl mx-auto">
-                <AgentCommissionBreakdown agent={commissionBreakdownAgent} transactions={records} />
+                <AgentCommissionBreakdown 
+                  agent={commissionBreakdownAgent} 
+                  transactions={records}
+                  hasCommissionPlan={agentHasCommissionPlan(commissionBreakdownAgent.agentName)}
+                />
               </div>
             </div>
           </div>

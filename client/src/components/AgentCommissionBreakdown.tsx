@@ -8,6 +8,7 @@ import React, { useMemo } from 'react';
 import { AgentMetrics, DotloopRecord } from '@/lib/csvParser';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import CommissionPlanWarning from './CommissionPlanWarning';
 import {
   PieChart,
   Pie,
@@ -29,11 +30,13 @@ import { DollarSign, TrendingUp, Percent, Calendar } from 'lucide-react';
 interface AgentCommissionBreakdownProps {
   agent: AgentMetrics;
   transactions: DotloopRecord[];
+  hasCommissionPlan?: boolean;
 }
 
 export default function AgentCommissionBreakdown({
   agent,
   transactions,
+  hasCommissionPlan = true,
 }: AgentCommissionBreakdownProps) {
   // Filter transactions for this agent
   const agentTransactions = useMemo(() => {
@@ -129,6 +132,11 @@ export default function AgentCommissionBreakdown({
 
   return (
     <div className="space-y-6">
+      {/* Commission Plan Warning */}
+      {!hasCommissionPlan && (
+        <CommissionPlanWarning agentName={agent.agentName} />
+      )}
+
       {/* Key Metrics Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-4 border-l-4 border-l-blue-500">
