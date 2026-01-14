@@ -30,6 +30,8 @@ import { DotloopRecord } from '@/lib/csvParser';
 import WinnersPodium from './WinnersPodium';
 import { formatCurrency, formatPercentage } from '@/lib/formatUtils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import AgentComparisonBars from './AgentComparisonBars';
+import { BarChart3 } from 'lucide-react';
 
 interface AgentLeaderboardProps {
   agents: AgentMetrics[];
@@ -52,6 +54,7 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<'table' | 'bars'>('table');
 
   // Check if financial data exists
   const hasFinancialData = agents.some(a => a.totalCommission > 0 || a.companyDollar > 0);
@@ -237,6 +240,15 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
             >
               Bottom 10
             </Button>
+            <Button
+              variant={viewMode === 'bars' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode(viewMode === 'table' ? 'bars' : 'table')}
+              title="Toggle between table and bar chart view"
+            >
+              <BarChart3 className="w-4 h-4 mr-1" />
+              {viewMode === 'table' ? 'View as Bars' : 'View as Table'}
+            </Button>
           </div>
         </div>
 
@@ -246,6 +258,9 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
         </p>
       </div>
 
+      {/* View Mode Conditional Rendering */}
+      {viewMode === 'table' ? (
+        <>
       {/* Table */}
       <div className="overflow-x-auto">
         <Table>
@@ -442,6 +457,51 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
             Next
           </Button>
         </div>
+      )}
+        </>
+      ) : (
+        <>
+      {/* Bars View */}
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Total Commission</h3>
+            <AgentComparisonBars
+              agents={sortedAgents}
+              metric="totalCommission"
+              onAgentClick={(agent) => setCommissionBreakdownAgent(agent)}
+            />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Total Transactions</h3>
+            <AgentComparisonBars
+              agents={sortedAgents}
+              metric="totalTransactions"
+              onAgentClick={(agent) => setSelectedAgent(agent)}
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Closing Rate</h3>
+            <AgentComparisonBars
+              agents={sortedAgents}
+              metric="closingRate"
+              maxValue={100}
+              onAgentClick={(agent) => setSelectedAgent(agent)}
+            />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Avg Days to Close</h3>
+            <AgentComparisonBars
+              agents={sortedAgents}
+              metric="averageDaysToClose"
+              onAgentClick={(agent) => setSelectedAgent(agent)}
+            />
+          </div>
+        </div>
+      </div>
+        </>
       )}
 
       {/* Commission Breakdown Full-Screen Modal */}

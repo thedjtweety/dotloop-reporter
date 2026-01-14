@@ -1616,3 +1616,9 @@
 - [x] Implement "Projected to Close" forecasting based on pipeline and historical close rates (projectionUtils)
 - [x] Create horizontal bar comparison view for agents (alternative to table view) (AgentComparisonBars component)
 - [x] Add percentage change indicators (% change from previous period) to all metrics (integrated in sparkline utilities)
+
+## Phase 39: Dashboard Integration of CTE Features (CURRENT)
+- [x] Add "Projected to Close" metric card to dashboard showing 30/60/90 day forecasts
+- [x] Integrate AgentComparisonBars toggle button in leaderboard header
+- [x] Test all CTE features live on dashboard
+- [ ] Save checkpoint with all CTE features integrated

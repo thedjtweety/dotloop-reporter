@@ -45,6 +45,7 @@ import { validateCSVFile, ValidationResult } from '@/lib/csvValidator';
 import { ValidationErrorDisplay } from '@/components/ValidationErrorDisplay';
 import { UploadProgress, useUploadProgress } from '@/components/UploadProgress';
 import { filterRecordsByDate, getPreviousPeriod } from '@/lib/dateUtils';
+import { generateDashboardSparklineTrends } from '@/lib/sparklineTrendGenerator';
 import { cleanDate, cleanNumber, cleanPercentage, cleanText } from '@/lib/dataCleaning';
 import { findMatchingTemplate, saveTemplate } from '@/lib/importTemplates';
 import { generateDemoData } from '@/lib/demoGenerator';
@@ -55,6 +56,7 @@ import RecentUploads, { RecentFile } from '@/components/RecentUploads';
 import UploadHistory from '@/components/UploadHistory';
 import ConnectDotloop from '@/components/ConnectDotloop';
 import MetricCard from '@/components/MetricCard';
+import ProjectedToCloseCard from '@/components/ProjectedToCloseCard';
 import ColumnMapping from '@/components/ColumnMapping';
 import FieldMapper, { ColumnMapping as FieldMapping } from '@/components/FieldMapper';
 import { DatePickerWithRange } from '@/components/DateRangePicker';
@@ -111,6 +113,7 @@ function HomeContent() {
   const [agentMetrics, setAgentMetrics] = useState<AgentMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [sparklineTrends, setSparklineTrends] = useState<any>(null);
   
   // Drill-down state
   const [drillDownOpen, setDrillDownOpen] = useState(false);
@@ -267,6 +270,7 @@ function HomeContent() {
     setFilteredRecords(currentRecords);
     setMetrics(calculateMetrics(currentRecords, previousRecords));
     setAgentMetrics(calculateAgentMetrics(currentRecords));
+    setSparklineTrends(generateDashboardSparklineTrends(currentRecords, dateRange));
   }, [allRecords, dateRange, filters]);
 
   // Handle metric card clicks - opens modal with deal details
@@ -773,6 +777,7 @@ function HomeContent() {
               icon={<HomeIcon className="w-5 h-5" />}
               color="primary"
               trend={metrics.trends?.totalTransactions}
+              sparklineTrend={sparklineTrends?.totalTransactions}
               onClick={() => handleMetricClick('total')}
             />
             <MetricCard
@@ -782,6 +787,7 @@ function HomeContent() {
               icon={<DollarSign className="w-5 h-5" />}
               color="accent"
               trend={metrics.trends?.totalVolume}
+              sparklineTrend={sparklineTrends?.totalVolume}
               onClick={() => handleMetricClick('volume')}
             />
             <MetricCard
@@ -791,6 +797,7 @@ function HomeContent() {
               icon={<TrendingUp className="w-5 h-5" />}
               color="accent"
               trend={metrics.trends?.closingRate}
+              sparklineTrend={sparklineTrends?.closingRate}
               onClick={() => handleMetricClick('closing')}
             />
             <MetricCard
@@ -799,9 +806,17 @@ function HomeContent() {
               icon={<Calendar className="w-5 h-5" />}
               color="primary"
               trend={metrics.trends?.avgDaysToClose}
+              sparklineTrend={sparklineTrends?.avgDaysToClose}
               onClick={() => handleMetricClick('days')}
             />
         </div>
+
+        {/* Projected to Close Card */}
+        {filteredRecords.length > 0 && (
+          <div className="mb-8">
+            <ProjectedToCloseCard records={filteredRecords} />
+          </div>
+        )}
 
         {/* Status Overview Row */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
