@@ -11,6 +11,7 @@ export interface ProjectionMetrics {
 
 /**
  * Calculate projected deals to close based on pipeline and historical close rate
+ * Scales projections based on the daysToForecast timeframe
  */
 export function calculateProjectedToClose(
   underContractDeals: DotloopRecord[],
@@ -29,7 +30,9 @@ export function calculateProjectedToClose(
   }
 
   // Calculate projected closed deals
-  const projectedClosedDeals = Math.round(underContractDeals.length * (historicalCloseRate / 100));
+  // Scale based on timeframe: 30 days = ~0.33x, 60 days = ~0.67x, 90 days = ~1x
+  const timeframeScale = Math.min(1, daysToForecast / 90);
+  const projectedClosedDeals = Math.round(underContractDeals.length * (historicalCloseRate / 100) * timeframeScale);
 
   // Calculate average commission per deal
   const totalCommission = underContractDeals.reduce((sum, deal) => {
@@ -40,15 +43,17 @@ export function calculateProjectedToClose(
   // Calculate projected commission
   const projectedCommission = projectedClosedDeals * avgCommissionPerDeal;
 
-  // Calculate confidence level based on sample size
-  // More deals = higher confidence
-  const confidenceLevel = Math.min(100, 50 + (underContractDeals.length * 5));
+  // Calculate confidence level based on sample size and timeframe
+  // More deals = higher confidence, but longer timeframes have slightly lower confidence
+  const sampleConfidence = Math.min(100, 50 + (underContractDeals.length * 5));
+  const timeframeConfidence = 100 - (daysToForecast > 60 ? 10 : 0); // Reduce confidence for 90+ day forecasts
+  const confidenceLevel = Math.round((sampleConfidence + timeframeConfidence) / 2);
 
   return {
-    projectedClosedDeals,
+    projectedClosedDeals: Math.max(0, projectedClosedDeals),
     projectedCommission: Math.round(projectedCommission),
     projectedRevenue: Math.round(projectedCommission), // Same as commission for now
-    confidenceLevel,
+    confidenceLevel: Math.max(0, Math.min(100, confidenceLevel)),
     daysToForecast,
     baselineCloseRate: historicalCloseRate
   };

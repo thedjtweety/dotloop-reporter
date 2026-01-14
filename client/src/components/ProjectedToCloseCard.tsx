@@ -9,7 +9,7 @@
  * CTE-inspired feature for forecasting future performance
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { TrendingUp, Target, DollarSign } from 'lucide-react';
 import { formatCurrency, formatNumber } from '@/lib/formatUtils';
@@ -28,26 +28,36 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
   const [selectedTimeframe, setSelectedTimeframe] = useState<30 | 60 | 90>(30);
 
   // Get under contract deals
-  const underContractDeals = records.filter(
-    r =>
-      r.loopStatus?.toLowerCase().includes('contract') ||
-      r.loopStatus?.toLowerCase().includes('pending')
+  const underContractDeals = useMemo(
+    () =>
+      records.filter(
+        r =>
+          r.loopStatus?.toLowerCase().includes('contract') ||
+          r.loopStatus?.toLowerCase().includes('pending')
+      ),
+    [records]
   );
 
   // Calculate historical close rate
-  const historicalCloseRate = calculateHistoricalCloseRate(records);
+  const historicalCloseRate = useMemo(
+    () => calculateHistoricalCloseRate(records),
+    [records]
+  );
 
-  // Calculate projections for different timeframes
-  const projection30 = calculateProjectedToClose(underContractDeals, historicalCloseRate, 30);
-  const projection60 = calculateProjectedToClose(underContractDeals, historicalCloseRate, 60);
-  const projection90 = calculateProjectedToClose(underContractDeals, historicalCloseRate, 90);
+  // Calculate all projections using useMemo
+  const projections = useMemo(() => {
+    const proj30 = calculateProjectedToClose(underContractDeals, historicalCloseRate, 30);
+    const proj60 = calculateProjectedToClose(underContractDeals, historicalCloseRate, 60);
+    const proj90 = calculateProjectedToClose(underContractDeals, historicalCloseRate, 90);
 
-  const projections: Record<30 | 60 | 90, ProjectionMetrics> = {
-    30: projection30,
-    60: projection60,
-    90: projection90,
-  };
+    return {
+      30: proj30,
+      60: proj60,
+      90: proj90,
+    };
+  }, [underContractDeals, historicalCloseRate]);
 
+  // Get current projection based on selected timeframe
   const current = projections[selectedTimeframe];
 
   // Calculate confidence level display
@@ -78,7 +88,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
           </div>
         </div>
 
-        {/* Timeframe Selector - Using simple buttons instead of Tabs */}
+        {/* Timeframe Selector - Using simple buttons */}
         <div className="grid grid-cols-3 gap-2">
           <button
             onClick={() => setSelectedTimeframe(30)}

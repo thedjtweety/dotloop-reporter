@@ -1623,7 +1623,8 @@
 - [x] Test all CTE features live on dashboard
 - [x] Save checkpoint with all CTE features integrated
 
-## Phase 40: Bug Fixes & Refinements (CURRENT)
+## Phase 40: Bug Fixes & Refinements
 - [x] Fix Projected to Close card tab switching (replaced Tabs component with simple buttons for reliable state management)
 - [x] Test all three timeframe buttons (30/60/90 days) - all working correctly
-- [ ] Save checkpoint with bug fix
+- [x] Fix projectionUtils to properly scale by daysToForecast (30 days = 35 deals, 60 days = 69 deals, 90 days = 104 deals)
+- [x] Save checkpoint with bug fix
