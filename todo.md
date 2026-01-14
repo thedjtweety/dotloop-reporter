@@ -1574,3 +1574,9 @@
 ## Phase 31: Differentiate Agent Leaderboard Views
 - [x] Create AgentCommissionBreakdown component with commission analysis charts
 - [x] Update AgentLeaderboardWithExport to use separate modals for "View Commission Breakdown" vs "View Details"
+
+## Phase 32: Expand Commission Breakdown Modal
+- [x] Convert commission breakdown to full-screen modal (like metric drill-downs)
+- [x] Increase chart heights and spacing for better readability
+- [x] Add sticky header with agent name and key metrics
+- [x] Improve responsive layout for larger screens
