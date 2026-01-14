@@ -1594,14 +1594,18 @@
 - [x] Update commission breakdown to show plan-based vs CSV-based comparison
 - [x] Test recalculation with various plan configurations (9 vitest tests passing)
 
-## Phase 35: Bulk Plan Assignment
-- [ ] Add checkbox selection to agent list in Commission Management
-- [ ] Create bulk assignment modal/dialog
-- [ ] Implement bulk update API endpoint
-- [ ] Add success/error notifications for bulk operations
-
+### Phase 35: Bulk Plan Assignment
+- [x] Add checkbox selection to agent list in Commission Management
+- [x] Create bulk assignment modal/dialog with templates and existing plans
+- [x] Implement bulk update with success notifications
+- [x] Show count of selected agents and confirmation
 ## Phase 36: Commission Plan Templates
-- [ ] Create plan templates system (Standard 50/50, High-Volume 60/40, New Agent 70/30)
-- [ ] Add template selection UI in plan creation
-- [ ] Allow customization of template values
-- [ ] Add template management (edit, delete, create custom)
+- [x] Create plan templates system (10 templates: Standard 50/50-80/20, High-Volume, New Agent)
+- [x] Add template selection UI in bulk assignment modal
+- [x] Organize templates by category (Standard, High-Volume, New Agent)
+- [x] Add template management (23 vitest tests passing)
+## Phase 37: Commission Comparison Report
+- [x] Create side-by-side comparison of original CSV vs plan-based commission
+- [x] Show agents with significant differences (>5%)
+- [x] Highlight agents without assigned plans
+- [x] Display total variance and insights

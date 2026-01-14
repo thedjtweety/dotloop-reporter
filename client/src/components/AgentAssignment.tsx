@@ -12,6 +12,7 @@ import { DotloopRecord } from '@/lib/csvParser';
 import { trpc } from '@/lib/trpc';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
+import BulkPlanAssignment from './BulkPlanAssignment';
 import {
   Table,
   TableBody,
@@ -152,15 +153,22 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
           <h3 className="text-lg font-medium">Agent Assignments</h3>
           <p className="text-sm text-foreground">Assign commission plans to your agents.</p>
         </div>
-        <div className="relative w-64">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-foreground" />
-          <Input
-            placeholder="Search agents..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
+        <div className="flex items-center gap-4">
+          <BulkPlanAssignment
+            agents={agents}
+            assignments={assignments}
+            onAssignmentComplete={setAssignments}
           />
-        </div>
+            <div className="relative w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-foreground" />
+              <Input
+                placeholder="Search agents..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
       </div>
 
       <div className="border rounded-md">
