@@ -38,13 +38,13 @@ export const PerformanceTrends: React.FC<PerformanceTrendsProps> = ({
     
     if (agentsToAnalyze.length === 1) {
       return {
-        type: 'single',
+        type: 'single' as const,
         data: getAgentTrendData(records, agentsToAnalyze[0], timePeriod)
       };
     }
 
     return {
-      type: 'comparison',
+      type: 'comparison' as const,
       data: getComparisonTrendData(records, agentsToAnalyze, timePeriod)
     };
   }, [records, selectedAgents, timePeriod, agents]);
@@ -167,7 +167,7 @@ export const PerformanceTrends: React.FC<PerformanceTrendsProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {trendData.data.periods.map((period, idx) => (
+                {trendData.type === 'single' && trendData.data.periods.map((period: any, idx: number) => (
                   <tr key={idx} className="hover:bg-gray-50">
                     <td className="px-6 py-3 text-sm text-gray-900">{period.period}</td>
                     <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
@@ -214,7 +214,7 @@ export const PerformanceTrends: React.FC<PerformanceTrendsProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {trendData.data.combinedMetrics.map((metric, idx) => (
+                {trendData.type === 'comparison' && trendData.data.combinedMetrics.map((metric: any, idx: number) => (
                   <tr key={idx} className="hover:bg-gray-50">
                     <td className="px-6 py-3 text-sm text-gray-900">{metric.period}</td>
                     <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
