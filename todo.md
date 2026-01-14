@@ -1628,3 +1628,11 @@
 - [x] Test all three timeframe buttons (30/60/90 days) - all working correctly
 - [x] Fix projectionUtils to properly scale by daysToForecast (30 days = 35 deals, 60 days = 69 deals, 90 days = 104 deals)
 - [x] Save checkpoint with bug fix
+
+## Phase 41: Deal-Level Forecast Details
+- [x] Create deal-level forecast calculation utilities (calculateDealProbability, predictCloseDate)
+- [x] Build ForecastedDealsModal component to display deal details with probability scores
+- [x] Integrate modal into ProjectedToCloseCard with "View Deals" click handler
+- [x] Add deal sorting by probability (highest first) and filtering by timeframe
+- [x] Test deal-level forecasts in browser with demo data (all sorting options working)
+- [x] Save checkpoint with deal-level forecast feature
