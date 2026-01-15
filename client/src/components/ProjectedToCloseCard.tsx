@@ -10,10 +10,9 @@
  */
 
 import { useState, useMemo } from 'react';
-import { useLocation } from 'wouter';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Target, DollarSign, Download, FileText, BarChart3, Eye } from 'lucide-react';
+import { TrendingUp, Target, DollarSign, Download, FileText } from 'lucide-react';
 import { formatCurrency, formatNumber } from '@/lib/formatUtils';
 import {
   calculateProjectedToClose,
@@ -23,7 +22,6 @@ import {
 } from '@/lib/projectionUtils';
 import { DotloopRecord } from '@/lib/csvParser';
 import ForecastedDealsModal from './ForecastedDealsModal';
-import ForecastAccuracyDashboard from './ForecastAccuracyDashboard';
 import { exportForecastAsPDF, exportForecastAsCSV } from '@/lib/exportUtils';
 
 interface ProjectedToCloseCardProps {
@@ -31,17 +29,8 @@ interface ProjectedToCloseCardProps {
 }
 
 export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardProps) {
-  const [, setLocation] = useLocation();
   const [selectedTimeframe, setSelectedTimeframe] = useState<30 | 60 | 90>(30);
   const [showDealsModal, setShowDealsModal] = useState(false);
-  const [showAccuracyDashboard, setShowAccuracyDashboard] = useState(false);
-
-  // Handle navigation to full-screen forecasted deals page
-  const handleViewFullScreen = () => {
-    sessionStorage.setItem('forecastedDealsRecords', JSON.stringify(records));
-    sessionStorage.setItem('forecastedDaysForecast', selectedTimeframe.toString());
-    setLocation('/forecasted-deals');
-  };
 
   // Get under contract deals
   const underContractDeals = useMemo(
@@ -167,7 +156,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
           {/* Projection Display */}
           <ProjectionDisplay 
             projection={current} 
-            onViewDeals={handleViewFullScreen}
+            onViewDeals={() => setShowDealsModal(true)}
           />
 
           {/* Footer with confidence level and export buttons */}
@@ -186,16 +175,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
                 </p>
               </div>
             </div>
-            <div className="flex gap-2 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAccuracyDashboard(!showAccuracyDashboard)}
-                className="gap-2 flex-1"
-              >
-                <BarChart3 className="w-4 h-4" />
-                {showAccuracyDashboard ? 'Hide' : 'View'} Accuracy
-              </Button>
+            <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -228,14 +208,6 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
           </div>
         </div>
       </Card>
-
-      {/* Accuracy Dashboard */}
-      {showAccuracyDashboard && (
-        <Card className="mt-6 p-6 bg-card border border-border">
-          <h3 className="text-lg font-display font-bold text-foreground mb-4">Forecast Accuracy Tracking</h3>
-          <ForecastAccuracyDashboard metrics={null} isLoading={false} />
-        </Card>
-      )}
 
       {/* Forecasted Deals Modal */}
       <ForecastedDealsModal

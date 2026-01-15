@@ -16,7 +16,6 @@ import { commissionRouter } from './commissionRouter';
 // Note: tierHistoryRouter.ts file contains imports of the removed tierHistory table
 import { seedRouter } from './seedRouter';
 import { healthRouter } from './healthRouter';
-import { syncAgentsFromTransactions } from './lib/agent-sync';
 import {
   createUpload,
   getUserUploads,
@@ -136,14 +135,6 @@ export const appRouter = router({
           const errorSummary = validationResult.errors.slice(0, 5).join('; ');
           const moreErrors = validationResult.errors.length > 5 ? ` (and ${validationResult.errors.length - 5} more errors)` : '';
           throw new Error(`Data validation failed: ${errorSummary}${moreErrors}`);
-        }
-
-        // Sync agents from transactions
-        try {
-          await syncAgentsFromTransactions(tenantId, input.transactions, true);
-        } catch (syncError) {
-          console.error('Agent sync failed:', syncError);
-          // Don't fail the upload if agent sync fails - it's not critical
         }
 
         // Bulk insert transactions

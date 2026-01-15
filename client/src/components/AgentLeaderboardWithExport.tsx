@@ -29,7 +29,7 @@ import CommissionPlanWarning from './CommissionPlanWarning';
 import { DotloopRecord } from '@/lib/csvParser';
 import WinnersPodium from './WinnersPodium';
 import { formatCurrency, formatPercentage } from '@/lib/formatUtils';
-
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import AgentComparisonBars from './AgentComparisonBars';
 import { BarChart3 } from 'lucide-react';
 
@@ -539,34 +539,18 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
         </div>
       )}
 
-      {/* Agent Details Full-Screen Modal */}
+      {/* Agent Details Sheet */}
       {selectedAgent && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-0">
-          <div className="w-screen h-screen max-w-none bg-background rounded-none flex flex-col">
-            {/* Header */}
-            <div className="flex-shrink-0 flex items-center justify-between px-8 py-6 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0">
-              <div>
-                <h2 className="text-2xl font-display font-bold text-foreground">
-                  {selectedAgent.agentName}
-                </h2>
-                <p className="text-sm text-foreground/60 mt-1">Agent Details and Transactions</p>
-              </div>
-              <button
-                onClick={() => setSelectedAgent(null)}
-                className="p-2 hover:bg-muted rounded-lg transition-colors"
-                aria-label="Close modal"
-              >
-                <X className="w-6 h-6 text-foreground" />
-              </button>
+        <Sheet open={!!selectedAgent} onOpenChange={() => setSelectedAgent(null)}>
+          <SheetContent side="right" className="w-full sm:w-[600px] overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>{selectedAgent.agentName}</SheetTitle>
+            </SheetHeader>
+            <div className="mt-6 space-y-6">
+              <AgentDetailsPanel agent={selectedAgent} transactions={records} />
             </div>
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="px-8 py-8 max-w-7xl mx-auto">
-                <AgentDetailsPanel agent={selectedAgent} transactions={records} />
-              </div>
-            </div>
-          </div>
-        </div>
+          </SheetContent>
+        </Sheet>
       )}
     </Card>
   );

@@ -54,7 +54,7 @@ export default function ForecastedDealsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl w-[95vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b">
           <div className="flex items-center justify-between">
             <div>
@@ -72,30 +72,30 @@ export default function ForecastedDealsModal({
         </DialogHeader>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-3 gap-6 mb-8">
-          <Card className="p-5 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20">
-            <p className="text-sm text-foreground/70 mb-2">Projected Deals</p>
-            <p className="text-3xl font-bold text-green-600 dark:text-green-400">{deals.length}</p>
-            <p className="text-xs text-foreground/60 mt-2">
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <Card className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20">
+            <p className="text-sm text-foreground/70 mb-1">Projected Deals</p>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{deals.length}</p>
+            <p className="text-xs text-foreground/60 mt-1">
               {Math.round((deals.length / totalDealsInPipeline) * 100)}% of pipeline
             </p>
           </Card>
-          <Card className="p-5 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
-            <p className="text-sm text-foreground/70 mb-2">Avg Probability</p>
-            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{avgProbability}%</p>
-            <p className="text-xs text-foreground/60 mt-2">Confidence level</p>
+          <Card className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
+            <p className="text-sm text-foreground/70 mb-1">Avg Probability</p>
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{avgProbability}%</p>
+            <p className="text-xs text-foreground/60 mt-1">Confidence level</p>
           </Card>
-          <Card className="p-5 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20">
-            <p className="text-sm text-foreground/70 mb-2">Projected Commission</p>
+          <Card className="p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20">
+            <p className="text-sm text-foreground/70 mb-1">Projected Commission</p>
             <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
               {formatCurrency(totalProjectedCommission)}
             </p>
-            <p className="text-xs text-foreground/60 mt-2">Total GCI</p>
+            <p className="text-xs text-foreground/60 mt-1">Total GCI</p>
           </Card>
         </div>
 
         {/* Sort and Export Controls */}
-        <div className="flex gap-3 mb-6 flex-wrap items-center justify-between">
+        <div className="flex gap-2 mb-4 flex-wrap items-center justify-between">
           <div className="flex gap-2">
             <Button
               variant={sortBy === 'probability' ? 'default' : 'outline'}
@@ -123,82 +123,122 @@ export default function ForecastedDealsModal({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => exportForecastAsPDF(timeframe, deals, {
+              onClick={() => exportForecastAsPDF(timeframe, sortedDeals, {
                 totalDeals: deals.length,
-                avgProbability: avgProbability,
+                avgProbability: avgProbability / 100,
                 projectedCommission: totalProjectedCommission,
                 pipelineCount: totalDealsInPipeline,
               })}
+              className="gap-2"
             >
-              <FileText className="w-4 h-4 mr-2" />
+              <FileText className="w-4 h-4" />
               Export PDF
             </Button>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => exportForecastAsCSV(timeframe, deals, {
+              onClick={() => exportForecastAsCSV(timeframe, sortedDeals, {
                 totalDeals: deals.length,
-                avgProbability: avgProbability,
+                avgProbability: avgProbability / 100,
                 projectedCommission: totalProjectedCommission,
                 pipelineCount: totalDealsInPipeline,
               })}
+              className="gap-2"
             >
-              <Download className="w-4 h-4 mr-2" />
+              <Download className="w-4 h-4" />
               Export CSV
             </Button>
           </div>
         </div>
 
         {/* Deals List */}
-        <div className="space-y-4">
-          {sortedDeals.map((deal, idx) => (
-            <div key={idx} className="border-l-4 border-orange-500 bg-slate-900/50 p-5 rounded-lg hover:bg-slate-800/50 transition-colors">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="font-semibold text-lg">{deal.address}</h3>
-                  <p className="text-sm text-foreground/60">Agent: {deal.agent}</p>
+        <div className="space-y-3">
+          {sortedDeals.length === 0 ? (
+            <Card className="p-8 text-center bg-muted/50">
+              <p className="text-foreground/70">No deals projected to close in this timeframe</p>
+            </Card>
+          ) : (
+            sortedDeals.map((deal) => (
+              <Card
+                key={deal.id}
+                className="p-4 hover:shadow-md transition-shadow border-l-4"
+                style={{
+                  borderLeftColor:
+                    deal.status === 'high'
+                      ? '#10b981'
+                      : deal.status === 'medium'
+                        ? '#f59e0b'
+                        : '#ef4444',
+                }}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground">{deal.loopName}</h3>
+                    <p className="text-sm text-foreground/70">Agent: {deal.agent}</p>
+                  </div>
+                  <Badge className={`${getProbabilityColor(deal.probability)} border-0`}>
+                    {deal.probability}% • {getProbabilityLabel(deal.probability)}
+                  </Badge>
                 </div>
-                <Badge className={getProbabilityColor(deal.probability)}>
-                  {deal.probability}% • {getProbabilityLabel(deal.probability)}
-                </Badge>
-              </div>
 
-              {/* Deal Details Grid - 5 columns for better spacing */}
-              <div className="grid grid-cols-5 gap-6 mb-4">
-                <div>
-                  <p className="text-xs text-foreground/60 mb-1">List Price</p>
-                  <p className="font-semibold text-base">{formatCurrency(deal.price)}</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <p className="text-foreground/60">List Price</p>
+                    <p className="font-semibold text-foreground">{formatCurrency(deal.price)}</p>
+                  </div>
+                  <div>
+                    <p className="text-foreground/60">Commission</p>
+                    <p className="font-semibold text-foreground">{formatCurrency(deal.commission)}</p>
+                  </div>
+                  <div>
+                    <p className="text-foreground/60">Days in Contract</p>
+                    <p className="font-semibold text-foreground">{deal.daysInContract} days</p>
+                  </div>
+                  <div>
+                    <p className="text-foreground/60">Expected Close</p>
+                    <p className="font-semibold text-foreground">
+                      {deal.expectedCloseDate.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-foreground/60 mb-1">Commission</p>
-                  <p className="font-semibold text-base">{formatCurrency(deal.commission)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-foreground/60 mb-1">Days in Contract</p>
-                  <p className="font-semibold text-base">{deal.daysInContract}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-foreground/60 mb-1">Expected Close</p>
-                  <p className="font-semibold text-base">{typeof deal.expectedCloseDate === 'string' ? deal.expectedCloseDate : deal.expectedCloseDate?.toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-foreground/60 mb-1">Probability</p>
-                  <p className="font-semibold text-base">{deal.probability}%</p>
-                </div>
-              </div>
 
-              {/* Probability Bar */}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-3 bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all"
-                    style={{ width: `${deal.probability}%` }}
-                  />
+                {/* Probability Indicator */}
+                <div className="mt-3 flex items-center gap-2">
+                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all ${
+                        deal.status === 'high'
+                          ? 'bg-green-500'
+                          : deal.status === 'medium'
+                            ? 'bg-amber-500'
+                            : 'bg-red-500'
+                      }`}
+                      style={{ width: `${deal.probability}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-foreground/60 w-8 text-right">{deal.probability}%</span>
                 </div>
-                <span className="text-sm text-foreground/70 font-medium w-10 text-right">{deal.probability}%</span>
-              </div>
+              </Card>
+            ))
+          )}
+        </div>
+
+        {/* Footer Info */}
+        <div className="mt-6 p-4 bg-muted/50 rounded-lg border">
+          <div className="flex items-start gap-2">
+            <TrendingUp className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-foreground/70">
+              <p className="font-semibold text-foreground mb-1">How we calculate probability:</p>
+              <ul className="space-y-1 text-xs">
+                <li>• Base rate: Historical close rate for similar deals</li>
+                <li>• Days in contract: Deals in contract longer are more likely to close</li>
+                <li>• Deal complexity: High-value deals may have slightly lower probability</li>
+              </ul>
             </div>
-          ))}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
