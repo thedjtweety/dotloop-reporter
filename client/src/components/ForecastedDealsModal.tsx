@@ -54,8 +54,8 @@ export default function ForecastedDealsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b">
+      <DialogContent className="fixed inset-0 w-screen h-screen max-w-none max-h-none overflow-y-auto rounded-none p-0 m-0 bg-background/95 backdrop-blur-sm border-0">
+        <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b px-6 pt-6">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-2xl font-bold">
@@ -71,6 +71,8 @@ export default function ForecastedDealsModal({
           </div>
         </DialogHeader>
 
+        {/* Content wrapper with padding */}
+        <div className="px-6 pb-6">
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <Card className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20">
@@ -239,6 +241,7 @@ export default function ForecastedDealsModal({
               </ul>
             </div>
           </div>
+        </div>
         </div>
       </DialogContent>
     </Dialog>
