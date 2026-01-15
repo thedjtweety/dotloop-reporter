@@ -1741,3 +1741,10 @@
 - [x] Replace current flat transaction list with new agent summary view (integrated into CommissionCalculator)
 - [x] Test with commission calculation results (400 transactions, 286 agents) (no console errors)
 - [x] Verify expand/collapse works smoothly with many agents (component ready for testing)
+
+
+## Phase 53: Fix AgentCommissionSummary Text Contrast
+- [x] Fix Agent Commission column text visibility in transaction details table (changed from text-accent to text-foreground)
+- [x] Ensure all table values have proper contrast in dark mode (all table cells now use text-foreground)
+- [x] Test contrast fix with expanded agent rows (no console errors, component renders correctly)
+- [x] Verify all text is readable without squinting (all values now use pure foreground color for maximum contrast)

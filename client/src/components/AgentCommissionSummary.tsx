@@ -133,32 +133,32 @@ export default function AgentCommissionSummary({ breakdowns }: Props) {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b bg-muted/50">
-                      <th className="text-left py-2 px-4 font-semibold">Loop Name</th>
-                      <th className="text-left py-2 px-4 font-semibold">Closing Date</th>
-                      <th className="text-right py-2 px-4 font-semibold">GCI</th>
-                      <th className="text-right py-2 px-4 font-semibold">Company $</th>
-                      <th className="text-right py-2 px-4 font-semibold">Agent Commission</th>
-                      <th className="text-right py-2 px-4 font-semibold">YTD Co $</th>
-                      <th className="text-center py-2 px-4 font-semibold">Status</th>
+                      <th className="text-left py-2 px-4 font-semibold text-foreground">Loop Name</th>
+                      <th className="text-left py-2 px-4 font-semibold text-foreground">Closing Date</th>
+                      <th className="text-right py-2 px-4 font-semibold text-foreground">GCI</th>
+                      <th className="text-right py-2 px-4 font-semibold text-foreground">Company $</th>
+                      <th className="text-right py-2 px-4 font-semibold text-foreground">Agent Commission</th>
+                      <th className="text-right py-2 px-4 font-semibold text-foreground">YTD Co $</th>
+                      <th className="text-center py-2 px-4 font-semibold text-foreground">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {summary.transactions.map((transaction, idx) => (
                       <tr key={idx} className="border-b hover:bg-muted/50 last:border-b-0">
                         <td className="py-2 px-4 text-foreground">{transaction.loopName}</td>
-                        <td className="py-2 px-4 text-muted-foreground">
+                        <td className="py-2 px-4 text-foreground">
                           {new Date(transaction.closingDate).toLocaleDateString()}
                         </td>
-                        <td className="text-right py-2 px-4">
+                        <td className="text-right py-2 px-4 text-foreground">
                           ${transaction.grossCommissionIncome.toFixed(2)}
                         </td>
-                        <td className="text-right py-2 px-4">
+                        <td className="text-right py-2 px-4 text-foreground">
                           ${transaction.brokerageSplitAmount.toFixed(2)}
                         </td>
-                        <td className="text-right py-2 px-4 font-medium text-accent">
+                        <td className="text-right py-2 px-4 font-medium text-foreground">
                           ${transaction.agentNetCommission.toFixed(2)}
                         </td>
-                        <td className="text-right py-2 px-4">
+                        <td className="text-right py-2 px-4 text-foreground">
                           ${transaction.ytdAfterTransaction.toFixed(2)}
                         </td>
                         <td className="text-center py-2 px-4">
