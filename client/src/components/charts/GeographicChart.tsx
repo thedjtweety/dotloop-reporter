@@ -71,7 +71,7 @@ export default function GeographicChart({ data, properties = [], onBarClick }: G
   // Show map view if selected and properties are available
   if (viewType === 'map' && properties.length > 0) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 h-[600px] flex flex-col">
         <div className="flex gap-2">
           <Button
             variant={viewType !== 'map' ? 'default' : 'ghost'}
@@ -92,7 +92,9 @@ export default function GeographicChart({ data, properties = [], onBarClick }: G
             Map View
           </Button>
         </div>
-        <PropertyMapView data={properties} title="Geographic Distribution - Map View" />
+        <div className="flex-1 min-h-0">
+          <PropertyMapView data={properties} title="Geographic Distribution - Map View" />
+        </div>
       </div>
     );
   }

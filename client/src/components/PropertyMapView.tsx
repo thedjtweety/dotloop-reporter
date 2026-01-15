@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MapView } from './Map';
 import { DotloopRecord } from '@/lib/csvParser';
 import { geocodeProperties, calculateCenter, propertiesToHeatmapData } from '@/lib/geocodingUtils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, Layers, MapPin } from 'lucide-react';
@@ -156,27 +156,27 @@ export default function PropertyMapView({ data, title = 'Property Locations' }: 
 
   if (isLoading && geocodedProperties.length === 0) {
     return (
-      <Card className="h-full">
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex items-center justify-center h-96">
+      <div className="h-full w-full flex flex-col bg-card border border-border rounded-lg">
+        <div className="p-6 border-b border-border">
+          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4">
             <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
             <p className="text-sm text-muted-foreground">
               Geocoding properties... {geocodeProgress}%
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader>
+    <div className="h-full w-full flex flex-col bg-card border border-border rounded-lg overflow-hidden">
+      <div className="p-6 border-b border-border">
         <div className="flex items-center justify-between">
-          <CardTitle>{title}</CardTitle>
+          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
           <div className="flex gap-2">
             <Button
               variant={layerType === 'markers' ? 'default' : 'ghost'}
@@ -207,15 +207,15 @@ export default function PropertyMapView({ data, title = 'Property Locations' }: 
             </Button>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="flex-1 p-0">
+      </div>
+      <div className="flex-1 min-h-0 w-full">
         <MapView
-          className="w-full h-full rounded-b-lg"
+          className="w-full h-full"
           initialCenter={geocodedProperties.length > 0 ? { lat: geocodedProperties[0].lat, lng: geocodedProperties[0].lng } : undefined}
           initialZoom={12}
           onMapReady={handleMapReady}
         />
-      </CardContent>
+      </div>
 
       {/* Property Details Dialog */}
       <Dialog open={!!selectedProperty} onOpenChange={() => setSelectedProperty(null)}>
@@ -251,6 +251,6 @@ export default function PropertyMapView({ data, title = 'Property Locations' }: 
           )}
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 }

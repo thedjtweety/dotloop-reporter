@@ -2000,3 +2000,14 @@
 - [x] Add marker click handlers to show property details
 - [x] Test map view with demo data
 - [x] Test layer toggling and property detail popups
+
+## Phase 33: Fix Map View Display
+- [ ] Update GeographicChart to expand section height when map view is active
+- [ ] Update PropertyMapView to ensure proper map rendering with full height
+- [ ] Test map display and verify it expands properly
+
+## Phase 33: Fix Map View Display
+- [x] Update GeographicChart to expand section height for map view
+- [x] Update PropertyMapView to ensure proper map rendering with full height
+- [x] Test map display and verify it expands properly
+- [x] Save checkpoint with fixed map view display
