@@ -1972,3 +1972,9 @@
 - [ ] Test Histogram click functionality with demo data
 - [ ] Verify drill-down modal displays correct property list
 - [ ] Test in both light and dark modes
+
+## Phase 26: Chart Interactivity Enhancements
+- [x] Add hover effects to Box Plot and Histogram chart bars (cursor pointer, highlight)
+- [x] Implement keyboard navigation in drill-down modal (arrow keys to navigate decades)
+- [x] Add export functionality to drill-down modal (CSV and PDF export)
+- [x] Test all three features together

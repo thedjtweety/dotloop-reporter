@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,7 +11,9 @@ import {
 } from 'recharts';
 import { DotloopRecord } from '@/lib/csvParser';
 import { formatCurrency } from '@/lib/formatUtils';
-import { BarChart3, Grid3x3, TrendingUp, Activity, Download } from 'lucide-react';
+import { BarChart3, Grid3x3, TrendingUp, Activity, Download, FileText } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 interface PropertyInsightsChartProps {
   data: DotloopRecord[];
@@ -168,6 +170,38 @@ export default function PropertyInsightsChart({ data }: PropertyInsightsChartPro
       });
   }, [validData, decadeRange]);
 
+  // Handle keyboard navigation in modal
+  useEffect(() => {
+    if (!drillDownOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const currentIndex = chartView === 'box' 
+          ? decadeStats.findIndex(d => d.decade === selectedDecade?.decade)
+          : histogramData.findIndex(h => h.decade === selectedDecade?.decade);
+        
+        if (currentIndex > 0) {
+          const data = chartView === 'box' ? decadeStats : histogramData;
+          setSelectedDecade(data[currentIndex - 1]);
+        }
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        const currentIndex = chartView === 'box' 
+          ? decadeStats.findIndex(d => d.decade === selectedDecade?.decade)
+          : histogramData.findIndex(h => h.decade === selectedDecade?.decade);
+        
+        const data = chartView === 'box' ? decadeStats : histogramData;
+        if (currentIndex < data.length - 1) {
+          setSelectedDecade(data[currentIndex + 1]);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [drillDownOpen, selectedDecade, chartView, decadeStats, histogramData]);
+
   // Export to CSV
   const exportToCSV = (properties: DotloopRecord[]) => {
     const headers = ['Address', 'Year Built', 'Price', 'Sq Ft'];
@@ -192,6 +226,55 @@ export default function PropertyInsightsChart({ data }: PropertyInsightsChartPro
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+  };
+
+  // Export to PDF
+  const exportToPDF = (properties: DotloopRecord[], decade?: string) => {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 10;
+      const contentWidth = pageWidth - 2 * margin;
+
+      // Add title
+      doc.setFontSize(16);
+      doc.text(`Properties Report${decade ? ` - ${decade}` : ''}`, margin, margin + 5);
+
+      // Add summary
+      doc.setFontSize(10);
+      const avgPrice = properties.length > 0
+        ? properties.reduce((sum, p) => sum + (p.price || 0), 0) / properties.length
+        : 0;
+      doc.text(`Total Properties: ${properties.length}`, margin, margin + 15);
+      doc.text(`Average Price: ${formatCurrency(avgPrice)}`, margin, margin + 22);
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, margin + 29);
+
+      // Add table
+      const tableData = properties.map(p => [
+        p.address || 'N/A',
+        p.yearBuilt?.toString() || 'N/A',
+        formatCurrency(p.price || 0),
+        p.sqft?.toString() || 'N/A',
+      ]);
+
+      (doc as any).autoTable({
+        head: [['Address', 'Year Built', 'Price', 'Sq Ft']],
+        body: tableData,
+        startY: margin + 35,
+        margin: margin,
+        columnStyles: {
+          0: { cellWidth: contentWidth * 0.4 },
+          1: { cellWidth: contentWidth * 0.15 },
+          2: { cellWidth: contentWidth * 0.25 },
+          3: { cellWidth: contentWidth * 0.2 },
+        },
+      });
+
+      doc.save(`properties-${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+    }
   };
 
   return (
@@ -271,7 +354,9 @@ export default function PropertyInsightsChart({ data }: PropertyInsightsChartPro
       <CardContent>
         <div className="space-y-4">
           {chartView === 'box' && (
-            <div className="h-[400px] w-full cursor-pointer" onMouseDown={(e) => {
+            <div 
+              className="h-[400px] w-full cursor-pointer transition-all duration-200 hover:bg-muted/30 rounded-lg p-2" 
+              onMouseDown={(e) => {
                   if (e.button === 0) { // Left click only
                     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                     const x = e.clientX - rect.left;
@@ -299,7 +384,9 @@ export default function PropertyInsightsChart({ data }: PropertyInsightsChartPro
           )}
 
           {chartView === 'histogram' && (
-            <div className="h-[400px] w-full cursor-pointer" onMouseDown={(e) => {
+            <div 
+              className="h-[400px] w-full cursor-pointer transition-all duration-200 hover:bg-muted/30 rounded-lg p-2" 
+              onMouseDown={(e) => {
                   if (e.button === 0) { // Left click only
                     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                     const x = e.clientX - rect.left;
@@ -438,13 +525,23 @@ export default function PropertyInsightsChart({ data }: PropertyInsightsChartPro
               </table>
             </div>
 
-            <Button
-              onClick={() => exportToCSV(selectedDecade?.properties || [])}
-              className="w-full gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Export to CSV
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => exportToCSV(selectedDecade?.properties || [])}
+                className="flex-1 gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </Button>
+              <Button
+                onClick={() => exportToPDF(selectedDecade?.properties || [], selectedDecade?.decade)}
+                variant="outline"
+                className="flex-1 gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                Export PDF
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
