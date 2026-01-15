@@ -1928,3 +1928,21 @@
 - [x] Test demo mode to verify Price Reduction Analysis displays chart
 - [x] Verify chart displays 10 properties with biggest price drops
 - [x] Test in both light and dark modes
+
+
+## Phase 65: Redesign Price vs Year Built Chart with Multiple Views
+- [x] Analyze current PropertyInsightsChart scatter plot limitations
+- [x] Create Box Plot visualization (default view) showing price distribution by decade
+- [x] Create Heatmap visualization showing property density by price range and year
+- [x] Create Histogram visualization with property count and average price overlay
+- [x] Add view toggle control (Box Plot / Heatmap / Histogram / Scatter)
+- [x] Implement state management for chart type selection
+- [x] Add smooth transitions between chart views
+- [x] Create full-screen drill-down modal for detailed property analysis
+- [x] Add filters to drill-down modal (agent, property type, status, price range)
+- [x] Add statistics panel to modal (average price, median, std dev by decade)
+- [x] Add export functionality (CSV/PDF) from drill-down modal
+- [x] Test all visualization types in demo mode
+- [x] Test drill-down modal with various filters
+- [x] Test in both light and dark modes
+- [x] Verify responsive design on mobile
