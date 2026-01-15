@@ -2024,3 +2024,11 @@
 - [x] Adjust card sizing and spacing for stacked layout
 - [x] Test in light and dark modes
 - [x] Save checkpoint with full-width stacked layout
+
+## Phase 36: Fix Map Plotting in Demo Mode
+- [x] Check demo data generation for address information
+- [x] Review PropertyMapView geocoding logic
+- [x] Enhance demo data with realistic addresses and coordinates
+- [x] Add geocoding fallback for demo mode
+- [x] Test map plotting with improved demo data
+- [x] Save checkpoint with working map in demo mode

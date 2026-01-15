@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MapView } from './Map';
 import { DotloopRecord } from '@/lib/csvParser';
 import { geocodeProperties, calculateCenter, propertiesToHeatmapData } from '@/lib/geocodingUtils';
+import { getCityCoordinates } from '@/lib/sampleData';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -75,6 +76,17 @@ export default function PropertyMapView({ data, title = 'Property Locations' }: 
             }
           } catch (error) {
             console.error(`Failed to geocode "${property.address}":`, error);
+            // Fallback: use city coordinates with slight variation for demo mode
+            if (property.city) {
+              const cityCoords = getCityCoordinates(property.city);
+              // Add slight random variation so properties don't all appear at exact same point
+              const variation = 0.02; // ~2km variation
+              properties.push({
+                ...property,
+                lat: cityCoords.lat + (Math.random() - 0.5) * variation,
+                lng: cityCoords.lng + (Math.random() - 0.5) * variation,
+              });
+            }
           }
 
           // Update progress

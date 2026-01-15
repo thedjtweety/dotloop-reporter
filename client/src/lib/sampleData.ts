@@ -15,6 +15,18 @@ const CITIES = [
   'Leander', 'Hutto', 'Liberty Hill'
 ];
 
+// City coordinates for demo mode fallback geocoding
+const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
+  'Austin': { lat: 30.2672, lng: -97.7431 },
+  'Round Rock': { lat: 30.5008, lng: -97.6789 },
+  'Georgetown': { lat: 30.6327, lng: -97.6816 },
+  'Cedar Park': { lat: 30.3414, lng: -97.8081 },
+  'Pflugerville': { lat: 30.5746, lng: -97.6089 },
+  'Leander': { lat: 30.7699, lng: -97.8558 },
+  'Hutto': { lat: 30.5158, lng: -97.4689 },
+  'Liberty Hill': { lat: 30.6882, lng: -97.8628 }
+};
+
 const STREETS = [
   'Oak', 'Maple', 'Cedar', 'Pine', 'Elm', 'Main', 'Washington', 'Lake', 
   'Hill', 'Park', 'View', 'Meadow', 'Forest', 'River', 'Spring'
@@ -45,6 +57,10 @@ function formatDate(date: Date) {
   return date.toISOString().split('T')[0];
 }
 
+export function getCityCoordinates(city: string): { lat: number; lng: number } {
+  return CITY_COORDS[city] || { lat: 30.2672, lng: -97.7431 }; // Default to Austin
+}
+
 export function generateSampleData(count: number = 150): DotloopRecord[] {
   const records: DotloopRecord[] = [];
   const now = new Date();
@@ -63,6 +79,8 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
     const streetName = STREETS[Math.floor(Math.random() * STREETS.length)];
     const streetNum = Math.floor(Math.random() * 9000) + 100;
     const price = Math.floor(Math.random() * 800000) + 250000; // 250k - 1.05M
+    const zipCode = Math.floor(Math.random() * 900) + 78700; // Austin area zip codes
+    const fullAddress = `${streetNum} ${streetName} St, ${city}, TX ${zipCode}`;
     
     // Dates logic
     const createdDate = randomDate(oneYearAgo, now);
@@ -98,6 +116,7 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
       : price + 10000;
     
     const loopId = crypto.randomUUID();
+
     records.push({
       loopId,
       loopViewUrl: `https://www.dotloop.com/loop/${loopId}/view`,
@@ -107,7 +126,7 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
       closingDate,
       listingDate,
       offerDate,
-      address: `${streetNum} ${streetName} St`,
+      address: fullAddress,
       price: finalPrice,
       propertyType: PROPERTY_TYPES[Math.floor(Math.random() * PROPERTY_TYPES.length)],
       bedrooms: Math.floor(Math.random() * 4) + 2,
