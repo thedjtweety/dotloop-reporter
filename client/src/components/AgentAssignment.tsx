@@ -99,6 +99,8 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
     }
     setAssignments(newAssignments);
     saveAgentAssignments(newAssignments);
+    // Dispatch custom event to notify other components (like leaderboard) of the change
+    window.dispatchEvent(new CustomEvent('commission-assignment-updated'));
     onAssignmentChange?.();
   };
 
@@ -124,6 +126,8 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
     }
     setAssignments(newAssignments);
     saveAgentAssignments(newAssignments);
+    // Dispatch custom event to notify other components of the change
+    window.dispatchEvent(new CustomEvent('commission-assignment-updated'));
   };
 
   const handleAnniversaryChange = (agentName: string, date: string) => {
@@ -146,6 +150,8 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
     }
     setAssignments(newAssignments);
     saveAgentAssignments(newAssignments);
+    // Dispatch custom event to notify other components of the change
+    window.dispatchEvent(new CustomEvent('commission-assignment-updated'));
   };
 
   const getAgentPlanId = (agentName: string) => {

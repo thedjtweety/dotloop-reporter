@@ -74,18 +74,20 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
       setLocalAssignments(getAgentAssignments());
     };
 
+    // Listen for custom event when assignments change in the same tab
+    const handleAssignmentUpdate = () => {
+      setLocalAssignments(getAgentAssignments());
+    };
+
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('commission-assignment-updated', handleAssignmentUpdate);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('commission-assignment-updated', handleAssignmentUpdate);
+    };
   }, []);
 
-  // Also check localStorage periodically to catch changes from same tab
-  // NOTE: Disabled polling to prevent infinite update loop. Storage event listener is sufficient.
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setLocalAssignments(getAgentAssignments());
-  //   }, 500); // Check every 500ms
-  //   return () => clearInterval(interval);
-  // }, []);
+
 
   // Helper to check if agent has commission plan assigned
   // First check localStorage, then fall back to prop
