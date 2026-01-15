@@ -1685,3 +1685,10 @@
 - [x] Verify no console errors about maximum update depth
 - [x] Confirmed clean browser console with no infinite loop errors
 - [x] Verified all components render smoothly without performance issues
+
+## Phase 47: Full-Screen Agent Details Modal
+- [x] Update agent details modal to use full-screen layout like metric drill-downs
+- [x] Apply fixed positioning and full viewport coverage
+- [x] Ensure modal works on mobile and desktop
+- [x] Test with various agent transaction counts
+- [x] Verified full-screen modal displays agent details with all metrics and transactions

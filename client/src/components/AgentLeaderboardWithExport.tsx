@@ -575,18 +575,21 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
         </div>
       )}
 
-      {/* Agent Details Sheet */}
+      {/* Agent Details Full-Screen Modal */}
       {selectedAgent && (
-        <Sheet open={!!selectedAgent} onOpenChange={() => setSelectedAgent(null)}>
-          <SheetContent side="right" className="w-full sm:w-[600px] overflow-y-auto">
-            <SheetHeader>
-              <SheetTitle>{selectedAgent.agentName}</SheetTitle>
-            </SheetHeader>
-            <div className="mt-6 space-y-6">
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-background w-full h-[95vh] md:h-[90vh] rounded-lg shadow-2xl flex flex-col overflow-hidden">
+            <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10 p-6 flex items-center justify-between">
+              <h2 className="text-2xl font-display font-bold text-foreground">{selectedAgent.agentName}</h2>
+              <button onClick={() => setSelectedAgent(null)} className="p-2 hover:bg-muted rounded-lg transition-colors">
+                <X className="w-6 h-6 text-foreground" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
               <AgentDetailsPanel agent={selectedAgent} transactions={records} />
             </div>
-          </SheetContent>
-        </Sheet>
+          </div>
+        </div>
       )}
     </Card>
   );
