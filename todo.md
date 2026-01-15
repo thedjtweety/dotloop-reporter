@@ -1978,3 +1978,25 @@
 - [x] Implement keyboard navigation in drill-down modal (arrow keys to navigate decades)
 - [x] Add export functionality to drill-down modal (CSV and PDF export)
 - [x] Test all three features together
+
+## Phase 27: Map View for Geographic Distribution
+- [ ] Design geocoding strategy for demo and real addresses
+- [ ] Implement geocoding utility to convert addresses to lat/lng coordinates
+- [ ] Create interactive map component with Google Maps integration
+- [ ] Add markers for individual properties with click-to-view details
+- [ ] Implement heatmap layer showing property density by location
+- [ ] Add map/chart toggle button in Geographic Distribution section
+- [ ] Test map view with demo data
+- [ ] Test map view with real Dotloop data
+- [ ] Add filters to map view (by decade, price range, status)
+- [ ] Optimize performance for large datasets (clustering)
+
+## Phase 32: Map View for Geographic Distribution
+- [x] Design geocoding architecture for address-to-coordinate conversion
+- [x] Implement geocoding utility functions for demo and real data
+- [x] Create PropertyMapView component with markers and heatmap
+- [x] Add map/chart toggle button in GeographicChart
+- [x] Implement layer toggle buttons (markers, heatmap, both)
+- [x] Add marker click handlers to show property details
+- [x] Test map view with demo data
+- [x] Test layer toggling and property detail popups
