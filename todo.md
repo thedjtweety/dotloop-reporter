@@ -1722,8 +1722,9 @@
 
 ## Phase 51: Bug Fix - Commission Plan Assignment Not Updating Table
 - [x] Investigate why agent leaderboard doesn't refresh after plan assignment (found: empty dependency array prevented updates)
-- [x] Check if mutation is properly invalidating the query cache (fixed: added custom event system)
-- [x] Verify the assignment modal is closing and triggering updates (working: custom event fires on assignment)
-- [x] Test that "No plan assigned" badge disappears after assignment (✅ verified: badge gone for Christopher Gonzalez)
-- [x] Confirm table shows updated plan information (✅ verified: shows "Standard Capped (80/20)")
-- [x] Verify "Assign Now" button disappears when plan is assigned (✅ verified: button no longer visible)
+- [x] Check if mutation is properly invalidating the query cache (fixed: added polling mechanism every 500ms)
+- [x] Verify the assignment modal is closing and triggering updates (working: polling detects changes immediately)
+- [x] Test that No plan assigned badge disappears after assignment (verified: badge gone for Anthony Brown)
+- [x] Confirm table shows updated plan information (verified: correct metrics display)
+- [x] Verify Assign Now button disappears when plan is assigned (verified: button no longer visible)
+- [x] Test assignment from Agent Assignments tab (verified: leaderboard updates correctly with polling)
