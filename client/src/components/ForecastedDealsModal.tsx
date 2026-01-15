@@ -54,7 +54,7 @@ export default function ForecastedDealsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="fixed inset-0 w-screen h-screen max-w-none max-h-none overflow-y-auto rounded-none p-0 m-0 bg-background/95 backdrop-blur-sm border-0">
+      <DialogContent className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !overflow-y-auto !rounded-none !p-0 !m-0 !bg-background/95 !backdrop-blur-sm !border-0 !top-0 !left-0 !translate-x-0 !translate-y-0 !grid-cols-1">
         <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b px-6 pt-6">
           <div className="flex items-center justify-between">
             <div>
