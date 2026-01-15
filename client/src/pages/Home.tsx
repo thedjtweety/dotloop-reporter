@@ -42,6 +42,7 @@ import {
   AgentMetrics,
 } from '@/lib/csvParser';
 import { validateCSVFile, ValidationResult } from '@/lib/csvValidator';
+import { applyPlansToAllAgents } from '@/lib/commissionCalculator';
 import { ValidationErrorDisplay } from '@/components/ValidationErrorDisplay';
 import { UploadProgress, useUploadProgress } from '@/components/UploadProgress';
 import { filterRecordsByDate, getPreviousPeriod } from '@/lib/dateUtils';
@@ -215,7 +216,8 @@ function HomeContent() {
     setAllRecords(file.data);
     setFilteredRecords(file.data);
     setMetrics(calculateMetrics(file.data));
-    setAgentMetrics(calculateAgentMetrics(file.data));
+    const metrics1 = calculateAgentMetrics(file.data);
+    setAgentMetrics(applyPlansToAllAgents(metrics1, file.data));
   };
 
   const handleRecentDelete = (id: string, e: React.MouseEvent) => {
@@ -233,7 +235,8 @@ function HomeContent() {
       setAllRecords(sampleData);
       setFilteredRecords(sampleData);
       setMetrics(calculateMetrics(sampleData));
-      setAgentMetrics(calculateAgentMetrics(sampleData));
+      const metrics2 = calculateAgentMetrics(sampleData);
+      setAgentMetrics(applyPlansToAllAgents(metrics2, sampleData));
       setIsLoading(false);
     }, 1500);
   };
@@ -273,7 +276,10 @@ function HomeContent() {
 
     setFilteredRecords(currentRecords);
     setMetrics(calculateMetrics(currentRecords, previousRecords));
-    setAgentMetrics(calculateAgentMetrics(currentRecords));
+    // Calculate agent metrics and apply commission plans for recalculation
+    const baseMetrics = calculateAgentMetrics(currentRecords);
+    const metricsWithPlans = applyPlansToAllAgents(baseMetrics, currentRecords);
+    setAgentMetrics(metricsWithPlans);
     setSparklineTrends(generateDashboardSparklineTrends(currentRecords, dateRange));
   }, [allRecords, dateRange, filters]);
 
@@ -487,7 +493,8 @@ function HomeContent() {
       setAllRecords(records);
       setFilteredRecords(records);
       setMetrics(calculateMetrics(records));
-      setAgentMetrics(calculateAgentMetrics(records));
+      const metrics3 = calculateAgentMetrics(records);
+      setAgentMetrics(applyPlansToAllAgents(metrics3, records));
       setIsLoading(false);
       
       // Save to recent files (localStorage)
@@ -544,7 +551,8 @@ function HomeContent() {
     setAllRecords(processed);
     setFilteredRecords(processed);
     setMetrics(calculateMetrics(processed));
-    setAgentMetrics(calculateAgentMetrics(processed));
+    const metrics4 = calculateAgentMetrics(processed);
+    setAgentMetrics(applyPlansToAllAgents(metrics4, processed));
     setIsLoading(false);
     setShowMapping(false);
     setShowFieldMapper(false);
@@ -1118,7 +1126,8 @@ function HomeContent() {
             onTabChange={setCommissionManagementTab}
             onAssignmentChange={() => {
               setMetrics(calculateMetrics(filteredRecords));
-              setAgentMetrics(calculateAgentMetrics(filteredRecords));
+              const metrics5 = calculateAgentMetrics(filteredRecords);
+              setAgentMetrics(applyPlansToAllAgents(metrics5, filteredRecords));
             }}
           />
         </div>

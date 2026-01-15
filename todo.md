@@ -1666,3 +1666,14 @@
 - [x] Ensure "No plan assigned" warning disappears when plan is assigned
 - [x] Test leaderboard updates after assigning plans in Commission Management
 - [x] Verify plan status displays correctly for all agents
+
+## Phase 45: Implement Actual Commission Recalculation
+- [x] Create commission recalculation helper function (commissionCalculator.ts)
+- [x] Implement recalculateAgentCommission function using plan split percentage and cap
+- [x] Implement applyCommissionPlansToAgents function for bulk recalculation
+- [x] Update AgentMetrics calculation to use plan-based commissions
+- [x] Update leaderboard to display recalculated commissions
+- [x] Create comprehensive unit tests for commission calculator (6 tests passing)
+- [x] Test commission recalculation with demo data
+- [x] Verify commission amounts update when plans are assigned
+- [x] Verify leaderboard displays accurate plan-based commissions
