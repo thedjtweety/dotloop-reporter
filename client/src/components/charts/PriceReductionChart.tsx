@@ -22,7 +22,20 @@ export default function PriceReductionChart({ data }: PriceReductionChartProps) 
     .sort((a, b) => a.percent - b.percent) // Sort by biggest drop first
     .slice(0, 10); // Top 10 most significant changes
 
-  if (comparisonData.length === 0) return null;
+  if (comparisonData.length === 0) {
+    return (
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="text-lg font-medium">List vs. Sale Price Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] w-full flex items-center justify-center">
+            <p className="text-muted-foreground text-center">No sold properties with price data available for analysis</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
