@@ -1961,3 +1961,14 @@
 - [x] Test CSV export with various data sets
 - [x] Verify export file includes all columns (address, year, price, sq ft)
 - [x] Test in both light and dark modes
+
+
+## Phase 67: Add Click Handlers to Box Plot and Histogram Charts
+- [ ] Add click event listener to Box Plot chart bars
+- [ ] Implement drill-down modal trigger for Box Plot
+- [ ] Add click event listener to Histogram chart bars
+- [ ] Implement drill-down modal trigger for Histogram
+- [ ] Test Box Plot click functionality with demo data
+- [ ] Test Histogram click functionality with demo data
+- [ ] Verify drill-down modal displays correct property list
+- [ ] Test in both light and dark modes

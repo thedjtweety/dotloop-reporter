@@ -271,7 +271,18 @@ export default function PropertyInsightsChart({ data }: PropertyInsightsChartPro
       <CardContent>
         <div className="space-y-4">
           {chartView === 'box' && (
-            <div className="h-[400px] w-full">
+            <div className="h-[400px] w-full cursor-pointer" onMouseDown={(e) => {
+                  if (e.button === 0) { // Left click only
+                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const barWidth = rect.width / decadeStats.length;
+                    const barIndex = Math.floor(x / barWidth);
+                    if (barIndex >= 0 && barIndex < decadeStats.length) {
+                      setSelectedDecade(decadeStats[barIndex]);
+                      setDrillDownOpen(true);
+                    }
+                  }
+                }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={decadeStats}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -281,17 +292,25 @@ export default function PropertyInsightsChart({ data }: PropertyInsightsChartPro
                     formatter={(value) => formatCurrency(value as number)}
                     labelFormatter={(label) => `${label}`}
                   />
-                  <Bar dataKey="median" fill="#3b82f6" name="Median" onClick={(data) => {
-                    setSelectedDecade(data as DecadeStats);
-                    setDrillDownOpen(true);
-                  }} />
+                  <Bar dataKey="median" fill="#3b82f6" name="Median" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           )}
 
           {chartView === 'histogram' && (
-            <div className="h-[400px] w-full">
+            <div className="h-[400px] w-full cursor-pointer" onMouseDown={(e) => {
+                  if (e.button === 0) { // Left click only
+                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const barWidth = rect.width / histogramData.length;
+                    const barIndex = Math.floor(x / barWidth);
+                    if (barIndex >= 0 && barIndex < histogramData.length) {
+                      setSelectedDecade(histogramData[barIndex]);
+                      setDrillDownOpen(true);
+                    }
+                  }
+                }}>
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={histogramData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -307,10 +326,7 @@ export default function PropertyInsightsChart({ data }: PropertyInsightsChartPro
                     }}
                   />
                   <Legend />
-                  <Bar yAxisId="left" dataKey="count" fill="#8b5cf6" name="Property Count" onClick={(data) => {
-                    setSelectedDecade(data as HistogramBin);
-                    setDrillDownOpen(true);
-                  }} />
+                  <Bar yAxisId="left" dataKey="count" fill="#8b5cf6" name="Property Count" />
                   <Line yAxisId="right" type="monotone" dataKey="avgPrice" stroke="#10b981" name="Avg Price" />
                 </ComposedChart>
               </ResponsiveContainer>
