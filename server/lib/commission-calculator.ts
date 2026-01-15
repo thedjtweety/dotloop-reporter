@@ -65,7 +65,6 @@ export interface TransactionInput {
   agents: string; // Comma-separated agent names
   salePrice: number;
   commissionRate: number; // As percentage (e.g., 3 for 3%)
-  commissionTotal?: number; // Total commission from CSV (preferred over recalculating)
   buySidePercent?: number; // Percentage of total commission (default 50)
   sellSidePercent?: number; // Percentage of total commission (default 50)
 }
@@ -225,19 +224,7 @@ export function calculateTransactionCommission(
   const closingDate = new Date(transaction.closingDate);
   
   // Step 1: Calculate Gross Commission Income (GCI)
-  // Use commissionTotal from CSV if available (most accurate), otherwise calculate from rate
-  const totalCommission = transaction.commissionTotal ?? (transaction.salePrice * (transaction.commissionRate / 100));
-  
-  // Debug logging
-  if (totalCommission === 0) {
-    console.warn(`[Commission Calc] Zero commission for transaction ${transaction.id}:`, {
-      commissionTotal: transaction.commissionTotal,
-      salePrice: transaction.salePrice,
-      commissionRate: transaction.commissionRate,
-      calculated: transaction.salePrice * (transaction.commissionRate / 100)
-    });
-  }
-  
+  const totalCommission = transaction.salePrice * (transaction.commissionRate / 100);
   const agents = transaction.agents.split(',').map(a => a.trim());
   const gciPerAgent = totalCommission / agents.length;
   
@@ -399,17 +386,8 @@ export function calculateCommissions(
     const closingDate = new Date(transaction.closingDate);
     
     agents.forEach(agentName => {
-      // Normalize agent name for matching (case-insensitive, trim whitespace)
-      const normalizedAgentName = agentName.trim().toLowerCase();
-      const assignment = assignments.find(a => a.agentName.trim().toLowerCase() === normalizedAgentName);
-      if (!assignment) {
-        console.warn(`No assignment found for agent: "${agentName}" (normalized: "${normalizedAgentName}")`)
-        console.warn('Available assignments:', assignments.map(a => `"${a.agentName}" (normalized: "${a.agentName.trim().toLowerCase()}")`));
-        return; // Skip agents without plan assignments
-      }
-      
-      // Use the canonical agent name from the assignment for consistency
-      const canonicalAgentName = assignment.agentName;
+      const assignment = assignments.find(a => a.agentName === agentName);
+      if (!assignment) return; // Skip agents without plan assignments
       
       const plan = plans.find(p => p.id === assignment.planId);
       if (!plan) return; // Skip if plan not found
@@ -419,20 +397,20 @@ export function calculateCommissions(
       // Determine cycle start for this transaction
       const cycleStart = getCycleStartDate(closingDate, assignment.anniversaryDate);
       
-      // Get or initialize YTD for this agent using canonical name
-      let agentYTD = agentYTDMap.get(canonicalAgentName);
+      // Get or initialize YTD for this agent
+      let agentYTD = agentYTDMap.get(agentName);
       if (!agentYTD || agentYTD.cycleStart.getTime() !== cycleStart.getTime()) {
         // Reset YTD if new cycle or first transaction
         agentYTD = { ytd: 0, cycleStart };
       }
       
       // Get transaction-specific adjustments
-      const adjustments = adjustmentsMap?.get(`${transaction.id}:${canonicalAgentName}`);
+      const adjustments = adjustmentsMap?.get(`${transaction.id}:${agentName}`);
       
       // Calculate commission for this transaction
       const breakdown = calculateTransactionCommission(
         transaction,
-        canonicalAgentName,
+        agentName,
         plan,
         team,
         agentYTD.ytd,
@@ -441,9 +419,9 @@ export function calculateCommissions(
       
       breakdowns.push(breakdown);
       
-      // Update YTD using canonical name
+      // Update YTD
       agentYTD.ytd = breakdown.ytdAfterTransaction;
-      agentYTDMap.set(canonicalAgentName, agentYTD);
+      agentYTDMap.set(agentName, agentYTD);
     });
   });
   
@@ -473,8 +451,8 @@ export function calculateCommissions(
       };
     }
     
-    // Get agent's breakdowns (use canonical name from assignment)
-    const agentBreakdowns = breakdowns.filter(b => b.agentName.trim().toLowerCase() === assignment.agentName.trim().toLowerCase());
+    // Get agent's breakdowns
+    const agentBreakdowns = breakdowns.filter(b => b.agentName === assignment.agentName);
     
     // Determine cycle dates from the latest transaction (or current date if no transactions)
     let cycleStart: Date;

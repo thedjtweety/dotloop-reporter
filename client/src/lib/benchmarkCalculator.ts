@@ -113,7 +113,7 @@ export function calculateBrokerageMetrics(
   );
 
   const avgGCI = Math.round(
-    agentMetrics.reduce((sum, a) => sum + a.totalCommission, 0) / totalAgents
+    agentMetrics.reduce((sum, a) => sum + a.totalGCI, 0) / totalAgents
   );
 
   const closedRecords = records.filter(r => r.loopStatus === 'Closed' || r.loopStatus === 'Sold');
@@ -154,7 +154,7 @@ export function compareBrokerageMetrics(
   allAgentMetrics: AgentMetrics[]
 ): ComparisonResult[] {
   const allTransactions = allAgentMetrics.map(a => a.totalTransactions);
-  const allGCI = allAgentMetrics.map(a => a.totalCommission);
+  const allGCI = allAgentMetrics.map(a => a.totalGCI);
 
   const comparisons: ComparisonResult[] = [
     {

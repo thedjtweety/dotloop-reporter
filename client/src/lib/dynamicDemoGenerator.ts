@@ -96,7 +96,6 @@ export function generateDemoData(config: GeneratorConfig = {}): DotloopRecord[] 
   
   const agents = randomInt(numAgents, maxAgents);
   const records: DotloopRecord[] = [];
-  let recordId = 100000;
   
   for (let i = 0; i < agents; i++) {
     const agentName = randomName();
@@ -111,50 +110,23 @@ export function generateDemoData(config: GeneratorConfig = {}): DotloopRecord[] 
       const companyDollar = Math.round(gci * (companySplit / 100));
       const agentComm = gci - companyDollar;
       
-      const soldDate = randomDate();
-      const createdDate = new Date(new Date(soldDate).getTime() - randomInt(7, 90) * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      const listDate = new Date(new Date(createdDate).getTime() + randomInt(1, 30) * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      const offerDate = new Date(new Date(listDate).getTime() + randomInt(1, 60) * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      
       records.push({
-        loopId: `loop_${recordId}`,
-        loopViewUrl: `https://dotloop.com/loop/${recordId}`,
-        loopName: `${randomInt(100, 999)} ${randomElement(['Main', 'Oak', 'Elm', 'Park'])} St`,
-        loopStatus: randomElement(['Active', 'Pending', 'Closed', 'Sold', 'Archived']),
-        createdDate: createdDate,
-        closingDate: soldDate,
-        listingDate: listDate,
-        offerDate: offerDate,
-        address: randomAddress(),
-        price: listPrice,
-        propertyType: randomElement(PROPERTY_TYPES),
-        bedrooms: randomInt(1, 5),
-        bathrooms: randomInt(1, 4),
-        squareFootage: randomInt(800, 5000),
-        city: randomElement(MA_CITIES),
-        state: 'MA',
-        county: 'Suffolk',
-        leadSource: randomElement(['MLS', 'Referral', 'Website', 'Social Media', 'Cold Call']),
-        earnestMoney: randomInt(1000, 50000),
-        salePrice: salePrice,
-        commissionRate: commissionRate,
-        commissionTotal: gci,
-        agents: agentName,
-        createdBy: agentName,
-        buySideCommission: Math.round(gci * 0.5),
-        sellSideCommission: Math.round(gci * 0.5),
-        companyDollar: companyDollar,
-        referralSource: randomElement(['Internal', 'External', 'None']),
-        referralPercentage: randomInt(0, 30),
-        complianceStatus: randomElement(['Compliant', 'Pending', 'Review']),
-        tags: [randomElement(['Hot', 'Cold', 'Warm']), randomElement(['Commercial', 'Residential', 'Mixed'])],
-        originalPrice: listPrice,
-        yearBuilt: randomInt(1950, 2023),
-        lotSize: randomInt(2000, 20000),
-        subdivision: randomElement(['Downtown', 'Suburbs', 'Waterfront', 'Historic District']),
+        'Loop Name': `${randomInt(100, 999)} ${randomElement(['Main', 'Oak', 'Elm', 'Park'])} St`,
+        'Address': randomAddress(),
+        'City': randomElement(MA_CITIES),
+        'State': 'MA',
+        'Zip': randomInt(2100, 2199).toString(),
+        'Property Type': randomElement(PROPERTY_TYPES),
+        'List Price': `$${listPrice.toLocaleString()}`,
+        'Sale Price': `$${salePrice.toLocaleString()}`,
+        'Sold Date': randomDate(),
+        'Agent': agentName,
+        'Commission Rate': `${commissionRate}%`,
+        'GCI': `$${gci.toLocaleString()}`,
+        'Company Split': `${companySplit}%`,
+        'Company Dollar': `$${companyDollar.toLocaleString()}`,
+        'Agent Commission': `$${agentComm.toLocaleString()}`,
       });
-      
-      recordId++;
     }
   }
   
@@ -164,8 +136,11 @@ export function generateDemoData(config: GeneratorConfig = {}): DotloopRecord[] 
 export function generateDemoDataWithStats(config: GeneratorConfig = {}) {
   const data = generateDemoData(config);
   
-  const agents = new Set(data.map(r => r.agents));
-  const totalGCI = data.reduce((sum, r) => sum + (r.commissionTotal || 0), 0);
+  const agents = new Set(data.map(r => r['Agent'] as string));
+  const totalGCI = data.reduce((sum, r) => {
+    const gci = parseFloat((r['GCI'] as string).replace(/[$,]/g, ''));
+    return sum + (isNaN(gci) ? 0 : gci);
+  }, 0);
   
   const stats = {
     agentCount: agents.size,
@@ -174,11 +149,11 @@ export function generateDemoDataWithStats(config: GeneratorConfig = {}) {
     avgTransactionValue: Math.round(totalGCI / data.length),
     dateRange: {
       earliest: data.reduce((min, r) => {
-        const date = r.closingDate;
+        const date = r['Sold Date'] as string;
         return date < min ? date : min;
       }, '2099-12-31'),
       latest: data.reduce((max, r) => {
-        const date = r.closingDate;
+        const date = r['Sold Date'] as string;
         return date > max ? date : max;
       }, '2000-01-01')
     }

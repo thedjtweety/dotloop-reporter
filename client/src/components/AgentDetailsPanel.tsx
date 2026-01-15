@@ -27,15 +27,6 @@ export default function AgentDetailsPanel({
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Guard against undefined transactions
-  if (!transactions || !agent) {
-    return (
-      <Card className="p-6">
-        <p className="text-muted-foreground">No agent data available</p>
-      </Card>
-    );
-  }
-
   // Filter transactions for this agent
   const agentTransactions = transactions.filter(t => {
     const agents = t.agents ? t.agents.split(',').map(a => a.trim()) : [];

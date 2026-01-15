@@ -97,11 +97,11 @@ export const auditLogRouter = router({
       }
       
       if (input.startDate) {
-        conditions.push(gte(auditLogs.createdAt, new Date(input.startDate).toISOString()));
+        conditions.push(gte(auditLogs.createdAt, new Date(input.startDate)));
       }
       
       if (input.endDate) {
-        conditions.push(lte(auditLogs.createdAt, new Date(input.endDate).toISOString()));
+        conditions.push(lte(auditLogs.createdAt, new Date(input.endDate)));
       }
       
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -164,7 +164,7 @@ export const auditLogRouter = router({
       const recentResult = await db
         .select({ count: sql<number>`count(*)` })
         .from(auditLogs)
-        .where(gte(auditLogs.createdAt, yesterday.toISOString()));
+        .where(gte(auditLogs.createdAt, yesterday));
       const recentActivity = Number(recentResult[0]?.count || 0);
       
       // Most active admins

@@ -21,7 +21,7 @@ export const PerformanceTrendsPage: React.FC = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const recentFiles = await getRecentFiles();
+        const recentFiles = getRecentFiles();
         
         if (recentFiles.length === 0) {
           setError('No data available. Please upload a CSV file first.');

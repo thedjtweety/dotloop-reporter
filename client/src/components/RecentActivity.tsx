@@ -25,7 +25,7 @@ export default function RecentActivity() {
     details: string | null;
     ipAddress: string | null;
     userAgent: string | null;
-    createdAt: string;
+    createdAt: Date;
   }>;
 
   const getActionIcon = (action: string) => {

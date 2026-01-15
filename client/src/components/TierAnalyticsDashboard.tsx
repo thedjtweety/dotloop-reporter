@@ -58,36 +58,28 @@ export default function TierAnalyticsDashboard({ planId }: TierAnalyticsProps) {
   const [daysBack, setDaysBack] = useState<number>(90);
 
   // Fetch tier statistics
-  // const { data: stats, isLoading: statsLoading } = trpc.tierHistory.getTierStats.useQuery(
-  //   { planId: selectedPlan || undefined, daysBack },
-  //   { enabled: !!selectedPlan }
-  // );
-  const stats: any = {};
-  const statsLoading = false;
+  const { data: stats, isLoading: statsLoading } = trpc.tierHistory.getTierStats.useQuery(
+    { planId: selectedPlan || undefined, daysBack },
+    { enabled: !!selectedPlan }
+  );
 
   // Fetch tier distribution
-  // const { data: distribution, isLoading: distributionLoading } = trpc.tierHistory.getTierDistribution.useQuery(
-  //   { planId: selectedPlan || undefined, daysBack },
-  //   { enabled: !!selectedPlan }
-  // );
-  const distribution: any[] = [];
-  const distributionLoading = false;
+  const { data: distribution, isLoading: distLoading } = trpc.tierHistory.getTierDistribution.useQuery(
+    { planId: selectedPlan || undefined },
+    { enabled: !!selectedPlan }
+  );
 
   // Fetch revenue by tier
-  // const { data: revenueByTier, isLoading: revenueLoading } = trpc.tierHistory.getRevenueByTier.useQuery(
-  //   { planId: selectedPlan || undefined, daysBack },
-  //   { enabled: !!selectedPlan }
-  // );
-  const revenueByTier: any[] = [];
-  const revenueLoading = false;
+  const { data: revenueByTier, isLoading: revenueLoading } = trpc.tierHistory.getRevenueByTier.useQuery(
+    { planId: selectedPlan || undefined, daysBack },
+    { enabled: !!selectedPlan }
+  );
 
   // Fetch advancement timeline
-  // const { data: timeline, isLoading: timelineLoading } = trpc.tierHistory.getAdvancementTimeline.useQuery(
-  //   { planId: selectedPlan || undefined, daysBack },
-  //   { enabled: !!selectedPlan }
-  // );
-  const timeline: any[] = [];
-  const timelineLoading = false;
+  const { data: timeline, isLoading: timelineLoading } = trpc.tierHistory.getAdvancementTimeline.useQuery(
+    { planId: selectedPlan || undefined, daysBack },
+    { enabled: !!selectedPlan }
+  );
 
   // Fetch commission plans for dropdown
   const { data: plans } = trpc.commission.getPlans.useQuery();
@@ -95,16 +87,16 @@ export default function TierAnalyticsDashboard({ planId }: TierAnalyticsProps) {
   // Process timeline data for line chart
   const timelineChartData = useMemo(() => {
     if (!timeline) return [];
-    return timeline.map((entry: any) => {
+    return timeline.map((entry) => {
       const data: any = { date: entry.date };
-      entry.transitions.forEach((t: any) => {
+      entry.transitions.forEach((t) => {
         data[`tier_${t.tier}`] = t.count;
       });
       return data;
     });
   }, [timeline]);
 
-  const isLoading = statsLoading || distributionLoading || revenueLoading || timelineLoading;
+  const isLoading = statsLoading || distLoading || revenueLoading || timelineLoading;
 
   if (!selectedPlan) {
     return (
@@ -211,8 +203,8 @@ export default function TierAnalyticsDashboard({ planId }: TierAnalyticsProps) {
                     <p className="text-foreground text-sm font-medium">Avg Days to Tier</p>
                     <p className="text-2xl font-bold text-primary mt-2">
                       {Math.round(
-                        (Object.values(stats?.averageTimings || {}) as any[]).reduce((a: any, b: any) => a + b, 0) /
-                          (Object.keys(stats?.averageTimings || {}).length || 1)
+                        Object.values(stats.averageTimings).reduce((a, b) => a + b, 0) /
+                          Object.keys(stats.averageTimings).length || 0
                       )}
                     </p>
                   </div>
@@ -226,7 +218,7 @@ export default function TierAnalyticsDashboard({ planId }: TierAnalyticsProps) {
                     <p className="text-foreground text-sm font-medium">Total YTD Amount</p>
                     <p className="text-2xl font-bold text-primary mt-2">
                       ${(
-                        revenueByTier?.reduce((sum: number, r: any) => sum + r.totalYtdAmount, 0) || 0
+                        revenueByTier?.reduce((sum, r) => sum + r.totalYtdAmount, 0) || 0
                       ).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                     </p>
                   </div>
@@ -263,7 +255,7 @@ export default function TierAnalyticsDashboard({ planId }: TierAnalyticsProps) {
                         outerRadius={100}
                         label={({ tier, percentage }) => `Tier ${tier}: ${percentage}%`}
                       >
-                        {distribution.map((_: any, index: number) => (
+                        {distribution.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={TIER_COLORS[index % TIER_COLORS.length]} />
                         ))}
                       </Pie>
@@ -293,7 +285,7 @@ export default function TierAnalyticsDashboard({ planId }: TierAnalyticsProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {distribution?.map((row: any) => (
+                      {distribution?.map((row) => (
                         <tr key={row.tier} className="border-b border-border/50">
                           <td className="py-2 px-3 text-foreground">Tier {row.tier}</td>
                           <td className="py-2 px-3 text-foreground">{row.count}</td>
@@ -354,7 +346,7 @@ export default function TierAnalyticsDashboard({ planId }: TierAnalyticsProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {revenueByTier?.map((row: any) => (
+                      {revenueByTier?.map((row) => (
                         <tr key={row.tier} className="border-b border-border/50">
                           <td className="py-2 px-3 text-foreground">Tier {row.tier}</td>
                           <td className="py-2 px-3 text-foreground">

@@ -1,10 +1,10 @@
 /**
  * Agent Leaderboard Component with Export Functionality
- * Displays agent performance metrics with pagination, search, filters, and export options
- * Design: Professional data table with sorting, filtering, and navigation controls
+ * Displays agent performance metrics with download options for PDF and Excel
+ * Design: Professional data table with color-coded performance indicators and export buttons
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import { AgentMetrics } from '@/lib/csvParser';
 import { exportAgentAsCSV, exportAgentAsPDF, exportAllAgentsAsCSV } from '@/lib/exportReports';
 import { Card } from '@/components/ui/card';
@@ -18,51 +18,32 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ArrowUpDown, TrendingUp, Download, FileText, Sheet as SheetIcon, Medal, Trophy, Eye, Search, X } from 'lucide-react';
+import { ArrowUpDown, TrendingUp, Download, FileText, Sheet as SheetIcon, Medal, Trophy, Eye } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import AgentCommissionModal from './AgentCommissionModal';
 import AgentDetailsPanel from './AgentDetailsPanel';
-import AgentCommissionBreakdown from './AgentCommissionBreakdown';
-import CommissionPlanWarning from './CommissionPlanWarning';
 import { DotloopRecord } from '@/lib/csvParser';
 import WinnersPodium from './WinnersPodium';
 import { formatCurrency, formatPercentage } from '@/lib/formatUtils';
-
-import AgentComparisonBars from './AgentComparisonBars';
-import { BarChart3 } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 interface AgentLeaderboardProps {
   agents: AgentMetrics[];
   records?: DotloopRecord[];
-  agentAssignments?: Array<{ agentName: string; planId: string; planName?: string }>;
 }
 
 type SortField = keyof AgentMetrics;
-type FilterType = 'all' | 'top10' | 'bottom10';
 
-const ITEMS_PER_PAGE = 10;
-
-export default function AgentLeaderboardWithExport({ agents, records = [], agentAssignments = [] }: AgentLeaderboardProps) {
+export default function AgentLeaderboardWithExport({ agents, records = [] }: AgentLeaderboardProps) {
   const [sortField, setSortField] = useState<SortField>('totalCommission');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [exportingAgent, setExportingAgent] = useState<string | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<AgentMetrics | null>(null);
-  const [commissionBreakdownAgent, setCommissionBreakdownAgent] = useState<AgentMetrics | null>(null);
   const [showPodium, setShowPodium] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<FilterType>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState<'table' | 'bars'>('table');
 
   // Check if financial data exists
   const hasFinancialData = agents.some(a => a.totalCommission > 0 || a.companyDollar > 0);
-
-  // Helper to check if agent has commission plan assigned
-  const agentHasCommissionPlan = (agentName: string) => {
-    return agentAssignments.some(a => a.agentName === agentName);
-  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -71,332 +52,270 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
       setSortField(field);
       setSortDirection('desc');
     }
-    setCurrentPage(1);
   };
 
-  const handleExportPDF = async (agent: AgentMetrics) => {
+  const handleExportPDF = (agent: AgentMetrics) => {
     setExportingAgent(agent.agentName);
     try {
-      await exportAgentAsPDF(agent);
+      exportAgentAsPDF(agent, records);
+      setTimeout(() => setExportingAgent(null), 1000);
     } catch (error) {
-      console.error('Export failed:', error);
-    } finally {
+      console.error('Error exporting PDF:', error);
       setExportingAgent(null);
     }
   };
 
-  const handleExportCSV = async (agent: AgentMetrics) => {
+  const handleExportCSV = (agent: AgentMetrics) => {
     setExportingAgent(agent.agentName);
     try {
-      await exportAgentAsCSV(agent);
+      exportAgentAsCSV(agent);
+      setTimeout(() => setExportingAgent(null), 500);
     } catch (error) {
-      console.error('Export failed:', error);
-    } finally {
+      console.error('Error exporting CSV:', error);
       setExportingAgent(null);
     }
   };
 
-  const handleExportAllCSV = async () => {
-    setExportingAgent('all');
+  const handleExportAllCSV = () => {
     try {
-      await exportAllAgentsAsCSV(agents);
+      exportAllAgentsAsCSV(agents);
     } catch (error) {
-      console.error('Export failed:', error);
-    } finally {
-      setExportingAgent(null);
+      console.error('Error exporting all agents:', error);
     }
   };
 
-  // Filter agents
-  const filteredAgents = useMemo(() => {
-    let result = agents.filter(a =>
-      a.agentName.toLowerCase().includes(searchQuery.toLowerCase())
+  const sortedAgents = [...agents].sort((a, b) => {
+    const aValue = a[sortField];
+    const bValue = b[sortField];
+
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+
+    return 0;
+  });
+
+  const getPerformanceBadge = (closingRate: number) => {
+    if (closingRate >= 50) return 'bg-accent text-foreground-foreground';
+    if (closingRate >= 30) return 'bg-primary/20 text-primary';
+    return 'bg-secondary/20 text-secondary-foreground';
+  };
+
+  const SortableHeader = ({
+    field,
+    label,
+  }: {
+    field: SortField;
+    label: string;
+  }) => (
+    <TableHead
+      className="cursor-pointer hover:bg-muted/50 transition-colors font-display font-bold text-foreground uppercase tracking-wider text-xs"
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center gap-2">
+        {label}
+        <ArrowUpDown className="w-4 h-4 opacity-50" />
+      </div>
+    </TableHead>
+  );
+
+  if (agents.length === 0) {
+    return (
+      <Card className="p-8">
+        <div className="text-center text-foreground">
+          No agent data available
+        </div>
+      </Card>
     );
-
-    if (filterType === 'top10') {
-      result = result.slice(0, 10);
-    } else if (filterType === 'bottom10') {
-      result = result.slice(-10);
-    }
-
-    return result;
-  }, [agents, searchQuery, filterType]);
-
-  // Sort agents
-  const sortedAgents = useMemo(() => {
-    const sorted = [...filteredAgents].sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-
-      if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-      }
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortDirection === 'asc'
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-
-      return 0;
-    });
-
-    return sorted;
-  }, [filteredAgents, sortField, sortDirection]);
-
-  // Paginate
-  const paginatedAgents = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return sortedAgents.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [sortedAgents, currentPage]);
-
-  const totalPages = Math.ceil(sortedAgents.length / ITEMS_PER_PAGE);
+  }
 
   return (
-    <Card className="p-6 bg-card border border-border">
-      {/* Header Section */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-display font-bold text-foreground">
-            Agent Performance Leaderboard
-          </h2>
-          <Button
-            onClick={handleExportAllCSV}
-            disabled={exportingAgent === 'all'}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <Download className="w-4 h-4" />
-            {exportingAgent === 'all' ? 'Exporting...' : 'Export All'}
-          </Button>
-        </div>
-
-        {/* Podium */}
-        {showPodium && agents.length >= 3 && (
-          <div className="mb-6">
-            <WinnersPodium agents={agents} transactions={records} />
-            <button
-              onClick={() => setShowPodium(false)}
-              className="text-xs text-foreground/60 hover:text-foreground mt-2 transition-colors"
-            >
-              Hide podium
-            </button>
+    <Card className="overflow-hidden">
+      <div className="p-6 border-b border-border">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            <h2 className="text-xl font-display font-semibold text-foreground">
+              Agent Performance Leaderboard
+            </h2>
           </div>
-        )}
-
-        {!showPodium && (
-          <button
-            onClick={() => setShowPodium(true)}
-            className="text-xs text-foreground/60 hover:text-foreground mb-4 transition-colors"
-          >
-            Show podium
-          </button>
-        )}
-
-        {/* Search and Filter */}
-        <div className="flex gap-4 mb-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-foreground/40" />
-            <Input
-              placeholder="Search agents..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="pl-10"
-            />
-          </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <Button
-              variant={filterType === 'all' ? 'default' : 'outline'}
+              onClick={() => setShowPodium(!showPodium)}
+              variant="outline"
               size="sm"
-              onClick={() => {
-                setFilterType('all');
-                setCurrentPage(1);
-              }}
+              className="gap-2"
             >
-              All
+              <Trophy className={`w-4 h-4 ${showPodium ? 'text-yellow-500' : 'text-foreground'}`} />
+              {showPodium ? 'Hide Podium' : 'Show Podium'}
             </Button>
             <Button
-              variant={filterType === 'top10' ? 'default' : 'outline'}
+              onClick={handleExportAllCSV}
+              variant="outline"
               size="sm"
-              onClick={() => {
-                setFilterType('top10');
-                setCurrentPage(1);
-              }}
+              className="gap-2"
             >
-              <Trophy className="w-4 h-4 mr-1" />
-              Top 10
-            </Button>
-            <Button
-              variant={filterType === 'bottom10' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => {
-                setFilterType('bottom10');
-                setCurrentPage(1);
-              }}
-            >
-              Bottom 10
-            </Button>
-            <Button
-              variant={viewMode === 'bars' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode(viewMode === 'table' ? 'bars' : 'table')}
-              title="Toggle between table and bar chart view"
-            >
-              <BarChart3 className="w-4 h-4 mr-1" />
-              {viewMode === 'table' ? 'View as Bars' : 'View as Table'}
+              <Download className="w-4 h-4" />
+              Export All
             </Button>
           </div>
         </div>
-
-        {/* Results count */}
-        <p className="text-sm text-foreground/60">
-          Showing {paginatedAgents.length} of {sortedAgents.length} agents
+        <p className="text-sm text-foreground">
+          Click column headers to sort. Download individual reports using the action buttons.
         </p>
       </div>
 
-      {/* View Mode Conditional Rendering */}
-      {viewMode === 'table' ? (
-        <>
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <Table>
+      {/* Winners Podium */}
+      {agents.length >= 3 && showPodium && (
+        <div className="px-6 pt-6">
+          <WinnersPodium 
+            agents={[...agents].sort((a, b) => b.totalCommission - a.totalCommission)} 
+            transactions={records}
+          />
+        </div>
+      )}
+
+      <div className="relative overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent pb-4">
+        <Table className="min-w-[1200px]">
           <TableHeader>
-            <TableRow className="border-b border-border hover:bg-transparent">
-              <TableHead className="w-12 text-center">#</TableHead>
-              <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort('agentName')}>
-                <div className="flex items-center gap-2">
-                  Agent Name
-                  {sortField === 'agentName' && (
-                    <ArrowUpDown className="w-4 h-4" />
-                  )}
-                </div>
+            <TableRow className="bg-muted/30 hover:bg-muted/30 border-b border-border/50">
+              <TableHead className="w-16 text-center font-display font-bold text-foreground uppercase tracking-wider text-xs py-4">
+                Rank
               </TableHead>
-              <TableHead className="text-right cursor-pointer hover:text-foreground" onClick={() => handleSort('totalTransactions')}>
-                <div className="flex items-center justify-end gap-2">
-                  Deals
-                  {sortField === 'totalTransactions' && (
-                    <ArrowUpDown className="w-4 h-4" />
-                  )}
-                </div>
+              <TableHead className="font-display font-bold text-foreground uppercase tracking-wider text-xs min-w-[200px]">
+                Agent Name
               </TableHead>
-              <TableHead className="text-right cursor-pointer hover:text-foreground" onClick={() => handleSort('closingRate')}>
-                <div className="flex items-center justify-end gap-2">
-                  Close Rate
-                  {sortField === 'closingRate' && (
-                    <ArrowUpDown className="w-4 h-4" />
-                  )}
-                </div>
+              {hasFinancialData && <SortableHeader field="totalCommission" label="Total GCI" />}
+              {hasFinancialData && <SortableHeader field="companyDollar" label="Company $" />}
+              {hasFinancialData && <SortableHeader field="averageCommission" label="Avg GCI" />}
+              <SortableHeader field="totalTransactions" label="Deals" />
+              <SortableHeader field="closedDeals" label="Closed" />
+              <SortableHeader field="closingRate" label="Close Rate" />
+              <SortableHeader field="averageSalesPrice" label="Avg Price" />
+              <SortableHeader field="averageDaysToClose" label="Avg Days" />
+              <SortableHeader field="activeListings" label="Active" />
+              <SortableHeader field="underContract" label="Pending" />
+              {hasFinancialData && <SortableHeader field="buySideCommission" label="Buy Side" />}
+              {hasFinancialData && <SortableHeader field="sellSideCommission" label="Sell Side" />}
+              {hasFinancialData && <SortableHeader field="buySidePercentage" label="Buy %" />}
+              {hasFinancialData && <SortableHeader field="sellSidePercentage" label="Sell %" />}
+              <TableHead className="w-32 text-center font-display font-bold text-foreground uppercase tracking-wider text-xs sticky right-0 bg-card shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]">
+                Actions
               </TableHead>
-              <TableHead className="text-right cursor-pointer hover:text-foreground" onClick={() => handleSort('averageSalesPrice')}>
-                <div className="flex items-center justify-end gap-2">
-                  Avg Price
-                  {sortField === 'averageSalesPrice' && (
-                    <ArrowUpDown className="w-4 h-4" />
-                  )}
-                </div>
-              </TableHead>
-              {hasFinancialData && (
-                <>
-                  <TableHead className="text-right cursor-pointer hover:text-foreground" onClick={() => handleSort('totalCommission')}>
-                    <div className="flex items-center justify-end gap-2">
-                      Total GCI
-                      {sortField === 'totalCommission' && (
-                        <ArrowUpDown className="w-4 h-4" />
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead className="text-right cursor-pointer hover:text-foreground" onClick={() => handleSort('companyDollar')}>
-                    <div className="flex items-center justify-end gap-2">
-                      Company Dollar
-                      {sortField === 'companyDollar' && (
-                        <ArrowUpDown className="w-4 h-4" />
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead className="text-right cursor-pointer hover:text-foreground" onClick={() => handleSort('buySidePercentage')}>
-                    <div className="flex items-center justify-end gap-2">
-                      Buy %
-                      {sortField === 'buySidePercentage' && (
-                        <ArrowUpDown className="w-4 h-4" />
-                      )}
-                    </div>
-                  </TableHead>
-                </>
-              )}
-              <TableHead className="sticky right-0 bg-card text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedAgents.map((agent, index) => (
-              <TableRow key={agent.agentName} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                <TableCell className="text-center font-semibold text-foreground">
-                  {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
+            {sortedAgents.map((agent, index) => (
+              <React.Fragment key={agent.agentName}>
+                <TableRow
+                  className="hover:bg-muted/50 transition-colors"
+                >
+                <TableCell className="text-center font-display font-semibold text-primary">
+                  {index === 0 ? (
+                    <div className="flex justify-center">
+                      <Medal className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                    </div>
+                  ) : index === 1 ? (
+                    <div className="flex justify-center">
+                      <Medal className="w-5 h-5 text-gray-400 fill-gray-400" />
+                    </div>
+                  ) : index === 2 ? (
+                    <div className="flex justify-center">
+                      <Medal className="w-5 h-5 text-amber-700 fill-amber-700" />
+                    </div>
+                  ) : (
+                    `#${index + 1}`
+                  )}
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-3">
+                <TableCell className="font-medium text-foreground">
+                  <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
                         {agent.agentName
                           .split(' ')
-                          .map(n => n[0])
+                          .map((n) => n[0])
                           .join('')
+                          .substring(0, 2)
                           .toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
-                      <span className="font-medium text-foreground">{agent.agentName}</span>
-                      {!agentHasCommissionPlan(agent.agentName) && (
-                        <CommissionPlanWarning agentName={agent.agentName} compact={true} />
-                      )}
-                    </div>
+                    {agent.agentName}
                   </div>
                 </TableCell>
-                <TableCell className="text-right text-foreground font-semibold">
+                {hasFinancialData && (
+                  <TableCell className="font-semibold text-foreground">
+                    {formatCurrency(agent.totalCommission)}
+                  </TableCell>
+                )}
+                {hasFinancialData && (
+                  <TableCell className="font-medium text-blue-600 dark:text-blue-400">
+                    {formatCurrency(agent.companyDollar)}
+                  </TableCell>
+                )}
+                {hasFinancialData && (
+                  <TableCell className="text-foreground">
+                    {formatCurrency(agent.averageCommission)}
+                  </TableCell>
+                )}
+                <TableCell className="text-center font-medium">
                   {agent.totalTransactions}
                 </TableCell>
-                <TableCell className="text-right">
-                  <Badge
-                    variant={agent.closingRate >= 50 ? 'default' : agent.closingRate >= 40 ? 'secondary' : 'outline'}
-                    className="text-foreground"
-                  >
-                    {agent.closingRate.toFixed(1)}%
-                  </Badge>
+                <TableCell className="text-center font-medium text-foreground">
+                  {agent.closedDeals}
                 </TableCell>
-                <TableCell className="text-right text-foreground">
+                <TableCell className="text-center">
+                  <div className="flex flex-col items-center gap-1">
+                    <Badge className={getPerformanceBadge(agent.closingRate)}>
+                      {formatPercentage(agent.closingRate)}
+                    </Badge>
+                    <Progress value={agent.closingRate} className="h-1.5 w-16" />
+                  </div>
+                </TableCell>
+                <TableCell className="text-foreground">
                   {formatCurrency(agent.averageSalesPrice)}
                 </TableCell>
+                <TableCell className="text-center text-foreground">
+                  {agent.averageDaysToClose} days
+                </TableCell>
+                <TableCell className="text-center font-medium">
+                  {agent.activeListings}
+                </TableCell>
+                <TableCell className="text-center font-medium">
+                  {agent.underContract}
+                </TableCell>
                 {hasFinancialData && (
-                  <>
-                    <TableCell className="text-right text-foreground font-semibold">
-                      {formatCurrency(agent.totalCommission)}
-                    </TableCell>
-                    <TableCell className="text-right text-foreground">
-                      {formatCurrency(agent.companyDollar)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatPercentage(agent.buySidePercentage)}
-                    </TableCell>
-                  </>
+                  <TableCell className="text-foreground">
+                    {formatCurrency(agent.buySideCommission)}
+                  </TableCell>
                 )}
-                <TableCell className="sticky right-0 bg-card shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]">
-                  <div className="flex justify-center gap-1">
-                    <Button
-                      onClick={() => setCommissionBreakdownAgent(agent)}
-                      variant="ghost"
-                      size="sm"
-                      title="View commission breakdown"
-                    >
-                      <FileText className="w-4 h-4" />
-                    </Button>
+                {hasFinancialData && (
+                  <TableCell className="text-foreground">
+                    {formatCurrency(agent.sellSideCommission)}
+                  </TableCell>
+                )}
+                {hasFinancialData && (
+                  <TableCell className="text-center">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      {formatPercentage(agent.buySidePercentage)}
+                    </Badge>
+                  </TableCell>
+                )}
+                {hasFinancialData && (
+                  <TableCell className="text-center">
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      {formatPercentage(agent.sellSidePercentage)}
+                    </Badge>
+                  </TableCell>
+                )}
+                <TableCell className="text-center sticky right-0 bg-card shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]">
+                  <div className="flex gap-1 justify-center">
+                    {hasFinancialData && <AgentCommissionModal agent={agent} />}
                     <Button
                       onClick={() => setSelectedAgent(agent)}
-                      variant="ghost"
+                      variant={selectedAgent?.agentName === agent.agentName ? "secondary" : "ghost"}
                       size="sm"
                       title="View details"
+                      className="h-8 w-8 p-0"
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
@@ -404,8 +323,9 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
                       onClick={() => handleExportPDF(agent)}
                       variant="ghost"
                       size="sm"
-                      disabled={exportingAgent === agent.agentName}
                       title="Export as PDF"
+                      disabled={exportingAgent === agent.agentName}
+                      className="h-8 w-8 p-0"
                     >
                       <FileText className="w-4 h-4" />
                     </Button>
@@ -413,161 +333,50 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
                       onClick={() => handleExportCSV(agent)}
                       variant="ghost"
                       size="sm"
-                      disabled={exportingAgent === agent.agentName}
                       title="Export as Excel"
+                      disabled={exportingAgent === agent.agentName}
+                      className="h-8 w-8 p-0"
                     >
                       <SheetIcon className="w-4 h-4" />
                     </Button>
                   </div>
                 </TableCell>
-              </TableRow>
+                </TableRow>
+              </React.Fragment>
             ))}
           </TableBody>
         </Table>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-6">
-          <Button
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            variant="outline"
-            size="sm"
-          >
-            Previous
-          </Button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-            <Button
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              variant={currentPage === page ? 'default' : 'outline'}
-              size="sm"
-              className="w-10"
-            >
-              {page}
-            </Button>
-          ))}
-          <Button
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            variant="outline"
-            size="sm"
-          >
-            Next
-          </Button>
-        </div>
-      )}
-        </>
-      ) : (
-        <>
-      {/* Bars View */}
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground mb-4">Total Commission</h3>
-            <AgentComparisonBars
-              agents={sortedAgents}
-              metric="totalCommission"
-              onAgentClick={(agent) => setCommissionBreakdownAgent(agent)}
-            />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-foreground mb-4">Total Transactions</h3>
-            <AgentComparisonBars
-              agents={sortedAgents}
-              metric="totalTransactions"
-              onAgentClick={(agent) => setSelectedAgent(agent)}
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground mb-4">Closing Rate</h3>
-            <AgentComparisonBars
-              agents={sortedAgents}
-              metric="closingRate"
-              maxValue={100}
-              onAgentClick={(agent) => setSelectedAgent(agent)}
-            />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-foreground mb-4">Avg Days to Close</h3>
-            <AgentComparisonBars
-              agents={sortedAgents}
-              metric="averageDaysToClose"
-              onAgentClick={(agent) => setSelectedAgent(agent)}
-            />
-          </div>
-        </div>
+      <div className="p-4 bg-muted/30 border-t border-border text-xs text-foreground">
+        <p>
+          Showing {sortedAgents.length} agent{sortedAgents.length !== 1 ? 's' : ''}
+          . Download individual reports for performance reviews and team meetings.
+        </p>
       </div>
-        </>
-      )}
 
-      {/* Commission Breakdown Full-Screen Modal */}
-      {commissionBreakdownAgent && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-0">
-          <div className="w-screen h-screen max-w-none bg-background rounded-none flex flex-col">
-            {/* Header */}
-            <div className="flex-shrink-0 flex items-center justify-between px-8 py-6 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0">
-              <div>
-                <h2 className="text-2xl font-display font-bold text-foreground">
-                  {commissionBreakdownAgent.agentName}
-                </h2>
-                <p className="text-sm text-foreground/60 mt-1">Commission Analysis</p>
-              </div>
-              <button
-                onClick={() => setCommissionBreakdownAgent(null)}
-                className="p-2 hover:bg-muted rounded-lg transition-colors"
-                aria-label="Close modal"
-              >
-                <X className="w-6 h-6 text-foreground" />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="px-8 py-8 max-w-7xl mx-auto">
-                <AgentCommissionBreakdown 
-                  agent={commissionBreakdownAgent} 
-                  transactions={records}
-                  hasCommissionPlan={agentHasCommissionPlan(commissionBreakdownAgent.agentName)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Agent Details Full-Screen Modal */}
-      {selectedAgent && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-0">
-          <div className="w-screen h-screen max-w-none bg-background rounded-none flex flex-col">
-            {/* Header */}
-            <div className="flex-shrink-0 flex items-center justify-between px-8 py-6 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0">
-              <div>
-                <h2 className="text-2xl font-display font-bold text-foreground">
-                  {selectedAgent.agentName}
-                </h2>
-                <p className="text-sm text-foreground/60 mt-1">Agent Details and Transactions</p>
-              </div>
-              <button
-                onClick={() => setSelectedAgent(null)}
-                className="p-2 hover:bg-muted rounded-lg transition-colors"
-                aria-label="Close modal"
-              >
-                <X className="w-6 h-6 text-foreground" />
-              </button>
-            </div>
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="px-8 py-8 max-w-7xl mx-auto">
-                <AgentDetailsPanel agent={selectedAgent} transactions={records} />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Agent Details Sheet */}
+      <Sheet open={!!selectedAgent} onOpenChange={(open) => !open && setSelectedAgent(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-3xl overflow-hidden flex flex-col">
+          <SheetHeader className="mb-6">
+            <SheetTitle className="text-2xl font-display font-bold flex items-center gap-3">
+              <Avatar className="w-10 h-10 border-2 border-primary">
+                <AvatarFallback className="bg-primary/10 text-primary">
+                  {selectedAgent?.agentName.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                </AvatarFallback>
+              </Avatar>
+              {selectedAgent?.agentName}
+            </SheetTitle>
+          </SheetHeader>
+          
+          {selectedAgent && (
+            <AgentDetailsPanel 
+              agent={selectedAgent} 
+              transactions={records} 
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </Card>
   );
 }
