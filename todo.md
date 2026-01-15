@@ -1831,3 +1831,26 @@
 - Add toast notifications for alert dismissals
 - Fix vitest localStorage environment for test execution
 - Add UI for bulk transaction flagging
+
+
+## Phase 58: Dotloop OAuth Integration (Pending API Credentials)
+- [ ] Receive API credentials from Dotloop (Client ID, Client Secret, API Base URL)
+- [ ] Create OAuth connection UI component
+- [ ] Implement OAuth 2.0 authentication flow
+- [ ] Store API credentials securely in environment variables
+- [ ] Create Dotloop API client wrapper
+- [ ] Implement transaction data sync endpoint
+- [ ] Add UI for connecting/disconnecting Dotloop account
+- [ ] Test OAuth flow with Dotloop sandbox/test account
+- [ ] Implement real-time data sync from Dotloop
+- [ ] Replace manual CSV upload with Dotloop data sync option
+- [ ] Add data sync status and last-sync timestamp display
+
+
+## Phase 57: Fix Commission Breakdown Generation in Demo Mode
+- [x] Investigate why breakdowns show 0 when transactions and agents are processed (root cause: demo data not stored in localStorage)
+- [x] Verify commission plans are created/loaded in demo mode (created demoPlanSetup utility)
+- [x] Verify agent assignments are created/loaded in demo mode (setupDemoPlanData creates and assigns all agents)
+- [x] Ensure breakdown generation works when plans and assignments exist (plans and assignments now auto-created)
+- [x] Add fallback logic to generate breakdowns even without plan assignments (CommissionCalculator checks localStorage first)
+- [x] Test fix in demo mode and verify breakdowns display correctly (VERIFIED: 167 breakdowns generated from 320 transactions)

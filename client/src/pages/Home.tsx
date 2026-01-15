@@ -233,6 +233,9 @@ function HomeContent() {
     setTimeout(() => {
       const { data: sampleData, stats } = generateDemoData({ complexity: 'random' });
       
+      // Store demo data in localStorage so CommissionCalculator can access it
+      localStorage.setItem('dotloop_demo_data', JSON.stringify(sampleData));
+      
       // Setup demo commission plans and agent assignments
       const { plans, assignments } = setupDemoPlanData(sampleData);
       console.log(`✅ Demo setup: ${plans.length} plans, ${assignments.length} agents assigned`);
