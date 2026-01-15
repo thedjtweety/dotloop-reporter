@@ -1873,3 +1873,16 @@
 - [x] Test layout on desktop, tablet, and mobile viewports (verified on desktop)
 - [x] Iterate on visual design and spacing (layout looks clean)
 - [x] Ensure both columns have equal visual prominence (equal width and styling)
+
+
+## Phase 60: Refine Dotloop Card Styling
+- [x] Add specific icons for each benefit (sync, automation, upload, data)
+- [x] Improve spacing and padding for better visual hierarchy
+- [x] Enhance typography with better font weights and sizes
+- [x] Add subtle hover effects to the card
+- [x] Add animation to Connect button (pulse or glow effect)
+- [x] Improve color contrast and accent colors
+- [x] Add gradient or subtle background texture to card
+- [x] Test styling in light and dark modes
+- [x] Ensure responsive spacing on mobile
+- [x] Verify visual consistency with CSV upload card
