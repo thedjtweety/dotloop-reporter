@@ -77,7 +77,7 @@ export default function CommissionManagementPanel({ records, hasData }: Commissi
 
         {/* Automatic Calculation Tab */}
         <TabsContent value="calculate" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-          <CommissionCalculator />
+          <CommissionCalculator records={records} />
         </TabsContent>
       </Tabs>
     </Card>

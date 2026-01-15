@@ -65,6 +65,7 @@ export interface TransactionInput {
   agents: string; // Comma-separated agent names
   salePrice: number;
   commissionRate: number; // As percentage (e.g., 3 for 3%)
+  commissionTotal?: number; // Total commission from CSV (preferred over recalculating)
   buySidePercent?: number; // Percentage of total commission (default 50)
   sellSidePercent?: number; // Percentage of total commission (default 50)
 }
@@ -224,7 +225,19 @@ export function calculateTransactionCommission(
   const closingDate = new Date(transaction.closingDate);
   
   // Step 1: Calculate Gross Commission Income (GCI)
-  const totalCommission = transaction.salePrice * (transaction.commissionRate / 100);
+  // Use commissionTotal from CSV if available (most accurate), otherwise calculate from rate
+  const totalCommission = transaction.commissionTotal ?? (transaction.salePrice * (transaction.commissionRate / 100));
+  
+  // Debug logging
+  if (totalCommission === 0) {
+    console.warn(`[Commission Calc] Zero commission for transaction ${transaction.id}:`, {
+      commissionTotal: transaction.commissionTotal,
+      salePrice: transaction.salePrice,
+      commissionRate: transaction.commissionRate,
+      calculated: transaction.salePrice * (transaction.commissionRate / 100)
+    });
+  }
+  
   const agents = transaction.agents.split(',').map(a => a.trim());
   const gciPerAgent = totalCommission / agents.length;
   

@@ -1678,3 +1678,16 @@
 - [ ] Test all 29 agents display correctly in summary table
 - [ ] Test agent drill-down shows all their transactions full-screen
 - [ ] Save checkpoint with agent summary table
+
+
+## Phase 47: CSV Agent Extraction & Commission Fix
+
+- [ ] Implement automatic agent extraction from CSV uploads
+- [ ] Create API endpoint to sync CSV agents to database
+- [ ] Update CSV upload handler to extract and create agents automatically
+- [ ] Test agent extraction with Demo_SoldTest_Data_2025.csv
+- [ ] Verify commission calculation works with extracted agents
+- [ ] Test with Demo_Brokerage_Data_2025.csv
+- [ ] Fix commission breakdown generation (currently 0 breakdowns)
+- [ ] Fix $0 commission issue in YTD summaries
+- [ ] Comprehensive testing of full commission workflow
