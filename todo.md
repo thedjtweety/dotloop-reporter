@@ -1644,3 +1644,17 @@
 - [x] Test PDF export with deal-level details and formatting (30-day and 60-day exports working)
 - [x] Test CSV export with proper column headers and data (30-day and 60-day exports working)
 - [x] Save checkpoint with export functionality
+
+## Phase 43: Real-Time Commission Recalculation
+- [x] Add callback support to CommissionPlanWarning component for navigation
+- [x] Update CommissionManagementPanel to accept initialTab and highlightAgent props
+- [x] Add state management in Home.tsx for Commission Management tab control
+- [x] Implement agent row highlighting in AgentAssignment component
+- [x] Add CSS styling for agent row highlight effect
+- [x] Create navigation callback from "Assign Now" button to Commission Management
+- [x] Implement real-time recalculation trigger when plan is assigned
+- [x] Update agent metrics when plan assignment changes
+- [x] Verify "Assign Now" button navigates to Commission Management Agents tab
+- [x] Verify agent row is highlighted after navigation
+- [x] Test commission recalculation with demo data
+- [x] Verify "No plan assigned" error disappears when plan is assigned

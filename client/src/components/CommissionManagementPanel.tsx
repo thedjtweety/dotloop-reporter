@@ -19,10 +19,19 @@ import type { DotloopRecord } from '@/lib/csvParser';
 interface CommissionManagementPanelProps {
   records: DotloopRecord[];
   hasData: boolean;
+  initialTab?: string;
+  highlightAgent?: string;
+  onTabChange?: (tab: string) => void;
+  onAssignmentChange?: () => void;
 }
 
-export default function CommissionManagementPanel({ records, hasData }: CommissionManagementPanelProps) {
-  const [activeTab, setActiveTab] = useState('plans');
+export default function CommissionManagementPanel({ records, hasData, initialTab = 'plans', highlightAgent, onTabChange, onAssignmentChange }: CommissionManagementPanelProps) {
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    onTabChange?.(tab);
+  };
 
   return (
     <Card className="p-6 border-primary/20">
@@ -40,7 +49,7 @@ export default function CommissionManagementPanel({ records, hasData }: Commissi
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 mb-6 h-auto">
           <TabsTrigger value="plans" className="gap-2">
             <DollarSign className="h-4 w-4" />
@@ -72,7 +81,7 @@ export default function CommissionManagementPanel({ records, hasData }: Commissi
 
         {/* Agent Assignments Tab */}
         <TabsContent value="assignments" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-          <AgentAssignment records={records} />
+          <AgentAssignment records={records} highlightAgent={highlightAgent} onAssignmentChange={onAssignmentChange} />
         </TabsContent>
 
         {/* Automatic Calculation Tab */}

@@ -34,9 +34,11 @@ import { Badge } from '@/components/ui/badge';
 
 interface AgentAssignmentProps {
   records: DotloopRecord[]; // Used to extract unique agent names
+  highlightAgent?: string; // Agent name to highlight/scroll to
+  onAssignmentChange?: () => void; // Callback when assignment changes
 }
 
-export default function AgentAssignment({ records }: AgentAssignmentProps) {
+export default function AgentAssignment({ records, highlightAgent, onAssignmentChange }: AgentAssignmentProps) {
   const [plans, setPlans] = useState<CommissionPlan[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [assignments, setAssignments] = useState<AgentPlanAssignment[]>([]);
@@ -57,6 +59,21 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
     });
     setAgents(Array.from(uniqueAgents).sort());
   }, [records]);
+
+  useEffect(() => {
+    if (highlightAgent) {
+      setTimeout(() => {
+        const element = document.querySelector(`[data-agent-row="${highlightAgent}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('highlight-agent');
+          setTimeout(() => {
+            element.classList.remove('highlight-agent');
+          }, 3000);
+        }
+      }, 100);
+    }
+  }, [highlightAgent]);
 
   const handleAssignPlan = (agentName: string, planId: string) => {
     const existing = assignments.find(a => a.agentName === agentName);
@@ -82,6 +99,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
     }
     setAssignments(newAssignments);
     saveAgentAssignments(newAssignments);
+    onAssignmentChange?.();
   };
 
   const handleAssignTeam = (agentName: string, teamId: string) => {
@@ -197,7 +215,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
                 const currentTeam = teams.find(t => t.id === currentTeamId);
 
                 return (
-                  <TableRow key={agent}>
+                  <TableRow key={agent} data-agent-row={agent} className="transition-colors duration-300">
                     <TableCell className="font-medium">{agent}</TableCell>
                     <TableCell className="w-[250px]">
                       <Select

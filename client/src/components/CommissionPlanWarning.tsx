@@ -6,19 +6,18 @@
 
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useLocation } from 'wouter';
 
 interface CommissionPlanWarningProps {
   agentName: string;
-  compact?: boolean; // For inline display in tables
+  compact?: boolean;
+  onNavigateToAssignments?: () => void;
 }
 
-export default function CommissionPlanWarning({ agentName, compact = false }: CommissionPlanWarningProps) {
-  const [, setLocation] = useLocation();
-
+export default function CommissionPlanWarning({ agentName, compact = false, onNavigateToAssignments }: CommissionPlanWarningProps) {
   const handleNavigateToAssignments = () => {
-    // Navigate to the Settings tab with agent assignments section
-    setLocation('/?tab=settings&section=commission&subsection=assignments');
+    if (onNavigateToAssignments) {
+      onNavigateToAssignments();
+    }
   };
 
   if (compact) {

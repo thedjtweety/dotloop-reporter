@@ -174,6 +174,10 @@ function HomeContent() {
   const [uploadFileSize, setUploadFileSize] = useState('');
   const uploadProgress = useUploadProgress();
 
+  // Commission Management Panel State
+  const [commissionManagementTab, setCommissionManagementTab] = useState('plans');
+  const [commissionManagementHighlightAgent, setCommissionManagementHighlightAgent] = useState<string | undefined>();
+
   // Load saved mapping and recent files on mount
   useEffect(() => {
     const saved = localStorage.getItem('dotloop_field_mapping');
@@ -1088,14 +1092,35 @@ function HomeContent() {
         {agentMetrics.length > 0 && (
           <div data-section="leaderboard" data-tour="leaderboard">
             <CollapsibleSection title="Agent Performance Leaderboard" icon={<Trophy className="w-6 h-6" />}>
-              <AgentLeaderboardWithExport agents={agentMetrics} records={filteredRecords} />
+              <AgentLeaderboardWithExport 
+                agents={agentMetrics} 
+                records={filteredRecords}
+                onNavigateToAssignAgent={(agentName) => {
+                  setCommissionManagementTab('assignments');
+                  setCommissionManagementHighlightAgent(agentName);
+                  const element = document.querySelector('[data-section="commission-management"]');
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+              />
             </CollapsibleSection>
           </div>
         )}
 
         {/* Commission Management Panel */}
         <div data-section="commission-management">
-          <CommissionManagementPanel records={filteredRecords} hasData={filteredRecords.length > 0} />
+          <CommissionManagementPanel 
+            records={filteredRecords} 
+            hasData={filteredRecords.length > 0}
+            initialTab={commissionManagementTab}
+            highlightAgent={commissionManagementHighlightAgent}
+            onTabChange={setCommissionManagementTab}
+            onAssignmentChange={() => {
+              setMetrics(calculateMetrics(filteredRecords));
+              setAgentMetrics(calculateAgentMetrics(filteredRecords));
+            }}
+          />
         </div>
 
         {/* Commission Projector Section */}

@@ -183,3 +183,21 @@
     }
   }
 }
+
+/* Agent highlight animation */
+@keyframes highlight-agent {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgb(34, 197, 94, 0.1);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.highlight-agent {
+  animation: highlight-agent 2s ease-in-out;
+  background-color: rgb(34, 197, 94, 0.05);
+}
