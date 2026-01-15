@@ -107,37 +107,6 @@ export default function Home() {
   const [agentMetrics, setAgentMetrics] = useState<AgentMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const bulkCreateMutation = trpc.commission.bulkCreateAssignments.useMutation();
-  const { data: plans } = trpc.commission.getPlans.useQuery();
-
-  useEffect(() => {
-    if (allRecords.length === 0 || !plans || plans.length === 0) return;
-    
-    const createAssignments = async () => {
-      const agentSet = new Set<string>();
-      allRecords.forEach(record => {
-        if (record.agents) {
-          record.agents.split(',').forEach(agent => {
-            agentSet.add(agent.trim());
-          });
-        }
-      });
-      const agents = Array.from(agentSet);
-      
-      if (agents.length > 0) {
-        try {
-          await bulkCreateMutation.mutateAsync({
-            agents,
-            planId: plans[0].id,
-          });
-        } catch (error) {
-          console.error('Failed to create assignments:', error);
-        }
-      }
-    };
-    
-    createAssignments();
-  }, [allRecords, plans, bulkCreateMutation]);
 
   const handleDemoMode = () => {
     setIsLoading(true);
