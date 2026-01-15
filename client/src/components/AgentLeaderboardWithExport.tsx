@@ -79,13 +79,13 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
   }, []);
 
   // Also check localStorage periodically to catch changes from same tab
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLocalAssignments(getAgentAssignments());
-    }, 500); // Check every 500ms
-
-    return () => clearInterval(interval);
-  }, []);
+  // NOTE: Disabled polling to prevent infinite update loop. Storage event listener is sufficient.
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setLocalAssignments(getAgentAssignments());
+  //   }, 500); // Check every 500ms
+  //   return () => clearInterval(interval);
+  // }, []);
 
   // Helper to check if agent has commission plan assigned
   // First check localStorage, then fall back to prop

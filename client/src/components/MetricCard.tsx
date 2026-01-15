@@ -28,6 +28,7 @@ function useCountUp(end: number, duration: number = 1500) {
 
   useEffect(() => {
     let startTime: number | null = null;
+    let animationFrameId: number | null = null;
     const startValue = 0;
 
     const animate = (currentTime: number) => {
@@ -39,11 +40,18 @@ function useCountUp(end: number, duration: number = 1500) {
       setCount(Math.floor(startValue + (end - startValue) * easeOutQuart));
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        animationFrameId = requestAnimationFrame(animate);
       }
     };
 
-    requestAnimationFrame(animate);
+    animationFrameId = requestAnimationFrame(animate);
+    
+    // Cleanup function to cancel animation frame if component unmounts
+    return () => {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [end, duration]);
 
   return count;
