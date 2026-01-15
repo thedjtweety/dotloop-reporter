@@ -42,6 +42,7 @@ const TransactionInputSchema = z.object({
   agents: z.string(),
   salePrice: z.number(),
   commissionRate: z.number(),
+  commissionTotal: z.number().optional(), // Total commission from CSV (preferred)
   buySidePercent: z.number().optional().default(50),
   sellSidePercent: z.number().optional().default(50),
 });
@@ -540,8 +541,55 @@ export const commissionRouter = router({
     }),
 
   /**
-   * Delete an agent assignment from the database
+   * Bulk create assignments for multiple agents
    */
+  bulkCreateAssignments: protectedProcedure
+    .input(z.object({
+      agents: z.array(z.string()),
+      planId: z.string(),
+      teamId: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const db = await getDb();
+        if (!db) {
+          throw new Error("Database connection not available");
+        }
+
+        const createdAssignments = [];
+
+        for (const agentName of input.agents) {
+          const assignmentId = nanoid();
+          
+          // Check if assignment already exists
+          const existing = await db
+            .select()
+            .from(agentAssignments)
+            .where(eq(agentAssignments.agentName, agentName))
+            .limit(1);
+
+          if (existing.length === 0) {
+            // Create new assignment
+            await db.insert(agentAssignments).values({
+              id: assignmentId,
+              tenantId: ctx.user.tenantId,
+              agentName,
+              planId: input.planId,
+              teamId: input.teamId,
+            });
+            createdAssignments.push(agentName);
+          }
+        }
+
+        return { success: true, created: createdAssignments.length, total: input.agents.length };
+      } catch (error) {
+        console.error("Bulk create assignments error:", error);
+        throw new Error(
+          `Failed to bulk create agent assignments: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
+      }
+    }),
+
   deleteAssignment: protectedProcedure
     .input(z.string())
     .mutation(async ({ ctx, input: assignmentId }) => {

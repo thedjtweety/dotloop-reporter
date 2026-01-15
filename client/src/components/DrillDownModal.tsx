@@ -1,23 +1,30 @@
 /**
  * DrillDownModal Component
- * Displays a modal with a list of transactions for a specific chart segment
+ * Custom full-screen modal for displaying transaction lists
+ * Uses custom CSS instead of Dialog component for full width control
  */
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { useRef, useEffect, useState } from 'react';
+import { X, Download, Printer, Search, ChevronDown } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import TransactionTable from './TransactionTable';
+import { exportAsCSV, exportAsExcel, openPrintDialog } from '@/lib/exportUtils';
+import { filterAndSortTransactions, DrillDownFilters, SortState, getUniqueValues } from '@/lib/filterUtils';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface DrillDownModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   transactions: DotloopRecord[];
+  onSortChange?: (sortState: SortState | null) => void;
 }
 
 export default function DrillDownModal({
@@ -25,20 +32,203 @@ export default function DrillDownModal({
   onClose,
   title,
   transactions,
+  onSortChange,
 }: DrillDownModalProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollbarRef = useRef<HTMLDivElement>(null);
+  const scrollbarThumbRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [filters, setFilters] = useState<DrillDownFilters>({
+    searchQuery: '',
+    status: 'All',
+    agent: 'All',
+  });
+  const [sortState, setSortState] = useState<SortState | null>(null);
+
+  // Get unique values for filters
+  const uniqueStatuses = ['All', ...getUniqueValues(transactions, 'status')];
+  const uniqueAgents = ['All', ...getUniqueValues(transactions, 'agentName')];
+
+  // Apply filters and sorting
+  const filteredTransactions = filterAndSortTransactions(transactions, filters, sortState);
+
+  // Sync scrollbar with table scroll
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    const scrollbar = scrollbarRef.current;
+    const thumb = scrollbarThumbRef.current;
+
+    if (!container || !scrollbar || !thumb) return;
+
+    const handleScroll = () => {
+      const scrollLeft = container.scrollLeft;
+      const scrollWidth = container.scrollWidth - container.clientWidth;
+      const scrollbarWidth = scrollbar.clientWidth - thumb.clientWidth;
+      const thumbPosition = (scrollLeft / scrollWidth) * scrollbarWidth;
+      thumb.style.transform = `translateX(${thumbPosition}px)`;
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Handle scrollbar thumb dragging
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const container = scrollContainerRef.current;
+      const scrollbar = scrollbarRef.current;
+      const thumb = scrollbarThumbRef.current;
+
+      if (!container || !scrollbar || !thumb) return;
+
+      const scrollbarRect = scrollbar.getBoundingClientRect();
+      const thumbWidth = thumb.clientWidth;
+      const maxThumbPosition = scrollbar.clientWidth - thumbWidth;
+      const thumbPosition = Math.max(
+        0,
+        Math.min(maxThumbPosition, e.clientX - scrollbarRect.left - thumbWidth / 2)
+      );
+
+      const scrollWidth = container.scrollWidth - container.clientWidth;
+      const scrollbarWidth = scrollbar.clientWidth - thumbWidth;
+      const scrollLeft = (thumbPosition / scrollbarWidth) * scrollWidth;
+
+      container.scrollLeft = scrollLeft;
+    };
+
+    const handleMouseUp = () => setIsDragging(false);
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl h-[95vh] sm:h-[90vh] flex flex-col p-3 sm:p-6">
-        <DialogHeader className="flex-shrink-0 pb-2 sm:pb-4 border-b">
-          <DialogTitle className="text-lg sm:text-xl font-display">{title}</DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm">
-            Showing {transactions.length} transaction{transactions.length !== 1 ? 's' : ''}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex-1 overflow-y-auto mt-2 sm:mt-4 -mx-3 sm:mx-0">
-          <TransactionTable transactions={transactions} compact />
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-0">
+      {/* Modal Container - Full screen width */}
+      <div className="w-screen h-screen max-w-none bg-slate-900 rounded-none flex flex-col">
+        {/* Header */}
+        <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-700">
+          <div>
+            <h2 className="text-xl font-display font-semibold text-white">{title}</h2>
+            <p className="text-sm text-slate-400 mt-1">
+              Showing {filteredTransactions.length} of {transactions.length} transaction{transactions.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => exportAsCSV({ title, records: filteredTransactions })}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
+              aria-label="Export as CSV"
+            >
+              <Download className="w-4 h-4" />
+              CSV
+            </button>
+            <button
+              onClick={() => exportAsExcel({ title, records: filteredTransactions })}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
+              aria-label="Export as Excel"
+            >
+              <Download className="w-4 h-4" />
+              Excel
+            </button>
+            <button
+              onClick={() => openPrintDialog({ title, records: filteredTransactions })}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
+              aria-label="Print"
+            >
+              <Printer className="w-4 h-4" />
+              Print
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5 text-slate-400" />
+            </button>
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        {/* Filter Controls */}
+        <div className="flex-shrink-0 px-6 py-4 border-b border-slate-700 bg-slate-800 space-y-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Input
+                  type="text"
+                  placeholder="Search by address, agent, property type..."
+                  value={filters.searchQuery}
+                  onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
+                  className="pl-10 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                />
+              </div>
+            </div>
+            <Select value={filters.status || 'All'} onValueChange={(value) => setFilters({ ...filters, status: value })}>
+              <SelectTrigger className="w-[150px] bg-slate-700 border-slate-600 text-white">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-700 border-slate-600">
+                {uniqueStatuses.map(status => (
+                  <SelectItem key={status} value={status} className="text-white hover:bg-slate-600">
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filters.agent || 'All'} onValueChange={(value) => setFilters({ ...filters, agent: value })}>
+              <SelectTrigger className="w-[150px] bg-slate-700 border-slate-600 text-white">
+                <SelectValue placeholder="Agent" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-700 border-slate-600">
+                {uniqueAgents.map(agent => (
+                  <SelectItem key={agent} value={agent} className="text-white hover:bg-slate-600">
+                    {agent}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Scrollable Table Container */}
+          <div
+            ref={scrollContainerRef}
+            className="flex-1 overflow-x-auto overflow-y-auto"
+          >
+            <TransactionTable transactions={filteredTransactions} />
+          </div>
+
+          {/* Floating Scrollbar */}
+          <div className="flex-shrink-0 h-3 bg-slate-800 border-t border-slate-700">
+            <div
+              ref={scrollbarRef}
+              className="relative w-full h-full bg-slate-800"
+            >
+              <div
+                ref={scrollbarThumbRef}
+                onMouseDown={() => setIsDragging(true)}
+                className="absolute h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded cursor-grab active:cursor-grabbing hover:from-blue-400 hover:to-blue-500 transition-colors"
+                style={{
+                  width: '60px',
+                  minWidth: '60px',
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -8,6 +8,8 @@ import { Card } from '@/components/ui/card';
 import { ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 import { MetricTrend } from '@/lib/csvParser';
 import { formatPercentage } from '@/lib/formatUtils';
+import Sparkline from './Sparkline';
+import { SparklineTrend } from '@/lib/sparklineUtils';
 
 interface MetricCardProps {
   title: string;
@@ -16,6 +18,7 @@ interface MetricCardProps {
   icon: ReactNode;
   color?: 'primary' | 'accent' | 'secondary';
   trend?: MetricTrend;
+  sparklineTrend?: SparklineTrend;
   onClick?: () => void;
 }
 
@@ -53,6 +56,7 @@ export default function MetricCard({
   icon,
   color = 'primary',
   trend,
+  sparklineTrend,
   onClick,
 }: MetricCardProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -134,7 +138,11 @@ export default function MetricCard({
           <p className="text-4xl font-display font-bold text-foreground mb-1 transition-all duration-300 group-hover:scale-105">
             {displayValue}
           </p>
-          {trend ? (
+          {sparklineTrend ? (
+            <div className="mt-4 pt-3 border-t border-border">
+              <Sparkline trend={sparklineTrend} width={140} height={28} showLabel={true} />
+            </div>
+          ) : trend ? (
             <div className="flex items-center gap-2 mt-3">
               <div className={`flex items-center text-sm font-semibold px-2 py-1 rounded-full ${
                 trend.direction === 'up' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 

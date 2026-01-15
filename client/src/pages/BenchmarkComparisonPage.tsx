@@ -21,7 +21,7 @@ export const BenchmarkComparisonPage: React.FC = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const recentFiles = getRecentFiles();
+        const recentFiles = await getRecentFiles();
         
         if (recentFiles.length === 0) {
           setError('No data available. Please upload a CSV file first.');
