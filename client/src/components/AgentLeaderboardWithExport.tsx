@@ -59,11 +59,11 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
   const [viewMode, setViewMode] = useState<'table' | 'bars'>('table');
   const [localAssignments, setLocalAssignments] = useState(getAgentAssignments());
 
-  // Refresh assignments from localStorage whenever component mounts or when agentAssignments prop changes
+  // Refresh assignments from localStorage when component mounts
   useEffect(() => {
     const assignments = getAgentAssignments();
     setLocalAssignments(assignments);
-  }, [agentAssignments]);
+  }, []); // Empty dependency array - only run on mount
 
   // Check if financial data exists
   const hasFinancialData = agents.some(a => a.totalCommission > 0 || a.companyDollar > 0);

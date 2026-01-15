@@ -3,7 +3,7 @@
  * Displays key performance indicators with icons, animations, and styling
  */
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 import { MetricTrend } from '@/lib/csvParser';
@@ -69,22 +69,30 @@ export default function MetricCard({
 }: MetricCardProps) {
   const [isVisible, setIsVisible] = useState(false);
 
-  // Extract numeric value for animation
-  const numericValue = typeof value === 'string' 
-    ? parseFloat(value.replace(/[^0-9.-]+/g, '')) 
-    : value;
+  // Extract numeric value for animation - memoize to prevent unnecessary re-renders
+  const numericValue = useMemo(() => {
+    if (typeof value === 'string') {
+      return parseFloat(value.replace(/[^0-9.-]+/g, ''));
+    }
+    return value;
+  }, [value]);
   
   const isNumeric = !isNaN(numericValue);
   const animatedCount = useCountUp(isNumeric ? numericValue : 0, 1500);
 
   // Format the animated value back to original format
-  const displayValue = isNumeric && typeof value === 'string' && value.includes('$')
-    ? `$${animatedCount.toLocaleString()}`
-    : isNumeric && typeof value === 'string' && value.includes('%')
-    ? `${animatedCount}%`
-    : isNumeric
-    ? animatedCount.toLocaleString()
-    : value;
+  const displayValue = useMemo(() => {
+    if (isNumeric && typeof value === 'string' && value.includes('$')) {
+      return `$${animatedCount.toLocaleString()}`;
+    }
+    if (isNumeric && typeof value === 'string' && value.includes('%')) {
+      return `${animatedCount}%`;
+    }
+    if (isNumeric) {
+      return animatedCount.toLocaleString();
+    }
+    return value;
+  }, [animatedCount, isNumeric, value]);
 
   useEffect(() => {
     setIsVisible(true);
