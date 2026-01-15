@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "5de02445-d3bd-46a2-bd0c-6659bbfb37e4",
-  "prevId": "b978c113-4f60-4f27-8fba-839ed39020de",
+  "id": "a14f28c6-60e8-4532-8f05-78fa7999f05d",
+  "prevId": "193c924b-03cd-4f17-ac3c-045fe27a8b1a",
   "tables": {
     "agent_assignments": {
       "name": "agent_assignments",
