@@ -50,6 +50,7 @@ import { generateDashboardSparklineTrends } from '@/lib/sparklineTrendGenerator'
 import { cleanDate, cleanNumber, cleanPercentage, cleanText } from '@/lib/dataCleaning';
 import { findMatchingTemplate, saveTemplate } from '@/lib/importTemplates';
 import { generateDemoData } from '@/lib/demoGenerator';
+import { setupDemoPlanData } from '@/lib/demoPlanSetup';
 import { getRecentFiles, saveRecentFile, deleteRecentFile } from '@/lib/storage';
 import UploadZone from '@/components/UploadZone';
 import CommissionProjector from '@/components/CommissionProjector';
@@ -231,6 +232,10 @@ function HomeContent() {
     setIsLoading(true);
     setTimeout(() => {
       const { data: sampleData, stats } = generateDemoData({ complexity: 'random' });
+      
+      // Setup demo commission plans and agent assignments
+      const { plans, assignments } = setupDemoPlanData(sampleData);
+      console.log(`✅ Demo setup: ${plans.length} plans, ${assignments.length} agents assigned`);
       console.log(`🎯 Demo Generated [${stats.complexity}]:\n  📊 ${stats.agentCount} agents | ${stats.transactionCount} transactions\n  💰 $${stats.totalGCI.toLocaleString()} GCI | $${stats.totalVolume.toLocaleString()} volume\n  🌎 ${stats.stateCount} states | ${stats.propertyTypeCount} property types\n  📅 ${stats.dateRange.earliest} to ${stats.dateRange.latest}`);
       setAllRecords(sampleData);
       setFilteredRecords(sampleData);
