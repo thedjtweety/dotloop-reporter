@@ -102,7 +102,7 @@ export default function FinancialChart({ metrics, records = [] }: FinancialChart
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+    <div className="grid grid-cols-1 gap-4 md:gap-6 w-full">
       {financialMetrics.map((metric, index) => {
         const isPositive = metric.change >= 0;
         const Icon = isPositive ? ArrowUp : ArrowDown;
@@ -110,7 +110,7 @@ export default function FinancialChart({ metrics, records = [] }: FinancialChart
         return (
           <div
             key={index}
-            className="relative overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 from-slate-50 to-slate-100 p-4 md:p-6 hover:shadow-lg transition-all duration-300 group flex flex-col h-full min-h-[280px]"
+            className="relative overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 from-slate-50 to-slate-100 p-4 md:p-6 hover:shadow-lg transition-all duration-300 group flex flex-col h-full min-h-[200px]"
           >
             {/* Gradient background accent */}
             <div className={`absolute inset-0 bg-gradient-to-br ${metric.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
@@ -131,8 +131,8 @@ export default function FinancialChart({ metrics, records = [] }: FinancialChart
               </div>
 
               {/* Sparkline chart - takes up remaining space */}
-              <div className="flex-1 mb-4 flex items-center justify-center min-h-[50px]">
-                <Sparkline data={metric.trendData} color={metric.sparklineColor} height={50} />
+              <div className="flex-1 mb-4 flex items-center justify-center min-h-[60px]">
+                <Sparkline data={metric.trendData} color={metric.sparklineColor} height={60} />
               </div>
 
               {/* Change indicator at bottom */}

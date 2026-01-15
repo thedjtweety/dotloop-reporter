@@ -2018,3 +2018,9 @@
 - [x] Update chart sizing and spacing for new layout
 - [x] Test in light and dark modes
 - [x] Save checkpoint with redesigned cards
+
+## Phase 35: Revenue Overview Full-Width Stacked Cards
+- [x] Update FinancialChart grid layout to full-width stacked (grid-cols-1)
+- [x] Adjust card sizing and spacing for stacked layout
+- [x] Test in light and dark modes
+- [x] Save checkpoint with full-width stacked layout
