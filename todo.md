@@ -1946,3 +1946,18 @@
 - [x] Test drill-down modal with various filters
 - [x] Test in both light and dark modes
 - [x] Verify responsive design on mobile
+
+
+## Phase 66: Add Decade Range Filters and CSV Export to Price Chart
+- [x] Add decade range toggle control (5-year, 10-year, 20-year options)
+- [x] Implement state management for selected decade range
+- [x] Update Box Plot chart to use selected decade range
+- [x] Update Histogram chart to use selected decade range
+- [x] Update Heatmap chart to use selected decade range
+- [x] Update Scatter chart to use selected decade range
+- [x] Add CSV export button to drill-down modal
+- [x] Implement CSV export functionality with proper formatting
+- [x] Test all decade ranges in all chart types
+- [x] Test CSV export with various data sets
+- [x] Verify export file includes all columns (address, year, price, sq ft)
+- [x] Test in both light and dark modes
