@@ -19,6 +19,7 @@ import { trpc } from '@/lib/trpc';
 import { getRecentFiles } from '@/lib/storage';
 import ExportPDFButton from '@/components/ExportPDFButton';
 import AgentCommissionSummary from '@/components/AgentCommissionSummary';
+import CommissionVarianceReport from '@/components/CommissionVarianceReport';
 // CSV upload is handled on the main Analytics page
 import type { DotloopRecord } from '@/lib/csvParser';
 
@@ -312,6 +313,12 @@ export default function CommissionCalculator() {
               >
                 YTD Summaries ({result.data.ytdSummaries.length})
               </TabsTrigger>
+              <TabsTrigger 
+                value="variance"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
+              >
+                Variance Report
+              </TabsTrigger>
               <div className="ml-auto flex gap-2">
                 <Button
                   variant="outline"
@@ -390,6 +397,11 @@ export default function CommissionCalculator() {
                   </Card>
                 ))}
               </div>
+            </TabsContent>
+
+            {/* Variance Report Tab */}
+            <TabsContent value="variance" className="mt-6">
+              <CommissionVarianceReport records={transactions} />
             </TabsContent>
           </Tabs>
         </div>
