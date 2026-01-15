@@ -1658,3 +1658,11 @@
 - [x] Verify agent row is highlighted after navigation
 - [x] Test commission recalculation with demo data
 - [x] Verify "No plan assigned" error disappears when plan is assigned
+
+## Phase 44: Fix Leaderboard Plan Status Sync
+- [x] Update AgentLeaderboardWithExport to check plan assignments from localStorage
+- [x] Implement plan status detection in CommissionPlanWarning component
+- [x] Add useEffect to refresh plan data when component mounts or when assignments change
+- [x] Ensure "No plan assigned" warning disappears when plan is assigned
+- [x] Test leaderboard updates after assigning plans in Commission Management
+- [x] Verify plan status displays correctly for all agents

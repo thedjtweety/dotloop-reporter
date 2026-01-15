@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AgentMetrics } from '@/lib/csvParser';
 import { exportAgentAsCSV, exportAgentAsPDF, exportAllAgentsAsCSV } from '@/lib/exportReports';
+import { getAgentAssignments } from '@/lib/commission';
 import { Card } from '@/components/ui/card';
 import {
   Table,
@@ -56,13 +57,43 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'table' | 'bars'>('table');
+  const [localAssignments, setLocalAssignments] = useState(getAgentAssignments());
+
+  // Refresh assignments from localStorage whenever component mounts or when agentAssignments prop changes
+  useEffect(() => {
+    const assignments = getAgentAssignments();
+    setLocalAssignments(assignments);
+  }, [agentAssignments]);
 
   // Check if financial data exists
   const hasFinancialData = agents.some(a => a.totalCommission > 0 || a.companyDollar > 0);
 
+  // Listen for storage changes to update assignments in real-time
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setLocalAssignments(getAgentAssignments());
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Also check localStorage periodically to catch changes from same tab
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLocalAssignments(getAgentAssignments());
+    }, 500); // Check every 500ms
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Helper to check if agent has commission plan assigned
+  // First check localStorage, then fall back to prop
+  // A plan is considered assigned if the planId is not 'none' and not empty
   const agentHasCommissionPlan = (agentName: string) => {
-    return agentAssignments.some(a => a.agentName === agentName);
+    const hasLocalAssignment = localAssignments.some(a => a.agentName === agentName && a.planId && a.planId !== 'none');
+    const hasPropAssignment = agentAssignments.some(a => a.agentName === agentName && a.planId && a.planId !== 'none');
+    return hasLocalAssignment || hasPropAssignment;
   };
 
   const handleSort = (field: SortField) => {
