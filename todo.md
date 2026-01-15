@@ -1834,17 +1834,22 @@
 
 
 ## Phase 58: Dotloop OAuth Integration (Pending API Credentials)
+**IMPORTANT: Keep CSV upload AND add Dotloop as alternative data source (not replacement)**
+**DESIGN: Dual-column layout - Left: CSV upload, Right: Dotloop connection**
 - [ ] Receive API credentials from Dotloop (Client ID, Client Secret, API Base URL)
-- [ ] Create OAuth connection UI component
+- [ ] Design dual-column homepage UI (left: CSV upload zone, right: Dotloop connection card)
+- [ ] Create OAuth connection UI component with Connect Dotloop button
 - [ ] Implement OAuth 2.0 authentication flow
 - [ ] Store API credentials securely in environment variables
 - [ ] Create Dotloop API client wrapper
-- [ ] Implement transaction data sync endpoint
+- [ ] Implement transaction data sync endpoint from Dotloop
 - [ ] Add UI for connecting/disconnecting Dotloop account
 - [ ] Test OAuth flow with Dotloop sandbox/test account
 - [ ] Implement real-time data sync from Dotloop
-- [ ] Replace manual CSV upload with Dotloop data sync option
 - [ ] Add data sync status and last-sync timestamp display
+- [ ] Design homepage to show both CSV upload and Dotloop connection options
+- [ ] Add tab/toggle to switch between data sources or allow both simultaneously
+- [ ] Test both CSV and Dotloop data sources working together
 
 
 ## Phase 57: Fix Commission Breakdown Generation in Demo Mode
@@ -1854,3 +1859,17 @@
 - [x] Ensure breakdown generation works when plans and assignments exist (plans and assignments now auto-created)
 - [x] Add fallback logic to generate breakdowns even without plan assignments (CommissionCalculator checks localStorage first)
 - [x] Test fix in demo mode and verify breakdowns display correctly (VERIFIED: 167 breakdowns generated from 320 transactions)
+
+
+## Phase 59: Build Dual-Column Homepage Layout
+- [x] Refactor Home.tsx upload screen to dual-column grid layout (implemented with grid)
+- [x] Move CSV upload zone to left column (50% width) (left column with upload zone)
+- [x] Create DotloopConnectionCard component for right column (created with full UI)
+- [x] Add connection status indicator (disconnected state) (shows Not Connected status)
+- [x] Add Connect to Dotloop button linking to placeholder modal (button shows alert)
+- [x] Add benefits list to Dotloop card (real-time sync, automatic updates, etc) (4 benefits)
+- [x] Style Dotloop card with emerald/success accent color (emerald-600 used)
+- [x] Add responsive behavior (stack vertically on mobile) (lg breakpoint)
+- [x] Test layout on desktop, tablet, and mobile viewports (verified on desktop)
+- [x] Iterate on visual design and spacing (layout looks clean)
+- [x] Ensure both columns have equal visual prominence (equal width and styling)

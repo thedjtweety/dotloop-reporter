@@ -57,6 +57,7 @@ import CommissionProjector from '@/components/CommissionProjector';
 import RecentUploads, { RecentFile } from '@/components/RecentUploads';
 import UploadHistory from '@/components/UploadHistory';
 import ConnectDotloop from '@/components/ConnectDotloop';
+import DotloopConnectionCard from '@/components/DotloopConnectionCard';
 import MetricCard from '@/components/MetricCard';
 import ProjectedToCloseCard from '@/components/ProjectedToCloseCard';
 import ColumnMapping from '@/components/ColumnMapping';
@@ -601,39 +602,59 @@ function HomeContent() {
         </header>
 
         <main className="flex-1 container flex items-center justify-center py-12">
-          <div className="w-full max-w-2xl space-y-8 text-center">
-            <div className="space-y-4">
+          <div className="w-full space-y-8">
+            {/* Hero Section */}
+            <div className="text-center space-y-4">
               <h2 className="text-4xl font-display font-bold tracking-tight text-foreground sm:text-5xl">
                 Transform Your Data into <span className="text-primary">Actionable Insights</span>
               </h2>
-              <p className="text-lg text-foreground max-w-xl mx-auto">
-                Upload your Dotloop export to instantly generate professional commission reports, agent leaderboards, and financial analytics.
+              <p className="text-lg text-foreground max-w-2xl mx-auto">
+                Choose your preferred data source: upload a CSV export or connect directly to your Dotloop account for real-time sync.
               </p>
             </div>
 
-            <Card className="p-8 border-dashed border-2 border-border bg-card/50 hover:bg-card/80 transition-colors" data-tour="upload-zone">
-              <UploadZone onFileUpload={handleFileUpload} isLoading={isLoading} />
-            </Card>
-            
-            {/* Show Upload History for authenticated users, RecentUploads for guests */}
-            {isAuthenticated && user ? (
-              <div className="mt-12 text-left">
-                <UploadHistory 
-                  onSelectUpload={(file) => {
-                    handleRecentSelect(file);
+            {/* Dual-Column Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto w-full">
+              {/* Left Column: CSV Upload */}
+              <div className="flex flex-col space-y-4">
+                <h3 className="text-lg font-semibold text-foreground">Upload CSV</h3>
+                <Card className="p-8 border-dashed border-2 border-border bg-card/50 hover:bg-card/80 transition-colors flex-1 flex flex-col" data-tour="upload-zone">
+                  <UploadZone onFileUpload={handleFileUpload} isLoading={isLoading} />
+                </Card>
+                
+                {/* Recent Uploads */}
+                {isAuthenticated && user ? (
+                  <div className="text-left">
+                    <UploadHistory 
+                      onSelectUpload={(file) => {
+                        handleRecentSelect(file);
+                      }}
+                      currentUploadId={recentFiles.find(f => f.data === allRecords)?.id}
+                    />
+                  </div>
+                ) : recentFiles.length > 0 && (
+                  <div className="text-left">
+                    <RecentUploads 
+                      files={recentFiles} 
+                      onSelect={handleRecentSelect} 
+                      onDelete={handleRecentDelete} 
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: Dotloop Connection */}
+              <div className="flex flex-col space-y-4">
+                <h3 className="text-lg font-semibold text-foreground">Connect Dotloop</h3>
+                <DotloopConnectionCard
+                  isConnected={false}
+                  onConnect={() => {
+                    // Placeholder: will implement OAuth flow later
+                    alert('Dotloop OAuth connection coming soon!');
                   }}
-                  currentUploadId={recentFiles.find(f => f.data === allRecords)?.id}
                 />
               </div>
-            ) : recentFiles.length > 0 && (
-              <div className="mt-12 text-left">
-                <RecentUploads 
-                  files={recentFiles} 
-                  onSelect={handleRecentSelect} 
-                  onDelete={handleRecentDelete} 
-                />
-              </div>
-            )}
+            </div>
           </div>
         </main>
 
