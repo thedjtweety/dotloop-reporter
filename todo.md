@@ -2039,3 +2039,21 @@
 - [x] Test in demo mode with markers and heatmap displaying
 - [x] Test with real CSV data
 - [x] Save checkpoint with map as default view
+
+## Phase 38: Add Property Detail Cards to Map
+- [x] Create PropertyDetailCard component with property information display
+- [x] Display address, price, days on market, agent info on marker click
+- [x] Add action buttons (View in Dotloop, Compare, Export)
+- [x] Implement sidebar or popup display for property details
+- [x] Add smooth animations when opening/closing detail cards
+- [x] Test with multiple marker clicks
+- [x] Save checkpoint with property detail cards working
+
+## Phase 39: Add Drawing Tools to Map
+- [x] Enable Google Maps Drawing Manager for polygon/circle drawing
+- [x] Add drawing tool buttons (polygon, circle, rectangle, clear)
+- [x] Implement property filtering based on drawn areas
+- [x] Display summary statistics for properties within drawn area
+- [x] Add undo/clear drawing functionality
+- [x] Test drawing tools with various shapes
+- [x] Save checkpoint with drawing tools working

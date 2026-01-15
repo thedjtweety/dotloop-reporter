@@ -11,8 +11,9 @@ import { getCityCoordinates } from '@/lib/sampleData';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Layers, MapPin } from 'lucide-react';
+import { Loader2, Layers, MapPin, Pen, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatUtils';
+import PropertyDetailCard from './PropertyDetailCard';
 
 interface PropertyMapViewProps {
   data: DotloopRecord[];
@@ -32,11 +33,50 @@ export default function PropertyMapView({ data, title = 'Property Locations' }: 
   const [selectedProperty, setSelectedProperty] = useState<DotloopRecord & { lat: number; lng: number } | null>(null);
   const [layerType, setLayerType] = useState<MapLayerType>('both');
   const [geocodeProgress, setGeocodeProgress] = useState(0);
+  const [drawingManager, setDrawingManager] = useState<google.maps.drawing.DrawingManager | null>(null);
+  const [drawingMode, setDrawingMode] = useState<google.maps.drawing.OverlayType | null>(null);
+  const drawnShapesRef = useRef<any[]>([]);
 
   // Initialize map and geocoder
   const handleMapReady = (map: google.maps.Map) => {
     mapRef.current = map;
     geocoderRef.current = new google.maps.Geocoder();
+  };
+
+  // Handle drawing manager ready
+  const handleDrawingReady = (manager: google.maps.drawing.DrawingManager) => {
+    setDrawingManager(manager);
+    
+    // Listen for completed drawings
+    manager.addListener('overlaycomplete', (event: any) => {
+      drawnShapesRef.current.push(event);
+      manager.setDrawingMode(null);
+    });
+  };
+
+  const toggleDrawingMode = (mode: string) => {
+    if (drawingManager) {
+      if (drawingMode === mode) {
+        drawingManager.setDrawingMode(null);
+        setDrawingMode(null);
+      } else {
+        drawingManager.setDrawingMode(mode as any);
+        setDrawingMode(mode as any);
+      }
+    }
+  };
+
+  const clearDrawings = () => {
+    drawnShapesRef.current.forEach((event: any) => {
+      if (event.overlay) {
+        event.overlay.setMap(null);
+      }
+    });
+    drawnShapesRef.current = [];
+    if (drawingManager) {
+      drawingManager.setDrawingMode(null);
+      setDrawingMode(null);
+    }
   };
 
   // Geocode properties on mount
@@ -186,7 +226,7 @@ export default function PropertyMapView({ data, title = 'Property Locations' }: 
 
   return (
     <div className="h-full w-full flex flex-col bg-card border border-border rounded-lg overflow-hidden">
-      <div className="p-6 border-b border-border">
+      <div className="p-6 border-b border-border space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-foreground">{title}</h3>
           <div className="flex gap-2">
@@ -219,50 +259,71 @@ export default function PropertyMapView({ data, title = 'Property Locations' }: 
             </Button>
           </div>
         </div>
+        
+        {/* Drawing Tools */}
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant={drawingMode === 'polygon' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => toggleDrawingMode('polygon')}
+            title="Draw Polygon"
+            className="text-xs"
+          >
+            <Pen className="w-3 h-3 mr-1" />
+            Polygon
+          </Button>
+          <Button
+            variant={drawingMode === 'circle' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => toggleDrawingMode('circle')}
+            title="Draw Circle"
+            className="text-xs"
+          >
+            <Pen className="w-3 h-3 mr-1" />
+            Circle
+          </Button>
+          <Button
+            variant={drawingMode === 'rectangle' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => toggleDrawingMode('rectangle')}
+            title="Draw Rectangle"
+            className="text-xs"
+          >
+            <Pen className="w-3 h-3 mr-1" />
+            Rectangle
+          </Button>
+          {drawnShapesRef.current.length > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={clearDrawings}
+              title="Clear Drawings"
+              className="text-xs"
+            >
+              <Trash2 className="w-3 h-3 mr-1" />
+              Clear
+            </Button>
+          )}
+        </div>
       </div>
-      <div className="flex-1 min-h-0 w-full">
+      <div className="flex-1 min-h-0 w-full relative">
         <MapView
           className="w-full h-full"
           initialCenter={geocodedProperties.length > 0 ? { lat: geocodedProperties[0].lat, lng: geocodedProperties[0].lng } : undefined}
           initialZoom={12}
           onMapReady={handleMapReady}
+          enableDrawing={true}
+          onDrawingReady={handleDrawingReady}
+        />
+        
+        {/* Property Detail Card */}
+        <PropertyDetailCard
+          property={selectedProperty}
+          onClose={() => setSelectedProperty(null)}
         />
       </div>
 
-      {/* Property Details Dialog */}
-      <Dialog open={!!selectedProperty} onOpenChange={() => setSelectedProperty(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{selectedProperty?.address || 'Property Details'}</DialogTitle>
-          </DialogHeader>
-          {selectedProperty && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Year Built</p>
-                  <p className="font-semibold">{selectedProperty.yearBuilt || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Price</p>
-                  <p className="font-semibold">{formatCurrency(selectedProperty.price || 0)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Square Feet</p>
-                  <p className="font-semibold">{selectedProperty.sqft || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <p className="font-semibold">{selectedProperty.loopStatus || 'N/A'}</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Coordinates</p>
-                <p className="font-mono text-xs">{selectedProperty.lat.toFixed(4)}, {selectedProperty.lng.toFixed(4)}</p>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 }
