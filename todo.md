@@ -2011,3 +2011,10 @@
 - [x] Update PropertyMapView to ensure proper map rendering with full height
 - [x] Test map display and verify it expands properly
 - [x] Save checkpoint with fixed map view display
+
+## Phase 34: Revenue Overview Cards Redesign
+- [x] Identify Revenue Overview component location
+- [x] Redesign cards with vertical internal layout (metric on top, chart below, trend at bottom)
+- [x] Update chart sizing and spacing for new layout
+- [x] Test in light and dark modes
+- [x] Save checkpoint with redesigned cards
