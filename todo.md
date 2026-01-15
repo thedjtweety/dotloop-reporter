@@ -1701,3 +1701,11 @@
 - [x] Add safeguard to prevent redirect when already on login page
 - [x] Test demo mode works without logout - VERIFIED
 - [x] Confirmed user stays logged in when loading demo data
+
+## Phase 49: Fix API Query Error Dialog in Demo Mode
+- [x] Identify which API endpoint triggers the error (commission.getPlans)
+- [x] Determine root cause (protected procedure called in unauthenticated demo mode)
+- [x] Suppress UNAUTHORIZED error logging in main.tsx error handler
+- [x] Add retry: false to CommissionPlansManager getPlans query
+- [x] Test demo mode - NO ERROR DIALOG - VERIFIED
+- [x] Confirm all features load correctly without console errors

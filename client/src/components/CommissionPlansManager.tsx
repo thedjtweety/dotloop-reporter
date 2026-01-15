@@ -27,7 +27,9 @@ export default function CommissionPlansManager() {
   const [isSaving, setIsSaving] = useState(false);
 
   // Fetch plans from database
-  const { data: dbPlans, refetch } = trpc.commission.getPlans.useQuery();
+  const { data: dbPlans, refetch, error: plansError } = trpc.commission.getPlans.useQuery(undefined, {
+    retry: false,
+  });
   const savePlanMutation = trpc.commission.savePlan.useMutation();
   const deletePlanMutation = trpc.commission.deletePlan.useMutation();
 
