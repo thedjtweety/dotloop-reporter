@@ -43,7 +43,7 @@ const CustomTooltip = ({ active, payload, label, total }: TooltipProps<number, s
 
 export default function GeographicChart({ data, properties = [], onBarClick }: GeographicChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
-  const [viewType, setViewType] = useState<'chart' | 'map'>('chart');
+  const [viewType, setViewType] = useState<'chart' | 'map'>('map');
 
   useEffect(() => {
     // Add entrance animation

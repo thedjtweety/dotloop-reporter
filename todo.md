@@ -2032,3 +2032,10 @@
 - [x] Add geocoding fallback for demo mode
 - [x] Test map plotting with improved demo data
 - [x] Save checkpoint with working map in demo mode
+
+## Phase 37: Make Map View Default in Geographic Distribution
+- [x] Update GeographicChart component initial state to show map view by default
+- [x] Verify toggle still works between map and chart views
+- [x] Test in demo mode with markers and heatmap displaying
+- [x] Test with real CSV data
+- [x] Save checkpoint with map as default view
