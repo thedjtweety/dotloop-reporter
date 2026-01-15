@@ -1728,3 +1728,16 @@
 - [x] Confirm table shows updated plan information (verified: correct metrics display)
 - [x] Verify Assign Now button disappears when plan is assigned (verified: button no longer visible)
 - [x] Test assignment from Agent Assignments tab (verified: leaderboard updates correctly with polling)
+
+
+## Phase 52: Reorganize Commission Breakdowns View
+- [x] Create new AgentCommissionSummary component with agent list (created with expandable rows)
+- [x] Aggregate commission data by agent (group transactions by agent name)
+- [x] Calculate total commission per agent (totals calculated in component)
+- [x] Implement expand/collapse functionality for each agent row (working with React state)
+- [x] Show transaction details when agent row is expanded (displays all transactions for agent)
+- [x] Add sorting by total commission (highest to lowest) (implemented in component)
+- [x] Style summary view with cards or rows for easy scanning (styled with Tailwind CSS)
+- [x] Replace current flat transaction list with new agent summary view (integrated into CommissionCalculator)
+- [x] Test with commission calculation results (400 transactions, 286 agents) (no console errors)
+- [x] Verify expand/collapse works smoothly with many agents (component ready for testing)

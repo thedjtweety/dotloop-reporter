@@ -18,6 +18,7 @@ import { AlertCircle, CheckCircle, Loader2, Download, RefreshCw } from 'lucide-r
 import { trpc } from '@/lib/trpc';
 import { getRecentFiles } from '@/lib/storage';
 import ExportPDFButton from '@/components/ExportPDFButton';
+import AgentCommissionSummary from '@/components/AgentCommissionSummary';
 // CSV upload is handled on the main Analytics page
 import type { DotloopRecord } from '@/lib/csvParser';
 
@@ -343,40 +344,7 @@ export default function CommissionCalculator() {
 
             {/* Breakdowns Tab */}
             <TabsContent value="breakdowns" className="mt-6">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2 px-4 font-semibold">Agent</th>
-                      <th className="text-left py-2 px-4 font-semibold">Loop</th>
-                      <th className="text-right py-2 px-4 font-semibold">GCI</th>
-                      <th className="text-right py-2 px-4 font-semibold">Company $</th>
-                      <th className="text-right py-2 px-4 font-semibold">Agent Comm</th>
-                      <th className="text-right py-2 px-4 font-semibold">YTD Co $</th>
-                      <th className="text-right py-2 px-4 font-semibold">YTD Ag Comm</th>
-                      <th className="text-center py-2 px-4 font-semibold">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.data.breakdowns.map((breakdown: any, idx: number) => (
-                      <tr key={idx} className="border-b hover:bg-muted/50">
-                        <td className="py-2 px-4">{breakdown.agentName}</td>
-                        <td className="py-2 px-4 text-foreground">{breakdown.loopName}</td>
-                        <td className="text-right py-2 px-4">${breakdown.grossCommissionIncome.toFixed(2)}</td>
-                        <td className="text-right py-2 px-4">${breakdown.brokerageSplitAmount.toFixed(2)}</td>
-                        <td className="text-right py-2 px-4 font-medium">${breakdown.agentNetCommission.toFixed(2)}</td>
-                        <td className="text-right py-2 px-4">${breakdown.ytdAfterTransaction.toFixed(2)}</td>
-                        <td className="text-right py-2 px-4 font-medium">${breakdown.agentNetCommission.toFixed(2)}</td>
-                        <td className="text-center py-2 px-4">
-                          <Badge variant={breakdown.splitType === 'post-cap' ? 'destructive' : 'default'}>
-                            {breakdown.splitType}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <AgentCommissionSummary breakdowns={result.data.breakdowns} />
             </TabsContent>
 
             {/* YTD Summaries Tab */}
