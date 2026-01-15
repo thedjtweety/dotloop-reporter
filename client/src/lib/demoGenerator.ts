@@ -38,7 +38,7 @@ const PROPERTY_TYPES = ['Single Family', 'Condo', 'Townhouse', 'Multi-Family', '
 
 const LEAD_SOURCES = ['Referral', 'Website', 'Zillow', 'Realtor.com', 'Open House', 'Social Media', 'Past Client', 'Direct Mail'];
 
-const LOOP_STATUSES = ['Closed', 'Closed', 'Closed', 'Closed', 'Closed', 'Closed', 'Closed', 'Closed', 'Under Contract', 'Under Contract', 'Under Contract', 'Active Listings', 'Active Listings', 'Active Listings', 'Archived'];
+const LOOP_STATUSES = ['Sold', 'Sold', 'Sold', 'Sold', 'Sold', 'Sold', 'Sold', 'Sold', 'Under Contract', 'Under Contract', 'Under Contract', 'Active', 'Active', 'Active', 'Archived'];
 
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;

@@ -1918,3 +1918,13 @@
 - [x] Test in demo mode with sample data
 - [x] Test with CSV uploaded data
 - [x] Verify chart displays correctly in both light and dark modes
+
+
+## Phase 64: Update Demo Data to Ensure Price Reduction Analysis Has Data
+- [x] Review sample data generation logic for sold properties
+- [x] Increase number of sold properties in demo data
+- [x] Ensure each sold property has both originalPrice and price set
+- [x] Verify price reductions are generated (originalPrice > price)
+- [x] Test demo mode to verify Price Reduction Analysis displays chart
+- [x] Verify chart displays 10 properties with biggest price drops
+- [x] Test in both light and dark modes

@@ -51,8 +51,13 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
   const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
   const threeMonthsFuture = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
 
+  // Ensure we have at least 15 sold properties for Price Reduction Analysis chart
+  const minSoldProperties = 15;
+  const soldCount = Math.max(minSoldProperties, Math.floor(count * 0.4)); // At least 15 or 40% of total
+
   for (let i = 0; i < count; i++) {
-    const status = STATUSES[Math.floor(Math.random() * STATUSES.length)];
+    // Guarantee first N records are 'Sold' to ensure Price Reduction Analysis has data
+    const status = i < soldCount ? 'Sold' : STATUSES[Math.floor(Math.random() * STATUSES.length)];
     const agent = AGENTS[Math.floor(Math.random() * AGENTS.length)];
     const city = CITIES[Math.floor(Math.random() * CITIES.length)];
     const streetName = STREETS[Math.floor(Math.random() * STREETS.length)];
@@ -86,6 +91,12 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
     const totalCommission = (status === 'Sold' || status === 'Under Contract') ? price * commissionRate : 0;
     const isBuySide = Math.random() > 0.5;
     
+    // For sold properties, ensure we have both original and final prices with realistic reductions
+    const finalPrice = status === 'Sold' ? price : (status === 'Under Contract' ? price : 0);
+    const listPrice = status === 'Sold' 
+      ? price + Math.floor(Math.random() * 50000) + 5000  // List price is 5-55k higher than sale price
+      : price + 10000;
+    
     const loopId = crypto.randomUUID();
     records.push({
       loopId,
@@ -97,7 +108,7 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
       listingDate,
       offerDate,
       address: `${streetNum} ${streetName} St`,
-      price: (status === 'Sold' || status === 'Under Contract') ? price : 0, 
+      price: finalPrice,
       propertyType: PROPERTY_TYPES[Math.floor(Math.random() * PROPERTY_TYPES.length)],
       bedrooms: Math.floor(Math.random() * 4) + 2,
       bathrooms: Math.floor(Math.random() * 3) + 2,
@@ -119,7 +130,7 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
       referralPercentage: 0,
       complianceStatus: status === 'Sold' ? 'Approved' : 'Pending',
       tags: [],
-      originalPrice: price + 10000,
+      originalPrice: listPrice,
       yearBuilt: Math.floor(Math.random() * 30) + 1990,
       lotSize: Math.floor(Math.random() * 8000) + 4000,
       subdivision: 'Sample Estates',
