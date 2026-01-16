@@ -2065,3 +2065,11 @@
 - [x] Generate and add TOKEN_ENCRYPTION_KEY for enhanced security
 - [x] Test OAuth connection flow
 - [x] Save checkpoint with credentials configured
+
+## Phase 43: Implement OAuth Connection Flow in UI
+- [x] Replace placeholder alert with actual OAuth flow
+- [x] Add tRPC procedure call to get authorization URL
+- [x] Redirect user to Dotloop OAuth authorization page
+- [x] Handle OAuth callback and display connection status
+- [x] Test complete OAuth flow end-to-end
+- [x] Save checkpoint with working OAuth connection

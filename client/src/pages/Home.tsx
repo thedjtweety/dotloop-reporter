@@ -106,9 +106,35 @@ function HomeContent() {
   // The userAuth hooks provides authentication state
   // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
   let { user, loading, error, isAuthenticated, logout } = useAuth();
-  const { filters, addFilter } = useFilters();
+  const { addFilter, removeFilter, filters } = useFilters();
 
   const [location, setLocation] = useLocation();
+  
+  // Dotloop OAuth connection
+  const connectDotloop = async () => {
+    try {
+      // Generate random state for CSRF protection
+      const state = Math.random().toString(36).substring(2, 15);
+      
+      // Get authorization URL from backend via fetch (since we can't use useQuery in callback)
+      const response = await fetch('/api/trpc/dotloopOAuth.getAuthorizationUrl?input=' + encodeURIComponent(JSON.stringify({ state })), {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to get authorization URL');
+      }
+      
+      const data = await response.json();
+      const result = data.result.data;
+      
+      // Redirect to Dotloop OAuth page
+      window.location.href = result.url;
+    } catch (error) {
+      console.error('Failed to initiate OAuth flow:', error);
+      alert('Failed to connect to Dotloop. Please try again.');
+    }
+  };
   const { showTour, completeTour, skipTour } = useOnboardingTour();
   const [allRecords, setAllRecords] = useState<DotloopRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<DotloopRecord[]>([]);
@@ -648,10 +674,7 @@ function HomeContent() {
                 <h3 className="text-lg font-semibold text-foreground">Connect Dotloop</h3>
                 <DotloopConnectionCard
                   isConnected={false}
-                  onConnect={() => {
-                    // Placeholder: will implement OAuth flow later
-                    alert('Dotloop OAuth connection coming soon!');
-                  }}
+                  onConnect={connectDotloop}
                 />
               </div>
             </div>
