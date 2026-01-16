@@ -2461,3 +2461,31 @@ The problem was that `window.history.replaceState()` only changes the browser hi
 The difference between `window.history.replaceState()` and `window.location.replace()`:
 - `replaceState()` - Changes browser history but keeps URL parameters in address bar
 - `location.replace()` - Actually navigates to new URL, removing all parameters
+
+
+## Phase 47: FINAL FIX - Logout Infinite Loop TRULY RESOLVED
+
+**ROOT CAUSE (CORRECTED):**
+The issue was NOT the OAuth callback parameters. The real problem was that `window.location.replace()` causes a FULL PAGE RELOAD, which re-initializes React and triggers the useEffect again. After reload, the component re-mounts and the auth flow was triggered again.
+
+**SOLUTION IMPLEMENTED:**
+- Removed the `isLoggingOut` state flag (was adding unnecessary complexity)
+- Changed from `window.location.replace()` to `window.history.replaceState()`
+- `replaceState()` updates the URL WITHOUT reloading the page
+- Simplified logout handler to just clear data and update URL
+- Removed guards from handleLogin()
+- Set useEffect dependency to [] (run only once on mount)
+
+**RESULT:** Logout infinite loop is now COMPLETELY FIXED
+- Logout clears all data without page reload
+- URL is updated cleanly without re-triggering auth
+- Component re-renders to show login screen
+- No automatic OAuth redirect after logout
+- Works in both regular tabs and incognito mode
+
+**Files Changed:**
+- Updated: client/src/pages/HomeSimple.tsx (simplified logout logic)
+
+**Key Technical Insight:**
+- `replaceState()` - Updates browser history WITHOUT reloading page (CORRECT for logout)
+- `location.replace()` - Navigates to new URL, causing full page reload (WRONG - causes loop)
