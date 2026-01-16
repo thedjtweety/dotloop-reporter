@@ -2187,3 +2187,17 @@
 - [x] Fix authentication flow for published domain (added enabled: isAuthenticated to query)
 - [ ] Test getConnectionStatus endpoint on published domain (ready for user testing)
 - [ ] Verify OAuth flow works end-to-end on published domain (ready for user testing)
+
+## Phase: Replace Manus Auth with Dotloop OAuth (Current)
+- [x] Design authentication architecture (Dotloop OAuth as primary auth)
+- [x] Update database schema to support Dotloop users (added dotloopUserId column)
+- [x] Create Dotloop profile API client to fetch user info (dotloopApiClient.ts)
+- [x] Implement user creation/lookup from Dotloop profile (dotloopUserManager.ts)
+- [x] Create session management system for Dotloop users (dotloopSessionManager.ts)
+- [x] Update OAuth callback to fetch profile and create session
+- [ ] Create custom auth middleware to replace protectedProcedure
+- [ ] Update all protected endpoints to use Dotloop auth
+- [ ] Update frontend useAuth hook to work with Dotloop sessions
+- [ ] Remove Manus authentication dependencies
+- [ ] Add "Login with Dotloop" button as primary login
+- [ ] Test complete flow: Login → OAuth → Profile fetch → Session creation → Dashboard access

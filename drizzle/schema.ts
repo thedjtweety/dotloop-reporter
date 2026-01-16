@@ -354,10 +354,11 @@ export const uploads = mysqlTable("uploads", {
 	export const users = mysqlTable("users", {
 	id: int().autoincrement().notNull(),
 	tenantId: int().notNull(),
-	openId: varchar({ length: 64 }).notNull(),
+	openId: varchar({ length: 64 }), // Optional: for Manus users (backward compatibility)
+	dotloopUserId: varchar({ length: 64 }), // Dotloop user ID from OAuth
 	name: text(),
 	email: varchar({ length: 320 }),
-	loginMethod: varchar({ length: 64 }),
+	loginMethod: varchar({ length: 64 }).default('dotloop'), // 'dotloop' or 'manus'
 	role: mysqlEnum(['user','admin']).default('user').notNull(),
 	status: mysqlEnum(['active','inactive','suspended']).default('active').notNull(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
@@ -366,6 +367,7 @@ export const uploads = mysqlTable("uploads", {
 },
 (table) => [
 	index("openId_tenant_unique").on(table.openId, table.tenantId),
+	index("dotloopUserId_unique").on(table.dotloopUserId),
 	index("email_tenant_unique").on(table.email, table.tenantId),
 	index("tenant_idx").on(table.tenantId),
 ]);

@@ -107,6 +107,19 @@ export function registerDotloopOAuthRoutes(app: Express) {
         return res.redirect('/?dotloop_error=no_access_token');
       }
 
+      console.log('[DotloopOAuth] Fetching Dotloop profile...');
+      // Fetch user profile from Dotloop API
+      const { fetchDotloopProfile } = await import('../dotloopApiClient');
+      const { findOrCreateDotloopUser } = await import('../dotloopUserManager');
+      const { createSession, getSessionCookieName, getSessionCookieOptions } = await import('../dotloopSessionManager');
+      
+      const profile = await fetchDotloopProfile(access_token);
+      console.log('[DotloopOAuth] Profile fetched:', { id: profile.id, email: profile.email });
+      
+      // Find or create user
+      const user = await findOrCreateDotloopUser(profile);
+      console.log('[DotloopOAuth] User found/created:', { userId: user.id, dotloopUserId: user.dotloopUserId });
+      
       console.log('[DotloopOAuth] Connecting to database...');
       // Store tokens in database
       const db = await getDb();
@@ -115,10 +128,9 @@ export function registerDotloopOAuthRoutes(app: Express) {
         return res.redirect('/?dotloop_error=database_error');
       }
 
-      // For now, store with a default tenant/user ID
-      // TODO: Associate with actual logged-in user
-      const tenantId = 'default';
-      const userId = 'default';
+      // Use the actual user ID from database
+      const userId = user.id;
+      const tenantId = user.tenantId;
 
       console.log('[DotloopOAuth] Encrypting tokens...');
       // Encrypt tokens before storage
@@ -130,8 +142,8 @@ export function registerDotloopOAuthRoutes(app: Express) {
       console.log('[DotloopOAuth] Tokens encrypted, inserting into database...');
 
       await db.insert(oauthTokens).values({
-        tenantId: 1, // Default tenant ID
-        userId: 1, // Default user ID
+        tenantId,
+        userId,
         provider: 'dotloop',
         encryptedAccessToken,
         encryptedRefreshToken: encryptedRefreshToken || '',
@@ -143,8 +155,8 @@ export function registerDotloopOAuthRoutes(app: Express) {
       
       // Log successful token creation
       await db.insert(tokenAuditLogs).values({
-        tenantId: 1,
-        userId: 1,
+        tenantId,
+        userId,
         tokenId: null,
         action: 'token_created',
         status: 'success',
@@ -153,6 +165,14 @@ export function registerDotloopOAuthRoutes(app: Express) {
       });
 
       console.log('[DotloopOAuth] Audit log created successfully');
+      
+      // Create session for the user
+      console.log('[DotloopOAuth] Creating session...');
+      const sessionToken = await createSession(user);
+      const cookieOptions = getSessionCookieOptions();
+      res.cookie(getSessionCookieName(), sessionToken, cookieOptions);
+      console.log('[DotloopOAuth] Session created and cookie set');
+      
       console.log('[DotloopOAuth] All operations completed, redirecting to success page...');
 
       // Redirect back to app with success message
