@@ -6,6 +6,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerDotloopOAuthRoutes } from "./dotloopOAuth";
 import { setupDiagnostics } from "./diagnostics";
+import { registerDiagnosticRoutes } from "../diagnosticRoutes";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -41,6 +42,8 @@ async function startServer() {
   registerDotloopOAuthRoutes(app);
   // Diagnostics endpoints
   setupDiagnostics(app);
+  // OAuth diagnostic routes
+  registerDiagnosticRoutes(app);
   // tRPC API
   app.use(
     "/api/trpc",
