@@ -126,33 +126,11 @@ function HomeContent() {
       console.log('[OAuth Debug] Received authorization URL:', result.url);
       console.log('[OAuth Debug] Full result:', JSON.stringify(result, null, 2));
       
-      // Open OAuth URL in a new tab/window to bypass frame restrictions
-      console.log('[OAuth Debug] Opening OAuth URL in new window...');
-      const authWindow = window.open(result.url, '_blank', 'width=600,height=700,menubar=no,toolbar=no,location=yes');
-      
-      if (!authWindow || authWindow.closed || typeof authWindow.closed === 'undefined') {
-        // Popup was blocked - show fallback with copy button
-        console.warn('[OAuth Debug] Popup blocked - showing fallback');
-        const shouldCopy = confirm(
-          'Popup blocked! Click OK to copy the authorization link, then paste it in a new browser tab.\n\n' +
-          'Or disable your popup blocker and try again.'
-        );
-        
-        if (shouldCopy) {
-          // Copy to clipboard
-          try {
-            await navigator.clipboard.writeText(result.url);
-            alert('Authorization link copied to clipboard! Paste it in a new browser tab to continue.');
-          } catch (clipboardError) {
-            // Fallback: show URL in alert
-            prompt('Copy this URL and paste it in a new browser tab:', result.url);
-          }
-        }
-      } else {
-        console.log('[OAuth Debug] OAuth window opened successfully');
-        // Show a message to the user
-        alert('A new window has opened for Dotloop authorization. Please complete the login there, then return to this page.');
-      }
+      // Use direct navigation instead of popup for better Chrome compatibility
+      // This works reliably across all browsers without popup blocking issues
+      console.log('[OAuth Debug] ===== USING NEW DIRECT REDIRECT CODE =====');
+      console.log('[OAuth Debug] Redirecting to OAuth URL...');
+      window.location.href = result.url;
     } catch (error) {
       console.error('[OAuth Debug] Failed to initiate OAuth flow:', error);
       console.error('[OAuth Debug] Error details:', {

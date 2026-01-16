@@ -2137,3 +2137,21 @@
 - [x] Add visual feedback when OAuth window opens
 - [x] Handle OAuth callback when user returns from new tab
 - [x] Verified OAuth flow working correctly with Zillow Workspace login
+
+## Phase: Chrome Popup Blocking Fix (Current)
+- [x] Improve popup blocking detection for Chrome
+- [x] Replace popup approach with direct window.location.href navigation
+- [x] Remove popup blocking issues entirely by using full-page redirect
+- [x] Simplify OAuth flow for better cross-browser compatibility
+- [ ] Test OAuth flow in Chrome with direct navigation
+- [ ] Verify OAuth flow works in both Chrome and Safari
+
+## Phase: OAuth Callback Handler Fix (Current)
+- [x] Confirm OAuth redirect is working (new code deployed successfully)
+- [x] Identify that callback handler is failing with "dotloop_error=unknown"
+- [x] Check server logs for detailed callback error
+- [x] Identify specific failure point (Vite catch-all route intercepting /api/dotloop/callback)
+- [x] Fix identified issue in callback handler (excluded /api/* from Vite catch-all)
+- [ ] Test complete OAuth flow end-to-end with real Dotloop account
+- [ ] Verify tokens are stored correctly in database
+- [ ] Verify connection status updates to "Connected" on homepage
