@@ -2093,3 +2093,23 @@
 - [x] Save comprehensive API reference document to project
 - [x] Update OAuth implementation if any discrepancies found
 - [x] Test OAuth flow end-to-end with corrections
+
+## Phase 46: Debug OAuth Callback "Refused to Connect" Error
+- [ ] Check server logs for callback route errors
+- [ ] Verify redirect URI matches exactly between Dotloop portal and code
+- [ ] Test callback route is accessible (curl test)
+- [ ] Check if CORS or security headers blocking callback
+- [ ] Verify Express route is properly registered
+- [ ] Add detailed logging to callback handler
+- [ ] Test OAuth flow end-to-end with fixes
+- [ ] Save checkpoint with working OAuth callback
+
+## Phase 46: Debug OAuth Callback "Refused to Connect" Error
+- [ ] Add detailed logging to OAuth callback handler
+- [ ] Check if callback route is being reached
+- [ ] Verify token exchange request format
+- [ ] Test callback endpoint directly with mock code
+- [ ] Check for CORS or security policy issues
+- [ ] Verify database connection in callback
+- [ ] Add error handling and user-friendly error pages
+- [ ] Fix any issues found and retest OAuth flow
