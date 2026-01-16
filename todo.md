@@ -2057,3 +2057,11 @@
 - [x] Add undo/clear drawing functionality
 - [x] Test drawing tools with various shapes
 - [x] Save checkpoint with drawing tools working
+
+## Phase 42: Add Dotloop API Credentials
+- [x] Request Dotloop credentials via webdev_request_secrets
+- [x] User inputs DOTLOOP_CLIENT_ID, DOTLOOP_CLIENT_SECRET, DOTLOOP_REDIRECT_URI
+- [x] Verify credentials are stored securely
+- [x] Generate and add TOKEN_ENCRYPTION_KEY for enhanced security
+- [x] Test OAuth connection flow
+- [x] Save checkpoint with credentials configured
