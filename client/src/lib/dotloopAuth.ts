@@ -165,6 +165,24 @@ export function handleOAuthCallback(): boolean {
   if (accessToken && expiresIn) {
     storeTokens(accessToken, parseInt(expiresIn, 10), refreshToken || undefined);
     
+    // Extract and store account info from URL parameters
+    const accountId = params.get('account_id');
+    const email = params.get('email');
+    const firstName = params.get('first_name');
+    const lastName = params.get('last_name');
+    const defaultProfileId = params.get('default_profile_id');
+    
+    if (accountId && email) {
+      const account: DotloopAccount = {
+        id: parseInt(accountId, 10),
+        email,
+        firstName: firstName || '',
+        lastName: lastName || '',
+        defaultProfileId: defaultProfileId ? parseInt(defaultProfileId, 10) : 0,
+      };
+      storeAccount(account);
+    }
+    
     // Clean URL by removing token parameters
     const cleanUrl = window.location.pathname;
     window.history.replaceState({}, document.title, cleanUrl);
