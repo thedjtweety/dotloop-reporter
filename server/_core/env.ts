@@ -7,4 +7,7 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  DOTLOOP_CLIENT_ID: process.env.DOTLOOP_CLIENT_ID ?? "",
+  DOTLOOP_CLIENT_SECRET: process.env.DOTLOOP_CLIENT_SECRET ?? "",
+  DOTLOOP_REDIRECT_URI: process.env.DOTLOOP_REDIRECT_URI ?? "",
 };

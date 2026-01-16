@@ -2245,3 +2245,20 @@
 - [x] Test Dotloop OAuth login flow end-to-end (ready to test)
 - [x] Verify session persistence (ready to test)
 - [x] Test logout functionality (ready to test)
+
+
+## Phase 36: Rebuild Dotloop OAuth System (Clean Implementation)
+- [x] Backup existing OAuth files for reference
+- [x] Create clean OAuth authorization endpoint (getAuthorizationUrl)
+- [x] Implement OAuth callback handler following Dotloop API docs
+- [x] Implement user lookup/creation logic
+- [x] Implement token storage with proper encryption
+- [x] Implement session creation after successful OAuth
+- [x] Add proper error handling at each step
+- [ ] Test authorization redirect (should go to Dotloop login)
+- [ ] Test 2FA flow (full page redirect, no popups)
+- [ ] Test callback with authorization code
+- [ ] Test token exchange
+- [ ] Test user creation/login
+- [ ] Test session persistence
+- [ ] Verify logout functionality
