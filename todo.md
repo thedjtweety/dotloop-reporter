@@ -2209,3 +2209,13 @@
 - [x] Document data privacy implications and user consent requirements (covered in legal doc)
 - [x] Document session management and token security measures (covered in architecture doc)
 - [x] Create migration guide for transitioning from Manus to Dotloop auth (covered in architecture doc)
+
+## Phase: Debug OAuth Callback Error (Current)
+- [x] Add enhanced error logging to callback handler with step-by-step tracking
+- [x] Update DOTLOOP_REDIRECT_URI to published domain (https://dotloopreport.com/api/dotloop/callback)
+- [x] Update redirect URI in Dotloop Developer Portal
+- [ ] Publish latest code with enhanced logging
+- [ ] Test OAuth flow and capture detailed error logs
+- [ ] Identify the specific error causing callback failure
+- [ ] Fix the identified error
+- [ ] Verify complete OAuth flow works end-to-end

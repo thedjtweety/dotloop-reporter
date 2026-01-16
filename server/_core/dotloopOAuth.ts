@@ -107,20 +107,22 @@ export function registerDotloopOAuthRoutes(app: Express) {
         return res.redirect('/?dotloop_error=no_access_token');
       }
 
-      console.log('[DotloopOAuth] Fetching Dotloop profile...');
+      console.log('[DotloopOAuth] ===== STEP 5: Fetching Dotloop profile =====');
       // Fetch user profile from Dotloop API
       const { fetchDotloopProfile } = await import('../dotloopApiClient');
       const { findOrCreateDotloopUser } = await import('../dotloopUserManager');
       const { createSession, getSessionCookieName, getSessionCookieOptions } = await import('../dotloopSessionManager');
       
       const profile = await fetchDotloopProfile(access_token);
-      console.log('[DotloopOAuth] Profile fetched:', { id: profile.id, email: profile.email });
+      console.log('[DotloopOAuth] ===== STEP 6: Profile fetched successfully =====');
+      console.log('[DotloopOAuth] Profile data:', { id: profile.id, email: profile.email });
       
       // Find or create user
       const user = await findOrCreateDotloopUser(profile);
-      console.log('[DotloopOAuth] User found/created:', { userId: user.id, dotloopUserId: user.dotloopUserId });
+      console.log('[DotloopOAuth] ===== STEP 7: User found/created =====');
+      console.log('[DotloopOAuth] User data:', { userId: user.id, dotloopUserId: user.dotloopUserId });
       
-      console.log('[DotloopOAuth] Connecting to database...');
+      console.log('[DotloopOAuth] ===== STEP 8: Connecting to database =====');
       // Store tokens in database
       const db = await getDb();
       if (!db) {
@@ -132,14 +134,14 @@ export function registerDotloopOAuthRoutes(app: Express) {
       const userId = user.id;
       const tenantId = user.tenantId;
 
-      console.log('[DotloopOAuth] Encrypting tokens...');
+      console.log('[DotloopOAuth] ===== STEP 9: Encrypting tokens =====');
       // Encrypt tokens before storage
       const encryptedAccessToken = tokenEncryption.encrypt(access_token);
       const encryptedRefreshToken = refresh_token ? tokenEncryption.encrypt(refresh_token) : null;
       const tokenHash = tokenEncryption.hashToken(access_token);
 
       const expiresAt = new Date(Date.now() + (expires_in * 1000));
-      console.log('[DotloopOAuth] Tokens encrypted, inserting into database...');
+      console.log('[DotloopOAuth] ===== STEP 10: Inserting tokens into database =====');
 
       await db.insert(oauthTokens).values({
         tenantId,
@@ -151,7 +153,7 @@ export function registerDotloopOAuthRoutes(app: Express) {
         tokenExpiresAt: expiresAt.toISOString().slice(0, 19).replace('T', ' '),
       });
 
-      console.log('[DotloopOAuth] Token insert successful, creating audit log...');
+      console.log('[DotloopOAuth] ===== STEP 11: Token insert successful, creating audit log =====');
       
       // Log successful token creation
       await db.insert(tokenAuditLogs).values({
@@ -164,25 +166,35 @@ export function registerDotloopOAuthRoutes(app: Express) {
         userAgent: req.get('user-agent') || null,
       });
 
-      console.log('[DotloopOAuth] Audit log created successfully');
+      console.log('[DotloopOAuth] ===== STEP 12: Audit log created successfully =====');
       
       // Create session for the user
-      console.log('[DotloopOAuth] Creating session...');
+      console.log('[DotloopOAuth] ===== STEP 13: Creating session =====');
       const sessionToken = await createSession(user);
       const cookieOptions = getSessionCookieOptions();
       res.cookie(getSessionCookieName(), sessionToken, cookieOptions);
-      console.log('[DotloopOAuth] Session created and cookie set');
+      console.log('[DotloopOAuth] ===== STEP 14: Session created and cookie set =====');
       
-      console.log('[DotloopOAuth] All operations completed, redirecting to success page...');
+      console.log('[DotloopOAuth] ===== STEP 15: All operations completed, redirecting to success =====');
 
       // Redirect back to app with success message
       res.redirect('/?dotloop_connected=true');
     } catch (error) {
+      console.error('\n\n========== DOTLOOP OAUTH CALLBACK ERROR ==========');
       console.error('[DotloopOAuth] Callback error:', error);
       console.error('[DotloopOAuth] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       console.error('[DotloopOAuth] Error message:', error instanceof Error ? error.message : String(error));
       console.error('[DotloopOAuth] Error type:', typeof error);
-      console.error('[DotloopOAuth] Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      console.error('[DotloopOAuth] Error name:', error instanceof Error ? error.name : 'Unknown');
+      
+      // Try to extract more details
+      if (error && typeof error === 'object') {
+        console.error('[DotloopOAuth] Error keys:', Object.keys(error));
+        console.error('[DotloopOAuth] Error properties:', Object.getOwnPropertyNames(error));
+      }
+      
+      console.error('[DotloopOAuth] Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+      console.error('========== END ERROR ==========\n\n');
       res.redirect('/?dotloop_error=unknown');
     }
   });
