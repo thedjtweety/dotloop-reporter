@@ -6,6 +6,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerDotloopOAuthRoutes } from "./dotloopOAuth";
 import { setupDiagnostics } from "./diagnostics";
+import dotloopProxy from "../dotloopProxy";
 
 import { appRouter } from "../routers";
 import { createContext } from "./context";
@@ -40,6 +41,8 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Dotloop OAuth callback under /api/dotloop/callback
   registerDotloopOAuthRoutes(app);
+  // Dotloop API proxy
+  app.use(dotloopProxy);
   // Diagnostics endpoints
   setupDiagnostics(app);
 

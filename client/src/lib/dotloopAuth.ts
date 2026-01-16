@@ -151,12 +151,11 @@ export async function fetchDotloopAPI(endpoint: string, options: RequestInit = {
     throw new Error('No valid Dotloop token available');
   }
   
-  const response = await fetch(`https://api-gateway.dotloop.com/public/v2${endpoint}`, {
+  const response = await fetch(`/api/dotloop-proxy${endpoint}`, {
     ...options,
     headers: {
       ...options.headers,
       'Authorization': `Bearer ${tokens.accessToken}`,
-      'Content-Type': 'application/json',
     },
   });
   
