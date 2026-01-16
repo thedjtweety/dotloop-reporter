@@ -8,6 +8,40 @@
 const ACCOUNTS_KEY = 'dotloop_accounts';
 const ACTIVE_ACCOUNT_ID_KEY = 'dotloop_active_account_id';
 
+/**
+ * Safe localStorage wrapper to handle edge cases
+ */
+const storage = {
+  getItem(key: string): string | null {
+    try {
+      if (typeof window === 'undefined') return null;
+      if (!window.localStorage) return null;
+      return window.localStorage.getItem(key);
+    } catch (e) {
+      console.error('[Storage] getItem error:', e);
+      return null;
+    }
+  },
+  setItem(key: string, value: string): void {
+    try {
+      if (typeof window === 'undefined') return;
+      if (!window.localStorage) return;
+      window.localStorage.setItem(key, value);
+    } catch (e) {
+      console.error('[Storage] setItem error:', e);
+    }
+  },
+  removeItem(key: string): void {
+    try {
+      if (typeof window === 'undefined') return;
+      if (!window.localStorage) return;
+      window.localStorage.removeItem(key);
+    } catch (e) {
+      console.error('[Storage] removeItem error:', e);
+    }
+  }
+};
+
 export interface DotloopAccount {
   id: string; // Unique ID for this account (using email as ID)
   accountId: number; // Dotloop account ID
@@ -30,7 +64,7 @@ export interface MultiAccountStore {
  * Get all stored accounts
  */
 export function getAllAccounts(): DotloopAccount[] {
-  const storeStr = localStorage.getItem(ACCOUNTS_KEY);
+  const storeStr = storage.getItem(ACCOUNTS_KEY);
   if (!storeStr) return [];
   
   try {
@@ -45,7 +79,7 @@ export function getAllAccounts(): DotloopAccount[] {
  * Get active account ID
  */
 export function getActiveAccountId(): string | null {
-  return localStorage.getItem(ACTIVE_ACCOUNT_ID_KEY);
+  return storage.getItem(ACTIVE_ACCOUNT_ID_KEY);
 }
 
 /**
@@ -71,7 +105,7 @@ export function setActiveAccount(accountId: string): boolean {
     return false;
   }
   
-  localStorage.setItem(ACTIVE_ACCOUNT_ID_KEY, accountId);
+  storage.setItem(ACTIVE_ACCOUNT_ID_KEY, accountId);
   console.log('[Multi-Auth] Active account set to:', account.email);
   return true;
 }
@@ -121,7 +155,7 @@ export function addOrUpdateAccount(accountData: {
   }
   
   // Save accounts
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  storage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
   
   // Set as active if it's the only account or if no active account is set
   const activeId = getActiveAccountId();
@@ -144,7 +178,7 @@ export function removeAccount(accountId: string): boolean {
     return false;
   }
   
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(filteredAccounts));
+  storage.setItem(ACCOUNTS_KEY, JSON.stringify(filteredAccounts));
   console.log('[Multi-Auth] Account removed:', accountId);
   
   // If removed account was active, switch to first remaining account
@@ -153,7 +187,7 @@ export function removeAccount(accountId: string): boolean {
     if (filteredAccounts.length > 0) {
       setActiveAccount(filteredAccounts[0].id);
     } else {
-      localStorage.removeItem(ACTIVE_ACCOUNT_ID_KEY);
+      storage.removeItem(ACTIVE_ACCOUNT_ID_KEY);
     }
   }
   
@@ -176,8 +210,8 @@ export function isActiveTokenValid(): boolean {
  * Clear all accounts
  */
 export function clearAllAccounts() {
-  localStorage.removeItem(ACCOUNTS_KEY);
-  localStorage.removeItem(ACTIVE_ACCOUNT_ID_KEY);
+  storage.removeItem(ACCOUNTS_KEY);
+  storage.removeItem(ACTIVE_ACCOUNT_ID_KEY);
   console.log('[Multi-Auth] All accounts cleared');
 }
 
