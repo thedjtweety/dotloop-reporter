@@ -2513,3 +2513,15 @@ The issue was NOT the OAuth callback parameters. The real problem was that `wind
 - Multi-user dropdown for account switching
 - Dashboard displays Dotloop data exactly like CSV dashboard
 - CSV uploader will be added back later as an alternative option
+
+
+## Phase 49: Build Dashboard UI for Dotloop Data
+
+**Goal:** Create dashboard interface to display Dotloop synced data using existing CSV components
+
+### Tasks:
+- [ ] Restore CSV dashboard components from backup
+- [ ] Adapt dashboard to accept Dotloop data structure
+- [ ] Create mock Dotloop data for testing
+- [ ] Test all charts and metrics display correctly
+- [ ] Ensure responsive design and interactions work
