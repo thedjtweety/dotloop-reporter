@@ -43,6 +43,8 @@ export default function HomeSimple() {
         setAccount(activeAccount);
         if (hasNewTokens) {
           toast.success(`Successfully connected as ${activeAccount.email}!`);
+          // Clean URL after successful OAuth callback
+          window.history.replaceState({}, document.title, window.location.pathname);
         }
       }
       
@@ -80,6 +82,8 @@ export default function HomeSimple() {
     clearAllAccounts();
     setAccount(null);
     setLoops([]);
+    // Clean URL to prevent OAuth callback from re-processing
+    window.history.replaceState({}, document.title, window.location.pathname);
     toast.success('Logged out successfully');
   };
 
@@ -255,27 +259,37 @@ export default function HomeSimple() {
                           )}
                           <span className="text-sm">{acc.email}</span>
                         </div>
-                        {acc.email !== account.email && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => {
-                              setAccount(acc);
-                              toast.success(`Switched to ${acc.email}`);
-                            }}
-                          >
-                            Switch
-                          </Button>
-                        )}
-                        {allAccounts.length > 1 && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleRemoveAccount(acc.email)}
-                          >
-                            Remove
-                          </Button>
-                        )}
+                        <div className="flex gap-2">
+                          {acc.email === account.email ? (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleLogout()}
+                            >
+                              Logout
+                            </Button>
+                          ) : (
+                            <>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => {
+                                  setAccount(acc);
+                                  toast.success(`Switched to ${acc.email}`);
+                                }}
+                              >
+                                Switch
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleRemoveAccount(acc.email)}
+                              >
+                                Remove
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

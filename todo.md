@@ -2400,3 +2400,32 @@
 - [x] Confirmed multi-account system is now working
 
 **RESULT:** INFINITE LOOP FIXED - Application now shows clean login screen without redirect loops
+
+
+## Phase 45: CRITICAL FIX - Logout Infinite Loop (RESOLVED)
+**ISSUE:** After clicking logout, the application would enter an infinite loop:
+1. User clicks "Logout" button
+2. clearAllAccounts() clears localStorage ✅
+3. BUT: OAuth callback URL still has tokens in query parameters
+4. handleOAuthCallback() processes the URL parameters again
+5. Account is re-added to localStorage
+6. User is logged back in - LOOP REPEATS
+
+**ROOT CAUSE:** The OAuth callback URL parameters were not being cleaned after logout, so the handleOAuthCallback() function would re-process them on every page load.
+
+**SOLUTION:**
+- [x] Added window.history.replaceState() in handleLogout() to clean URL parameters
+- [x] Added window.history.replaceState() in handleOAuthCallback() after successful login to clean URL
+- [x] Fixed multi-account card button logic to properly show Logout/Switch/Remove buttons
+- [x] Improved account switching to update component state immediately
+- [x] Verified logout now properly clears all data and shows login screen
+
+**RESULT:** LOGOUT LOOP FIXED - Users can now:
+- ✅ Log out and return to login screen
+- ✅ Switch between multiple connected accounts
+- ✅ Remove accounts from the multi-account list
+- ✅ Add another account without infinite loops
+
+**Files Changed:**
+- Updated: client/src/pages/HomeSimple.tsx (added URL cleanup, fixed button logic)
+- Updated: client/src/lib/dotloopMultiAuth.ts (no changes needed - already working correctly)
