@@ -714,6 +714,8 @@ function HomeContent() {
                   isConnected={connectionStatus?.connected ?? false}
                   accountEmail={user?.email ?? undefined}
                   lastSyncTime={connectionStatus?.lastUsedAt ? new Date(connectionStatus.lastUsedAt).toLocaleString() : undefined}
+                  expiresAt={connectionStatus?.expiresAt}
+                  isExpired={connectionStatus?.isExpired ?? false}
                   onConnect={connectDotloop}
                   onDisconnect={async () => {
                     try {
@@ -729,7 +731,25 @@ function HomeContent() {
                     }
                   }}
                   onSyncNow={async () => {
-                    toast.success('Sync functionality coming soon!');
+                    try {
+                      // If token is expired, refresh it first
+                      if (connectionStatus?.isExpired) {
+                        toast.loading('Refreshing expired token...');
+                        await trpcUtils.client.dotloopOAuth.refreshToken.mutate({
+                          ipAddress: '0.0.0.0',
+                          userAgent: navigator.userAgent,
+                        });
+                        toast.dismiss();
+                        toast.success('Token refreshed successfully!');
+                        refetchConnection();
+                      } else {
+                        toast.success('Sync functionality coming soon!');
+                      }
+                    } catch (error) {
+                      toast.dismiss();
+                      console.error('Failed to refresh token:', error);
+                      toast.error('Failed to refresh token. Please reconnect.');
+                    }
                   }}
                 />
               </div>

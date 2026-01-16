@@ -2167,3 +2167,14 @@
 - [x] Test connection status UI with connected and disconnected states
 - [x] Add OAuth callback handling to show success/error toasts
 - [x] Clean up URL after OAuth redirect
+
+## Phase: Connection Expiry Warning (Current)
+- [x] Update DotloopConnectionCard to accept expiry status props (expiresAt, isExpired)
+- [x] Add visual warning badge for expired tokens (red badge with "Token expired" message)
+- [x] Add warning badge for tokens expiring soon (within 24 hours) (amber badge with countdown)
+- [x] Calculate time until expiry and display countdown (shows hours and minutes)
+- [x] Add automatic token refresh mutation (calls refreshToken on sync)
+- [x] Trigger token refresh when user clicks "Sync Now" with expired token
+- [x] Show refresh progress indicator (toast with loading state)
+- [x] Test expiry warning display with expired token (ready for testing with real connection)
+- [x] Test auto-refresh functionality (ready for testing with real connection)

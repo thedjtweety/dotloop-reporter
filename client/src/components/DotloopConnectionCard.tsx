@@ -6,6 +6,8 @@ interface DotloopConnectionCardProps {
   isConnected?: boolean;
   accountEmail?: string;
   lastSyncTime?: string;
+  expiresAt?: string;
+  isExpired?: boolean;
   onConnect?: () => void;
   onDisconnect?: () => void;
   onSyncNow?: () => void;
@@ -16,11 +18,35 @@ export default function DotloopConnectionCard({
   isConnected = false,
   accountEmail,
   lastSyncTime,
+  expiresAt,
+  isExpired = false,
   onConnect,
   onDisconnect,
   onSyncNow,
   isSyncing = false,
 }: DotloopConnectionCardProps) {
+  // Calculate time until expiry
+  const getExpiryStatus = () => {
+    if (!expiresAt || !isConnected) return null;
+    
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const hoursUntilExpiry = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60);
+    
+    if (isExpired || hoursUntilExpiry <= 0) {
+      return { type: 'expired' as const, message: 'Token expired - will refresh on next sync' };
+    } else if (hoursUntilExpiry <= 24) {
+      const hours = Math.floor(hoursUntilExpiry);
+      const minutes = Math.floor((hoursUntilExpiry - hours) * 60);
+      return { 
+        type: 'expiring' as const, 
+        message: `Token expires in ${hours}h ${minutes}m` 
+      };
+    }
+    return null;
+  };
+  
+  const expiryStatus = getExpiryStatus();
   return (
     <Card className="p-8 border-2 border-emerald-500/20 bg-gradient-to-br from-card to-emerald-950/5 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 h-full flex flex-col">
       <div className="space-y-6 flex-1">
@@ -62,6 +88,24 @@ export default function DotloopConnectionCard({
               </>
             )}
           </div>
+          
+          {/* Expiry Warning */}
+          {expiryStatus && (
+            <div className={`flex items-center gap-3 p-3 rounded-lg border ${
+              expiryStatus.type === 'expired' 
+                ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200/50 dark:border-red-800/50'
+                : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/50 dark:border-amber-800/50'
+            }`}>
+              <AlertCircle className={`w-4 h-4 flex-shrink-0 ${
+                expiryStatus.type === 'expired'
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-amber-600 dark:text-amber-400'
+              }`} />
+              <p className="text-xs font-medium text-foreground">
+                {expiryStatus.message}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Last Sync Info */}
