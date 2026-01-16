@@ -2219,3 +2219,10 @@
 - [ ] Identify the specific error causing callback failure
 - [ ] Fix the identified error
 - [ ] Verify complete OAuth flow works end-to-end
+
+## Phase: Fix Login with Dotloop Redirect (Current)
+- [ ] Check how the Login with Dotloop button triggers OAuth flow
+- [ ] Verify the redirect is using window.location.href (not popup)
+- [ ] Fix any issues preventing the redirect to Zillow Workspace
+- [ ] Test OAuth flow redirects properly to Zillow login
+- [ ] Verify callback returns correctly after authorization

@@ -63,8 +63,8 @@ export function registerDotloopOAuthRoutes(app: Express) {
 
       // Validate required parameters
       if (!code || typeof code !== 'string') {
-        console.error('[DotloopOAuth] Missing authorization code');
-        return res.redirect('/?dotloop_error=missing_code');
+        console.error('[DotloopOAuth] State mismatch or missing');
+        return res.redirect('/?dotloop_error=invalid_state&error_details=CSRF%20state%20validation%20failed');
       }
 
       console.log('[DotloopOAuth] Authorization code received, exchanging for tokens...');
@@ -89,7 +89,8 @@ export function registerDotloopOAuthRoutes(app: Express) {
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
         console.error('[DotloopOAuth] Token exchange failed:', tokenResponse.status, errorText);
-        return res.redirect('/?dotloop_error=token_exchange_failed');
+        const encodedError = encodeURIComponent(errorText.substring(0, 200));
+        return res.redirect(`/?dotloop_error=token_exchange_failed&error_details=${encodedError}`);
       }
 
       console.log('[DotloopOAuth] Token exchange successful, parsing response...');
@@ -104,7 +105,7 @@ export function registerDotloopOAuthRoutes(app: Express) {
 
       if (!access_token) {
         console.error('[DotloopOAuth] No access token in response');
-        return res.redirect('/?dotloop_error=no_access_token');
+        return res.redirect('/?dotloop_error=no_access_token&error_details=Dotloop%20did%20not%20return%20access%20token');
       }
 
       console.log('[DotloopOAuth] ===== STEP 5: Fetching Dotloop profile =====');
@@ -127,7 +128,7 @@ export function registerDotloopOAuthRoutes(app: Express) {
       const db = await getDb();
       if (!db) {
         console.error('[DotloopOAuth] Database not available');
-        return res.redirect('/?dotloop_error=database_error');
+        return res.redirect('/?dotloop_error=database_error&error_details=Database%20connection%20failed');
       }
 
       // Use the actual user ID from database
@@ -195,7 +196,12 @@ export function registerDotloopOAuthRoutes(app: Express) {
       
       console.error('[DotloopOAuth] Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
       console.error('========== END ERROR ==========\n\n');
-      res.redirect('/?dotloop_error=unknown');
+      
+      // Include error details in redirect for debugging
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorName = error instanceof Error ? error.name : 'UnknownError';
+      const encodedMessage = encodeURIComponent(errorMessage.substring(0, 200)); // Limit length
+      res.redirect(`/?dotloop_error=${errorName}&error_details=${encodedMessage}`);
     }
   });
 }
