@@ -2309,3 +2309,13 @@
 - [ ] Identify why success parameter is not being set
 - [ ] Fix identified issue in callback handler
 - [ ] Verify success toast appears after login
+
+## Phase 42: Fix OAuth Token Exchange 401 Unauthorized Error (Current)
+- [x] Review token exchange implementation in exchangeCodeForToken function
+- [x] Verify all required parameters are being sent (code, grant_type, redirect_uri)
+- [x] Fix Client ID and Secret to use Basic Auth header (was incorrectly in form body)
+- [x] Verify redirect_uri matches exactly between authorization and token exchange
+- [x] Add detailed logging to token exchange request
+- [ ] Publish checkpoint with fixes
+- [ ] Test token exchange with fresh authorization code
+- [ ] Verify 200 response and access token received

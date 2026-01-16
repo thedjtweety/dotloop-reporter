@@ -68,24 +68,33 @@ export function getAuthorizationUrl(): string {
  * Exchange authorization code for access token
  */
 async function exchangeCodeForToken(code: string): Promise<DotloopTokenResponse> {
+  // Create Basic Auth header: base64(client_id:client_secret)
+  const credentials = Buffer.from(`${ENV.DOTLOOP_CLIENT_ID}:${ENV.DOTLOOP_CLIENT_SECRET}`).toString('base64');
+  
+  console.log('[Token Exchange] Starting token exchange...');
+  console.log('[Token Exchange] Redirect URI:', ENV.DOTLOOP_REDIRECT_URI);
+  
   const response = await fetch(DOTLOOP_TOKEN_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': `Basic ${credentials}`,
     },
     body: new URLSearchParams({
       grant_type: 'authorization_code',
       code,
-      client_id: ENV.DOTLOOP_CLIENT_ID,
-      client_secret: ENV.DOTLOOP_CLIENT_SECRET,
       redirect_uri: ENV.DOTLOOP_REDIRECT_URI,
     }),
   });
 
   if (!response.ok) {
     const error = await response.text();
+    console.error('[Token Exchange] Failed with status:', response.status);
+    console.error('[Token Exchange] Error response:', error);
     throw new Error(`Token exchange failed: ${error}`);
   }
+  
+  console.log('[Token Exchange] Success! Token received.');
 
   return response.json();
 }
@@ -225,6 +234,7 @@ async function handleCallback(req: Request, res: Response) {
     }
 
     console.log('[Dotloop OAuth] Exchanging code for token...');
+    console.log('[Dotloop OAuth] Authorization code:', code.substring(0, 10) + '...');
     
     // Exchange code for token
     const tokenData = await exchangeCodeForToken(code);
