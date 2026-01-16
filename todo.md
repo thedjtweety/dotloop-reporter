@@ -2604,3 +2604,24 @@ The issue was NOT the OAuth callback parameters. The real problem was that `wind
 - [x] Verify Dotloop API endpoint URL is correct (/account endpoint confirmed)
 - [x] Fix 401 Unauthorized error - Added required OAuth scopes (account:read, profile:read, loop:read, loop_detail:read, contact:read)
 - [ ] Test complete OAuth flow with real credentials (requires user testing)
+
+
+## Phase 44: Fix Account Removal State Clearing (Current)
+
+### Account Removal Issues
+- [ ] Investigate why dashboard shows immediately after account removal
+- [ ] Check if localStorage is being properly cleared
+- [ ] Check if there's cached state in React components
+- [ ] Ensure URL parameters are cleared after OAuth callback
+- [ ] Fix account removal to force complete re-authentication
+- [ ] Test removal and re-connection flow in incognito window
+
+
+## Phase 45: Fix Invalid Scope OAuth Error (Current)
+
+### OAuth Scope Issues
+- [x] Research correct Dotloop OAuth scope names from API documentation
+- [x] Identify which scopes are invalid - Found that Dotloop uses wildcards (*) and comma-separated format
+- [x] Update getAuthorizationUrl with correct scope format: "account:read, profile:*, loop:*, contact:*, template:read"
+- [ ] Test OAuth authorization with corrected scopes (requires user testing)
+- [ ] Verify account fetch works with new scopes (requires user testing)

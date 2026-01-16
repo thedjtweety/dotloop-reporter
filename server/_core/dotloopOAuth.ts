@@ -51,34 +51,32 @@ interface DotloopAccount {
 /**
  * Generate authorization URL for Dotloop OAuth
  * 
- * Required scopes:
- * - account:read: Get account details
- * - profile:read: List and get profiles
- * - loop:read: List and get loops
- * - loop_detail:read: Get loop details
- * - contact:read: List and get contacts
+ * Dotloop OAuth Scopes (from API documentation):
+ * - account:read - Get account details
+ * - profile:* - All profile operations (read, write, create, update)
+ * - loop:* - All loop operations (read, write, details, folders, documents, participants, tasks, activities)
+ * - contact:* - All contact operations (read, write, create, update, delete)
+ * - template:read - Read loop templates
+ * 
+ * Note: Scopes use wildcards (*) for full access to a resource type
+ * and are comma-separated in the authorization request
  */
 export function getAuthorizationUrl(): string {
   const state = crypto.randomBytes(32).toString('hex');
   
-  // Request all necessary scopes for the application
-  const scopes = [
-    'account:read',      // Get account details
-    'profile:read',      // List and get profiles  
-    'loop:read',         // List and get loops
-    'loop_detail:read',  // Get loop details
-    'contact:read',      // List and get contacts
-  ];
+  // Request comprehensive scopes following Dotloop's format
+  // Format: "account:read, profile:*, loop:*, contact:*, template:read"
+  const scope = 'account:read, profile:*, loop:*, contact:*, template:read';
   
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: ENV.DOTLOOP_CLIENT_ID,
     redirect_uri: ENV.DOTLOOP_REDIRECT_URI,
-    scope: scopes.join(' '),  // Space-separated scopes
+    scope,
     state,
   });
 
-  console.log('[OAuth] Authorization URL created with scopes:', scopes.join(' '));
+  console.log('[OAuth] Authorization URL created with scope:', scope);
   return `${DOTLOOP_AUTH_URL}?${params.toString()}`;
 }
 

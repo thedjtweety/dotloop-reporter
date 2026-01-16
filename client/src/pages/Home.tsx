@@ -35,9 +35,12 @@ export default function Home() {
   }, []);
 
   const loadAccountData = async () => {
+    console.log('[Home] loadAccountData called');
+    
     // Check for OAuth callback
     const account = handleOAuthCallback();
     if (account) {
+      console.log('[Home] OAuth callback processed, account:', account.email);
       setActiveAccount(account);
       setIsConnected(true);
       await syncTransactions(account);
@@ -45,13 +48,22 @@ export default function Home() {
     }
 
     // Check if user has any connected accounts
-    if (hasAccounts()) {
+    const hasAnyAccounts = hasAccounts();
+    console.log('[Home] Has accounts in localStorage:', hasAnyAccounts);
+    
+    if (hasAnyAccounts) {
       const active = getActiveAccount();
+      console.log('[Home] Active account:', active?.email);
       setActiveAccount(active);
       setIsConnected(true);
       if (active) {
         await syncTransactions(active);
       }
+    } else {
+      console.log('[Home] No accounts found, showing connection screen');
+      setActiveAccount(null);
+      setIsConnected(false);
+      setTransactions([]);
     }
   };
 
@@ -85,10 +97,12 @@ export default function Home() {
   };
 
   const handleLogout = () => {
+    console.log('[Home] handleLogout called');
     setActiveAccount(null);
     setIsConnected(false);
     setTransactions([]);
     setLastSyncTime(null);
+    setError(null);
   };
 
   const handleConnect = () => {
