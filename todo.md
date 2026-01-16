@@ -2300,3 +2300,12 @@
 - [x] Redirect to homepage with success parameter after OAuth callback
 - [ ] Test login flow shows success message
 - [ ] Verify success toast appears after login
+
+## Phase 41: Debug OAuth Callback Silent Failure (Current)
+- [x] Add comprehensive logging to OAuth callback handler
+- [ ] Publish checkpoint with enhanced logging
+- [ ] Test OAuth flow on published site
+- [ ] Check server logs for detailed callback execution trace
+- [ ] Identify why success parameter is not being set
+- [ ] Fix identified issue in callback handler
+- [ ] Verify success toast appears after login

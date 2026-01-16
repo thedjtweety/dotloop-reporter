@@ -206,7 +206,10 @@ async function storeTokens(
  */
 async function handleCallback(req: Request, res: Response) {
   try {
+    console.log('[Dotloop OAuth] ========== CALLBACK START ==========');
     console.log('[Dotloop OAuth] Callback received');
+    console.log('[Dotloop OAuth] Full URL:', req.url);
+    console.log('[Dotloop OAuth] Query params:', JSON.stringify(req.query));
     
     const { code, state, error } = req.query;
 
@@ -269,14 +272,24 @@ async function handleCallback(req: Request, res: Response) {
     const cookieOptions = getSessionCookieOptions(req);
     res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-    console.log('[Dotloop OAuth] Success! Redirecting to homepage...');
+    console.log('[Dotloop OAuth] ========== SUCCESS ==========');
+    console.log('[Dotloop OAuth] User ID:', user.id);
+    console.log('[Dotloop OAuth] User email:', user.email);
+    console.log('[Dotloop OAuth] Session token created');
+    console.log('[Dotloop OAuth] Cookie set with name:', COOKIE_NAME);
+    console.log('[Dotloop OAuth] Redirecting to: /?login_success=true');
+    console.log('[Dotloop OAuth] ========== CALLBACK END ==========');
     
     // Redirect to homepage with success parameter to show toast
     return res.redirect('/?login_success=true');
 
   } catch (error) {
+    console.error('[Dotloop OAuth] ========== ERROR ==========');
     console.error('[Dotloop OAuth] Callback error:', error);
+    console.error('[Dotloop OAuth] Error stack:', error instanceof Error ? error.stack : 'No stack');
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Dotloop OAuth] Redirecting with error:', errorMessage);
+    console.error('[Dotloop OAuth] ========== CALLBACK END (ERROR) ==========');
     return res.redirect(`/?dotloop_error=callback_failed&error_details=${encodeURIComponent(errorMessage)}`);
   }
 }
