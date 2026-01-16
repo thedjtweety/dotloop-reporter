@@ -56,8 +56,7 @@ import UploadZone from '@/components/UploadZone';
 import CommissionProjector from '@/components/CommissionProjector';
 import RecentUploads, { RecentFile } from '@/components/RecentUploads';
 import UploadHistory from '@/components/UploadHistory';
-import ConnectDotloop from '@/components/ConnectDotloop';
-import DotloopConnectionCard from '@/components/DotloopConnectionCard';
+
 import MetricCard from '@/components/MetricCard';
 import ProjectedToCloseCard from '@/components/ProjectedToCloseCard';
 import ColumnMapping from '@/components/ColumnMapping';
@@ -665,13 +664,8 @@ function HomeContent() {
               </h1>
             </div>
             <div className="flex items-center gap-4">
-              {!isAuthenticated ? (
-                <Button onClick={connectDotloop} variant="default" className="bg-primary hover:bg-primary/90">
-                  Login with Dotloop
-                </Button>
-              ) : (
+              {isAuthenticated && (
                 <>
-                  <ConnectDotloop variant="button" />
                   {user?.role === 'admin' && (
                     <Button variant="ghost" onClick={() => setLocation('/admin')}>
                       <Settings className="h-4 w-4 mr-2" />
@@ -681,6 +675,9 @@ function HomeContent() {
                   <Button variant="ghost" onClick={() => setLocation('/settings')}>
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
+                  </Button>
+                  <Button variant="outline" onClick={logout}>
+                    Logout
                   </Button>
                 </>
               )}
@@ -734,51 +731,53 @@ function HomeContent() {
                 )}
               </div>
 
-              {/* Right Column: Dotloop Connection */}
+              {/* Right Column: Login with Dotloop */}
               <div className="flex flex-col space-y-4">
-                <h3 className="text-lg font-semibold text-foreground">Connect Dotloop</h3>
-                <DotloopConnectionCard
-                  isConnected={connectionStatus?.connected ?? false}
-                  accountEmail={user?.email ?? undefined}
-                  lastSyncTime={connectionStatus?.lastUsedAt ? new Date(connectionStatus.lastUsedAt).toLocaleString() : undefined}
-                  expiresAt={connectionStatus?.expiresAt}
-                  isExpired={connectionStatus?.isExpired ?? false}
-                  onConnect={connectDotloop}
-                  onDisconnect={async () => {
-                    try {
-                      await trpcUtils.client.dotloopOAuth.revokeAccess.mutate({
-                        ipAddress: '0.0.0.0', // Will be replaced by server with actual IP
-                        userAgent: navigator.userAgent,
-                      });
-                      toast.success('Disconnected from Dotloop successfully');
-                      refetchConnection();
-                    } catch (error) {
-                      console.error('Failed to disconnect:', error);
-                      toast.error('Failed to disconnect from Dotloop');
-                    }
-                  }}
-                  onSyncNow={async () => {
-                    try {
-                      // If token is expired, refresh it first
-                      if (connectionStatus?.isExpired) {
-                        toast.loading('Refreshing expired token...');
-                        await trpcUtils.client.dotloopOAuth.refreshToken.mutate({
-                          ipAddress: '0.0.0.0',
-                          userAgent: navigator.userAgent,
-                        });
-                        toast.dismiss();
-                        toast.success('Token refreshed successfully!');
-                        refetchConnection();
-                      } else {
-                        toast.success('Sync functionality coming soon!');
-                      }
-                    } catch (error) {
-                      toast.dismiss();
-                      console.error('Failed to refresh token:', error);
-                      toast.error('Failed to refresh token. Please reconnect.');
-                    }
-                  }}
-                />
+                <Card className="p-8 border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent hover:border-primary/40 transition-all">
+                  <div className="space-y-6">
+                    <div className="space-y-2 text-center">
+                      <h3 className="text-2xl font-bold text-foreground">Login with Dotloop</h3>
+                      <p className="text-foreground/70">
+                        Connect your Dotloop account for real-time data sync and automatic updates
+                      </p>
+                    </div>
+
+                    {!isAuthenticated ? (
+                      <div className="space-y-4">
+                        <Button 
+                          onClick={connectDotloop} 
+                          className="w-full h-12 text-lg bg-primary hover:bg-primary/90"
+                          size="lg"
+                        >
+                          <img src="/dotloop-logo.png" alt="Dotloop" className="h-5 w-5 mr-2" />
+                          Login with Dotloop
+                        </Button>
+                        
+                        <div className="space-y-2 text-sm text-foreground/60">
+                          <p className="font-semibold text-foreground">Key Benefits:</p>
+                          <ul className="space-y-1 list-disc list-inside">
+                            <li>Real-time transaction data sync</li>
+                            <li>Automatic commission calculations</li>
+                            <li>No manual CSV uploads needed</li>
+                            <li>Always current and up-to-date</li>
+                          </ul>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 text-center">
+                        <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
+                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span className="font-semibold">Connected as {user?.email}</span>
+                        </div>
+                        <p className="text-sm text-foreground/60">
+                          Your Dotloop account is connected and ready to sync data.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </Card>
               </div>
             </div>
           </div>

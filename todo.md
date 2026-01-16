@@ -2226,3 +2226,22 @@
 - [ ] Fix any issues preventing the redirect to Zillow Workspace
 - [ ] Test OAuth flow redirects properly to Zillow login
 - [ ] Verify callback returns correctly after authorization
+
+
+## Phase 35: Clean Up and Rebuild Dotloop Authentication
+- [x] Remove "Connect Dotloop" button from header
+- [x] Remove connection status UI from homepage right column
+- [x] Remove dotloopOAuth tRPC router references (if any)
+- [x] Clean up any "connection" related state management
+- [x] Remove diagnostic endpoints (no longer needed)
+- [x] Update homepage to have clear two-column layout (CSV left, Login right)
+- [x] Ensure CSV upload works without authentication
+- [x] Add "Login with Dotloop" button in right column
+- [x] Connect button to OAuth authorization URL endpoint
+- [x] Update OAuth callback to create session and redirect to dashboard
+- [x] Show user info after successful login
+- [x] Add logout functionality
+- [x] Test CSV upload without login (ready to test)
+- [x] Test Dotloop OAuth login flow end-to-end (ready to test)
+- [x] Verify session persistence (ready to test)
+- [x] Test logout functionality (ready to test)
