@@ -2277,3 +2277,10 @@
 - [ ] Store synced loops in database or local state
 - [ ] Display synced data in dashboard
 - [ ] Test complete sync flow end-to-end
+
+
+## Phase 38: Delete OAuth Tokens on Logout
+- [x] Update logout endpoint to delete OAuth tokens from database
+- [ ] Test logout deletes tokens properly
+- [ ] Test re-login after logout works without Dotloop error
+- [ ] Verify user can re-authorize immediately after logout

@@ -42,6 +42,31 @@ export const appRouter = router({
       const dotloopCookieOptions = getDotloopCookieOptions();
       ctx.res.clearCookie(getSessionCookieName(), { ...dotloopCookieOptions, maxAge: -1 });
       
+      // Delete OAuth tokens from database if user is authenticated
+      if (ctx.user) {
+        try {
+          const { getDb } = await import('./db');
+          const schema = await import('../drizzle/schema');
+          const { eq, and } = await import('drizzle-orm');
+          
+          const db = await getDb();
+          if (db) {
+            await db.delete(schema.oauthTokens)
+              .where(
+                and(
+                  eq(schema.oauthTokens.userId, ctx.user.id),
+                  eq(schema.oauthTokens.provider, 'dotloop')
+                )
+              );
+            
+            console.log(`[Logout] Deleted Dotloop OAuth tokens for user ${ctx.user.id}`);
+          }
+        } catch (error) {
+          console.error('[Logout] Failed to delete OAuth tokens:', error);
+          // Don't fail the logout if token deletion fails
+        }
+      }
+      
       return {
         success: true,
       } as const;
