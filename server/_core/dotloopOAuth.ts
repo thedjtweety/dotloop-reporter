@@ -8,6 +8,7 @@ import { Express, Request, Response } from 'express';
 import { getDb } from '../db';
 import { oauthTokens, tokenAuditLogs } from '../../drizzle/schema';
 import { tokenEncryption } from '../lib/token-encryption';
+import { eq } from 'drizzle-orm';
 
 const DOTLOOP_TOKEN_URL = 'https://auth.dotloop.com/oauth/token';
 
@@ -172,6 +173,31 @@ export function registerDotloopOAuthRoutes(app: Express) {
         insertData.encryptedRefreshToken = 'N/A';
       }
 
+      // Delete any existing tokens for this user/provider combination
+      console.log('[DotloopOAuth] Checking for existing tokens...');
+      const { and: andOp } = await import('drizzle-orm');
+      const existingTokens = await db
+        .select()
+        .from(oauthTokens)
+        .where(
+          andOp(
+            eq(oauthTokens.tenantId, tenantId),
+            eq(oauthTokens.userId, userId),
+            eq(oauthTokens.provider, 'dotloop')
+          )
+        )
+        .limit(1);
+      
+      if (existingTokens.length > 0) {
+        console.log('[DotloopOAuth] Found existing token, deleting...');
+        await db
+          .delete(oauthTokens)
+          .where(eq(oauthTokens.id, existingTokens[0].id));
+        console.log('[DotloopOAuth] Existing token deleted');
+      } else {
+        console.log('[DotloopOAuth] No existing token found');
+      }
+      
       console.log('[DotloopOAuth] Executing insert...');
       await db.insert(oauthTokens).values(insertData);
       console.log('[DotloopOAuth] Insert successful!');
