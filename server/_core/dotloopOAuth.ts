@@ -307,6 +307,45 @@ async function handleAuthorize(req: Request, res: Response) {
 }
 
 /**
+ * Revoke token endpoint
+ */
+async function handleRevoke(req: Request, res: Response) {
+  try {
+    const { access_token } = req.body;
+    
+    if (!access_token) {
+      return res.status(400).json({ error: 'Missing access_token' });
+    }
+    
+    // Call Dotloop token revocation endpoint
+    const credentials = Buffer.from(`${ENV.DOTLOOP_CLIENT_ID}:${ENV.DOTLOOP_CLIENT_SECRET}`).toString('base64');
+    
+    const response = await fetch('https://auth.dotloop.com/oauth/token/revoke', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${credentials}`,
+      },
+      body: new URLSearchParams({
+        token: access_token,
+      }),
+    });
+    
+    if (!response.ok) {
+      console.error('[Dotloop OAuth] Token revocation failed:', response.status);
+      return res.status(500).json({ error: 'Token revocation failed' });
+    }
+    
+    console.log('[Dotloop OAuth] Token revoked successfully');
+    return res.json({ success: true });
+    
+  } catch (error) {
+    console.error('[Dotloop OAuth] Revoke error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+/**
  * Register OAuth routes
  */
 export function registerDotloopOAuthRoutes(app: Express) {
@@ -315,6 +354,9 @@ export function registerDotloopOAuthRoutes(app: Express) {
   
   // OAuth callback
   app.get('/api/dotloop/callback', handleCallback);
+  
+  // Token revocation
+  app.post('/api/dotloop/revoke', handleRevoke);
   
   console.log('[Dotloop OAuth] Routes registered');
 }

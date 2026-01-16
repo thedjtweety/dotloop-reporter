@@ -2525,3 +2525,33 @@ The issue was NOT the OAuth callback parameters. The real problem was that `wind
 - [ ] Create mock Dotloop data for testing
 - [ ] Test all charts and metrics display correctly
 - [ ] Ensure responsive design and interactions work
+
+
+## Phase 40: OAuth Authentication & Multi-Account Support (Current)
+
+### OAuth Authentication Flow
+- [x] Create localStorage-based multi-account management utilities (dotloopAuth.ts)
+- [x] Build OAuth connection flow with authorization code flow
+- [x] Implement OAuth callback handler to process tokens
+- [x] Add error handling for OAuth failures
+
+### Multi-Account Management
+- [x] Create AccountSwitcher dropdown component
+- [x] Add "Connect to Dotloop" button for first account
+- [x] Add "Add Another Account" button when accounts exist
+- [x] Display list of connected accounts in dropdown
+- [x] Allow switching between accounts
+- [x] Allow removing individual accounts
+
+### Logout Functionality
+- [x] Implement complete logout that clears:
+  - localStorage (all account data)
+  - sessionStorage
+  - Backend tokens (via API call)
+- [x] Return user to login screen after logout
+
+### UI Updates
+- [x] Update Home.tsx to show OAuth connection UI when no accounts
+- [x] Update Home.tsx to show dashboard when account is connected
+- [x] Add AccountSwitcher to dashboard header
+- [x] Show current account info in UI
