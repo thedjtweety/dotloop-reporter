@@ -10,6 +10,40 @@ const REFRESH_TOKEN_KEY = 'dotloop_refresh_token';
 const EXPIRES_AT_KEY = 'dotloop_token_expires_at';
 const ACCOUNT_KEY = 'dotloop_account';
 
+/**
+ * Safe localStorage wrapper to handle edge cases
+ */
+const storage = {
+  getItem(key: string): string | null {
+    try {
+      if (typeof window === 'undefined') return null;
+      if (!window.localStorage) return null;
+      return window.localStorage.getItem(key);
+    } catch (e) {
+      console.error('[Storage] getItem error:', e);
+      return null;
+    }
+  },
+  setItem(key: string, value: string): void {
+    try {
+      if (typeof window === 'undefined') return;
+      if (!window.localStorage) return;
+      window.localStorage.setItem(key, value);
+    } catch (e) {
+      console.error('[Storage] setItem error:', e);
+    }
+  },
+  removeItem(key: string): void {
+    try {
+      if (typeof window === 'undefined') return;
+      if (!window.localStorage) return;
+      window.localStorage.removeItem(key);
+    } catch (e) {
+      console.error('[Storage] removeItem error:', e);
+    }
+  }
+};
+
 export interface DotloopToken {
   accessToken: string;
   refreshToken?: string;
@@ -30,11 +64,11 @@ export interface DotloopAccount {
 export function storeTokens(accessToken: string, expiresIn: number, refreshToken?: string) {
   const expiresAt = Date.now() + (expiresIn * 1000);
   
-  localStorage.setItem(TOKEN_KEY, accessToken);
-  localStorage.setItem(EXPIRES_AT_KEY, expiresAt.toString());
+  storage.setItem(TOKEN_KEY, accessToken);
+  storage.setItem(EXPIRES_AT_KEY, expiresAt.toString());
   
   if (refreshToken) {
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    storage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   }
   
   console.log('[Dotloop Auth] Tokens stored in localStorage');
@@ -44,7 +78,7 @@ export function storeTokens(accessToken: string, expiresIn: number, refreshToken
  * Store account info in localStorage
  */
 export function storeAccount(account: DotloopAccount) {
-  localStorage.setItem(ACCOUNT_KEY, JSON.stringify(account));
+  storage.setItem(ACCOUNT_KEY, JSON.stringify(account));
   console.log('[Dotloop Auth] Account info stored');
 }
 
@@ -52,7 +86,7 @@ export function storeAccount(account: DotloopAccount) {
  * Get stored account info
  */
 export function getStoredAccount(): DotloopAccount | null {
-  const accountStr = localStorage.getItem(ACCOUNT_KEY);
+  const accountStr = storage.getItem(ACCOUNT_KEY);
   if (!accountStr) return null;
   
   try {
@@ -66,9 +100,9 @@ export function getStoredAccount(): DotloopAccount | null {
  * Get stored tokens from localStorage
  */
 export function getStoredTokens(): DotloopToken | null {
-  const accessToken = localStorage.getItem(TOKEN_KEY);
-  const expiresAtStr = localStorage.getItem(EXPIRES_AT_KEY);
-  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY) || undefined;
+  const accessToken = storage.getItem(TOKEN_KEY);
+  const expiresAtStr = storage.getItem(EXPIRES_AT_KEY);
+  const refreshToken = storage.getItem(REFRESH_TOKEN_KEY) || undefined;
   
   if (!accessToken || !expiresAtStr) {
     return null;
@@ -100,10 +134,10 @@ export function isTokenValid(): boolean {
  * Clear all stored tokens and account info
  */
 export function clearAuth() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-  localStorage.removeItem(EXPIRES_AT_KEY);
-  localStorage.removeItem(ACCOUNT_KEY);
+  storage.removeItem(TOKEN_KEY);
+  storage.removeItem(REFRESH_TOKEN_KEY);
+  storage.removeItem(EXPIRES_AT_KEY);
+  storage.removeItem(ACCOUNT_KEY);
   console.log('[Dotloop Auth] Auth data cleared from localStorage');
 }
 

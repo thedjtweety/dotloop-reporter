@@ -11,7 +11,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { handleOAuthCallback, isActiveTokenValid, getActiveAccount, getAllAccounts } from '@/lib/dotloopMultiAuth';
+import { handleOAuthCallback, isActiveTokenValid, getActiveAccount, getAllAccounts, clearAllAccounts } from '@/lib/dotloopMultiAuth';
 import { trpc } from '@/lib/trpc';
 import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent, Settings, ArrowLeft, AlertCircle, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -754,7 +754,10 @@ function HomeContent() {
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
                   </Button>
-                  <Button variant="outline" onClick={logout}>
+                  <Button variant="outline" onClick={() => {
+                    clearAllAccounts();
+                    logout();
+                  }}>
                     Logout
                   </Button>
                 </>
@@ -1015,7 +1018,7 @@ function HomeContent() {
               )}
               <ModeToggle />
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="sm"
                 onClick={() => {
                   setMetrics(null);
