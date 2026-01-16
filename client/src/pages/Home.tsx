@@ -111,22 +111,14 @@ function HomeContent() {
   const [location, setLocation] = useLocation();
   
   // Dotloop OAuth connection
+  const trpcUtils = trpc.useUtils();
   const connectDotloop = async () => {
     try {
       // Generate random state for CSRF protection
       const state = Math.random().toString(36).substring(2, 15);
       
-      // Get authorization URL from backend via fetch (since we can't use useQuery in callback)
-      const response = await fetch('/api/trpc/dotloopOAuth.getAuthorizationUrl?input=' + encodeURIComponent(JSON.stringify({ state })), {
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to get authorization URL');
-      }
-      
-      const data = await response.json();
-      const result = data.result.data;
+      // Get authorization URL from backend using tRPC client
+      const result = await trpcUtils.client.dotloopOAuth.getAuthorizationUrl.query({ state });
       
       // Redirect to Dotloop OAuth page
       window.location.href = result.url;

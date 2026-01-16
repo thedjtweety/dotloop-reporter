@@ -11,6 +11,7 @@
 
 import { z } from 'zod';
 import { protectedProcedure, router } from './_core/trpc';
+import { publicProcedure } from './_core/trpc';
 import { getDb } from './db';
 import { oauthTokens, tokenAuditLogs } from '../drizzle/schema';
 import { tokenEncryption } from './lib/token-encryption';
@@ -86,7 +87,7 @@ export const dotloopOAuthRouter = router({
    * Get authorization URL for OAuth flow
    * Returns the URL to redirect the user to for authorization
    */
-  getAuthorizationUrl: protectedProcedure
+  getAuthorizationUrl: publicProcedure
     .input(z.object({
       state: z.string().optional(),
     }))
