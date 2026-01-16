@@ -154,24 +154,44 @@ function HomeContent() {
     const params = new URLSearchParams(window.location.search);
     const dotloopConnected = params.get('dotloop_connected');
     const dotloopError = params.get('dotloop_error');
+    const errorDetails = params.get('error_details');
     
     if (dotloopConnected === 'true') {
+      console.log('[OAuth Callback] Successfully connected to Dotloop!');
       toast.success('Successfully connected to Dotloop!');
       refetchConnection();
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
     } else if (dotloopError) {
+      // Log the full error for debugging
+      console.error('[OAuth Callback] Dotloop connection failed');
+      console.error('[OAuth Callback] Error type:', dotloopError);
+      console.error('[OAuth Callback] Error details:', errorDetails);
+      console.error('[OAuth Callback] Full URL:', window.location.href);
+      
       const errorMessages: Record<string, string> = {
         'missing_code': 'Authorization code was missing',
         'token_exchange_failed': 'Failed to exchange authorization code for tokens',
         'no_access_token': 'No access token received from Dotloop',
         'database_error': 'Database error occurred',
+        'invalid_state': 'CSRF state validation failed',
+        'no_code': 'Dotloop did not return authorization code',
+        'Error': 'An error occurred during authentication',
         'unknown': 'An unknown error occurred',
       };
+      
       const errorMessage = errorMessages[dotloopError] || errorMessages['unknown'];
-      toast.error(`Failed to connect to Dotloop: ${errorMessage}`);
-      // Clean up URL
-      window.history.replaceState({}, '', window.location.pathname);
+      const fullErrorMessage = errorDetails 
+        ? `${errorMessage}: ${decodeURIComponent(errorDetails)}`
+        : errorMessage;
+      
+      // Show error toast with longer duration so user can read it
+      toast.error(fullErrorMessage, { duration: 10000 });
+      
+      // Don't clean up URL immediately - let user see it
+      setTimeout(() => {
+        window.history.replaceState({}, '', window.location.pathname);
+      }, 1000);
     }
   }, [refetchConnection]);
   
