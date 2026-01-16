@@ -143,20 +143,43 @@ export function registerDotloopOAuthRoutes(app: Express) {
 
       const expiresAt = new Date(Date.now() + (expires_in * 1000));
       console.log('[DotloopOAuth] ===== STEP 10: Inserting tokens into database =====');
+      console.log('[DotloopOAuth] Insert values:', {
+        tenantId,
+        userId,
+        provider: 'dotloop',
+        hasAccessToken: !!encryptedAccessToken,
+        hasRefreshToken: !!encryptedRefreshToken,
+        tokenExpiresAt: expiresAt.toISOString(),
+      });
 
-      await db.insert(oauthTokens).values({
+      // Prepare insert data - only include refresh token if it exists
+      const insertData: any = {
         tenantId,
         userId,
         provider: 'dotloop',
         encryptedAccessToken,
-        encryptedRefreshToken: encryptedRefreshToken || '',
         tokenHash,
         tokenExpiresAt: expiresAt.toISOString().slice(0, 19).replace('T', ' '),
-      });
+        ipAddress: req.ip || req.socket.remoteAddress || null,
+        userAgent: req.get('user-agent') || null,
+      };
+
+      // Only add refresh token if it exists (Dotloop might not always provide one)
+      if (encryptedRefreshToken) {
+        insertData.encryptedRefreshToken = encryptedRefreshToken;
+      } else {
+        // Use a placeholder if refresh token is required but not provided
+        insertData.encryptedRefreshToken = 'N/A';
+      }
+
+      console.log('[DotloopOAuth] Executing insert...');
+      await db.insert(oauthTokens).values(insertData);
+      console.log('[DotloopOAuth] Insert successful!');
 
       console.log('[DotloopOAuth] ===== STEP 11: Token insert successful, creating audit log =====');
       
       // Log successful token creation
+      console.log('[DotloopOAuth] Creating audit log entry...');
       await db.insert(tokenAuditLogs).values({
         tenantId,
         userId,
