@@ -2155,3 +2155,15 @@
 - [ ] Test complete OAuth flow end-to-end with real Dotloop account
 - [ ] Verify tokens are stored correctly in database
 - [ ] Verify connection status updates to "Connected" on homepage
+
+## Phase: Connection Status UI (Current)
+- [x] Create tRPC endpoint to check Dotloop connection status (already exists: getConnectionStatus)
+- [x] Create tRPC endpoint to disconnect from Dotloop (already exists: revokeAccess)
+- [x] Update Home.tsx to fetch and display connection status
+- [x] Show "Connected" state with connection details (connected date, account info)
+- [x] Show "Not Connected" state with connect button
+- [x] Add disconnect button for connected state
+- [x] Add loading states for connection checks
+- [x] Test connection status UI with connected and disconnected states
+- [x] Add OAuth callback handling to show success/error toasts
+- [x] Clean up URL after OAuth redirect

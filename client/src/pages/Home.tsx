@@ -112,6 +112,8 @@ function HomeContent() {
   
   // Dotloop OAuth connection
   const trpcUtils = trpc.useUtils();
+  const { data: connectionStatus, isLoading: isLoadingConnection, refetch: refetchConnection } = trpc.dotloopOAuth.getConnectionStatus.useQuery();
+  
   const connectDotloop = async () => {
     try {
       console.log('[OAuth Debug] Starting Dotloop connection flow...');
@@ -145,6 +147,32 @@ function HomeContent() {
       alert(`Failed to connect to Dotloop.\n\nError: ${errorMessage}\n\nPlease check the browser console for more details and try again.`);
     }
   };
+  // Handle OAuth callback redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const dotloopConnected = params.get('dotloop_connected');
+    const dotloopError = params.get('dotloop_error');
+    
+    if (dotloopConnected === 'true') {
+      toast.success('Successfully connected to Dotloop!');
+      refetchConnection();
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (dotloopError) {
+      const errorMessages: Record<string, string> = {
+        'missing_code': 'Authorization code was missing',
+        'token_exchange_failed': 'Failed to exchange authorization code for tokens',
+        'no_access_token': 'No access token received from Dotloop',
+        'database_error': 'Database error occurred',
+        'unknown': 'An unknown error occurred',
+      };
+      const errorMessage = errorMessages[dotloopError] || errorMessages['unknown'];
+      toast.error(`Failed to connect to Dotloop: ${errorMessage}`);
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [refetchConnection]);
+  
   const { showTour, completeTour, skipTour } = useOnboardingTour();
   const [allRecords, setAllRecords] = useState<DotloopRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<DotloopRecord[]>([]);
@@ -683,8 +711,26 @@ function HomeContent() {
               <div className="flex flex-col space-y-4">
                 <h3 className="text-lg font-semibold text-foreground">Connect Dotloop</h3>
                 <DotloopConnectionCard
-                  isConnected={false}
+                  isConnected={connectionStatus?.connected ?? false}
+                  accountEmail={user?.email ?? undefined}
+                  lastSyncTime={connectionStatus?.lastUsedAt ? new Date(connectionStatus.lastUsedAt).toLocaleString() : undefined}
                   onConnect={connectDotloop}
+                  onDisconnect={async () => {
+                    try {
+                      await trpcUtils.client.dotloopOAuth.revokeAccess.mutate({
+                        ipAddress: '0.0.0.0', // Will be replaced by server with actual IP
+                        userAgent: navigator.userAgent,
+                      });
+                      toast.success('Disconnected from Dotloop successfully');
+                      refetchConnection();
+                    } catch (error) {
+                      console.error('Failed to disconnect:', error);
+                      toast.error('Failed to disconnect from Dotloop');
+                    }
+                  }}
+                  onSyncNow={async () => {
+                    toast.success('Sync functionality coming soon!');
+                  }}
                 />
               </div>
             </div>
