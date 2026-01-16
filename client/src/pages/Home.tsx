@@ -218,12 +218,14 @@ function HomeContent() {
     
     if (loginSuccess === 'true') {
       console.log('[OAuth Callback] Successfully logged in with Dotloop!');
+      handleOAuthCallback();
       toast.success('Successfully logged in with Dotloop! You can now sync your data.', { duration: 5000 });
       refetchConnection();
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
     } else if (dotloopConnected === 'true') {
       console.log('[OAuth Callback] Successfully connected to Dotloop!');
+      handleOAuthCallback();
       toast.success('Successfully connected to Dotloop!');
       refetchConnection();
       // Clean up URL
