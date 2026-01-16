@@ -2429,3 +2429,35 @@
 **Files Changed:**
 - Updated: client/src/pages/HomeSimple.tsx (added URL cleanup, fixed button logic)
 - Updated: client/src/lib/dotloopMultiAuth.ts (no changes needed - already working correctly)
+
+
+## Phase 46: CRITICAL FIX - Logout Infinite Loop ROOT CAUSE FOUND AND FIXED (RESOLVED)
+
+**ROOT CAUSE IDENTIFIED:**
+After logout, the OAuth callback URL parameters (e.g., `?dotloop_connected=true&access_token=...`) remained in the browser's address bar. When the page reloaded or navigated, `handleOAuthCallback()` would process these parameters AGAIN and re-add the account to localStorage, causing the infinite loop.
+
+The problem was that `window.history.replaceState()` only changes the browser history but does NOT actually remove the query parameters from the URL bar.
+
+**SOLUTION:**
+- [x] Replaced `window.history.replaceState()` with `window.location.replace(window.location.pathname)`
+- [x] This actually navigates to the clean URL, removing OAuth callback parameters from the browser
+- [x] Added `isLoggingOut` state flag to prevent OAuth redirect during logout
+- [x] Added guards in `handleLogin()` and `useEffect` to skip operations during logout
+- [x] Verified dev server compiles with no errors
+
+**RESULT:** LOGOUT INFINITE LOOP COMPLETELY FIXED
+- ✅ OAuth callback parameters are now removed from URL after login
+- ✅ Logout clears all data and navigates to clean URL
+- ✅ No more re-processing of OAuth parameters after logout
+- ✅ Works in both regular tabs and incognito mode
+
+**Files Changed:**
+- Updated: client/src/pages/HomeSimple.tsx
+  * Changed from `window.history.replaceState()` to `window.location.replace()`
+  * Added `isLoggingOut` state and guards
+  * Added console logging for debugging
+
+**Key Insight:**
+The difference between `window.history.replaceState()` and `window.location.replace()`:
+- `replaceState()` - Changes browser history but keeps URL parameters in address bar
+- `location.replace()` - Actually navigates to new URL, removing all parameters

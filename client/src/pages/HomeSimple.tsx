@@ -25,11 +25,18 @@ export default function HomeSimple() {
   const [isLoading, setIsLoading] = useState(true);
   const [loops, setLoops] = useState<any[]>([]);
   const [isLoadingLoops, setIsLoadingLoops] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Handle OAuth callback and check for existing tokens
   useEffect(() => {
     const initAuth = async () => {
       console.log('[HomeSimple] Initializing auth...');
+      
+      // Skip if we're logging out
+      if (isLoggingOut) {
+        console.log('[HomeSimple] Skipping auth init - logout in progress');
+        return;
+      }
       
       // Check if this is an OAuth callback
       const hasNewTokens = handleOAuthCallback();
@@ -43,8 +50,8 @@ export default function HomeSimple() {
         setAccount(activeAccount);
         if (hasNewTokens) {
           toast.success(`Successfully connected as ${activeAccount.email}!`);
-          // Clean URL after successful OAuth callback
-          window.history.replaceState({}, document.title, window.location.pathname);
+          // Clean URL after successful OAuth callback by navigating to clean URL
+          window.location.replace(window.location.pathname);
         }
       }
       
@@ -52,9 +59,15 @@ export default function HomeSimple() {
     };
 
     initAuth();
-  }, []);
+  }, [isLoggingOut]);
 
   const handleLogin = () => {
+    // Don't redirect if we're in the middle of logging out
+    if (isLoggingOut) {
+      console.log('[OAuth] Skipping redirect - logout in progress');
+      return;
+    }
+    
     console.log('[OAuth] Redirecting to Dotloop OAuth...');
     
     // Generate authorization URL
@@ -79,12 +92,22 @@ export default function HomeSimple() {
 
   const handleLogout = () => {
     console.log('[HomeSimple] Logging out...');
+    console.log('[HomeSimple] Current account before logout:', account);
+    console.log('[HomeSimple] All accounts before logout:', getAllAccounts());
+    
+    setIsLoggingOut(true);
     clearAllAccounts();
     setAccount(null);
     setLoops([]);
-    // Clean URL to prevent OAuth callback from re-processing
-    window.history.replaceState({}, document.title, window.location.pathname);
+    
+    console.log('[HomeSimple] All accounts after logout:', getAllAccounts());
+    console.log('[HomeSimple] Active account after logout:', getActiveAccount());
+    
     toast.success('Logged out successfully');
+    
+    // Clean URL completely by navigating to clean URL (removes query parameters from browser)
+    // Use window.location.replace to actually remove the OAuth callback parameters
+    window.location.replace(window.location.pathname);
   };
 
   const handleRemoveAccount = (email: string) => {
@@ -168,9 +191,9 @@ export default function HomeSimple() {
                 </div>
               )}
               
-              <Button variant="outline" onClick={handleLogout} size="sm">
+              <Button variant="outline" onClick={handleLogout} size="sm" disabled={isLoggingOut}>
                 <LogOut className="w-4 h-4 mr-2" />
-                Logout
+                {isLoggingOut ? 'Logging out...' : 'Logout'}
               </Button>
             </div>
           )}
@@ -204,6 +227,7 @@ export default function HomeSimple() {
                   onClick={handleLogin}
                   size="lg"
                   className="w-full"
+                  disabled={isLoggingOut}
                 >
                   Connect to Dotloop
                 </Button>
@@ -265,6 +289,7 @@ export default function HomeSimple() {
                               variant="ghost" 
                               size="sm"
                               onClick={() => handleLogout()}
+                              disabled={isLoggingOut}
                             >
                               Logout
                             </Button>
@@ -298,6 +323,7 @@ export default function HomeSimple() {
                     size="sm"
                     className="w-full"
                     onClick={handleLogin}
+                    disabled={isLoggingOut}
                   >
                     Add Another Account
                   </Button>
