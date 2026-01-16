@@ -279,6 +279,29 @@ async function handleCallback(req: Request, res: Response) {
     // Fetch account details from Dotloop API
     const account = await fetchAccount(tokenData.access_token);
     
+    if (account) {
+      // Test: Try fetching loops to verify token works for this endpoint
+      console.log('[Dotloop OAuth] Testing token with loops endpoint...');
+      try {
+        const loopsTestUrl = `${DOTLOOP_API_BASE}/profile/${account.data.defaultProfileId}/loop?batch_size=1`;
+        const loopsTestResponse = await fetch(loopsTestUrl, {
+          headers: {
+            'Authorization': `Bearer ${tokenData.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        console.log('[Dotloop OAuth] Loops test response status:', loopsTestResponse.status);
+        if (!loopsTestResponse.ok) {
+          const errorText = await loopsTestResponse.text();
+          console.error('[Dotloop OAuth] Loops test FAILED:', errorText);
+        } else {
+          console.log('[Dotloop OAuth] Loops test SUCCESS - token works!');
+        }
+      } catch (testError) {
+        console.error('[Dotloop OAuth] Loops test error:', testError);
+      }
+    }
+    
     if (!account) {
       console.error('[Dotloop OAuth] Failed to fetch account');
       return res.redirect('/?dotloop_error=account_fetch_failed');
@@ -383,7 +406,18 @@ async function handleApiProxy(req: Request, res: Response) {
     const path = req.params[0] || req.path.replace('/api/dotloop/proxy/', '');
     const accessToken = req.headers.authorization?.replace('Bearer ', '');
     
+    console.log('[Dotloop API Proxy] Incoming request:', {
+      method: req.method,
+      originalUrl: req.originalUrl,
+      path: req.path,
+      params: req.params,
+      extractedPath: path,
+      hasAuth: !!accessToken,
+      tokenPreview: accessToken ? accessToken.substring(0, 20) + '...' : 'none',
+    });
+    
     if (!accessToken) {
+      console.error('[Dotloop API Proxy] Missing access token');
       return res.status(401).json({ error: 'Missing access token' });
     }
     
@@ -402,7 +436,16 @@ async function handleApiProxy(req: Request, res: Response) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[Dotloop API Proxy] Request failed:', response.status, errorText);
-      return res.status(response.status).json({ error: errorText });
+      
+      // Try to parse error as JSON, otherwise return as text
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { message: errorText };
+      }
+      
+      return res.status(response.status).json(errorData);
     }
     
     const data = await response.json();
@@ -410,7 +453,11 @@ async function handleApiProxy(req: Request, res: Response) {
     
   } catch (error) {
     console.error('[Dotloop API Proxy] Error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('[Dotloop API Proxy] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : String(error)
+    });
   }
 }
 

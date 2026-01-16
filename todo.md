@@ -2692,3 +2692,49 @@ The issue was NOT the OAuth callback parameters. The real problem was that `wind
 - [x] Update frontend to use backend proxy endpoints
 - [ ] Test data sync through backend proxy (requires user testing)
 - [ ] Verify transactions load successfully (requires user testing)
+
+
+## Phase 49: Fix 500 Internal Server Error in API Proxy (Current)
+
+### Issue
+- [x] OAuth flow succeeds and account connects
+- [x] Frontend calls proxy endpoint correctly: `/api/dotloop/proxy/profile/14060684/loop`
+- [x] Backend proxy returns 500 Internal Server Error
+- [x] No detailed error message in frontend console
+
+### Root Cause Investigation
+- [x] Check server logs for detailed error message
+- [x] Verify path extraction logic in handleApiProxy function (working correctly)
+- [x] Check if Express wildcard route is capturing path correctly (working correctly)
+- [x] Verify Authorization header is being passed correctly (being passed)
+- [x] **Found issue**: Dotloop API returns 401 Unauthorized
+- [ ] Check if access token format is correct
+- [ ] Verify token is not expired
+- [ ] Check if token has required scopes
+
+### Fix Implementation
+- [ ] Fix path extraction in proxy endpoint
+- [ ] Add detailed error logging
+- [ ] Test with real Dotloop account
+- [ ] Verify transactions load successfully
+
+
+## Phase 50: Handle 404 Response for Empty Dotloop Accounts (Current)
+
+### Issue
+- [x] OAuth integration working successfully
+- [x] Token is valid and authorization succeeds
+- [x] API proxy working correctly
+- [x] Dotloop API returns 404 when account has no loops
+- [ ] Frontend shows error instead of "No transactions" message
+
+### Root Cause
+- Dotloop API returns 404 "Resource not found" when a profile has no loops
+- Frontend treats 404 as an error instead of empty data
+- Need to handle 404 gracefully as a valid "no data" response
+
+### Fix Implementation
+- [x] Update fetchLoops to handle 404 as empty array
+- [x] Show user-friendly "No transactions" message (dashboard already has empty state)
+- [ ] Test with empty Dotloop account (requires user testing)
+- [ ] Verify dashboard shows proper empty state (requires user testing)

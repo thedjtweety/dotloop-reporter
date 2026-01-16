@@ -62,6 +62,7 @@ export async function fetchLoops(account: DotloopAccount): Promise<DotloopLoop[]
     const url = `${DOTLOOP_API_BASE}/profile/${account.profileId}/loop`;
     
     console.log('[Dotloop API] Fetching loops for profile:', account.profileId);
+    console.log('[Dotloop API] Access token (first 20 chars):', account.accessToken?.substring(0, 20) + '...');
     
     const response = await fetch(url, {
       headers: {
@@ -71,6 +72,12 @@ export async function fetchLoops(account: DotloopAccount): Promise<DotloopLoop[]
     });
 
     if (!response.ok) {
+      // 404 means no loops found - return empty array
+      if (response.status === 404) {
+        console.log('[Dotloop API] No loops found (404), returning empty array');
+        return [];
+      }
+      
       const errorText = await response.text();
       console.error('[Dotloop API] Fetch failed:', response.status, errorText);
       throw new Error(`Failed to fetch loops: ${response.status} ${errorText}`);
