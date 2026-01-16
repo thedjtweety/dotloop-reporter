@@ -85,16 +85,9 @@ export default function HomeSimple() {
   const handleLogin = () => {
     console.log('[OAuth] Redirecting to Dotloop OAuth...');
     
-    // Generate authorization URL
-    const clientId = import.meta.env.VITE_DOTLOOP_CLIENT_ID || '';
-    const redirectUri = import.meta.env.VITE_DOTLOOP_REDIRECT_URI || `${window.location.origin}/api/dotloop/callback`;
-    const state = Math.random().toString(36).substring(2, 15);
     
-    console.log('[OAuth Debug] Client ID:', clientId);
-    console.log('[OAuth Debug] Redirect URI:', redirectUri);
-    
-    const authUrl = `https://auth.dotloop.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&state=${state}`;
-    window.location.href = authUrl;
+    // Redirect to backend OAuth endpoint which handles the authorization code flow
+    window.location.href = '/api/dotloop/authorize';
   };
 
   const handleLogout = () => {

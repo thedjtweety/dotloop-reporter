@@ -292,9 +292,27 @@ async function handleCallback(req: Request, res: Response) {
 }
 
 /**
+ * Authorize endpoint - redirects to Dotloop OAuth
+ */
+async function handleAuthorize(req: Request, res: Response) {
+  try {
+    console.log('[Dotloop OAuth] Authorize endpoint called');
+    const authUrl = getAuthorizationUrl();
+    console.log('[Dotloop OAuth] Redirecting to:', authUrl);
+    res.redirect(authUrl);
+  } catch (error) {
+    console.error('[Dotloop OAuth] Authorize error:', error);
+    res.redirect('/?dotloop_error=authorize_failed');
+  }
+}
+
+/**
  * Register OAuth routes
  */
 export function registerDotloopOAuthRoutes(app: Express) {
+  // OAuth authorize endpoint
+  app.get('/api/dotloop/authorize', handleAuthorize);
+  
   // OAuth callback
   app.get('/api/dotloop/callback', handleCallback);
   
