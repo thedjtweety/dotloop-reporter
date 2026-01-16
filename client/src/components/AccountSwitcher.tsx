@@ -19,7 +19,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, UserCircle, Plus, Trash2, LogOut, Check } from 'lucide-react';
+import { ChevronDown, UserCircle, Plus, Trash2, LogOut, Check, Settings } from 'lucide-react';
+import { useLocation } from 'wouter';
 import {
   getAllAccounts,
   getActiveAccount,
@@ -37,6 +38,7 @@ interface AccountSwitcherProps {
 }
 
 export default function AccountSwitcher({ onAccountChange, onLogout }: AccountSwitcherProps) {
+  const [, setLocation] = useLocation();
   const [accounts] = useState<DotloopAccount[]>(getAllAccounts());
   const [activeAccount, setActiveAccountState] = useState<DotloopAccount | null>(getActiveAccount());
 
@@ -142,6 +144,11 @@ export default function AccountSwitcher({ onAccountChange, onLogout }: AccountSw
         ))}
         
         <DropdownMenuSeparator />
+        
+        <DropdownMenuItem onClick={() => setLocation('/account-profile')} className="cursor-pointer">
+          <Settings className="h-4 w-4 mr-2" />
+          Account Settings
+        </DropdownMenuItem>
         
         <DropdownMenuItem onClick={handleAddAccount} className="cursor-pointer">
           <Plus className="h-4 w-4 mr-2" />

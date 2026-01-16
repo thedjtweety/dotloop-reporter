@@ -5,6 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import AccountProfile from "./pages/AccountProfile";
 
 import AdminDashboard from "./pages/AdminDashboard";
 import CreativeDashboard from "./pages/CreativeDashboard";
@@ -21,6 +22,7 @@ function Router() {
   return (
     <Switch>
        <Route path="/" component={Home} />
+       <Route path="/account-profile" component={AccountProfile} />
 
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/audit-log" component={AuditLog} />

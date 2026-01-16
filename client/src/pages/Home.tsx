@@ -1,12 +1,14 @@
 /**
  * Dotloop Reporting Tool - Home Page
  * 
- * Handles OAuth authentication flow and displays dashboard when connected
+ * Handles OAuth authentication flow and displays dashboard with real Dotloop data
  */
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, AlertCircle } from 'lucide-react';
 import DotloopDashboard from './DotloopDashboard';
 import AccountSwitcher from '@/components/AccountSwitcher';
 import {
@@ -16,118 +18,29 @@ import {
   getAuthorizationUrl,
   type DotloopAccount,
 } from '@/lib/dotloopAuth';
+import { fetchAndTransformLoops } from '@/lib/dotloopApi';
 import { DotloopRecord } from '@/lib/csvParser';
-
-// Mock Dotloop data for testing (will be replaced with real API data later)
-const mockDotloopData = [
-  {
-    loopName: '123 Main St - Smith Purchase',
-    loopStatus: 'Closed',
-    price: 450000,
-    salePrice: 450000,
-    closingDate: '2024-01-15',
-    listingDate: '2023-12-01',
-    contractDate: '2024-01-05',
-    transactionType: 'Purchase',
-    propertyAddress: '123 Main St',
-    city: 'Austin',
-    state: 'TX',
-    zipCode: '78701',
-    agentName: 'Drew Bryant',
-    agentEmail: 'drewbr@zillowgroup.com',
-    leadSource: 'Referral',
-    commission: 13500,
-    commissionRate: 0.03,
-    createdDate: '2023-12-01',
-  },
-  {
-    loopName: '456 Oak Ave - Johnson Sale',
-    loopStatus: 'Active',
-    price: 550000,
-    salePrice: 0,
-    listingDate: '2024-01-20',
-    transactionType: 'Listing',
-    propertyAddress: '456 Oak Ave',
-    city: 'Dallas',
-    state: 'TX',
-    zipCode: '75201',
-    agentName: 'Drew Bryant',
-    agentEmail: 'drewbr@zillowgroup.com',
-    leadSource: 'Website',
-    commission: 0,
-    commissionRate: 0.03,
-    createdDate: '2024-01-20',
-  },
-  {
-    loopName: '789 Pine Rd - Williams Purchase',
-    loopStatus: 'Under Contract',
-    price: 375000,
-    salePrice: 375000,
-    contractDate: '2024-01-25',
-    transactionType: 'Purchase',
-    propertyAddress: '789 Pine Rd',
-    city: 'Houston',
-    state: 'TX',
-    zipCode: '77001',
-    agentName: 'Sarah Chen',
-    agentEmail: 'sarah@example.com',
-    leadSource: 'Zillow',
-    commission: 11250,
-    commissionRate: 0.03,
-    createdDate: '2024-01-10',
-  },
-  {
-    loopName: '321 Elm St - Davis Sale',
-    loopStatus: 'Closed',
-    price: 625000,
-    salePrice: 615000,
-    closingDate: '2024-01-10',
-    listingDate: '2023-11-15',
-    contractDate: '2023-12-20',
-    transactionType: 'Listing',
-    propertyAddress: '321 Elm St',
-    city: 'Austin',
-    state: 'TX',
-    zipCode: '78702',
-    agentName: 'Sarah Chen',
-    agentEmail: 'sarah@example.com',
-    leadSource: 'Open House',
-    commission: 18450,
-    commissionRate: 0.03,
-    createdDate: '2023-11-15',
-  },
-  {
-    loopName: '555 Maple Dr - Brown Purchase',
-    loopStatus: 'Closed',
-    price: 425000,
-    salePrice: 425000,
-    closingDate: '2024-01-12',
-    listingDate: '2023-12-10',
-    contractDate: '2024-01-02',
-    transactionType: 'Purchase',
-    propertyAddress: '555 Maple Dr',
-    city: 'San Antonio',
-    state: 'TX',
-    zipCode: '78201',
-    agentName: 'Mike Rodriguez',
-    agentEmail: 'mike@example.com',
-    leadSource: 'Referral',
-    commission: 12750,
-    commissionRate: 0.03,
-    createdDate: '2023-12-10',
-  },
-];
 
 export default function Home() {
   const [isConnected, setIsConnected] = useState(false);
   const [activeAccount, setActiveAccount] = useState<DotloopAccount | null>(null);
+  const [transactions, setTransactions] = useState<DotloopRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
+  // Load data when account changes
   useEffect(() => {
+    loadAccountData();
+  }, []);
+
+  const loadAccountData = async () => {
     // Check for OAuth callback
     const account = handleOAuthCallback();
     if (account) {
       setActiveAccount(account);
       setIsConnected(true);
+      await syncTransactions(account);
       return;
     }
 
@@ -136,21 +49,56 @@ export default function Home() {
       const active = getActiveAccount();
       setActiveAccount(active);
       setIsConnected(true);
+      if (active) {
+        await syncTransactions(active);
+      }
     }
-  }, []);
+  };
 
-  const handleAccountChange = (account: DotloopAccount | null) => {
+  const syncTransactions = async (account: DotloopAccount) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      console.log('[Home] Syncing transactions for account:', account.email);
+      const data = await fetchAndTransformLoops(account);
+      console.log('[Home] Fetched', data.length, 'transactions');
+      setTransactions(data);
+      setLastSyncTime(new Date());
+    } catch (err) {
+      console.error('[Home] Error syncing transactions:', err);
+      setError(err instanceof Error ? err.message : 'Failed to sync transactions');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAccountChange = async (account: DotloopAccount | null) => {
     setActiveAccount(account);
     setIsConnected(account !== null);
+    
+    if (account) {
+      await syncTransactions(account);
+    } else {
+      setTransactions([]);
+    }
   };
 
   const handleLogout = () => {
     setActiveAccount(null);
     setIsConnected(false);
+    setTransactions([]);
+    setLastSyncTime(null);
   };
 
   const handleConnect = () => {
     window.location.href = getAuthorizationUrl();
+  };
+
+  const handleRefresh = async () => {
+    if (activeAccount) {
+      await syncTransactions(activeAccount);
+    }
   };
 
   // Show dashboard if connected
@@ -163,8 +111,28 @@ export default function Home() {
               <h1 className="text-xl font-display font-bold text-foreground">
                 Dotloop Dashboard
               </h1>
+              {lastSyncTime && (
+                <span className="text-xs text-foreground/60">
+                  Last synced: {lastSyncTime.toLocaleTimeString()}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Syncing...
+                  </>
+                ) : (
+                  'Refresh Data'
+                )}
+              </Button>
               <AccountSwitcher 
                 onAccountChange={handleAccountChange}
                 onLogout={handleLogout}
@@ -174,7 +142,39 @@ export default function Home() {
         </header>
         
         <main className="container py-6">
-          <DotloopDashboard records={mockDotloopData as unknown as DotloopRecord[]} />
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
+          {isLoading && transactions.length === 0 ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center space-y-4">
+                <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+                <p className="text-foreground/70">Loading your Dotloop transactions...</p>
+              </div>
+            </div>
+          ) : transactions.length > 0 ? (
+            <DotloopDashboard records={transactions} />
+          ) : (
+            <Card className="p-8 text-center">
+              <p className="text-foreground/70 mb-4">
+                No transactions found in your Dotloop account.
+              </p>
+              <Button onClick={handleRefresh} disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Checking...
+                  </>
+                ) : (
+                  'Refresh'
+                )}
+              </Button>
+            </Card>
+          )}
         </main>
       </div>
     );

@@ -2555,3 +2555,31 @@ The issue was NOT the OAuth callback parameters. The real problem was that `wind
 - [x] Update Home.tsx to show dashboard when account is connected
 - [x] Add AccountSwitcher to dashboard header
 - [x] Show current account info in UI
+
+
+## Phase 41: Dotloop API Data Sync & Account Profile Page (Current)
+
+### Dotloop API Data Sync
+- [x] Create Dotloop API client utilities (dotloopApi.ts)
+- [x] Implement fetchLoops endpoint to get all loops for a profile
+- [x] Transform Dotloop loop data to DotloopRecord format
+- [x] Replace mock data with real API data in Home.tsx
+- [x] Add loading states during data fetch
+- [x] Add error handling for API failures
+- [x] Implement automatic data refresh on account switch
+
+### Account Profile Settings Page
+- [x] Create AccountProfile.tsx page component
+- [x] Display current account details (name, email, profile ID)
+- [x] Show connection date and last sync time
+- [x] Add profile photo placeholder (Dotloop API doesn't provide photos)
+- [x] List all connected accounts with details
+- [x] Add "Refresh Data" button to manually sync transactions
+- [x] Add "Remove Account" button for each account
+- [x] Show sync status (loading, success, error)
+
+### Navigation & Routing
+- [x] Add route for /account-profile page
+- [x] Add "Account Settings" link to AccountSwitcher dropdown
+- [x] Update App.tsx with new route
+- [x] Add back navigation from profile page to dashboard
