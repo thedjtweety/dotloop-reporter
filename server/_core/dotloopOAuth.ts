@@ -245,19 +245,32 @@ async function handleCallback(req: Request, res: Response) {
       return res.redirect('/?dotloop_error=no_access_token');
     }
 
-    // Skip account fetch, user creation, and session management
-    // Frontend will handle this using the tokens
+    console.log('[Dotloop OAuth] Fetching account info...');
+    
+    // Fetch account details from Dotloop API
+    const account = await fetchAccount(tokenData.access_token);
+    
+    if (!account) {
+      console.error('[Dotloop OAuth] Failed to fetch account');
+      return res.redirect('/?dotloop_error=account_fetch_failed');
+    }
 
     console.log('[Dotloop OAuth] ========== SUCCESS ==========');
+    console.log('[Dotloop OAuth] Account:', account.data.email);
     console.log('[Dotloop OAuth] Token received, redirecting to frontend...');
     console.log('[Dotloop OAuth] ========== CALLBACK END ==========');
     
-    // Redirect to frontend with token data as URL parameters
-    // Frontend will extract and store in localStorage
+    // Redirect to frontend with token data AND account info as URL parameters
+    // Frontend will extract and store in localStorage with multi-account support
     const params = new URLSearchParams({
       access_token: tokenData.access_token,
       token_type: tokenData.token_type,
       expires_in: tokenData.expires_in.toString(),
+      account_id: account.data.id.toString(),
+      email: account.data.email,
+      first_name: account.data.firstName,
+      last_name: account.data.lastName,
+      default_profile_id: account.data.defaultProfileId.toString(),
     });
     
     if (tokenData.refresh_token) {

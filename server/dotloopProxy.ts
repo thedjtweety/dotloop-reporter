@@ -103,4 +103,51 @@ router.post('/api/dotloop-proxy/*', async (req, res) => {
   }
 });
 
+/**
+ * Revoke Dotloop OAuth token
+ * POST /api/dotloop-proxy/revoke
+ * Body: { token: string }
+ */
+router.post('/api/dotloop-proxy/revoke', async (req, res) => {
+  try {
+    const { token } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({ error: 'No token provided' });
+    }
+    
+    console.log('[Dotloop Proxy] Revoking token...');
+    
+    // Call Dotloop's token revocation endpoint
+    const response = await fetch('https://auth.dotloop.com/oauth/token/revoke', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        token,
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Dotloop Proxy] Revocation failed:', response.status, errorText);
+      return res.status(response.status).json({ 
+        error: 'Token revocation failed',
+        details: errorText 
+      });
+    }
+    
+    console.log('[Dotloop Proxy] Token revoked successfully');
+    res.json({ success: true, message: 'Token revoked successfully' });
+    
+  } catch (error) {
+    console.error('[Dotloop Proxy] Revocation exception:', error);
+    res.status(500).json({ 
+      error: 'Revocation error',
+      details: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
 export default router;

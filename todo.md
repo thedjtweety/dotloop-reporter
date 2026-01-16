@@ -2346,3 +2346,18 @@
 - [ ] Verify Zillow Workspace login screen appears every time
 - [ ] Confirm can switch between different Dotloop accounts
 - [ ] Save checkpoint with forced re-authentication
+
+## Phase 41: Multi-Account Dotloop Support with Token Revocation
+- [x] Add prompt=login parameter to frontend OAuth URL generation
+- [x] Create help dialog explaining account switching options (incognito mode, clear cookies, manual logout)
+- [x] Update localStorage structure to support multiple accounts array
+- [x] Create account management utilities (add, remove, switch, get active)
+- [x] Implement token revocation endpoint in backend (/api/dotloop-proxy/revoke)
+- [x] Create AccountSwitcher dropdown component for header
+- [x] Update OAuth callback to add accounts instead of replacing
+- [x] Update Home.tsx to use active account from multi-account store
+- [x] Add "Add Another Account" button when already connected
+- [x] Add "Remove Account" option in account switcher
+- [ ] Test adding multiple accounts and switching between them
+- [ ] Test token revocation when removing accounts
+- [ ] Verify data isolation between accounts

@@ -11,7 +11,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { handleOAuthCallback, isTokenValid, clearAuth, fetchAndStoreAccount, getStoredAccount } from '@/lib/dotloopAuth';
+import { handleOAuthCallback, isActiveTokenValid, getActiveAccount, getAllAccounts } from '@/lib/dotloopMultiAuth';
 import { trpc } from '@/lib/trpc';
 import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent, Settings, ArrowLeft, AlertCircle, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -90,6 +90,8 @@ import CommissionAuditReport from '@/components/CommissionAuditReport';
 import CommissionManagementPanel from '@/components/CommissionManagementPanel';
 import DataValidationReport from '@/components/DataValidationReport';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import AccountSwitchingHelp from '@/components/AccountSwitchingHelp';
+import AccountSwitcher from '@/components/AccountSwitcher';
 import { ModeToggle } from '@/components/ModeToggle';
 import MobileNav from '@/components/MobileNav';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -130,50 +132,48 @@ function HomeContent() {
       client_id: clientId,
       redirect_uri: redirectUri,
       state,
+      prompt: 'login', // Force login screen to allow account switching
     });
     
     const authUrl = `https://auth.dotloop.com/oauth/authorize?${params.toString()}`;
     window.location.href = authUrl;
   };
   
-  const handleSignOut = () => {
-    clearAuth();
-    setConnectionStatus(null);
-    toast.success('Signed out successfully');
+  const handleAccountChange = () => {
+    // Refresh connection status when account changes
+    updateConnectionStatus();
+  };
+  
+  const updateConnectionStatus = () => {
+    const accounts = getAllAccounts();
+    const activeAccount = getActiveAccount();
+    
+    if (activeAccount && isActiveTokenValid()) {
+      setConnectionStatus({
+        isConnected: true,
+        email: activeAccount.email,
+        accountId: activeAccount.accountId,
+      });
+    } else {
+      setConnectionStatus(null);
+    }
   };
   
   // Handle OAuth callback on page load
   useEffect(() => {
-    const hasTokens = handleOAuthCallback();
+    const account = handleOAuthCallback();
     
-    if (hasTokens) {
-      console.log('[OAuth] Tokens received, fetching account...');
-      
-      // Fetch and store account details
-      fetchAndStoreAccount()
-        .then(account => {
-          console.log('[OAuth] Account fetched:', account);
-          setConnectionStatus({
-            isConnected: true,
-            email: account.email,
-            accountId: account.id,
-          });
-          toast.success('Successfully connected to Dotloop!');
-        })
-        .catch(error => {
-          console.error('[OAuth] Failed to fetch account:', error);
-          toast.error('Failed to fetch account details');
-        });
-    } else if (isTokenValid()) {
-      // Check if we already have valid tokens
-      const account = getStoredAccount();
-      if (account) {
-        setConnectionStatus({
-          isConnected: true,
-          email: account.email,
-          accountId: account.id,
-        });
-      }
+    if (account) {
+      console.log('[Multi-Auth] Account added:', account.email);
+      setConnectionStatus({
+        isConnected: true,
+        email: account.email,
+        accountId: account.accountId,
+      });
+      toast.success(`Successfully connected: ${account.email}`);
+    } else {
+      // Check if we already have an active account
+      updateConnectionStatus();
     }
   }, []);
   
@@ -332,6 +332,9 @@ function HomeContent() {
   // Commission Management Panel State
   const [commissionManagementTab, setCommissionManagementTab] = useState('plans');
   const [commissionManagementHighlightAgent, setCommissionManagementHighlightAgent] = useState<string | undefined>();
+  
+  // Account Switching Help Dialog State
+  const [showAccountSwitchingHelp, setShowAccountSwitchingHelp] = useState(false);
 
   // Load saved mapping and recent files on mount
   useEffect(() => {
@@ -731,6 +734,14 @@ function HomeContent() {
               </h1>
             </div>
             <div className="flex items-center gap-4">
+              {/* Dotloop Account Switcher */}
+              {connectionStatus?.isConnected && (
+                <AccountSwitcher 
+                  onAccountChange={handleAccountChange}
+                  onAddAccount={connectDotloop}
+                />
+              )}
+              
               {isAuthenticated && (
                 <>
                   {user?.role === 'admin' && (
@@ -809,7 +820,7 @@ function HomeContent() {
                       </p>
                     </div>
 
-                    {!isAuthenticated ? (
+                    {!connectionStatus?.isConnected ? (
                       <div className="space-y-4">
                         <Button 
                           onClick={connectDotloop} 
@@ -836,10 +847,13 @@ function HomeContent() {
                           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
-                          <span className="font-semibold">Connected as {user?.email}</span>
+                          <span className="font-semibold">Connected as {connectionStatus?.email}</span>
                         </div>
                         <p className="text-sm text-center text-foreground/60">
-                          Your Dotloop account is connected and ready to sync data.
+                          {getAllAccounts().length > 1 
+                            ? `${getAllAccounts().length} accounts connected. Switch accounts using the dropdown in the header.`
+                            : 'Your Dotloop account is connected and ready to sync data.'
+                          }
                         </p>
                         <div className="flex gap-2">
                           <Button 
@@ -848,14 +862,14 @@ function HomeContent() {
                             className="flex-1"
                             disabled={isSyncing}
                           >
-                            {isSyncing ? 'Syncing...' : 'Sync Now'}
+                            {isSyncing ? 'Syncing...' : 'Fetch Loops'}
                           </Button>
                           <Button 
-                            onClick={() => logout()}
+                            onClick={connectDotloop}
                             variant="outline"
                             className="flex-1"
                           >
-                            Sign Out
+                            Add Account
                           </Button>
                         </div>
                       </div>
@@ -1455,6 +1469,12 @@ function HomeContent() {
           transactions={filteredRecords}
         />
       )}
+      
+      {/* Account Switching Help Dialog */}
+      <AccountSwitchingHelp
+        open={showAccountSwitchingHelp}
+        onOpenChange={setShowAccountSwitchingHelp}
+      />
     </div>
   );
 }
