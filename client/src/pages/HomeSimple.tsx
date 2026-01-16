@@ -74,6 +74,7 @@ export default function HomeSimple() {
       client_id: clientId,
       redirect_uri: redirectUri,
       state,
+      prompt: 'login', // Force re-authentication to allow account switching
     });
     
     const authUrl = `https://auth.dotloop.com/oauth/authorize?${params.toString()}`;

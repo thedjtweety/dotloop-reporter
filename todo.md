@@ -2339,3 +2339,10 @@
 - [ ] Fetch Dotloop data directly using stored tokens
 - [ ] Test complete flow: visit → login → see data
 - [ ] Keep CSV upload as alternative data source
+
+## Phase 46: Add Force Re-authentication for Account Switching (Current)
+- [x] Add prompt=login parameter to OAuth authorization URL
+- [ ] Test logout and re-login flow
+- [ ] Verify Zillow Workspace login screen appears every time
+- [ ] Confirm can switch between different Dotloop accounts
+- [ ] Save checkpoint with forced re-authentication
