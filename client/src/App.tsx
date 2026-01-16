@@ -4,7 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
+import HomeSimple from "./pages/HomeSimple";
 import OAuthDebug from "./pages/OAuthDebug";
 
 import AdminDashboard from "./pages/AdminDashboard";
@@ -21,7 +21,7 @@ function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-       <Route path="/" component={Home} />
+       <Route path="/" component={HomeSimple} />
       <Route path="/oauth-debug" component={OAuthDebug} />
 
       <Route path="/admin" component={AdminDashboard} />

@@ -245,54 +245,26 @@ async function handleCallback(req: Request, res: Response) {
       return res.redirect('/?dotloop_error=no_access_token');
     }
 
-    console.log('[Dotloop OAuth] Fetching account details...');
-    
-    // Fetch account details
-    const accountData = await fetchAccount(tokenData.access_token);
-    
-    if (!accountData.data) {
-      console.error('[Dotloop OAuth] No account data received');
-      return res.redirect('/?dotloop_error=no_account');
-    }
-
-    const account = accountData.data;
-    
-    console.log('[Dotloop OAuth] Creating/updating user...');
-    
-    // Find or create user
-    const user = await findOrCreateUser(account);
-    
-    console.log('[Dotloop OAuth] Storing tokens...');
-    
-    // Store tokens
-    await storeTokens(
-      user.id,
-      tokenData.access_token,
-      tokenData.refresh_token,
-      tokenData.expires_in
-    );
-
-    console.log('[Dotloop OAuth] Creating session...');
-    
-    // Create session using Manus SDK
-    const sessionToken = await sdk.createSessionToken(user.dotloopUserId || `dotloop_${user.id}`, {
-      name: user.name || '',
-      expiresInMs: ONE_YEAR_MS,
-    });
-
-    const cookieOptions = getSessionCookieOptions(req);
-    res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+    // Skip account fetch, user creation, and session management
+    // Frontend will handle this using the tokens
 
     console.log('[Dotloop OAuth] ========== SUCCESS ==========');
-    console.log('[Dotloop OAuth] User ID:', user.id);
-    console.log('[Dotloop OAuth] User email:', user.email);
-    console.log('[Dotloop OAuth] Session token created');
-    console.log('[Dotloop OAuth] Cookie set with name:', COOKIE_NAME);
-    console.log('[Dotloop OAuth] Redirecting to: /?login_success=true');
+    console.log('[Dotloop OAuth] Token received, redirecting to frontend...');
     console.log('[Dotloop OAuth] ========== CALLBACK END ==========');
     
-    // Redirect to homepage with success parameter to show toast
-    return res.redirect('/?login_success=true');
+    // Redirect to frontend with token data as URL parameters
+    // Frontend will extract and store in localStorage
+    const params = new URLSearchParams({
+      access_token: tokenData.access_token,
+      token_type: tokenData.token_type,
+      expires_in: tokenData.expires_in.toString(),
+    });
+    
+    if (tokenData.refresh_token) {
+      params.append('refresh_token', tokenData.refresh_token);
+    }
+    
+    return res.redirect(`/?${params.toString()}`);
 
   } catch (error) {
     console.error('[Dotloop OAuth] ========== ERROR ==========');

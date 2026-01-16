@@ -2328,3 +2328,14 @@
 - [x] Update response handling to match account API structure (firstName/lastName instead of first_name/last_name)
 - [ ] Publish checkpoint and test complete OAuth flow
 - [ ] Verify account data is retrieved successfully
+
+## Phase 45: Implement Simplified Client-Side OAuth Flow (Current)
+- [ ] Create localStorage token management utilities (dotloopAuth.ts)
+- [ ] Simplify OAuth callback to return tokens via URL parameters
+- [ ] Update server OAuth handler to not create users/sessions
+- [ ] Create token extraction and storage logic in frontend
+- [ ] Build simplified homepage that checks localStorage for tokens
+- [ ] Redirect to OAuth if no valid token found
+- [ ] Fetch Dotloop data directly using stored tokens
+- [ ] Test complete flow: visit → login → see data
+- [ ] Keep CSV upload as alternative data source
