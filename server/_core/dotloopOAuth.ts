@@ -30,7 +30,7 @@ import { COOKIE_NAME, ONE_YEAR_MS } from '@shared/const';
 // OAuth configuration
 const DOTLOOP_AUTH_URL = 'https://auth.dotloop.com/oauth/authorize';
 const DOTLOOP_TOKEN_URL = 'https://auth.dotloop.com/oauth/token';
-const DOTLOOP_PROFILE_URL = 'https://api-gateway.dotloop.com/profile/v2';
+const DOTLOOP_PROFILE_URL = 'https://api-gateway.dotloop.com/public/v2/account';
 
 interface DotloopTokenResponse {
   access_token: string;
@@ -39,13 +39,14 @@ interface DotloopTokenResponse {
   refresh_token?: string;
 }
 
-interface DotloopProfile {
+interface DotloopAccount {
   data: {
     id: number;
     email: string;
-    first_name: string;
-    last_name: string;
-  }[];
+    firstName: string;
+    lastName: string;
+    defaultProfileId: number;
+  };
 }
 
 /**
@@ -102,7 +103,7 @@ async function exchangeCodeForToken(code: string): Promise<DotloopTokenResponse>
 /**
  * Fetch user profile from Dotloop API
  */
-async function fetchProfile(accessToken: string): Promise<DotloopProfile> {
+async function fetchAccount(accessToken: string): Promise<DotloopAccount> {
   const response = await fetch(DOTLOOP_PROFILE_URL, {
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -120,10 +121,10 @@ async function fetchProfile(accessToken: string): Promise<DotloopProfile> {
 /**
  * Find or create user from Dotloop profile
  */
-async function findOrCreateUser(profile: DotloopProfile['data'][0]) {
-  const dotloopUserId = profile.id.toString();
-  const email = profile.email;
-  const name = `${profile.first_name} ${profile.last_name}`.trim();
+async function findOrCreateUser(account: DotloopAccount['data']) {
+  const dotloopUserId = account.id.toString();
+  const email = account.email;
+  const name = `${account.firstName} ${account.lastName}`.trim();
 
   const db = await getDb();
   if (!db) throw new Error('Database not available');
@@ -244,22 +245,22 @@ async function handleCallback(req: Request, res: Response) {
       return res.redirect('/?dotloop_error=no_access_token');
     }
 
-    console.log('[Dotloop OAuth] Fetching user profile...');
+    console.log('[Dotloop OAuth] Fetching account details...');
     
-    // Fetch user profile
-    const profileData = await fetchProfile(tokenData.access_token);
+    // Fetch account details
+    const accountData = await fetchAccount(tokenData.access_token);
     
-    if (!profileData.data || profileData.data.length === 0) {
-      console.error('[Dotloop OAuth] No profile data received');
-      return res.redirect('/?dotloop_error=no_profile');
+    if (!accountData.data) {
+      console.error('[Dotloop OAuth] No account data received');
+      return res.redirect('/?dotloop_error=no_account');
     }
 
-    const profile = profileData.data[0];
+    const account = accountData.data;
     
     console.log('[Dotloop OAuth] Creating/updating user...');
     
     // Find or create user
-    const user = await findOrCreateUser(profile);
+    const user = await findOrCreateUser(account);
     
     console.log('[Dotloop OAuth] Storing tokens...');
     

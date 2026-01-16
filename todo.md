@@ -2319,3 +2319,12 @@
 - [ ] Publish checkpoint with fixes
 - [ ] Test token exchange with fresh authorization code
 - [ ] Verify 200 response and access token received
+
+## Phase 43: Fix Dotloop Profile API 404 Error (Current)
+- [x] Check current profile endpoint URL in dotloopOAuth.ts
+- [x] Review Dotloop API documentation for correct profile endpoint
+- [x] Update DOTLOOP_PROFILE_URL from /profile/v2 to /public/v2/account
+- [x] Update interface from DotloopProfile to DotloopAccount
+- [x] Update response handling to match account API structure (firstName/lastName instead of first_name/last_name)
+- [ ] Publish checkpoint and test complete OAuth flow
+- [ ] Verify account data is retrieved successfully
