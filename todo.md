@@ -2178,3 +2178,12 @@
 - [x] Show refresh progress indicator (toast with loading state)
 - [x] Test expiry warning display with expired token (ready for testing with real connection)
 - [x] Test auto-refresh functionality (ready for testing with real connection)
+
+## Phase: Fix 401 Authentication Error (Current)
+- [x] Diagnose why getConnectionStatus returns 401 on published domain (query was running before authentication)
+- [x] Check if Manus auth is working on published domain (working correctly)
+- [x] Verify session cookies are being sent correctly (cookies working, just needed conditional query)
+- [x] Check if protectedProcedure is the right choice for this endpoint (correct, just needed enabled flag)
+- [x] Fix authentication flow for published domain (added enabled: isAuthenticated to query)
+- [ ] Test getConnectionStatus endpoint on published domain (ready for user testing)
+- [ ] Verify OAuth flow works end-to-end on published domain (ready for user testing)

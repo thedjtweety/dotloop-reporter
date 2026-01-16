@@ -112,7 +112,9 @@ function HomeContent() {
   
   // Dotloop OAuth connection
   const trpcUtils = trpc.useUtils();
-  const { data: connectionStatus, isLoading: isLoadingConnection, refetch: refetchConnection } = trpc.dotloopOAuth.getConnectionStatus.useQuery();
+  const { data: connectionStatus, isLoading: isLoadingConnection, refetch: refetchConnection } = trpc.dotloopOAuth.getConnectionStatus.useQuery(undefined, {
+    enabled: isAuthenticated, // Only fetch when user is authenticated
+  });
   
   const connectDotloop = async () => {
     try {
