@@ -263,6 +263,7 @@ async function handleCallback(req: Request, res: Response) {
     // Redirect to frontend with token data AND account info as URL parameters
     // Frontend will extract and store in localStorage with multi-account support
     const params = new URLSearchParams({
+      dotloop_connected: 'true',
       access_token: tokenData.access_token,
       token_type: tokenData.token_type,
       expires_in: tokenData.expires_in.toString(),
