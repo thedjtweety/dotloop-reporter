@@ -963,6 +963,7 @@ function HomeContent() {
     );
   }
 
+  console.log('[Home] Rendering dashboard, metrics:', metrics);
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Toaster />
@@ -999,7 +1000,11 @@ function HomeContent() {
             </div>
             <div className="flex items-center gap-2">
               {/* Dotloop Account Switcher */}
-              {getAllAccounts().length > 0 && (
+              {(() => {
+                const accounts = getAllAccounts();
+                console.log('[Dashboard] getAllAccounts():', accounts, 'length:', accounts.length);
+                return accounts.length > 0;
+              })() && (
                 <AccountSwitcher 
                   onAccountChange={handleAccountChange}
                   onAddAccount={connectDotloop}

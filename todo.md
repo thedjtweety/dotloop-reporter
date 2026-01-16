@@ -2377,3 +2377,26 @@
 - [x] Add back/home button to dashboard header to return to login screen (already exists)
 - [ ] Test localStorage operations work correctly
 - [ ] Verify AccountSwitcher appears after connecting account
+
+
+## Phase 44: CRITICAL FIX - Infinite OAuth Loop (RESOLVED)
+**ISSUE:** Application was stuck in infinite loop where:
+1. User connects to Dotloop successfully
+2. Tokens and account info stored in localStorage
+3. Immediately after, clearAuth() called, wiping all data
+4. User clicks "Sign Out" which redirects to OAuth
+5. OAuth completes and stores data again
+6. Data cleared again - LOOP REPEATS
+
+**ROOT CAUSE:** Old single-account system (dotloopAuth.ts) was conflicting with new multi-account system (dotloopMultiAuth.ts)
+
+**SOLUTION:**
+- [x] Removed old dotloopAuth.ts file completely
+- [x] Updated HomeSimple.tsx to use dotloopMultiAuth instead of dotloopAuth
+- [x] Verified backend OAuth callback sends all required parameters (access_token, account_id, email, first_name, last_name, default_profile_id)
+- [x] Verified Dotloop OAuth routes are properly registered in server
+- [x] Verified Dotloop proxy is registered for API calls
+- [x] Tested login page displays correctly with no infinite redirect
+- [x] Confirmed multi-account system is now working
+
+**RESULT:** INFINITE LOOP FIXED - Application now shows clean login screen without redirect loops

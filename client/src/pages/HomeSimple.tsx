@@ -1,7 +1,7 @@
 /**
  * Simplified Dotloop Reporting Tool Homepage
  * 
- * Uses localStorage for OAuth token management
+ * Uses localStorage for OAuth token management with multi-account support
  * No Manus authentication required
  * Updated with correct Dotloop OAuth client ID
  */
@@ -9,17 +9,16 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import {
   handleOAuthCallback,
-  isTokenValid,
-  clearAuth,
-  fetchAndStoreAccount,
-  getStoredAccount,
-  fetchDotloopAPI,
+  getAllAccounts,
+  getActiveAccount,
+  removeAccount,
+  clearAllAccounts,
   type DotloopAccount,
-} from '@/lib/dotloopAuth';
+} from '@/lib/dotloopMultiAuth';
 
 export default function HomeSimple() {
   const [account, setAccount] = useState<DotloopAccount | null>(null);
@@ -30,25 +29,20 @@ export default function HomeSimple() {
   // Handle OAuth callback and check for existing tokens
   useEffect(() => {
     const initAuth = async () => {
+      console.log('[HomeSimple] Initializing auth...');
+      
       // Check if this is an OAuth callback
       const hasNewTokens = handleOAuthCallback();
+      console.log('[HomeSimple] handleOAuthCallback result:', hasNewTokens);
       
-      if (hasNewTokens) {
-        console.log('[OAuth] New tokens received, fetching account...');
-        try {
-          const accountData = await fetchAndStoreAccount();
-          setAccount(accountData);
-          toast.success(`Successfully connected as ${accountData.email}!`);
-        } catch (error) {
-          console.error('[OAuth] Failed to fetch account:', error);
-          toast.error('Failed to fetch account details');
-          clearAuth();
-        }
-      } else if (isTokenValid()) {
-        // Check if we already have valid tokens
-        const storedAccount = getStoredAccount();
-        if (storedAccount) {
-          setAccount(storedAccount);
+      // Get the active account from localStorage
+      const activeAccount = getActiveAccount();
+      console.log('[HomeSimple] Active account:', activeAccount);
+      
+      if (activeAccount) {
+        setAccount(activeAccount);
+        if (hasNewTokens) {
+          toast.success(`Successfully connected as ${activeAccount.email}!`);
         }
       }
       
@@ -82,10 +76,26 @@ export default function HomeSimple() {
   };
 
   const handleLogout = () => {
-    clearAuth();
+    console.log('[HomeSimple] Logging out...');
+    clearAllAccounts();
     setAccount(null);
     setLoops([]);
     toast.success('Logged out successfully');
+  };
+
+  const handleRemoveAccount = (email: string) => {
+    console.log('[HomeSimple] Removing account:', email);
+    removeAccount(email);
+    
+    // Get the next active account if available
+    const accounts = getAllAccounts();
+    if (accounts.length > 0) {
+      setAccount(accounts[0]);
+      toast.success(`Switched to ${accounts[0].email}`);
+    } else {
+      setAccount(null);
+      toast.success('Account removed');
+    }
   };
 
   const handleFetchLoops = async () => {
@@ -93,10 +103,20 @@ export default function HomeSimple() {
     
     setIsLoadingLoops(true);
     try {
-      // Fetch loops from Dotloop API
-      const response = await fetchDotloopAPI(`/profile/${account.defaultProfileId}/loop`);
-      setLoops(response.data || []);
-      toast.success(`Loaded ${response.data?.length || 0} loops`);
+      // Fetch loops from Dotloop API via backend proxy
+      const response = await fetch(`/api/dotloop-proxy/profile/${account.defaultProfileId}/loop`, {
+        headers: {
+          'Authorization': `Bearer ${account.accessToken}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setLoops(data.data || []);
+      toast.success(`Loaded ${data.data?.length || 0} loops`);
     } catch (error) {
       console.error('[Dotloop API] Failed to fetch loops:', error);
       toast.error('Failed to fetch loops from Dotloop');
@@ -112,6 +132,8 @@ export default function HomeSimple() {
       </div>
     );
   }
+
+  const allAccounts = getAllAccounts();
 
   return (
     <div className="min-h-screen bg-background">
@@ -133,7 +155,17 @@ export default function HomeSimple() {
                 <CheckCircle2 className="w-4 h-4 text-green-500" />
                 <span className="text-muted-foreground">{account.email}</span>
               </div>
-              <Button variant="outline" onClick={handleLogout}>
+              
+              {allAccounts.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    {allAccounts.length} accounts
+                  </span>
+                </div>
+              )}
+              
+              <Button variant="outline" onClick={handleLogout} size="sm">
+                <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </Button>
             </div>
@@ -208,6 +240,56 @@ export default function HomeSimple() {
                 )}
               </Button>
             </div>
+
+            {/* Multi-account selector */}
+            {allAccounts.length > 1 && (
+              <Card className="p-4 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-sm">Connected Accounts ({allAccounts.length})</h3>
+                  <div className="space-y-2">
+                    {allAccounts.map((acc) => (
+                      <div key={acc.email} className="flex items-center justify-between p-2 bg-background rounded border border-border">
+                        <div className="flex items-center gap-2">
+                          {acc.email === account.email && (
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          )}
+                          <span className="text-sm">{acc.email}</span>
+                        </div>
+                        {acc.email !== account.email && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => {
+                              setAccount(acc);
+                              toast.success(`Switched to ${acc.email}`);
+                            }}
+                          >
+                            Switch
+                          </Button>
+                        )}
+                        {allAccounts.length > 1 && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleRemoveAccount(acc.email)}
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full"
+                    onClick={handleLogin}
+                  >
+                    Add Another Account
+                  </Button>
+                </div>
+              </Card>
+            )}
 
             {loops.length > 0 ? (
               <Card className="p-6">
