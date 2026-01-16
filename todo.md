@@ -2594,3 +2594,13 @@ The issue was NOT the OAuth callback parameters. The real problem was that `wind
 - [x] Fixed parameter name mismatch: changed default_profile_id to profile_id
 - [ ] Test OAuth flow end-to-end with real Dotloop credentials (requires user testing)
 - [ ] Verify frontend receives and stores account data correctly (requires user testing)
+
+
+## Phase 43: Fix Dotloop API 401 Authentication Error (Current)
+
+### API Authentication Issues
+- [x] Investigate fetchAccount function in dotloopOAuth.ts
+- [x] Check API request format and authentication headers
+- [x] Verify Dotloop API endpoint URL is correct (/account endpoint confirmed)
+- [x] Fix 401 Unauthorized error - Added required OAuth scopes (account:read, profile:read, loop:read, loop_detail:read, contact:read)
+- [ ] Test complete OAuth flow with real credentials (requires user testing)

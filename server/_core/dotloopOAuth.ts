@@ -48,20 +48,37 @@ interface DotloopAccount {
     defaultProfileId: number;
   };
 }
-
 /**
  * Generate authorization URL for Dotloop OAuth
+ * 
+ * Required scopes:
+ * - account:read: Get account details
+ * - profile:read: List and get profiles
+ * - loop:read: List and get loops
+ * - loop_detail:read: Get loop details
+ * - contact:read: List and get contacts
  */
 export function getAuthorizationUrl(): string {
   const state = crypto.randomBytes(32).toString('hex');
+  
+  // Request all necessary scopes for the application
+  const scopes = [
+    'account:read',      // Get account details
+    'profile:read',      // List and get profiles  
+    'loop:read',         // List and get loops
+    'loop_detail:read',  // Get loop details
+    'contact:read',      // List and get contacts
+  ];
   
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: ENV.DOTLOOP_CLIENT_ID,
     redirect_uri: ENV.DOTLOOP_REDIRECT_URI,
+    scope: scopes.join(' '),  // Space-separated scopes
     state,
   });
 
+  console.log('[OAuth] Authorization URL created with scopes:', scopes.join(' '));
   return `${DOTLOOP_AUTH_URL}?${params.toString()}`;
 }
 
@@ -104,18 +121,31 @@ async function exchangeCodeForToken(code: string): Promise<DotloopTokenResponse>
  * Fetch user profile from Dotloop API
  */
 async function fetchAccount(accessToken: string): Promise<DotloopAccount> {
+  console.log('[Account Fetch] Fetching account from Dotloop API...');
+  console.log('[Account Fetch] URL:', DOTLOOP_PROFILE_URL);
+  console.log('[Account Fetch] Access token (first 20 chars):', accessToken.substring(0, 20) + '...');
+  
   const response = await fetch(DOTLOOP_PROFILE_URL, {
     headers: {
       'Authorization': `Bearer ${accessToken}`,
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
     },
   });
 
+  console.log('[Account Fetch] Response status:', response.status);
+  console.log('[Account Fetch] Response headers:', JSON.stringify(Object.fromEntries(response.headers.entries())));
+
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Profile fetch failed: ${error}`);
+    const errorText = await response.text();
+    console.error('[Account Fetch] Error response body:', errorText);
+    console.error('[Account Fetch] Failed with status:', response.status);
+    throw new Error(`Profile fetch failed (${response.status}): ${errorText}`);
   }
 
-  return response.json();
+  const accountData = await response.json();
+  console.log('[Account Fetch] Success! Account email:', accountData.data?.email);
+  return accountData;
 }
 
 /**
