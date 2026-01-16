@@ -9,7 +9,7 @@ import { validateTransactionBatch } from './transactionValidator';
 import { adminRouter } from './adminRouter';
 import { performanceRouter } from './performanceRouter';
 import { auditLogRouter } from './auditLogRouter';
-import { dotloopOAuthRouter } from './dotloopOAuthRouter';
+
 import { tenantSettingsRouter } from './tenantSettingsRouter';
 import { commissionRouter } from './commissionRouter';
 // import { tierHistoryRouter } from './tierHistoryRouter'; // Removed: tierHistory table was dropped in migration
@@ -36,11 +36,6 @@ export const appRouter = router({
       const manusCookieOptions = getSessionCookieOptions(ctx.req);
       // Clear Manus session cookie
       ctx.res.clearCookie(COOKIE_NAME, { ...manusCookieOptions, maxAge: -1 });
-      
-      // Clear Dotloop session cookie
-      const { getSessionCookieName, getSessionCookieOptions: getDotloopCookieOptions } = await import('./dotloopSessionManager');
-      const dotloopCookieOptions = getDotloopCookieOptions();
-      ctx.res.clearCookie(getSessionCookieName(), { ...dotloopCookieOptions, maxAge: -1 });
       
       // Delete OAuth tokens from database if user is authenticated
       if (ctx.user) {
@@ -251,7 +246,7 @@ export const appRouter = router({
   admin: adminRouter,
   performance: performanceRouter,
   auditLogs: auditLogRouter,
-  dotloopOAuth: dotloopOAuthRouter,
+
   tenantSettings: tenantSettingsRouter,
   commission: commissionRouter,
   // tierHistory: tierHistoryRouter, // Removed: tierHistory table was dropped in migration

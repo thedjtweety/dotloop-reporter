@@ -4,15 +4,14 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import HomeSimple from "./pages/HomeSimple";
-import OAuthDebug from "./pages/OAuthDebug";
+import Home from "./pages/Home";
 
 import AdminDashboard from "./pages/AdminDashboard";
 import CreativeDashboard from "./pages/CreativeDashboard";
 import PerformanceDashboard from "./pages/PerformanceDashboard";
 import AuditLog from "./pages/AuditLog";
 import RoleManagement from "./pages/RoleManagement";
-import TenantSettings from "./pages/TenantSettings";
+
 import CommissionManagement from "./pages/CommissionManagement";
 import PerformanceTrendsPage from "./pages/PerformanceTrendsPage";
 import BenchmarkComparisonPage from "./pages/BenchmarkComparisonPage";
@@ -21,15 +20,14 @@ function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-       <Route path="/" component={HomeSimple} />
-      <Route path="/oauth-debug" component={OAuthDebug} />
+       <Route path="/" component={Home} />
 
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/audit-log" component={AuditLog} />
       <Route path="/roles" component={RoleManagement} />
       <Route path="/performance" component={PerformanceDashboard} />
       <Route path="/creative" component={CreativeDashboard} />
-      <Route path="/settings" component={TenantSettings} />
+
       <Route path="/commission" component={CommissionManagement} />
       <Route path="/trends" component={PerformanceTrendsPage} />
       <Route path="/benchmarks" component={BenchmarkComparisonPage} />

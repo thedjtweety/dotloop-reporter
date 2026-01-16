@@ -2489,3 +2489,27 @@ The issue was NOT the OAuth callback parameters. The real problem was that `wind
 **Key Technical Insight:**
 - `replaceState()` - Updates browser history WITHOUT reloading page (CORRECT for logout)
 - `location.replace()` - Navigates to new URL, causing full page reload (WRONG - causes loop)
+
+
+## Phase 48: CLEAN REBUILD - Dotloop OAuth Integration from Scratch
+
+**Goal:** Build a clean, production-ready Dotloop OAuth integration with multi-user support and complete logout functionality
+
+### Tasks:
+- [x] Verify OAuth endpoints against official Dotloop API documentation
+- [x] Clean up existing OAuth implementation files
+- [ ] Build new clean OAuth flow with proper token storage (backend encrypted, frontend localStorage for non-sensitive data)
+- [ ] Implement multi-user support with account switcher dropdown in header
+- [ ] Build dashboard using existing CSV components to display Dotloop data (reuse all charts/tables)
+- [ ] Implement complete logout that clears all data (localStorage, sessionStorage, cookies, backend tokens)
+- [ ] Test end-to-end OAuth flow (login, multi-user, logout, re-login)
+- [ ] Save final checkpoint
+
+**Key Requirements:**
+- Keep API credentials and redirect URLs (they won't change)
+- Use localStorage for non-sensitive data (account list, UI preferences)
+- Store tokens securely (backend encrypted storage)
+- Complete logout clears EVERYTHING
+- Multi-user dropdown for account switching
+- Dashboard displays Dotloop data exactly like CSV dashboard
+- CSV uploader will be added back later as an alternative option
