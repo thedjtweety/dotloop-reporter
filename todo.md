@@ -2670,3 +2670,25 @@ The issue was NOT the OAuth callback parameters. The real problem was that `wind
 ### Files Changed
 - Updated: server/_core/dotloopOAuth.ts (removed scope parameter from getAuthorizationUrl())
 - Created: DOTLOOP_OAUTH_ANALYSIS.md (detailed analysis of Dotloop OAuth spec)
+
+
+## Phase 48: Fix CORS Error in Dotloop API Calls (Current)
+
+### Issue
+- [x] OAuth flow succeeds and account connects successfully
+- [x] Frontend tries to call Dotloop API directly from browser
+- [x] CORS policy blocks the request (No 'Access-Control-Allow-Origin' header)
+- [x] Error: `Access to fetch at 'https://api-gateway.dotloop.com/public/v2/profile/1406868/loop' has been blocked by CORS policy`
+
+### Root Cause
+- Frontend is calling Dotloop API directly instead of using backend proxy
+- Dotloop API doesn't allow cross-origin requests from browser
+- All API calls must go through our backend server
+
+### Fix Implementation
+- [x] Check current frontend API call implementation (dotloopApi.ts)
+- [x] Verify backend proxy routes are registered
+- [x] Add backend proxy endpoint (/api/dotloop/proxy/*)
+- [x] Update frontend to use backend proxy endpoints
+- [ ] Test data sync through backend proxy (requires user testing)
+- [ ] Verify transactions load successfully (requires user testing)

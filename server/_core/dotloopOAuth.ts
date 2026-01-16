@@ -375,6 +375,46 @@ async function handleRevoke(req: Request, res: Response) {
 }
 
 /**
+ * Proxy Dotloop API requests to avoid CORS issues
+ */
+async function handleApiProxy(req: Request, res: Response) {
+  try {
+    // Extract path after /api/dotloop/proxy/
+    const path = req.params[0] || req.path.replace('/api/dotloop/proxy/', '');
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!accessToken) {
+      return res.status(401).json({ error: 'Missing access token' });
+    }
+    
+    const url = `${DOTLOOP_API_BASE}/${path}`;
+    console.log('[Dotloop API Proxy] Proxying request to:', url);
+    
+    const response = await fetch(url, {
+      method: req.method,
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Dotloop API Proxy] Request failed:', response.status, errorText);
+      return res.status(response.status).json({ error: errorText });
+    }
+    
+    const data = await response.json();
+    return res.json(data);
+    
+  } catch (error) {
+    console.error('[Dotloop API Proxy] Error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+/**
  * Register OAuth routes
  */
 export function registerDotloopOAuthRoutes(app: Express) {
@@ -386,6 +426,12 @@ export function registerDotloopOAuthRoutes(app: Express) {
   
   // Token revocation
   app.post('/api/dotloop/revoke', handleRevoke);
+  
+  // API proxy to avoid CORS issues
+  app.get('/api/dotloop/proxy/*', handleApiProxy);
+  app.post('/api/dotloop/proxy/*', handleApiProxy);
+  app.patch('/api/dotloop/proxy/*', handleApiProxy);
+  app.delete('/api/dotloop/proxy/*', handleApiProxy);
   
   console.log('[Dotloop OAuth] Routes registered');
 }

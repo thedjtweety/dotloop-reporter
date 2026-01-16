@@ -10,7 +10,8 @@
 import { DotloopRecord } from './csvParser';
 import { DotloopAccount } from './dotloopAuth';
 
-const DOTLOOP_API_BASE = 'https://api-gateway.dotloop.com/public/v2';
+// Use backend proxy to avoid CORS issues
+const DOTLOOP_API_BASE = '/api/dotloop/proxy';
 
 /**
  * Dotloop Loop API Response Types
