@@ -2262,3 +2262,18 @@
 - [ ] Test user creation/login
 - [ ] Test session persistence
 - [ ] Verify logout functionality
+
+
+## Phase 37: Add Sign Out Button and Implement Dotloop Data Sync
+- [x] Add "Sign Out" button to Dotloop connection status card
+- [x] Wire up Sign Out button to logout mutation
+- [x] Create Dotloop API client module for fetching loops
+- [x] Implement token retrieval and decryption for API calls
+- [x] Create tRPC endpoint for syncing Dotloop data
+- [x] Add "Sync Now" button to connection card
+- [ ] Display last sync timestamp
+- [x] Show sync progress/loading state
+- [x] Handle sync errors gracefully
+- [ ] Store synced loops in database or local state
+- [ ] Display synced data in dashboard
+- [ ] Test complete sync flow end-to-end

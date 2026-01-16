@@ -470,4 +470,40 @@ export const dotloopOAuthRouter = router({
           : 'Connected to Dotloop',
       };
     }),
+
+  /**
+   * Sync Dotloop data
+   * Fetches loops from all profiles and returns them
+   */
+  syncData: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const { getAllLoops } = await import('./lib/dotloopApiClient');
+      
+      try {
+        console.log('[Dotloop Sync] Starting sync for user:', ctx.user.id);
+        
+        const results = await getAllLoops(ctx.user.id);
+        
+        // Calculate totals
+        const totalProfiles = results.length;
+        const totalLoops = results.reduce((sum, r) => sum + r.loops.length, 0);
+        
+        console.log('[Dotloop Sync] Completed:', { totalProfiles, totalLoops });
+        
+        return {
+          success: true,
+          profiles: results,
+          totalProfiles,
+          totalLoops,
+          syncedAt: new Date().toISOString(),
+        };
+      } catch (error) {
+        console.error('[Dotloop Sync] Failed:', error);
+        throw new Error(
+          error instanceof Error 
+            ? error.message 
+            : 'Failed to sync Dotloop data'
+        );
+      }
+    }),
 });

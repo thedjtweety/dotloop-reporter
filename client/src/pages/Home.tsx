@@ -148,6 +148,33 @@ function HomeContent() {
       alert(`Failed to connect to Dotloop.\n\nError: ${errorMessage}\n\nPlease check the browser console for more details and try again.`);
     }
   };
+  
+  // Dotloop data sync
+  const [isSyncing, setIsSyncing] = useState(false);
+  const syncMutation = trpc.dotloopOAuth.syncData.useMutation();
+  
+  const handleSyncDotloop = async () => {
+    setIsSyncing(true);
+    try {
+      const result = await syncMutation.mutateAsync();
+      console.log('[Dotloop Sync] Success:', result);
+      toast.success(`Synced ${result.totalLoops} loops from ${result.totalProfiles} profiles!`);
+      
+      // TODO: Process and display the synced data
+      // For now, just log it
+      console.log('[Dotloop Sync] Data:', result.profiles);
+    } catch (error) {
+      console.error('[Dotloop Sync] Error:', error);
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : 'Failed to sync Dotloop data'
+      );
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+  
   // Handle OAuth callback redirect
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -764,16 +791,33 @@ function HomeContent() {
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-4 text-center">
+                      <div className="space-y-4">
                         <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
                           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                           <span className="font-semibold">Connected as {user?.email}</span>
                         </div>
-                        <p className="text-sm text-foreground/60">
+                        <p className="text-sm text-center text-foreground/60">
                           Your Dotloop account is connected and ready to sync data.
                         </p>
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={handleSyncDotloop}
+                            variant="default"
+                            className="flex-1"
+                            disabled={isSyncing}
+                          >
+                            {isSyncing ? 'Syncing...' : 'Sync Now'}
+                          </Button>
+                          <Button 
+                            onClick={() => logout()}
+                            variant="outline"
+                            className="flex-1"
+                          >
+                            Sign Out
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>
