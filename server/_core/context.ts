@@ -16,11 +16,35 @@ export async function createContext(
 ): Promise<TrpcContext> {
   let user: User | null = null;
 
+  // First, try Dotloop session authentication
   try {
-    user = await sdk.authenticateRequest(opts.req);
+    const { verifySession, getSessionCookieName } = await import('../dotloopSessionManager');
+    const { findUserById } = await import('../dotloopUserManager');
+    
+    const sessionCookie = opts.req.cookies?.[getSessionCookieName()];
+    
+    if (sessionCookie) {
+      const session = await verifySession(sessionCookie);
+      if (session) {
+        // Fetch full user record from database
+        const dotloopUser = await findUserById(session.userId);
+        if (dotloopUser) {
+          user = dotloopUser as User;
+        }
+      }
+    }
   } catch (error) {
-    // Authentication is optional for public procedures.
-    user = null;
+    console.error('[Context] Dotloop session validation failed:', error);
+  }
+
+  // Fallback to Manus authentication if no Dotloop session
+  if (!user) {
+    try {
+      user = await sdk.authenticateRequest(opts.req);
+    } catch (error) {
+      // Authentication is optional for public procedures.
+      user = null;
+    }
   }
 
   return {

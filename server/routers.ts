@@ -32,9 +32,16 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
-    logout: publicProcedure.mutation(({ ctx }) => {
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+    logout: publicProcedure.mutation(async ({ ctx }) => {
+      const manusCookieOptions = getSessionCookieOptions(ctx.req);
+      // Clear Manus session cookie
+      ctx.res.clearCookie(COOKIE_NAME, { ...manusCookieOptions, maxAge: -1 });
+      
+      // Clear Dotloop session cookie
+      const { getSessionCookieName, getSessionCookieOptions: getDotloopCookieOptions } = await import('./dotloopSessionManager');
+      const dotloopCookieOptions = getDotloopCookieOptions();
+      ctx.res.clearCookie(getSessionCookieName(), { ...dotloopCookieOptions, maxAge: -1 });
+      
       return {
         success: true,
       } as const;

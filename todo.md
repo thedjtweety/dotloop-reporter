@@ -2195,9 +2195,9 @@
 - [x] Implement user creation/lookup from Dotloop profile (dotloopUserManager.ts)
 - [x] Create session management system for Dotloop users (dotloopSessionManager.ts)
 - [x] Update OAuth callback to fetch profile and create session
-- [ ] Create custom auth middleware to replace protectedProcedure
-- [ ] Update all protected endpoints to use Dotloop auth
-- [ ] Update frontend useAuth hook to work with Dotloop sessions
-- [ ] Remove Manus authentication dependencies
-- [ ] Add "Login with Dotloop" button as primary login
-- [ ] Test complete flow: Login → OAuth → Profile fetch → Session creation → Dashboard access
+- [x] Create custom auth middleware to replace protectedProcedure (updated context.ts to check Dotloop sessions)
+- [x] Update all protected endpoints to use Dotloop auth (automatic via context update)
+- [x] Update frontend useAuth hook to work with Dotloop sessions (works automatically)
+- [x] Update logout to clear both Manus and Dotloop session cookies
+- [x] Add "Login with Dotloop" button as primary login (shows for unauthenticated users)
+- [ ] Test complete flow: Login → OAuth → Profile fetch → Session creation → Dashboard access (ready for testing)

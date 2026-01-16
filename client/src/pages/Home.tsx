@@ -645,19 +645,24 @@ function HomeContent() {
               </h1>
             </div>
             <div className="flex items-center gap-4">
-              <ConnectDotloop variant="button" />
-
-              {isAuthenticated && user?.role === 'admin' && (
-                <Button variant="ghost" onClick={() => setLocation('/admin')}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Admin
+              {!isAuthenticated ? (
+                <Button onClick={connectDotloop} variant="default" className="bg-primary hover:bg-primary/90">
+                  Login with Dotloop
                 </Button>
-              )}
-              {isAuthenticated && (
-                <Button variant="ghost" onClick={() => setLocation('/settings')}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Button>
+              ) : (
+                <>
+                  <ConnectDotloop variant="button" />
+                  {user?.role === 'admin' && (
+                    <Button variant="ghost" onClick={() => setLocation('/admin')}>
+                      <Settings className="h-4 w-4 mr-2" />
+                      Admin
+                    </Button>
+                  )}
+                  <Button variant="ghost" onClick={() => setLocation('/settings')}>
+                    <Settings className="h-4 w-4 mr-2" />
+                    Settings
+                  </Button>
+                </>
               )}
               <ModeToggle />
               <Button variant="outline" onClick={handleDemoMode} disabled={isLoading} data-tour="demo-button">
