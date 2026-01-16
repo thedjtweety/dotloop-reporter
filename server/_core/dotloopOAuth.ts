@@ -271,7 +271,7 @@ async function handleCallback(req: Request, res: Response) {
       email: account.data.email,
       first_name: account.data.firstName,
       last_name: account.data.lastName,
-      default_profile_id: account.data.defaultProfileId.toString(),
+      profile_id: account.data.defaultProfileId.toString(), // Changed from default_profile_id to match frontend
     });
     
     if (tokenData.refresh_token) {

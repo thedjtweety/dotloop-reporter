@@ -2583,3 +2583,14 @@ The issue was NOT the OAuth callback parameters. The real problem was that `wind
 - [x] Add "Account Settings" link to AccountSwitcher dropdown
 - [x] Update App.tsx with new route
 - [x] Add back navigation from profile page to dashboard
+
+
+## Phase 42: Fix OAuth Callback Flow (Current)
+
+### OAuth Callback Issues
+- [x] Investigate backend OAuth callback handler in dotloopOAuth.ts
+- [x] Fix callback to properly forward OAuth data (access_token, profile_id, email, etc.) to frontend
+- [x] Ensure redirect URL includes all required parameters
+- [x] Fixed parameter name mismatch: changed default_profile_id to profile_id
+- [ ] Test OAuth flow end-to-end with real Dotloop credentials (requires user testing)
+- [ ] Verify frontend receives and stores account data correctly (requires user testing)
