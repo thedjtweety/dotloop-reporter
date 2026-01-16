@@ -3,6 +3,7 @@
  * 
  * Uses localStorage for OAuth token management
  * No Manus authentication required
+ * Updated with correct Dotloop OAuth client ID
  */
 
 import { useState, useEffect } from 'react';
@@ -64,6 +65,9 @@ export default function HomeSimple() {
     const clientId = import.meta.env.VITE_DOTLOOP_CLIENT_ID || '';
     const redirectUri = import.meta.env.VITE_DOTLOOP_REDIRECT_URI || `${window.location.origin}/api/dotloop/callback`;
     const state = Math.random().toString(36).substring(2, 15);
+    
+    console.log('[OAuth Debug] Client ID:', clientId);
+    console.log('[OAuth Debug] Redirect URI:', redirectUri);
     
     const params = new URLSearchParams({
       response_type: 'code',
