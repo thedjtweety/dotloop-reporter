@@ -735,7 +735,7 @@ function HomeContent() {
             </div>
             <div className="flex items-center gap-4">
               {/* Dotloop Account Switcher */}
-              {connectionStatus?.isConnected && (
+              {getAllAccounts().length > 0 && (
                 <AccountSwitcher 
                   onAccountChange={handleAccountChange}
                   onAddAccount={connectDotloop}
@@ -993,6 +993,14 @@ function HomeContent() {
               <DatePickerWithRange date={dateRange} setDate={setDateRange} />
             </div>
             <div className="flex items-center gap-2">
+              {/* Dotloop Account Switcher */}
+              {getAllAccounts().length > 0 && (
+                <AccountSwitcher 
+                  onAccountChange={handleAccountChange}
+                  onAddAccount={connectDotloop}
+                />
+              )}
+              
               {isAuthenticated && user?.role === 'admin' && (
                 <Button variant="ghost" size="sm" onClick={() => setLocation('/admin')}>
                   <Settings className="h-4 w-4 mr-2" />

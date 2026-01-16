@@ -2361,3 +2361,11 @@
 - [ ] Test adding multiple accounts and switching between them
 - [ ] Test token revocation when removing accounts
 - [ ] Verify data isolation between accounts
+
+## Phase 42: Fix AccountSwitcher Visibility in Dashboard
+- [x] Investigate why AccountSwitcher is not appearing in dashboard header
+- [x] Check if connectionStatus is properly set when dashboard loads with data
+- [x] Ensure AccountSwitcher appears in both landing page and dashboard headers
+- [x] Changed visibility logic to check getAllAccounts().length instead of connectionStatus
+- [ ] Test account switcher dropdown functionality
+- [ ] Verify "Add Another Account" button works from dashboard
