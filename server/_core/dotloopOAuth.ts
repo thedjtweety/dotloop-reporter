@@ -269,10 +269,10 @@ async function handleCallback(req: Request, res: Response) {
     const cookieOptions = getSessionCookieOptions(req);
     res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-    console.log('[Dotloop OAuth] Success! Redirecting to dashboard...');
+    console.log('[Dotloop OAuth] Success! Redirecting to homepage...');
     
-    // Redirect to homepage (dashboard)
-    return res.redirect('/?dotloop_connected=true');
+    // Redirect to homepage with success parameter to show toast
+    return res.redirect('/?login_success=true');
 
   } catch (error) {
     console.error('[Dotloop OAuth] Callback error:', error);

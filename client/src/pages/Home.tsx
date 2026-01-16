@@ -181,8 +181,15 @@ function HomeContent() {
     const dotloopConnected = params.get('dotloop_connected');
     const dotloopError = params.get('dotloop_error');
     const errorDetails = params.get('error_details');
+    const loginSuccess = params.get('login_success');
     
-    if (dotloopConnected === 'true') {
+    if (loginSuccess === 'true') {
+      console.log('[OAuth Callback] Successfully logged in with Dotloop!');
+      toast.success('Successfully logged in with Dotloop! You can now sync your data.', { duration: 5000 });
+      refetchConnection();
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (dotloopConnected === 'true') {
       console.log('[OAuth Callback] Successfully connected to Dotloop!');
       toast.success('Successfully connected to Dotloop!');
       refetchConnection();

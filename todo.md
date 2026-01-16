@@ -2284,3 +2284,19 @@
 - [ ] Test logout deletes tokens properly
 - [ ] Test re-login after logout works without Dotloop error
 - [ ] Verify user can re-authorize immediately after logout
+
+
+## Phase 39: Debug OAuth Callback Silent Failure
+- [ ] Add enhanced logging to OAuth callback to identify failure point
+- [ ] Check browser console for error messages during OAuth flow
+- [ ] Check server logs for OAuth callback errors
+- [ ] Identify why callback redirects to homepage without logging in
+- [ ] Fix identified issue in callback handler
+- [ ] Test complete OAuth flow end-to-end
+
+
+## Phase 40: Improve Login UX with Success Notification and Dashboard Redirect
+- [x] Add success toast notification after OAuth login
+- [x] Redirect to homepage with success parameter after OAuth callback
+- [ ] Test login flow shows success message
+- [ ] Verify success toast appears after login
