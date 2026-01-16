@@ -48,35 +48,36 @@ interface DotloopAccount {
     defaultProfileId: number;
   };
 }
+
 /**
- * Generate authorization URL for Dotloop OAuth
+ * Generate OAuth authorization URL
  * 
- * Dotloop OAuth Scopes (from API documentation):
+ * Per Dotloop API documentation, the authorization URL does NOT include a scope parameter.
+ * Scopes are configured in the Dotloop developer portal for your OAuth application,
+ * and are returned in the token response after successful authorization.
+ * 
+ * Authorization URL format (from official docs):
+ * https://auth.dotloop.com/oauth/authorize?response_type=code&client_id=<client_id>&redirect_uri=<redirect_url>[&state=<state>&redirect_on_deny=(true|false)]
+ * 
+ * Available scopes (configured in developer portal, not in URL):
  * - account:read - Get account details
- * - profile:* - All profile operations (read, write, create, update)
- * - loop:* - All loop operations (read, write, details, folders, documents, participants, tasks, activities)
- * - contact:* - All contact operations (read, write, create, update, delete)
- * - template:read - Read loop templates
- * 
- * Note: Scopes use wildcards (*) for full access to a resource type
- * and are comma-separated in the authorization request
+ * - profile:read, profile:write, profile:* - Profile operations
+ * - loop:read, loop:write, loop:* - Loop operations
+ * - contact:read, contact:write, contact:* - Contact operations
+ * - template:read - Loop template operations
  */
 export function getAuthorizationUrl(): string {
   const state = crypto.randomBytes(32).toString('hex');
-  
-  // Request comprehensive scopes following Dotloop's format
-  // Format: "account:read, profile:*, loop:*, contact:*, template:read"
-  const scope = 'account:read, profile:*, loop:*, contact:*, template:read';
   
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: ENV.DOTLOOP_CLIENT_ID,
     redirect_uri: ENV.DOTLOOP_REDIRECT_URI,
-    scope,
     state,
   });
 
-  console.log('[OAuth] Authorization URL created with scope:', scope);
+  console.log('[OAuth] Authorization URL created (no scope parameter per Dotloop spec)');
+  console.log('[OAuth] Full URL:', `${DOTLOOP_AUTH_URL}?${params.toString()}`);
   return `${DOTLOOP_AUTH_URL}?${params.toString()}`;
 }
 

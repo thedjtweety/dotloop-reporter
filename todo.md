@@ -2625,3 +2625,48 @@ The issue was NOT the OAuth callback parameters. The real problem was that `wind
 - [x] Update getAuthorizationUrl with correct scope format: "account:read, profile:*, loop:*, contact:*, template:read"
 - [ ] Test OAuth authorization with corrected scopes (requires user testing)
 - [ ] Verify account fetch works with new scopes (requires user testing)
+
+
+## Phase 46: Remove Scope Parameter from OAuth Authorization URL (Current)
+
+### Root Cause Discovery
+- [x] Discovered that Dotloop OAuth does NOT accept scope parameter in authorization URL
+- [x] Confirmed from API documentation that only response_type, client_id, redirect_uri, state, and redirect_on_deny are valid parameters
+- [x] Scopes are configured at application level during OAuth client registration, not in authorization request
+
+### Fix Implementation
+- [x] Remove scope parameter from getAuthorizationUrl function
+- [x] Update authorization URL to only include required parameters (response_type, client_id, redirect_uri, state)
+- [ ] Test OAuth flow without scope parameter (requires user testing)
+- [ ] Verify authorization succeeds and returns to callback (requires user testing)
+
+
+## Phase 47: Fix Dotloop OAuth Invalid Scope Error (Current)
+
+### Root Cause Discovery
+- [x] Discovered that Zillow owns Dotloop and OAuth goes through Zillow Workspace
+- [x] Confirmed authorization URL goes to login.zillow-workspace.com (not auth.dotloop.com)
+- [x] Initially thought Zillow Workspace OAuth requires OpenID Connect scopes
+- [x] Deep dive into official Dotloop API documentation
+- [x] **CRITICAL DISCOVERY**: Dotloop OAuth does NOT use scope parameter in authorization URL
+
+### Fix Implementation
+- [x] Research correct OpenID Connect scopes for Zillow Workspace / Dotloop
+- [x] Add scope parameter with OpenID Connect scopes: "openid profile email" (WRONG APPROACH)
+- [x] Read official Dotloop API documentation thoroughly
+- [x] Discovered Dotloop OAuth spec does NOT include scope parameter in authorization URL
+- [x] Removed scope parameter from authorization URL (per official Dotloop API spec)
+- [ ] Test OAuth flow without scope parameter (requires user testing)
+- [ ] Verify authorization succeeds and returns access token (requires user testing)
+
+### Key Findings from Dotloop API Documentation
+- Authorization URL format: `https://auth.dotloop.com/oauth/authorize?response_type=code&client_id=<client_id>&redirect_uri=<redirect_url>[&state=<state>]`
+- **NO scope parameter** in authorization URL (this was the bug!)
+- Scopes are configured in Dotloop developer portal for your OAuth application
+- Scopes are returned in token response after successful authorization
+- Available scopes: account:read, profile:*, loop:*, contact:*, template:read
+- Token response includes: `{"access_token": "...", "scope": "profile:*, loop:*"}`
+
+### Files Changed
+- Updated: server/_core/dotloopOAuth.ts (removed scope parameter from getAuthorizationUrl())
+- Created: DOTLOOP_OAUTH_ANALYSIS.md (detailed analysis of Dotloop OAuth spec)
