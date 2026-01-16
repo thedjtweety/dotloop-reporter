@@ -2738,3 +2738,27 @@ The issue was NOT the OAuth callback parameters. The real problem was that `wind
 - [x] Show user-friendly "No transactions" message (dashboard already has empty state)
 - [ ] Test with empty Dotloop account (requires user testing)
 - [ ] Verify dashboard shows proper empty state (requires user testing)
+
+
+## Phase 51: Fix "Add Another Account" Button (Current)
+
+### Issue
+- [x] User reports "Add Another Account" button causes screen flash
+- [x] Button doesn't redirect to OAuth flow
+- [x] Dashboard stays on current screen instead of initiating new connection
+- [ ] Need to investigate account switcher component
+
+### Root Cause Investigation
+- [ ] Check how account switcher dropdown is implemented
+- [ ] Verify "Add Another Account" button click handler
+- [ ] Check if OAuth redirect is being blocked or prevented
+- [ ] Verify getAuthorizationUrl() returns correct URL
+
+### Fix Implementation
+- [x] Fix add account button to properly redirect to OAuth (button was working)
+- [x] Fixed AccountSwitcher to refresh account list from localStorage when dropdown opens
+- [x] Added refreshAccounts() function to reload accounts state
+- [x] Added onOpenChange handler to DropdownMenu to call refreshAccounts()
+- [ ] Test adding second Dotloop account (requires user testing)
+- [ ] Verify both accounts appear in dropdown (requires user testing)
+- [ ] Test switching between accounts (requires user testing)

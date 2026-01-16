@@ -39,8 +39,14 @@ interface AccountSwitcherProps {
 
 export default function AccountSwitcher({ onAccountChange, onLogout }: AccountSwitcherProps) {
   const [, setLocation] = useLocation();
-  const [accounts] = useState<DotloopAccount[]>(getAllAccounts());
+  const [accounts, setAccounts] = useState<DotloopAccount[]>(getAllAccounts());
   const [activeAccount, setActiveAccountState] = useState<DotloopAccount | null>(getActiveAccount());
+  
+  // Refresh accounts list when dropdown opens
+  const refreshAccounts = () => {
+    setAccounts(getAllAccounts());
+    setActiveAccountState(getActiveAccount());
+  };
 
   const handleSwitchAccount = (accountId: string) => {
     setActiveAccount(accountId);
@@ -99,7 +105,7 @@ export default function AccountSwitcher({ onAccountChange, onLogout }: AccountSw
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => { if (open) refreshAccounts(); }}>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="flex items-center gap-2">
           <UserCircle className="h-4 w-4" />

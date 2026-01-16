@@ -29,9 +29,10 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
-  // Load data when account changes
+  // Load data on mount
   useEffect(() => {
     loadAccountData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadAccountData = async () => {
