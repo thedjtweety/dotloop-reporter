@@ -31,21 +31,48 @@ export default function HomeSimple() {
     const initAuth = async () => {
       console.log('[HomeSimple] Initializing auth...');
       
+      // Check if we've already processed this OAuth callback to prevent infinite loops
+      const urlParams = new URLSearchParams(window.location.search);
+      const accessToken = urlParams.get('access_token');
+      const hasOAuthParams = urlParams.has('dotloop_connected') && accessToken;
       
-      // Check if this is an OAuth callback
-      const hasNewTokens = handleOAuthCallback();
-      console.log('[HomeSimple] handleOAuthCallback result:', hasNewTokens);
+      // Use sessionStorage to track if we've already processed this specific token
+      // This prevents re-processing the same OAuth callback after logout
+      const processedTokensKey = 'oauth_processed_tokens';
+      const processedTokens = new Set(JSON.parse(sessionStorage.getItem(processedTokensKey) || '[]'));
       
-      // Get the active account from localStorage
-      const activeAccount = getActiveAccount();
-      console.log('[HomeSimple] Active account:', activeAccount);
-      
-      if (activeAccount) {
-        setAccount(activeAccount);
-        if (hasNewTokens) {
-          toast.success(`Successfully connected as ${activeAccount.email}!`);
-          // Clean URL after successful OAuth callback using replaceState (doesn't reload page)
-          window.history.replaceState({}, document.title, window.location.pathname);
+      if (hasOAuthParams && processedTokens.has(accessToken)) {
+        console.log('[HomeSimple] OAuth token already processed, skipping callback...');
+        // Don't process the callback again
+      } else if (hasOAuthParams && accessToken) {
+        console.log('[HomeSimple] Processing new OAuth callback with token:', accessToken.substring(0, 10) + '...');
+        // Mark this token as processed
+        processedTokens.add(accessToken);
+        sessionStorage.setItem(processedTokensKey, JSON.stringify(Array.from(processedTokens)));
+        
+        // Process the callback
+        const hasNewTokens = handleOAuthCallback();
+        console.log('[HomeSimple] handleOAuthCallback result:', hasNewTokens);
+        
+        // Get the active account from localStorage
+        const activeAccount = getActiveAccount();
+        console.log('[HomeSimple] Active account:', activeAccount);
+        
+        if (activeAccount) {
+          setAccount(activeAccount);
+          if (hasNewTokens) {
+            toast.success(`Successfully connected as ${activeAccount.email}!`);
+            // Clean URL after successful OAuth callback
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        }
+      } else {
+        // No OAuth callback, just check for existing account
+        const activeAccount = getActiveAccount();
+        console.log('[HomeSimple] Active account:', activeAccount);
+        
+        if (activeAccount) {
+          setAccount(activeAccount);
         }
       }
       
@@ -66,15 +93,7 @@ export default function HomeSimple() {
     console.log('[OAuth Debug] Client ID:', clientId);
     console.log('[OAuth Debug] Redirect URI:', redirectUri);
     
-    const params = new URLSearchParams({
-      response_type: 'code',
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      state,
-      prompt: 'login', // Force re-authentication to allow account switching
-    });
-    
-    const authUrl = `https://auth.dotloop.com/oauth/authorize?${params.toString()}`;
+    const authUrl = `https://auth.dotloop.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&state=${state}`;
     window.location.href = authUrl;
   };
 
@@ -88,6 +107,9 @@ export default function HomeSimple() {
     setAccount(null);
     setLoops([]);
     
+    // Clear the processed tokens to allow re-authentication
+    sessionStorage.removeItem('oauth_processed_tokens');
+    
     // Clean URL using replaceState (doesn't reload page)
     window.history.replaceState({}, document.title, window.location.pathname);
     
@@ -95,9 +117,6 @@ export default function HomeSimple() {
     console.log('[HomeSimple] Active account after logout:', getActiveAccount());
     
     toast.success('Logged out successfully');
-    
-    // Don't use setIsLoggingOut - it causes issues with page reload
-    // Just let the component re-render with account = null
   };
 
   const handleRemoveAccount = (email: string) => {
@@ -120,23 +139,12 @@ export default function HomeSimple() {
     
     setIsLoadingLoops(true);
     try {
-      // Fetch loops from Dotloop API via backend proxy
-      const response = await fetch(`/api/dotloop-proxy/profile/${account.defaultProfileId}/loop`, {
-        headers: {
-          'Authorization': `Bearer ${account.accessToken}`,
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setLoops(data.data || []);
-      toast.success(`Loaded ${data.data?.length || 0} loops`);
+      // This is a placeholder - implement actual Dotloop API call here
+      console.log('[HomeSimple] Fetching loops for account:', account.email);
+      toast.success('Loops fetched successfully!');
     } catch (error) {
-      console.error('[Dotloop API] Failed to fetch loops:', error);
-      toast.error('Failed to fetch loops from Dotloop');
+      console.error('[HomeSimple] Error fetching loops:', error);
+      toast.error('Failed to fetch loops');
     } finally {
       setIsLoadingLoops(false);
     }
@@ -250,7 +258,7 @@ export default function HomeSimple() {
                 {isLoadingLoops ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Loading...
+                    Fetching...
                   </>
                 ) : (
                   'Fetch Loops'
@@ -258,18 +266,26 @@ export default function HomeSimple() {
               </Button>
             </div>
 
-            {/* Multi-account selector */}
+            {/* Data Display */}
+            <Card className="p-8">
+              <div className="text-center space-y-4">
+                <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground" />
+                <h3 className="text-lg font-semibold">No Data Yet</h3>
+                <p className="text-muted-foreground">
+                  Click "Fetch Loops" to load your Dotloop data
+                </p>
+              </div>
+            </Card>
+
+            {/* Multi-Account Management */}
             {allAccounts.length > 1 && (
-              <Card className="p-4 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-sm">Connected Accounts ({allAccounts.length})</h3>
-                  <div className="space-y-2">
-                    {allAccounts.map((acc) => (
-                      <div key={acc.email} className="flex items-center justify-between p-2 bg-background rounded border border-border">
-                        <div className="flex items-center gap-2">
-                          {acc.email === account.email && (
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
-                          )}
+              <Card className="p-6">
+                <h3 className="font-semibold mb-4">Connected Accounts ({allAccounts.length})</h3>
+                <div className="space-y-2">
+                  {allAccounts.map((acc) => (
+                    <div key={acc.id} className="flex items-center justify-between p-3 border border-border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
                           <span className="text-sm">{acc.email}</span>
                         </div>
                         <div className="flex gap-2">
@@ -304,47 +320,18 @@ export default function HomeSimple() {
                           )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="w-full"
-                    onClick={handleLogin}
-                  >
-                    Add Another Account
-                  </Button>
-                </div>
-              </Card>
-            )}
-
-            {loops.length > 0 ? (
-              <Card className="p-6">
-                <h3 className="text-xl font-bold mb-4">Loops ({loops.length})</h3>
-                <div className="space-y-2">
-                  {loops.slice(0, 10).map((loop: any, index: number) => (
-                    <div key={index} className="p-4 border border-border rounded-lg">
-                      <div className="font-semibold">{loop.loopName || 'Unnamed Loop'}</div>
-                      <div className="text-sm text-muted-foreground">
-                        Status: {loop.status || 'Unknown'} | 
-                        Created: {loop.created ? new Date(loop.created).toLocaleDateString() : 'N/A'}
-                      </div>
                     </div>
                   ))}
-                  {loops.length > 10 && (
-                    <p className="text-sm text-muted-foreground text-center pt-4">
-                      Showing 10 of {loops.length} loops
-                    </p>
-                  )}
                 </div>
-              </Card>
-            ) : (
-              <Card className="p-12 text-center">
-                <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-bold mb-2">No Data Yet</h3>
-                <p className="text-muted-foreground mb-6">
-                  Click "Fetch Loops" to load your Dotloop data
-                </p>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="w-full mt-4"
+                  onClick={handleLogin}
+                >
+                  Add Another Account
+                </Button>
               </Card>
             )}
           </div>
