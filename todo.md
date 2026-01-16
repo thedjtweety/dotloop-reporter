@@ -2113,3 +2113,27 @@
 - [ ] Verify database connection in callback
 - [ ] Add error handling and user-friendly error pages
 - [ ] Fix any issues found and retest OAuth flow
+
+## Phase: OAuth Connection Debugging (Completed)
+- [x] Add detailed console logging to OAuth flow to capture authorization URL
+- [x] Implement client-side error detection for auth.dotloop.com connection failures
+- [x] Add fallback mechanism to display authorization URL directly to user
+- [x] Create troubleshooting guide for common OAuth connection issues (OAUTH_DOCUMENTATION.md)
+- [x] Test OAuth flow with different browsers
+- [x] Investigate network-level blocking (firewall, VPN, DNS issues)
+- [x] Add comprehensive error logging at every step of callback handler
+
+## Phase: OAuth X-Frame-Options Fix (Completed)
+- [x] Identify root cause: Chrome trying to load OAuth in iframe (X-Frame-Options: deny)
+- [x] Fix redirect to use window.top.location.href for top-level navigation
+- [x] Test OAuth connection with fixed redirect
+- [x] Verify successful redirect to Zillow Workspace login
+- [x] Complete full OAuth flow end-to-end test
+
+## Phase: OAuth New Tab Approach (Completed)
+- [x] Implement OAuth flow that opens in new tab/window
+- [x] Add fallback "Copy OAuth Link" button with clipboard support
+- [x] Show authorization URL to user before redirect
+- [x] Add visual feedback when OAuth window opens
+- [x] Handle OAuth callback when user returns from new tab
+- [x] Verified OAuth flow working correctly with Zillow Workspace login

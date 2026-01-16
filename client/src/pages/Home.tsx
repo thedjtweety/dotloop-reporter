@@ -114,17 +114,57 @@ function HomeContent() {
   const trpcUtils = trpc.useUtils();
   const connectDotloop = async () => {
     try {
+      console.log('[OAuth Debug] Starting Dotloop connection flow...');
+      
       // Generate random state for CSRF protection
       const state = Math.random().toString(36).substring(2, 15);
+      console.log('[OAuth Debug] Generated CSRF state:', state);
       
       // Get authorization URL from backend using tRPC client
+      console.log('[OAuth Debug] Requesting authorization URL from backend...');
       const result = await trpcUtils.client.dotloopOAuth.getAuthorizationUrl.query({ state });
+      console.log('[OAuth Debug] Received authorization URL:', result.url);
+      console.log('[OAuth Debug] Full result:', JSON.stringify(result, null, 2));
       
-      // Redirect to Dotloop OAuth page
-      window.location.href = result.url;
+      // Open OAuth URL in a new tab/window to bypass frame restrictions
+      console.log('[OAuth Debug] Opening OAuth URL in new window...');
+      const authWindow = window.open(result.url, '_blank', 'width=600,height=700,menubar=no,toolbar=no,location=yes');
+      
+      if (!authWindow || authWindow.closed || typeof authWindow.closed === 'undefined') {
+        // Popup was blocked - show fallback with copy button
+        console.warn('[OAuth Debug] Popup blocked - showing fallback');
+        const shouldCopy = confirm(
+          'Popup blocked! Click OK to copy the authorization link, then paste it in a new browser tab.\n\n' +
+          'Or disable your popup blocker and try again.'
+        );
+        
+        if (shouldCopy) {
+          // Copy to clipboard
+          try {
+            await navigator.clipboard.writeText(result.url);
+            alert('Authorization link copied to clipboard! Paste it in a new browser tab to continue.');
+          } catch (clipboardError) {
+            // Fallback: show URL in alert
+            prompt('Copy this URL and paste it in a new browser tab:', result.url);
+          }
+        }
+      } else {
+        console.log('[OAuth Debug] OAuth window opened successfully');
+        // Show a message to the user
+        alert('A new window has opened for Dotloop authorization. Please complete the login there, then return to this page.');
+      }
     } catch (error) {
-      console.error('Failed to initiate OAuth flow:', error);
-      alert('Failed to connect to Dotloop. Please try again.');
+      console.error('[OAuth Debug] Failed to initiate OAuth flow:', error);
+      console.error('[OAuth Debug] Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        type: typeof error,
+        error: error
+      });
+      
+      // Show detailed error to user
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to connect to Dotloop.\n\nError: ${errorMessage}\n\nPlease check the browser console for more details and try again.`);
     }
   };
   const { showTour, completeTour, skipTour } = useOnboardingTour();

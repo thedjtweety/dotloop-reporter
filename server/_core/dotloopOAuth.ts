@@ -47,6 +47,12 @@ export function registerDotloopOAuthRoutes(app: Express) {
    */
   app.get('/api/dotloop/callback', async (req: Request, res: Response) => {
     try {
+      console.log('[DotloopOAuth] Callback received:', {
+        query: req.query,
+        url: req.url,
+        headers: req.headers
+      });
+      
       const { code, state, error, error_description } = req.query;
 
       // Handle OAuth errors (user denied, etc.)
@@ -61,8 +67,11 @@ export function registerDotloopOAuthRoutes(app: Express) {
         return res.redirect('/?dotloop_error=missing_code');
       }
 
+      console.log('[DotloopOAuth] Authorization code received, exchanging for tokens...');
+      
       // Exchange authorization code for tokens
       const { clientId, clientSecret, redirectUri } = getDotloopCredentials();
+      console.log('[DotloopOAuth] Using credentials:', { clientId, redirectUri });
       
       const tokenResponse = await fetch(DOTLOOP_TOKEN_URL, {
         method: 'POST',
@@ -83,7 +92,14 @@ export function registerDotloopOAuthRoutes(app: Express) {
         return res.redirect('/?dotloop_error=token_exchange_failed');
       }
 
+      console.log('[DotloopOAuth] Token exchange successful, parsing response...');
       const tokenData = await tokenResponse.json();
+      console.log('[DotloopOAuth] Token data received:', { 
+        has_access_token: !!tokenData.access_token,
+        has_refresh_token: !!tokenData.refresh_token,
+        expires_in: tokenData.expires_in 
+      });
+      
       const { access_token, refresh_token, expires_in } = tokenData;
 
       if (!access_token) {
@@ -91,6 +107,7 @@ export function registerDotloopOAuthRoutes(app: Express) {
         return res.redirect('/?dotloop_error=no_access_token');
       }
 
+      console.log('[DotloopOAuth] Connecting to database...');
       // Store tokens in database
       const db = await getDb();
       if (!db) {
@@ -103,12 +120,14 @@ export function registerDotloopOAuthRoutes(app: Express) {
       const tenantId = 'default';
       const userId = 'default';
 
+      console.log('[DotloopOAuth] Encrypting tokens...');
       // Encrypt tokens before storage
       const encryptedAccessToken = tokenEncryption.encrypt(access_token);
       const encryptedRefreshToken = refresh_token ? tokenEncryption.encrypt(refresh_token) : null;
       const tokenHash = tokenEncryption.hashToken(access_token);
 
       const expiresAt = new Date(Date.now() + (expires_in * 1000));
+      console.log('[DotloopOAuth] Tokens encrypted, inserting into database...');
 
       await db.insert(oauthTokens).values({
         tenantId: 1, // Default tenant ID
@@ -120,6 +139,8 @@ export function registerDotloopOAuthRoutes(app: Express) {
         tokenExpiresAt: expiresAt.toISOString().slice(0, 19).replace('T', ' '),
       });
 
+      console.log('[DotloopOAuth] Token insert successful, creating audit log...');
+      
       // Log successful token creation
       await db.insert(tokenAuditLogs).values({
         tenantId: 1,
@@ -131,12 +152,17 @@ export function registerDotloopOAuthRoutes(app: Express) {
         userAgent: req.get('user-agent') || null,
       });
 
-      console.log('[DotloopOAuth] Successfully stored tokens');
+      console.log('[DotloopOAuth] Audit log created successfully');
+      console.log('[DotloopOAuth] All operations completed, redirecting to success page...');
 
       // Redirect back to app with success message
       res.redirect('/?dotloop_connected=true');
     } catch (error) {
       console.error('[DotloopOAuth] Callback error:', error);
+      console.error('[DotloopOAuth] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      console.error('[DotloopOAuth] Error message:', error instanceof Error ? error.message : String(error));
+      console.error('[DotloopOAuth] Error type:', typeof error);
+      console.error('[DotloopOAuth] Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
       res.redirect('/?dotloop_error=unknown');
     }
   });
