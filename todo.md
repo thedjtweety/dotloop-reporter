@@ -2762,3 +2762,29 @@ The issue was NOT the OAuth callback parameters. The real problem was that `wind
 - [ ] Test adding second Dotloop account (requires user testing)
 - [ ] Verify both accounts appear in dropdown (requires user testing)
 - [ ] Test switching between accounts (requires user testing)
+
+
+## Phase 52: Restore Two-Column Homepage Design (Current)
+
+### User Request
+- [x] User frustrated with current single-option design
+- [x] Requested return to two-column layout
+- [ ] Left column: CSV upload (primary method)
+- [ ] Right column: Dotloop connection (secondary method)
+
+### Design Requirements
+- [x] Two-column responsive layout
+- [x] CSV upload section on left with drag-and-drop
+- [x] Dotloop connection section on right with OAuth button
+- [x] Both methods should be equally visible
+- [x] Mobile: stack columns vertically (CSV on top)
+- [x] Show recent uploads and connected accounts
+
+### Implementation Plan
+- [x] Redesign Home.tsx with two-column grid layout
+- [x] Add CSV upload zone component (reuse existing UploadZone)
+- [x] Keep Dotloop connection section
+- [x] Add visual separation between columns
+- [x] Ensure both paths lead to dashboard with data
+- [ ] Test CSV upload → dashboard flow (requires user testing)
+- [ ] Test Dotloop connect → dashboard flow (requires user testing)
