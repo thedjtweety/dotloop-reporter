@@ -102,7 +102,7 @@ export default function FinancialChart({ metrics, records = [] }: FinancialChart
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:gap-6 w-full">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {financialMetrics.map((metric, index) => {
         const isPositive = metric.change >= 0;
         const Icon = isPositive ? ArrowUp : ArrowDown;
@@ -110,44 +110,44 @@ export default function FinancialChart({ metrics, records = [] }: FinancialChart
         return (
           <div
             key={index}
-            className="relative overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 from-slate-50 to-slate-100 p-4 md:p-6 hover:shadow-lg transition-all duration-300 group flex flex-col h-full min-h-[200px]"
+            className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 from-slate-50 to-slate-100 p-6 hover:shadow-lg transition-all duration-300 group flex flex-col h-full"
           >
             {/* Gradient background accent */}
             <div className={`absolute inset-0 bg-gradient-to-br ${metric.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
             
             <div className="relative z-10 flex flex-col h-full">
               {/* Header with label */}
-              <div className="mb-3">
-                <p className="text-xs md:text-sm font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+              <div className="mb-4">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
                   {metric.label}
                 </p>
               </div>
 
               {/* Main value */}
-              <div className="mb-4">
-                <p className="text-2xl md:text-3xl font-display font-bold text-slate-900 dark:text-white leading-tight break-words">
+              <div className="mb-6">
+                <p className="text-4xl font-display font-bold text-slate-900 dark:text-white leading-tight">
                   {metric.value}
                 </p>
               </div>
 
               {/* Sparkline chart - takes up remaining space */}
-              <div className="flex-1 mb-4 flex items-center justify-center min-h-[60px]">
+              <div className="flex-1 mb-6 -mx-2 flex items-center justify-center">
                 <Sparkline data={metric.trendData} color={metric.sparklineColor} height={60} />
               </div>
 
               {/* Change indicator at bottom */}
               <div className="flex items-center gap-2 mt-auto">
-                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs md:text-sm ${
+                <div className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full ${
                   isPositive 
                     ? 'bg-emerald-100 dark:bg-emerald-900/30' 
                     : 'bg-red-100 dark:bg-red-900/30'
                 }`}>
-                  <Icon className={`w-3 h-3 md:w-4 md:h-4 ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`} />
-                  <span className={`font-semibold ${isPositive ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}`}>
+                  <Icon className={`w-4 h-4 ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`} />
+                  <span className={`text-sm font-semibold ${isPositive ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}`}>
                     {isPositive ? '+' : ''}{metric.change.toFixed(1)}%
                   </span>
                 </div>
-                <span className="text-xs text-slate-500 dark:text-slate-400">vs last</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">vs last period</span>
               </div>
             </div>
           </div>

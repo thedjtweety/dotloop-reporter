@@ -95,7 +95,7 @@ const MAPS_PROXY_URL = `${FORGE_BASE_URL}/v1/maps/proxy`;
 function loadMapScript() {
   return new Promise(resolve => {
     const script = document.createElement("script");
-    script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry,drawing,visualization`;
+    script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry`;
     script.async = true;
     script.crossOrigin = "anonymous";
     script.onload = () => {
@@ -114,8 +114,6 @@ interface MapViewProps {
   initialCenter?: google.maps.LatLngLiteral;
   initialZoom?: number;
   onMapReady?: (map: google.maps.Map) => void;
-  enableDrawing?: boolean;
-  onDrawingReady?: (drawingManager: google.maps.drawing.DrawingManager) => void;
 }
 
 export function MapView({
@@ -123,8 +121,6 @@ export function MapView({
   initialCenter = { lat: 37.7749, lng: -122.4194 },
   initialZoom = 12,
   onMapReady,
-  enableDrawing = false,
-  onDrawingReady,
 }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
@@ -144,18 +140,6 @@ export function MapView({
       streetViewControl: true,
       mapId: "DEMO_MAP_ID",
     });
-    
-    if (enableDrawing && window.google?.maps?.drawing?.DrawingManager) {
-      const drawingManager = new window.google.maps.drawing.DrawingManager({
-        drawingMode: null,
-        drawingControl: false,
-      }) as google.maps.drawing.DrawingManager;
-      drawingManager.setMap(map.current);
-      if (onDrawingReady) {
-        onDrawingReady(drawingManager);
-      }
-    }
-    
     if (onMapReady) {
       onMapReady(map.current);
     }

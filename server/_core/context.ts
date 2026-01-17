@@ -16,7 +16,6 @@ export async function createContext(
 ): Promise<TrpcContext> {
   let user: User | null = null;
 
-  // Manus authentication
   try {
     user = await sdk.authenticateRequest(opts.req);
   } catch (error) {

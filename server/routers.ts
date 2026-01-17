@@ -9,7 +9,7 @@ import { validateTransactionBatch } from './transactionValidator';
 import { adminRouter } from './adminRouter';
 import { performanceRouter } from './performanceRouter';
 import { auditLogRouter } from './auditLogRouter';
-
+import { dotloopOAuthRouter } from './dotloopOAuthRouter';
 import { tenantSettingsRouter } from './tenantSettingsRouter';
 import { commissionRouter } from './commissionRouter';
 // import { tierHistoryRouter } from './tierHistoryRouter'; // Removed: tierHistory table was dropped in migration
@@ -32,36 +32,9 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
-    logout: publicProcedure.mutation(async ({ ctx }) => {
-      const manusCookieOptions = getSessionCookieOptions(ctx.req);
-      // Clear Manus session cookie
-      ctx.res.clearCookie(COOKIE_NAME, { ...manusCookieOptions, maxAge: -1 });
-      
-      // Delete OAuth tokens from database if user is authenticated
-      if (ctx.user) {
-        try {
-          const { getDb } = await import('./db');
-          const schema = await import('../drizzle/schema');
-          const { eq, and } = await import('drizzle-orm');
-          
-          const db = await getDb();
-          if (db) {
-            await db.delete(schema.oauthTokens)
-              .where(
-                and(
-                  eq(schema.oauthTokens.userId, ctx.user.id),
-                  eq(schema.oauthTokens.provider, 'dotloop')
-                )
-              );
-            
-            console.log(`[Logout] Deleted Dotloop OAuth tokens for user ${ctx.user.id}`);
-          }
-        } catch (error) {
-          console.error('[Logout] Failed to delete OAuth tokens:', error);
-          // Don't fail the logout if token deletion fails
-        }
-      }
-      
+    logout: publicProcedure.mutation(({ ctx }) => {
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return {
         success: true,
       } as const;
@@ -246,7 +219,7 @@ export const appRouter = router({
   admin: adminRouter,
   performance: performanceRouter,
   auditLogs: auditLogRouter,
-
+  dotloopOAuth: dotloopOAuthRouter,
   tenantSettings: tenantSettingsRouter,
   commission: commissionRouter,
   // tierHistory: tierHistoryRouter, // Removed: tierHistory table was dropped in migration

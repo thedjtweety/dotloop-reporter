@@ -20,18 +20,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AlertCircle, Download, TrendingDown, TrendingUp, CheckCircle, Pencil } from 'lucide-react';
-import VarianceAdjustmentPanel from './VarianceAdjustmentPanel';
-import { VarianceAdjustment } from '@/lib/varianceAdjustment';
+import { AlertCircle, Download, TrendingDown, TrendingUp, CheckCircle } from 'lucide-react';
 
 interface CommissionVarianceReportProps {
   records: DotloopRecord[];
-}
-
-interface AdjustmentModalState {
-  isOpen: boolean;
-  item: CommissionVarianceItem | null;
 }
 
 export default function CommissionVarianceReport({ records }: CommissionVarianceReportProps) {
@@ -39,10 +31,6 @@ export default function CommissionVarianceReport({ records }: CommissionVariance
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'exact' | 'minor' | 'major'>('all');
   const [sortBy, setSortBy] = useState<'amount' | 'percentage'>('amount');
   const [searchTerm, setSearchTerm] = useState('');
-  const [adjustmentModal, setAdjustmentModal] = useState<AdjustmentModalState>({
-    isOpen: false,
-    item: null,
-  });
 
   // Calculate variance
   const { items: allItems, summary } = useMemo(() => calculateCommissionVariance(records), [records]);
@@ -99,30 +87,6 @@ export default function CommissionVarianceReport({ records }: CommissionVariance
     a.download = `commission-variance-report-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
-  };
-
-  // Handle opening adjustment modal
-  const handleOpenAdjustment = (item: CommissionVarianceItem) => {
-    setAdjustmentModal({
-      isOpen: true,
-      item,
-    });
-  };
-
-  // Handle closing adjustment modal
-  const handleCloseAdjustment = () => {
-    setAdjustmentModal({
-      isOpen: false,
-      item: null,
-    });
-  };
-
-  // Handle adjustment saved
-  const handleAdjustmentSaved = (adjustment: VarianceAdjustment) => {
-    // Close modal
-    handleCloseAdjustment();
-    // You could add a toast notification here
-    console.log('Adjustment saved:', adjustment);
   };
 
   const getVarianceBadgeColor = (category: 'exact' | 'minor' | 'major') => {
@@ -310,7 +274,6 @@ export default function CommissionVarianceReport({ records }: CommissionVariance
                   <th className="text-right py-2 px-4 font-semibold text-foreground">Variance $</th>
                   <th className="text-right py-2 px-4 font-semibold text-foreground">Variance %</th>
                   <th className="text-center py-2 px-4 font-semibold text-foreground">Type</th>
-                  <th className="text-center py-2 px-4 font-semibold text-foreground">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -339,17 +302,6 @@ export default function CommissionVarianceReport({ records }: CommissionVariance
                         <span className="capitalize">{item.varianceCategory}</span>
                       </Badge>
                     </td>
-                    <td className="text-center py-2 px-4">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleOpenAdjustment(item)}
-                        className="h-8 w-8 p-0"
-                        title="Adjust commission"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -361,53 +313,6 @@ export default function CommissionVarianceReport({ records }: CommissionVariance
           </div>
         )}
       </Card>
-
-      {/* Variance Adjustment Modal */}
-      <Dialog open={adjustmentModal.isOpen} onOpenChange={handleCloseAdjustment}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Adjust Commission</DialogTitle>
-          </DialogHeader>
-          {adjustmentModal.item && (
-            <div className="space-y-4">
-              {/* Item Summary */}
-              <Card className="p-4 bg-muted/50">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground font-medium">Loop Name</p>
-                    <p className="text-foreground font-semibold">{adjustmentModal.item.loopName}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground font-medium">Agent</p>
-                    <p className="text-foreground font-semibold">{adjustmentModal.item.agentName}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground font-medium">Closing Date</p>
-                    <p className="text-foreground font-semibold">
-                      {new Date(adjustmentModal.item.closingDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground font-medium">Variance Type</p>
-                    <Badge className={getVarianceBadgeColor(adjustmentModal.item.varianceCategory)}>
-                      {adjustmentModal.item.varianceCategory}
-                    </Badge>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Variance Adjustment Panel */}
-              <VarianceAdjustmentPanel
-                loopId={adjustmentModal.item.recordId}
-                agentName={adjustmentModal.item.agentName}
-                originalValue={adjustmentModal.item.csvCompanyDollar}
-                currentValue={adjustmentModal.item.calculatedCompanyDollar}
-                onAdjustmentSaved={handleAdjustmentSaved}
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

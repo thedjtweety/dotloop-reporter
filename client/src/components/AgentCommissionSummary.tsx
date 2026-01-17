@@ -104,7 +104,7 @@ export default function AgentCommissionSummary({ breakdowns }: Props) {
               <div className="flex items-center gap-8">
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">Total Commission</p>
-                  <p className="text-lg font-bold text-foreground">
+                  <p className="text-lg font-bold text-accent">
                     ${summary.totalCommission.toFixed(2)}
                   </p>
                 </div>
