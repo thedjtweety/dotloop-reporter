@@ -1877,3 +1877,22 @@
 - [x] Add mode-switching buttons (Previous/Next)
 - [x] Integrate into dashboard (replaced PropertyInsightsChart)
 - [ ] Test with demo data (requires user testing)
+
+
+## Phase 55: Redesign Pipeline Breakdown with Funnel & Radial Charts
+
+### Requirements
+- Create two visualization modes for Pipeline Breakdown (first chart users see)
+- Mode 1: Funnel Chart - Shows conversion flow through pipeline stages
+- Mode 2: Radial Bar Chart - Shows stages as circular bars radiating from center
+- Add toggle button to switch between modes
+- Replace current PipelineChart component
+- Support interactive tooltips and hover effects
+
+### Implementation Tasks
+- [x] Create InteractivePipelineChart.tsx component with both modes
+- [x] Implement Funnel Chart visualization with smooth connectors
+- [x] Implement Radial Bar Chart visualization (donut-style)
+- [x] Add toggle button (Funnel/Radial) with icons
+- [x] Replace PipelineChart in dashboard
+- [ ] Test with demo data (requires user testing)

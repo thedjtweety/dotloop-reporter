@@ -63,7 +63,7 @@ import ColumnMapping from '@/components/ColumnMapping';
 import FieldMapper, { ColumnMapping as FieldMapping } from '@/components/FieldMapper';
 import { DatePickerWithRange } from '@/components/DateRangePicker';
 import { normalizeRecord } from '@/lib/csvParser';
-import PipelineChart from '@/components/charts/PipelineChart';
+import InteractivePipelineChart from '@/components/charts/InteractivePipelineChart';
 import PipelineChartDrillDown from '@/components/PipelineChartDrillDown';
 import ChartDrillDown from '@/components/ChartDrillDown';
 import FinancialChart from '@/components/charts/FinancialChart';
@@ -934,12 +934,8 @@ function HomeContent() {
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Pipeline Breakdown
                 </h2>
-                <PipelineChart 
-                  data={getPipelineData(allRecords)} 
-                  onBarClick={(label) => {
-                    setPipelineDrillDownStatus(label);
-                    setPipelineDrillDownOpen(true);
-                  }}
+                <InteractivePipelineChart 
+                  data={allRecords}
                 />
               </Card>
             </TabsContent>
