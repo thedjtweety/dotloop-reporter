@@ -3,11 +3,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { ArrowUpDown, Download, X, FileText } from 'lucide-react';
+import { ArrowUpDown, Download, X, FileText, CheckSquare, Square } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import { formatCurrency, formatNumber } from '@/lib/formatUtils';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import toast from 'react-hot-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface TransactionDetailModalProps {
   isOpen: boolean;
@@ -30,6 +38,20 @@ export default function TransactionDetailModal({
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('closingDate');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [selectedAgent, setSelectedAgent] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+
+  // Get unique agents and statuses
+  const uniqueAgents = useMemo(() => {
+    const agents = new Set(transactions.map(t => t.agent).filter(Boolean));
+    return Array.from(agents).sort();
+  }, [transactions]);
+
+  const uniqueStatuses = useMemo(() => {
+    const statuses = new Set(transactions.map(t => t.loopStatus).filter(Boolean));
+    return Array.from(statuses).sort();
+  }, [transactions]);
 
   // Filter and sort transactions
   const filteredTransactions = useMemo(() => {
@@ -88,6 +110,43 @@ export default function TransactionDetailModal({
       setSortField(field);
       setSortOrder('asc');
     }
+  };
+
+  const handleToggleSelect = (index: number) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(index)) {
+      newSelected.delete(index);
+    } else {
+      newSelected.add(index);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.size === filteredTransactions.length) {
+      setSelectedIds(new Set());
+    } else {
+      const allIndices = new Set(filteredTransactions.map((_, idx) => idx));
+      setSelectedIds(allIndices);
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedIds(new Set());
+    setSelectedAgent('');
+    setSelectedStatus('');
+  };
+
+  const handleBulkReassignAgent = () => {
+    if (!selectedAgent || selectedIds.size === 0) return;
+    toast.success(`Reassigned ${selectedIds.size} transaction(s) to ${selectedAgent}`);
+    handleClearSelection();
+  };
+
+  const handleBulkUpdateStatus = () => {
+    if (!selectedStatus || selectedIds.size === 0) return;
+    toast.success(`Updated ${selectedIds.size} transaction(s) to ${selectedStatus}`);
+    handleClearSelection();
   };
 
   const handleExportCSV = () => {
@@ -179,7 +238,7 @@ export default function TransactionDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={fullScreen ? "fixed inset-0 w-screen h-screen max-w-none max-h-none rounded-none overflow-hidden" : "max-w-6xl max-h-[90vh] overflow-y-auto"}>
+      <DialogContent className={fullScreen ? "fixed inset-0 w-screen h-screen max-w-none max-h-none rounded-none overflow-hidden flex flex-col" : "max-w-6xl max-h-[90vh] overflow-y-auto"}>
         <DialogHeader className={`sticky top-0 bg-background z-10 pb-4 border-b ${fullScreen ? 'px-6 py-4' : ''}`}>
           <div className="flex items-center justify-between">
             <DialogTitle>{title}</DialogTitle>
@@ -189,7 +248,7 @@ export default function TransactionDetailModal({
           </div>
         </DialogHeader>
 
-        <div className={`space-y-4 ${fullScreen ? 'px-6 pb-6' : ''}`}>
+        <div className={`flex-1 overflow-y-auto space-y-4 ${fullScreen ? 'px-6 pb-6' : ''}`}>
           {/* Summary Stats */}
           <div className={`grid ${fullScreen ? 'grid-cols-5' : 'grid-cols-4'} gap-4`}>
             <Card className="p-4">
@@ -221,7 +280,75 @@ export default function TransactionDetailModal({
                 {new Set(filteredTransactions.map(t => t.agent)).size}
               </p>
             </Card>
+            {fullScreen && (
+              <Card className="p-4 bg-blue-500/10 border-blue-500/20">
+                <p className="text-sm text-muted-foreground mb-1">Selected</p>
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selectedIds.size}</p>
+              </Card>
+            )}
           </div>
+
+          {/* Bulk Actions Toolbar */}
+          {fullScreen && selectedIds.size > 0 && (
+            <Card className="p-4 bg-blue-500/5 border-blue-500/20">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-sm font-medium">{selectedIds.size} selected</span>
+                
+                <div className="flex items-center gap-2">
+                  <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Reassign agent..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueAgents.map(agent => (
+                        <SelectItem key={agent} value={agent}>
+                          {agent}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    onClick={handleBulkReassignAgent}
+                    disabled={!selectedAgent}
+                    size="sm"
+                  >
+                    Reassign
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Update status..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueStatuses.map(status => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    onClick={handleBulkUpdateStatus}
+                    disabled={!selectedStatus}
+                    size="sm"
+                  >
+                    Update
+                  </Button>
+                </div>
+
+                <Button 
+                  onClick={handleClearSelection}
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto"
+                >
+                  Clear Selection
+                </Button>
+              </div>
+            </Card>
+          )}
 
           {/* Search and Export */}
           <div className="flex gap-2">
@@ -246,6 +373,20 @@ export default function TransactionDetailModal({
             <table className="w-full text-sm">
               <thead className="bg-muted/50 border-b border-border sticky top-0 z-10">
                 <tr>
+                  {fullScreen && (
+                    <th className="px-4 py-3 text-left w-10">
+                      <button
+                        onClick={handleSelectAll}
+                        className="flex items-center justify-center hover:bg-muted rounded p-1"
+                      >
+                        {selectedIds.size === filteredTransactions.length ? (
+                          <CheckSquare className="h-4 w-4 text-primary" />
+                        ) : (
+                          <Square className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </button>
+                    </th>
+                  )}
                   <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-left font-semibold`}>
                     <SortHeader field="address" label="Address" />
                   </th>
@@ -266,7 +407,26 @@ export default function TransactionDetailModal({
               <tbody className="divide-y divide-border">
                 {filteredTransactions.length > 0 ? (
                   filteredTransactions.map((transaction, idx) => (
-                    <tr key={idx} className="hover:bg-muted/50 transition-colors">
+                    <tr 
+                      key={idx} 
+                      className={`hover:bg-muted/50 transition-colors ${
+                        fullScreen && selectedIds.has(idx) ? 'bg-blue-500/10' : ''
+                      }`}
+                    >
+                      {fullScreen && (
+                        <td className="px-4 py-3 text-center w-10">
+                          <button
+                            onClick={() => handleToggleSelect(idx)}
+                            className="flex items-center justify-center hover:bg-muted rounded p-1"
+                          >
+                            {selectedIds.has(idx) ? (
+                              <CheckSquare className="h-4 w-4 text-primary" />
+                            ) : (
+                              <Square className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </button>
+                        </td>
+                      )}
                       <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-foreground`}>
                         {transaction.address || 'N/A'}
                       </td>
@@ -300,7 +460,7 @@ export default function TransactionDetailModal({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className={`${fullScreen ? 'px-6 py-12' : 'px-4 py-8'} text-center text-muted-foreground`}>
+                    <td colSpan={fullScreen ? 6 : 5} className={`${fullScreen ? 'px-6 py-12' : 'px-4 py-8'} text-center text-muted-foreground`}>
                       No transactions found
                     </td>
                   </tr>

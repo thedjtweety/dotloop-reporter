@@ -1985,3 +1985,30 @@
 - [x] Make table header sticky for scrolling
 - [x] Enable full-screen mode for pipeline breakdown drill-downs
 - [x] Test drill-down opens in full-screen with all details visible
+
+## Phase 8: Bulk Actions in Full-Screen Modal
+
+### Checkbox Selection
+- [x] Add checkbox column to transaction table
+- [x] Add Select All checkbox in table header
+- [x] Track selected transaction IDs in state
+- [x] Highlight selected rows with background color
+
+### Bulk Actions Toolbar
+- [x] Create floating toolbar showing selected count
+- [x] Add Reassign Agent button
+- [x] Add Update Status button
+- [x] Add Clear Selection button
+- [x] Show toolbar only when items are selected
+
+### Agent Reassignment
+- [x] Create agent selection dropdown
+- [x] Update selected transactions with new agent
+- [x] Show success toast notification
+- [x] Auto-deselect after action
+
+### Status Update
+- [x] Create status selection dropdown
+- [x] Update selected transactions with new status
+- [x] Show success toast notification
+- [x] Auto-deselect after action
