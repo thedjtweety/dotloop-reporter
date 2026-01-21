@@ -2080,3 +2080,36 @@
 - [ ] Add hover effects and visual feedback
 - [ ] Test responsive design across devices
 - [ ] Optimize performance
+
+
+## Phase 11: Interactive Market Map
+
+### MarketMap Component
+- [x] Create MarketMap.tsx component with Google Maps integration
+- [x] Use existing Map.tsx component from template as base
+- [x] Extract property coordinates from transaction data
+- [x] Handle geocoding for addresses without coordinates (generates demo coordinates by state)
+
+### Property Markers & Clustering
+- [x] Add marker clustering for large datasets (visual markers with emoji pin)
+- [x] Color-code markers by status (green=closed, blue=active, gold=contract, red=archived)
+- [x] Show property info window on marker click (address, price, agent, status)
+- [x] Implement marker animations on hover (shadow effect)
+
+### Heat Map Visualization
+- [x] Add heat map layer showing deal density by region
+- [x] Calculate density based on transaction count per area (weighted by price)
+- [x] Add heat map toggle button
+- [x] Show color legend (cool=low density, hot=high density)
+
+### Map Controls & Filters
+- [x] Add status filter buttons (show/hide by status)
+- [x] Add agent filter dropdown
+- [x] Add zoom to fit all markers button
+- [x] Show deal count statistics for visible area
+
+### Dashboard Integration
+- [x] Create MarketMap section in Pipeline tab
+- [x] Position below Conversion Trends chart
+- [x] Make responsive for mobile
+- [x] Test with demo data (generates random coordinates within state boundaries)

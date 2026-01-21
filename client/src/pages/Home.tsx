@@ -65,6 +65,7 @@ import { DatePickerWithRange } from '@/components/DateRangePicker';
 import { normalizeRecord } from '@/lib/csvParser';
 import InteractivePipelineChart from '@/components/charts/InteractivePipelineChart';
 import ConversionTrendsChart from '@/components/charts/ConversionTrendsChart';
+import MarketMap from '@/components/MarketMap';
 import PipelineChartDrillDown from '@/components/PipelineChartDrillDown';
 import ChartDrillDown from '@/components/ChartDrillDown';
 import FinancialChart from '@/components/charts/FinancialChart';
@@ -942,6 +943,10 @@ function HomeContent() {
               
               <Card className="p-6 bg-card border border-border">
                 <ConversionTrendsChart data={allRecords} />
+              </Card>
+              
+              <Card className="p-6 bg-card border border-border">
+                <MarketMap data={allRecords} />
               </Card>
             </TabsContent>
 
