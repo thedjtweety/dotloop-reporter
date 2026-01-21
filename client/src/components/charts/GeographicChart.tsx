@@ -13,6 +13,7 @@ import SimpleMapViewModal from '@/components/SimpleMapViewModal';
 interface GeographicChartProps {
   data: ChartData[];
   onBarClick?: (label: string) => void;
+  transactions?: any[];
 }
 
 const COLORS = ['#1e3a5f', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -39,7 +40,7 @@ const CustomTooltip = ({ active, payload, label, total }: TooltipProps<number, s
   return null;
 };
 
-export default function GeographicChart({ data, onBarClick }: GeographicChartProps) {
+export default function GeographicChart({ data, onBarClick, transactions = [] }: GeographicChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const [showMap, setShowMap] = useState(false);
 
@@ -72,6 +73,7 @@ export default function GeographicChart({ data, onBarClick }: GeographicChartPro
         isOpen={showMap}
         onClose={() => setShowMap(false)}
         title="Geographic Distribution Map"
+        transactions={transactions}
       />
       <div ref={chartRef}>
         <div className="flex items-center justify-between mb-4">
