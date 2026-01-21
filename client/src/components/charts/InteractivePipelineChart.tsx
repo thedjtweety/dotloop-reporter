@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, Home, CheckCircle, Clock, Archive } from 'lucide-react';
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, PolarAngleAxis, PolarRadiusAxis, RadarChart, Radar, PolarGrid
@@ -27,11 +27,43 @@ interface ConversionMetric {
   benchmark?: number;
 }
 
-const PIPELINE_COLORS = {
-  'Closed': '#10b981',
-  'Active Listings': '#3b82f6',
-  'Under Contract': '#f59e0b',
-  'Archived': '#ef4444',
+interface StageConfig {
+  name: string;
+  icon: React.ReactNode;
+  color: string;
+  gradient: string;
+  badgeColor: string;
+}
+
+const PIPELINE_STAGES: Record<string, StageConfig> = {
+  'Closed': {
+    name: 'Closed',
+    icon: <CheckCircle className="w-5 h-5" />,
+    color: '#10b981',
+    gradient: 'gradient-closed',
+    badgeColor: 'market-badge-success',
+  },
+  'Active Listings': {
+    name: 'Active Listings',
+    icon: <Home className="w-5 h-5" />,
+    color: '#3b82f6',
+    gradient: 'gradient-active',
+    badgeColor: 'market-badge-info',
+  },
+  'Under Contract': {
+    name: 'Under Contract',
+    icon: <Clock className="w-5 h-5" />,
+    color: '#f59e0b',
+    gradient: 'gradient-contract',
+    badgeColor: 'market-badge-warning',
+  },
+  'Archived': {
+    name: 'Archived',
+    icon: <Archive className="w-5 h-5" />,
+    color: '#ef4444',
+    gradient: 'gradient-archived',
+    badgeColor: 'market-badge-warning',
+  },
 };
 
 const BENCHMARK_RATES: Record<string, number> = {
@@ -139,10 +171,10 @@ export default function InteractivePipelineChart({ data, onDrillDown }: Interact
     });
 
     return [
-      { name: 'Closed', value: stages['Closed'], color: PIPELINE_COLORS['Closed'] },
-      { name: 'Active Listings', value: stages['Active Listings'], color: PIPELINE_COLORS['Active Listings'] },
-      { name: 'Under Contract', value: stages['Under Contract'], color: PIPELINE_COLORS['Under Contract'] },
-      { name: 'Archived', value: stages['Archived'], color: PIPELINE_COLORS['Archived'] },
+      { name: 'Closed', value: stages['Closed'], color: PIPELINE_STAGES['Closed'].color },
+      { name: 'Active Listings', value: stages['Active Listings'], color: PIPELINE_STAGES['Active Listings'].color },
+      { name: 'Under Contract', value: stages['Under Contract'], color: PIPELINE_STAGES['Under Contract'].color },
+      { name: 'Archived', value: stages['Archived'], color: PIPELINE_STAGES['Archived'].color },
     ];
   }, [filteredData]);
 
@@ -154,33 +186,54 @@ export default function InteractivePipelineChart({ data, onDrillDown }: Interact
 
   const renderFunnelChart = () => {
     const maxValue = Math.max(...funnelData.map(d => d.value));
-    const funnelHeight = 80;
+    const funnelHeight = 90;
 
     return (
-      <div className="w-full h-[400px] flex flex-col justify-center items-center gap-4 p-4">
+      <div className="w-full flex flex-col justify-center items-center gap-6 p-8">
         {funnelData.map((item, index) => {
           const percentage = (item.value / maxValue) * 100;
+          const stageConfig = PIPELINE_STAGES[item.name];
+          const percentageOfTotal = (item.value / totalTransactions) * 100;
 
           return (
-            <div key={index} className="w-full">
+            <div key={index} className="w-full group">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="property-icon" style={{ backgroundColor: item.color + '20', color: item.color }}>
+                    {stageConfig.icon}
+                  </div>
+                  <span className="font-semibold text-foreground">{item.name}</span>
+                </div>
+                <span className="text-sm text-muted-foreground ml-auto">{item.value} deals</span>
+              </div>
+              
               <div
-                className="relative transition-all duration-300 hover:shadow-lg rounded-lg cursor-pointer group hover:opacity-100 mx-auto"
+                className="relative transition-all duration-300 hover:shadow-xl rounded-xl cursor-pointer overflow-hidden"
                 style={{
                   width: `${percentage}%`,
                   height: `${funnelHeight}px`,
-                  backgroundColor: item.color,
-                  opacity: selectedStage === item.name ? 1 : 0.85,
+                  background: `linear-gradient(135deg, ${item.color}dd 0%, ${item.color}aa 100%)`,
+                  opacity: selectedStage === item.name ? 1 : 0.9,
                 }}
                 onClick={() => handleStageClick(item.name)}
               >
-                <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-background border border-border p-3 rounded-lg shadow-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                  <p className="font-medium">{((item.value / totalTransactions) * 100).toFixed(1)}% of total</p>
-                  <p className="text-xs text-muted-foreground">Click to drill down</p>
-                </div>
-                <div className="h-full flex items-center justify-center">
-                  <span className="font-semibold text-white drop-shadow-lg">
-                    {item.name} ({item.value})
+                {/* Animated gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                
+                {/* Content */}
+                <div className="h-full flex flex-col items-center justify-center relative z-10">
+                  <span className="font-bold text-white drop-shadow-lg text-lg">
+                    {percentageOfTotal.toFixed(1)}%
                   </span>
+                  <span className="text-white/90 text-xs drop-shadow-md">
+                    of pipeline
+                  </span>
+                </div>
+
+                {/* Hover tooltip */}
+                <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 bg-card border border-border p-3 rounded-lg shadow-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
+                  <p className="font-medium text-foreground">{percentageOfTotal.toFixed(1)}% of total</p>
+                  <p className="text-xs text-muted-foreground">Click to view details</p>
                 </div>
               </div>
             </div>
@@ -227,11 +280,19 @@ export default function InteractivePipelineChart({ data, onDrillDown }: Interact
 
   return (
     <>
-      <Card className="h-full">
-        <CardHeader>
-          <div className="space-y-4">
+      <Card className="h-full border-border/50 shadow-lg">
+        <CardHeader className="border-b border-border/50 pb-6">
+          <div className="space-y-5">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-medium">Pipeline Breakdown</CardTitle>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Home className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-bold">Pipeline Breakdown</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">Market Penetration Analysis</p>
+                </div>
+              </div>
               <div className="flex items-center gap-2">
                 <Button
                   variant={mode === 'funnel' ? 'default' : 'outline'}
@@ -256,42 +317,58 @@ export default function InteractivePipelineChart({ data, onDrillDown }: Interact
             {/* Date Range Picker */}
             <DatePickerWithRange date={dateRange} setDate={setDateRange} />
 
-            {/* Conversion Metrics with Benchmarks */}
+            {/* Conversion Metrics with Benchmarks - Enhanced */}
             {conversionMetrics.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-2 gap-4">
                 {conversionMetrics.map((metric, idx) => {
                   const isBelowBenchmark = metric.benchmark && metric.rate < metric.benchmark;
                   const isAboveBenchmark = metric.benchmark && metric.rate >= metric.benchmark;
+                  const performanceGap = metric.benchmark ? metric.rate - metric.benchmark : 0;
                   
                   return (
-                    <div key={idx} className="bg-muted/50 rounded-lg p-3 border border-border">
-                      <p className="text-muted-foreground text-xs mb-1">
-                        {metric.from} to {metric.to}
+                    <div 
+                      key={idx} 
+                      className="bg-card border border-border/50 rounded-lg p-4 hover:border-border transition-colors hover:shadow-md"
+                    >
+                      <p className="text-muted-foreground text-xs font-medium mb-2 uppercase tracking-wide">
+                        {metric.from} → {metric.to}
                       </p>
-                      <div className="flex items-center gap-2 mb-2">
-                        <p className="font-semibold text-foreground text-lg">
-                          {metric.rate.toFixed(1)}%
-                        </p>
+                      <div className="flex items-end gap-3 mb-3">
+                        <div>
+                          <p className="font-bold text-2xl text-foreground">
+                            {metric.rate.toFixed(1)}%
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {metric.count} deals converted
+                          </p>
+                        </div>
                         {metric.benchmark && (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 ml-auto">
                             {isAboveBenchmark ? (
-                              <TrendingUp className="h-4 w-4 text-green-500" />
+                              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/20">
+                                <TrendingUp className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                  +{performanceGap.toFixed(0)}%
+                                </span>
+                              </div>
                             ) : isBelowBenchmark ? (
-                              <TrendingDown className="h-4 w-4 text-red-500" />
+                              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/20">
+                                <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
+                                <span className="text-xs font-semibold text-red-600 dark:text-red-400">
+                                  {performanceGap.toFixed(0)}%
+                                </span>
+                              </div>
                             ) : null}
-                            <span className={`text-xs font-medium ${
-                              isAboveBenchmark ? 'text-green-600 dark:text-green-400' :
-                              isBelowBenchmark ? 'text-red-600 dark:text-red-400' :
-                              'text-muted-foreground'
-                            }`}>
-                              vs {metric.benchmark.toFixed(0)}%
-                            </span>
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {metric.count} deals
-                      </p>
+                      {metric.benchmark && (
+                        <div className="pt-3 border-t border-border/30">
+                          <p className="text-xs text-muted-foreground">
+                            Industry benchmark: <span className="font-semibold text-foreground">{metric.benchmark.toFixed(0)}%</span>
+                          </p>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -299,12 +376,17 @@ export default function InteractivePipelineChart({ data, onDrillDown }: Interact
             )}
 
             {/* Total Transactions */}
-            <div className="text-sm text-muted-foreground text-center">
-              Showing {totalTransactions} transaction{totalTransactions !== 1 ? 's' : ''}
+            <div className="text-sm text-muted-foreground text-center pt-2">
+              Analyzing <span className="font-semibold text-foreground">{totalTransactions}</span> transaction{totalTransactions !== 1 ? 's' : ''}
+              {dateRange?.from && dateRange?.to && (
+                <span className="block text-xs mt-1">
+                  from {dateRange.from.toLocaleDateString()} to {dateRange.to.toLocaleDateString()}
+                </span>
+              )}
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-8">
           <div className="w-full">
             {mode === 'funnel' ? renderFunnelChart() : renderRadialBarChart()}
           </div>
