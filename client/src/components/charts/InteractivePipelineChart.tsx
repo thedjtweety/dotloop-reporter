@@ -11,9 +11,17 @@ import { formatNumber } from '@/lib/formatUtils';
 
 interface InteractivePipelineChartProps {
   data: DotloopRecord[];
+  onDrillDown?: (status: string, records: DotloopRecord[]) => void;
 }
 
 type VisualizationMode = 'funnel' | 'radial';
+
+interface ConversionMetric {
+  from: string;
+  to: string;
+  rate: number;
+  count: number;
+}
 
 const PIPELINE_COLORS = {
   'Closed': '#10b981',      // Emerald green
@@ -22,8 +30,41 @@ const PIPELINE_COLORS = {
   'Archived': '#ef4444',    // Red
 };
 
-export default function InteractivePipelineChart({ data }: InteractivePipelineChartProps) {
+export default function InteractivePipelineChart({ data, onDrillDown }: InteractivePipelineChartProps) {
   const [mode, setMode] = useState<VisualizationMode>('funnel');
+  const [selectedStage, setSelectedStage] = useState<string | null>(null);
+
+  // Calculate conversion metrics
+  const conversionMetrics = React.useMemo(() => {
+    const metrics: ConversionMetric[] = [];
+    const stageOrder = ['Active Listings', 'Under Contract', 'Closed'];
+    
+    for (let i = 0; i < stageOrder.length - 1; i++) {
+      const fromStage = stageOrder[i];
+      const toStage = stageOrder[i + 1];
+      
+      const fromCount = data.filter(r => {
+        const status = r.loopStatus?.toLowerCase() || '';
+        return status.includes(fromStage.toLowerCase().replace(' ', ''));
+      }).length;
+      
+      const toCount = data.filter(r => {
+        const status = r.loopStatus?.toLowerCase() || '';
+        return status.includes(toStage.toLowerCase().replace(' ', ''));
+      }).length;
+      
+      if (fromCount > 0) {
+        metrics.push({
+          from: fromStage,
+          to: toStage,
+          rate: (toCount / fromCount) * 100,
+          count: toCount,
+        });
+      }
+    }
+    
+    return metrics;
+  }, [data]);
 
   // Calculate pipeline breakdown
   const pipelineData = React.useMemo(() => {
@@ -85,6 +126,27 @@ export default function InteractivePipelineChart({ data }: InteractivePipelineCh
     return null;
   };
 
+  const handleStageClick = (stageName: string) => {
+    const filtered = data.filter(record => {
+      const status = record.loopStatus?.toLowerCase() || '';
+      if (stageName === 'Closed') {
+        return status.includes('closed') || status.includes('sold');
+      } else if (stageName === 'Active Listings') {
+        return status.includes('active');
+      } else if (stageName === 'Under Contract') {
+        return status.includes('contract') || status.includes('pending');
+      } else if (stageName === 'Archived') {
+        return status.includes('archived');
+      }
+      return false;
+    });
+    
+    setSelectedStage(stageName);
+    if (onDrillDown) {
+      onDrillDown(stageName, filtered);
+    }
+  };
+
   const renderFunnelChart = () => {
     const maxValue = Math.max(...funnelData.map(d => d.value));
     const funnelHeight = 80;
@@ -102,15 +164,16 @@ export default function InteractivePipelineChart({ data }: InteractivePipelineCh
               {/* Funnel segment */}
               <div className="flex flex-col items-center gap-2">
                 <div
-                  className="relative transition-all duration-300 hover:shadow-lg rounded-lg cursor-pointer group"
+                  className="relative transition-all duration-300 hover:shadow-lg rounded-lg cursor-pointer group hover:opacity-100"
                   style={{
                     width: `${percentage}%`,
                     height: `${funnelHeight}px`,
                     backgroundColor: item.color,
-                    opacity: 0.85,
+                    opacity: selectedStage === item.name ? 1 : 0.85,
                     marginLeft: 'auto',
                     marginRight: 'auto',
                   }}
+                  onClick={() => handleStageClick(item.name)}
                 >
                   <div className="absolute inset-0 flex flex-col justify-center items-center text-white font-semibold">
                     <span className="text-sm">{item.name}</span>
@@ -118,8 +181,9 @@ export default function InteractivePipelineChart({ data }: InteractivePipelineCh
                   </div>
 
                   {/* Hover tooltip */}
-                  <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-background border border-border p-2 rounded-lg shadow-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    <p>{((item.value / data.length) * 100).toFixed(1)}% of total</p>
+                  <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-background border border-border p-3 rounded-lg shadow-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    <p className="font-medium">{((item.value / data.length) * 100).toFixed(1)}% of total</p>
+                    <p className="text-xs text-muted-foreground">Click to drill down</p>
                   </div>
                 </div>
 
@@ -192,9 +256,10 @@ export default function InteractivePipelineChart({ data }: InteractivePipelineCh
   return (
     <Card className="h-full">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-medium">Pipeline Breakdown</CardTitle>
-          <div className="flex items-center gap-2">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-medium">Pipeline Breakdown</CardTitle>
+            <div className="flex items-center gap-2">
             <Button
               variant={mode === 'funnel' ? 'default' : 'outline'}
               size="sm"
@@ -214,6 +279,25 @@ export default function InteractivePipelineChart({ data }: InteractivePipelineCh
               Radial
             </Button>
           </div>
+          </div>
+          
+          {conversionMetrics.length > 0 && (
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              {conversionMetrics.map((metric, idx) => (
+                <div key={idx} className="bg-muted/50 rounded-lg p-3 border border-border">
+                  <p className="text-muted-foreground text-xs mb-1">
+                    {metric.from} to {metric.to}
+                  </p>
+                  <p className="font-semibold text-foreground">
+                    {metric.rate.toFixed(1)}%
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    ({metric.count} deals)
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent>

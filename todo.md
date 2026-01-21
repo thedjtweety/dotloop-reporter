@@ -1896,3 +1896,32 @@
 - [x] Add toggle button (Funnel/Radial) with icons
 - [x] Replace PipelineChart in dashboard
 - [ ] Test with demo data (requires user testing)
+
+
+## Phase 56: Add Pipeline Enhancements (Drill-down, Timeline, Conversion Metrics)
+
+### Feature 1: Drill-down Capability
+- [ ] Make pipeline stages clickable
+- [ ] Show modal/drawer with filtered transaction list
+- [ ] Display transaction details (address, price, agent, dates)
+- [ ] Add search and sort options in drill-down view
+
+### Feature 2: Comparison Timeline
+- [ ] Add date range picker to chart header
+- [ ] Show pipeline composition over time with animation
+- [ ] Display trend lines for each stage
+- [ ] Allow comparison between two date ranges side-by-side
+
+### Feature 3: Conversion Metrics
+- [ ] Calculate conversion rates between stages
+- [ ] Display as percentage badges on chart
+- [ ] Show "X% of [Stage A] convert to [Stage B]"
+- [ ] Add tooltip with detailed conversion statistics
+
+### Implementation Tasks
+- [x] Update InteractivePipelineChart to handle click events (onDrillDown callback)
+- [x] Add drill-down handler to filter records by pipeline stage
+- [x] Calculate conversion metrics between stages
+- [x] Add conversion rate display to chart header (2-column grid)
+- [x] Show conversion percentages and deal counts
+- [ ] Test all features with demo data (requires user testing)
