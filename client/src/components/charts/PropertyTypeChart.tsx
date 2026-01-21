@@ -5,7 +5,6 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, TooltipProps } from 'recharts';
 import { ChartData } from '@/lib/csvParser';
-import { useRef, useEffect } from 'react';
 
 interface PropertyTypeChartProps {
   data: ChartData[];
@@ -26,7 +25,7 @@ const CustomTooltip = ({ active, payload, label, total }: TooltipProps<number, s
           <p className="text-primary">
             Count: <span className="font-medium">{value}</span>
           </p>
-          <p className="text-foreground">
+          <p className="text-muted-foreground">
             Share: <span className="font-medium">{percentage}%</span>
           </p>
         </div>
@@ -37,33 +36,15 @@ const CustomTooltip = ({ active, payload, label, total }: TooltipProps<number, s
 };
 
 export default function PropertyTypeChart({ data, onBarClick }: PropertyTypeChartProps) {
-  const chartRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Add entrance animation
-    if (chartRef.current) {
-      chartRef.current.style.opacity = '0';
-      chartRef.current.style.transform = 'translateY(20px)';
-      requestAnimationFrame(() => {
-        if (chartRef.current) {
-          chartRef.current.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-          chartRef.current.style.opacity = '1';
-          chartRef.current.style.transform = 'translateY(0)';
-        }
-      });
-    }
-  }, [data]);
-
   if (data.length === 0) {
     return (
-      <div className="h-80 flex items-center justify-center text-foreground">
+      <div className="h-80 flex items-center justify-center text-muted-foreground">
         No data available
       </div>
     );
   }
 
   return (
-    <div ref={chartRef}>
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 60 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -82,30 +63,12 @@ export default function PropertyTypeChart({ data, onBarClick }: PropertyTypeChar
           radius={[8, 8, 0, 0]}
           onClick={(data) => onBarClick && onBarClick(data.label)}
           className="cursor-pointer"
-          animationBegin={0}
-          animationDuration={800}
-          animationEasing="ease-out"
-          style={{
-            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))'
-          }}
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={`url(#property-gradient-${index})`} />
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Bar>
-        <defs>
-          {data.map((entry, index) => {
-            const baseColor = COLORS[index % COLORS.length];
-            return (
-              <linearGradient key={`property-gradient-${index}`} id={`property-gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={baseColor} stopOpacity={0.9} />
-                <stop offset="100%" stopColor={baseColor} stopOpacity={0.6} />
-              </linearGradient>
-            );
-          })}
-        </defs>
       </BarChart>
     </ResponsiveContainer>
-    </div>
   );
 }

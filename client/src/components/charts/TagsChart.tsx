@@ -28,7 +28,7 @@ export default function TagsChart({ data }: TagsChartProps) {
         <CardHeader>
           <CardTitle className="text-lg font-medium">Top Tags</CardTitle>
         </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center text-foreground">
+        <CardContent className="h-[300px] flex items-center justify-center text-muted-foreground">
           No tags found in data
         </CardContent>
       </Card>

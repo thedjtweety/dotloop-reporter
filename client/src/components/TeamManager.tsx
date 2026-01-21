@@ -75,7 +75,7 @@ export default function TeamManager() {
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-medium">Team Management</h3>
-          <p className="text-sm text-foreground">Create teams and define internal split structures.</p>
+          <p className="text-sm text-muted-foreground">Create teams and define internal split structures.</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -118,7 +118,7 @@ export default function TeamManager() {
                   onChange={(e) => setCurrentTeam({ ...currentTeam, teamSplitPercentage: Number(e.target.value) })}
                   placeholder="50"
                 />
-                <p className="text-xs text-foreground">
+                <p className="text-xs text-muted-foreground">
                   This percentage is deducted from the agent's GCI *before* the brokerage split.
                 </p>
               </div>
@@ -137,7 +137,7 @@ export default function TeamManager() {
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex justify-between items-start">
                 <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-foreground" />
+                  <Users className="h-4 w-4 text-muted-foreground" />
                   {team.name}
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -155,7 +155,7 @@ export default function TeamManager() {
             </CardHeader>
             <CardContent>
               <div className="flex justify-between text-sm">
-                <span className="text-foreground">Team Split:</span>
+                <span className="text-muted-foreground">Team Split:</span>
                 <span className="font-medium">{team.teamSplitPercentage}%</span>
               </div>
             </CardContent>

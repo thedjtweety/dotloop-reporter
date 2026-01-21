@@ -3,8 +3,7 @@
  * Handles PDF and Excel export functionality for individual agent reports
  */
 
-import { AgentMetrics, DotloopRecord } from './csvParser';
-import { calculateAgentSummary, generateAgentPdfHtml } from './agentPdfGenerator';
+import { AgentMetrics } from './csvParser';
 
 /**
  * Export agent report as CSV (Excel compatible)
@@ -40,48 +39,10 @@ export function exportAgentAsCSV(agent: AgentMetrics): void {
 }
 
 /**
- * Export agent report as PDF using HTML rendering with transaction details
+ * Export agent report as PDF using HTML rendering
  */
-export function exportAgentAsPDF(agent: AgentMetrics, records?: DotloopRecord[]): void {
-  // Use enhanced PDF generator if records are provided
-  if (records && records.length > 0) {
-    const summary = calculateAgentSummary(records, agent.agentName);
-    const htmlContent = generateAgentPdfHtml(summary, records, {
-      agentName: agent.agentName,
-      includeTransactions: true,
-      includeCharts: false,
-      brokerageName: 'Real Estate Brokerage',
-      generatedDate: new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    });
-    
-    // Print to PDF using iframe
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-    
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-    if (iframeDoc) {
-      iframeDoc.open();
-      iframeDoc.write(htmlContent);
-      iframeDoc.close();
-      
-      iframe.onload = () => {
-        setTimeout(() => {
-          iframe.contentWindow?.print();
-          setTimeout(() => {
-            document.body.removeChild(iframe);
-          }, 1000);
-        }, 250);
-      };
-    }
-    return;
-  }
-
-  // Fallback to original PDF generation if no records provided
+export function exportAgentAsPDF(agent: AgentMetrics): void {
+  // Create HTML content for the report
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -96,7 +57,7 @@ export function exportAgentAsPDF(agent: AgentMetrics, records?: DotloopRecord[])
           line-height: 1.6;
         }
         .header {
-          border-bottom: 3px solid #1E90FF;
+          border-bottom: 3px solid #1E90FF; /* Dodger Blue */
           margin-bottom: 30px;
           padding-bottom: 20px;
           display: flex;
@@ -104,7 +65,7 @@ export function exportAgentAsPDF(agent: AgentMetrics, records?: DotloopRecord[])
           align-items: flex-end;
         }
         .header-content h1 {
-          color: #1e3a5f;
+          color: #1e3a5f; /* Navy */
           margin: 0 0 5px 0;
           font-size: 28px;
         }
@@ -123,9 +84,9 @@ export function exportAgentAsPDF(agent: AgentMetrics, records?: DotloopRecord[])
           page-break-inside: avoid;
         }
         .section h2 {
-          color: #1e3a5f;
+          color: #1e3a5f; /* Navy */
           font-size: 18px;
-          border-bottom: 2px solid #1E90FF;
+          border-bottom: 2px solid #1E90FF; /* Dodger Blue */
           padding-bottom: 10px;
           margin-bottom: 15px;
         }
@@ -139,7 +100,7 @@ export function exportAgentAsPDF(agent: AgentMetrics, records?: DotloopRecord[])
           background: #f8fafc;
           padding: 15px;
           border-radius: 8px;
-          border-left: 4px solid #1E90FF;
+          border-left: 4px solid #1E90FF; /* Dodger Blue */
           box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .metric-label {
@@ -152,7 +113,7 @@ export function exportAgentAsPDF(agent: AgentMetrics, records?: DotloopRecord[])
         }
         .metric-value {
           font-size: 24px;
-          color: #1e3a5f;
+          color: #1e3a5f; /* Navy */
           font-weight: bold;
         }
         .metric-subtext {
@@ -182,14 +143,14 @@ export function exportAgentAsPDF(agent: AgentMetrics, records?: DotloopRecord[])
         th {
           background: #f1f5f9;
           font-weight: 600;
-          color: #1e3a5f;
+          color: #1e3a5f; /* Navy */
           text-transform: uppercase;
           font-size: 12px;
           letter-spacing: 0.5px;
         }
         .highlight {
-          background: #e0f2fe;
-          color: #0369a1;
+          background: #e0f2fe; /* Light Blue */
+          color: #0369a1; /* Dark Blue */
           padding: 2px 8px;
           border-radius: 12px;
           font-weight: 600;
@@ -281,6 +242,10 @@ export function exportAgentAsPDF(agent: AgentMetrics, records?: DotloopRecord[])
     </html>
   `;
 
+  // Use html2pdf library approach - create a blob and download
+  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
+  
+  // Create an iframe to print the HTML
   const iframe = document.createElement('iframe');
   iframe.style.display = 'none';
   document.body.appendChild(iframe);
@@ -291,9 +256,11 @@ export function exportAgentAsPDF(agent: AgentMetrics, records?: DotloopRecord[])
     iframeDoc.write(htmlContent);
     iframeDoc.close();
     
+    // Wait for content to load, then print to PDF
     iframe.onload = () => {
       setTimeout(() => {
         iframe.contentWindow?.print();
+        // Clean up
         setTimeout(() => {
           document.body.removeChild(iframe);
         }, 1000);

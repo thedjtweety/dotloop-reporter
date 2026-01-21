@@ -97,25 +97,11 @@ export interface AgentMetrics {
 }
 
 /**
- * Progress callback for parsing operations
+ * Parse CSV string into records
  */
-export type ParseProgressCallback = (progress: number, message?: string) => void;
-
-/**
- * Parse CSV string into records with progress tracking
- */
-export function parseCSV(
-  csvContent: string,
-  onProgress?: ParseProgressCallback
-): DotloopRecord[] {
-  onProgress?.(0, 'Starting CSV parsing...');
+export function parseCSV(csvContent: string): DotloopRecord[] {
   const lines = csvContent.split('\n').filter(line => line.trim());
-  if (lines.length < 1) {
-    onProgress?.(100, 'No data to parse');
-    return [];
-  }
-  
-  onProgress?.(10, `Processing ${lines.length} lines...`);
+  if (lines.length < 1) return [];
 
   // Check if first line is a header or data
   const firstLine = lines[0];
@@ -164,14 +150,8 @@ export function parseCSV(
   }
 
   const records: DotloopRecord[] = [];
-  const totalLines = lines.length - startIndex;
 
   for (let i = startIndex; i < lines.length; i++) {
-    // Update progress every 100 lines
-    if (i % 100 === 0) {
-      const progress = 10 + Math.round((i - startIndex) / totalLines * 80);
-      onProgress?.(progress, `Parsed ${i - startIndex} of ${totalLines} records...`);
-    }
     const line = lines[i];
     if (!line.trim()) continue;
 
@@ -195,8 +175,6 @@ export function parseCSV(
       console.error('Error parsing line', i, ':', error);
     }
   }
-  
-  onProgress?.(100, `Parsed ${records.length} records successfully`);
 
   return records;
 }
@@ -472,13 +450,12 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
       else if (status.includes('closed') || status.includes('sold')) statusCounts.closed++;
       else if (status.includes('archived')) statusCounts.archived++;
 
-      // Count volume/commission for all deals (use price for non-closed, salePrice for closed)
-      totalSalesVolume += record.salePrice || record.price || 0;
-      totalCommission += record.commissionTotal || 0;
-      totalCompanyDollar += record.companyDollar || 0;
-
-      // Only calculate days to close for closed/sold deals
+      // Only count volume/commission for closed/sold deals
       if (status.includes('closed') || status.includes('sold')) {
+        totalSalesVolume += record.salePrice || record.price || 0;
+        totalCommission += record.commissionTotal || 0;
+        totalCompanyDollar += record.companyDollar || 0;
+
         if (record.closingDate && record.createdDate) {
           const created = new Date(record.createdDate);
           const closing = new Date(record.closingDate);
@@ -491,7 +468,7 @@ export function calculateMetrics(records: DotloopRecord[], previousRecords?: Dot
     });
 
     const totalTransactions = recs.length;
-    const averagePrice = totalTransactions > 0 ? totalSalesVolume / totalTransactions : 0;
+    const averagePrice = statusCounts.closed > 0 ? totalSalesVolume / statusCounts.closed : 0;
     const averageDaysToClose = daysToCloseValues.length > 0 
       ? Math.round(daysToCloseValues.reduce((a, b) => a + b, 0) / daysToCloseValues.length) 
       : 0;

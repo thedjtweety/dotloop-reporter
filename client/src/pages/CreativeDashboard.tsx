@@ -31,7 +31,7 @@ const PerformanceMatrix = ({ agents }: { agents: AgentMetrics[] }) => {
       <div className="mb-6 flex justify-between items-end">
         <div>
           <h3 className="text-xl font-display font-bold">Consultant Efficiency Matrix</h3>
-          <p className="text-foreground">Comparing Deal Velocity (Speed) vs. Total Volume</p>
+          <p className="text-muted-foreground">Comparing Deal Velocity (Speed) vs. Total Volume</p>
         </div>
         <div className="flex gap-4 text-sm">
           <div className="flex items-center gap-2">
@@ -71,9 +71,9 @@ const PerformanceMatrix = ({ agents }: { agents: AgentMetrics[] }) => {
                 return (
                   <div className="bg-popover border border-border p-3 rounded shadow-lg">
                     <p className="font-bold mb-1">{data.name}</p>
-                    <p className="text-sm text-foreground">Transactions: {data.y}</p>
-                    <p className="text-sm text-foreground">Speed: {data.x} days</p>
-                    <p className="text-sm text-foreground">Volume: {formatCurrency(data.z)}</p>
+                    <p className="text-sm text-muted-foreground">Transactions: {data.y}</p>
+                    <p className="text-sm text-muted-foreground">Speed: {data.x} days</p>
+                    <p className="text-sm text-muted-foreground">Volume: {formatCurrency(data.z)}</p>
                   </div>
                 );
               }
@@ -137,10 +137,10 @@ const KanbanBoard = ({ records }: { records: DotloopRecord[] }) => {
                   <Card className="p-3 hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
                     <div className="flex justify-between items-start mb-2">
                       <Badge variant="outline" className="text-[10px]">{record.propertyType || 'Residential'}</Badge>
-                      <span className="text-xs font-mono text-foreground">{record.closingDate || record.listingDate}</span>
+                      <span className="text-xs font-mono text-muted-foreground">{record.closingDate || record.listingDate}</span>
                     </div>
                     <h4 className="font-semibold text-sm line-clamp-1 mb-1">{record.loopName || record.address}</h4>
-                    <div className="flex justify-between items-center text-xs text-foreground">
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
                       <span>{record.createdBy}</span>
                       <span className="font-medium text-foreground">{formatCurrency(record.price)}</span>
                     </div>
@@ -183,26 +183,26 @@ const AgentCards = ({ agents }: { agents: AgentMetrics[] }) => {
               
               <div className="grid grid-cols-2 gap-4 py-4 border-t border-border/50">
                 <div>
-                  <p className="text-xs text-foreground uppercase tracking-wider">Efficiency</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Efficiency</p>
                   <p className={`font-bold text-lg ${agent.averageDaysToClose < 30 ? 'text-emerald-500' : 'text-foreground'}`}>
                     {agent.averageDaysToClose} days
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-foreground uppercase tracking-wider">Deals</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Deals</p>
                   <p className="font-bold text-lg">{agent.totalTransactions}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-foreground uppercase tracking-wider">Volume</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Volume</p>
                   <p className="font-medium">{formatCurrency(agent.totalSalesVolume)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-foreground uppercase tracking-wider">Avg Deal</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Avg Deal</p>
                   <p className="font-medium">{formatCurrency(agent.averageSalesPrice)}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-muted/30 p-3 text-center text-xs font-medium text-foreground group-hover:bg-primary/5 group-hover:text-primary transition-colors">
+            <div className="bg-muted/30 p-3 text-center text-xs font-medium text-muted-foreground group-hover:bg-primary/5 group-hover:text-primary transition-colors">
               View Full Profile →
             </div>
           </Card>
@@ -316,14 +316,14 @@ const ActivityTimeline = ({ records }: { records: DotloopRecord[] }) => {
           <div className="text-4xl font-bold text-primary mb-1">
             {sortedMonths.reduce((max, curr) => curr[1].count > max.count ? curr[1] : max, { count: 0 }).count} Deals
           </div>
-          <p className="text-foreground">Best month on record</p>
+          <p className="text-muted-foreground">Best month on record</p>
         </Card>
         <Card className="p-6 bg-gradient-to-br from-accent/5 to-transparent border-accent/20">
           <h3 className="text-lg font-display font-bold mb-2">Total Volume</h3>
           <div className="text-4xl font-bold text-accent mb-1">
             {formatCurrency(records.reduce((sum, r) => sum + (r.price || 0), 0))}
           </div>
-          <p className="text-foreground">Cumulative sales volume</p>
+          <p className="text-muted-foreground">Cumulative sales volume</p>
         </Card>
       </div>
 
@@ -344,7 +344,7 @@ const ActivityTimeline = ({ records }: { records: DotloopRecord[] }) => {
                     {data.count} deals<br/>{formatCurrency(data.volume)}
                   </div>
                 </div>
-                <span className="text-[10px] text-foreground mt-2 rotate-45 origin-left translate-y-2">{month}</span>
+                <span className="text-[10px] text-muted-foreground mt-2 rotate-45 origin-left translate-y-2">{month}</span>
               </div>
             );
           })}
@@ -395,7 +395,7 @@ export default function CreativeDashboard() {
             <h1 className="text-3xl font-display font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Consultant Performance Hub
             </h1>
-            <p className="text-foreground">
+            <p className="text-muted-foreground">
               Visualizing {metrics.totalTransactions} transactions across your market
             </p>
           </div>

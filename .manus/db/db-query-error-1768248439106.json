@@ -1,8 +1,0 @@
-{
-  "query": "ALTER TABLE `commission_plans` ADD `useSliding` int DEFAULT 0 NOT NULL; ALTER TABLE `commission_plans` ADD `tiers` text;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 24ruGQuiASWpGv5.root --database gtMbYvvduSqhsHRvj39YWw --execute ALTER TABLE `commission_plans` ADD `useSliding` int DEFAULT 0 NOT NULL; ALTER TABLE `commission_plans` ADD `tiers` text;",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1060 (42S21) at line 1: Duplicate column name 'useSliding'"
-  ]
-}

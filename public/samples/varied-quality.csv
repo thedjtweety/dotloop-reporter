@@ -1,6 +1,0 @@
-Loop Name,Address,City,State,Zip,GCI,Company $,Agent Name,Status,Closed Date
-Quality Deal 1,111 Quality Street,Boston,MA,02101,$10000.00,$4000.00,Agent One,Closed,01/10/2024
-Quality Deal 2,222 Quality Avenue,,MA,,12500.00,$5000.00,Agent Two,Closed,
-Quality Deal 3,333 Quality Road,Quincy,MA,02169,invalid-amount,$7200.00,,Closed,2024-01-25
-Quality Deal 4,444 Quality Boulevard,Newton,,02158,$14000.00,$5600.00,Agent Four,Pending,01/30/2024
-Quality Deal 5,555 Quality Drive,Brookline,MA,02445,$16500.00,6600,Agent Five,,02/05/2024

@@ -64,17 +64,17 @@ export default function DataValidationReport({ records, onConfirm, onCancel }: D
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 border rounded bg-background">
-              <div className="text-sm text-foreground">Total Records</div>
+              <div className="text-sm text-muted-foreground">Total Records</div>
               <div className="text-2xl font-bold">{totalRows}</div>
             </div>
             <div className="p-4 border rounded bg-background">
-              <div className="text-sm text-foreground">Missing Dates</div>
+              <div className="text-sm text-muted-foreground">Missing Dates</div>
               <div className={`text-2xl font-bold ${missingDates > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
                 {missingDates}
               </div>
             </div>
             <div className="p-4 border rounded bg-background">
-              <div className="text-sm text-foreground">Missing Prices</div>
+              <div className="text-sm text-muted-foreground">Missing Prices</div>
               <div className={`text-2xl font-bold ${missingPrices > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
                 {missingPrices}
               </div>

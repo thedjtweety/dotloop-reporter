@@ -43,7 +43,7 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-border bg-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-foreground">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Overall Health Score
             </CardTitle>
           </CardHeader>
@@ -61,7 +61,7 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
               )}
             </div>
             <Progress value={report.score} className="h-2" indicatorClassName={getScoreProgressColor(report.score)} />
-            <p className="text-xs text-foreground mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               Based on completeness of critical fields
             </p>
           </CardContent>
@@ -69,7 +69,7 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
 
         <Card className="border-border bg-card md:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-foreground">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Analysis Summary
             </CardTitle>
           </CardHeader>
@@ -77,11 +77,11 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="text-2xl font-bold text-foreground">{report.totalRecords}</div>
-                <div className="text-xs text-foreground">Total Records Analyzed</div>
+                <div className="text-xs text-muted-foreground">Total Records Analyzed</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-foreground">{report.issues.length}</div>
-                <div className="text-xs text-foreground">Issues Detected</div>
+                <div className="text-xs text-muted-foreground">Issues Detected</div>
               </div>
             </div>
             <div className="mt-4 flex gap-2">
@@ -115,7 +115,7 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <CheckCircle className="h-12 w-12 text-emerald-500 mb-4" />
               <h3 className="text-lg font-medium text-foreground">All Clear!</h3>
-              <p className="text-foreground max-w-sm mt-2">
+              <p className="text-muted-foreground max-w-sm mt-2">
                 Your data looks great. All critical and recommended fields are populated.
               </p>
             </div>
@@ -132,8 +132,8 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
                       )}
                       <h4 className="font-medium text-foreground">{issue.title}</h4>
                     </div>
-                    <p className="text-sm text-foreground">{issue.description}</p>
-                    <p className="text-xs font-medium text-foreground">Impact: {issue.impact}</p>
+                    <p className="text-sm text-muted-foreground">{issue.description}</p>
+                    <p className="text-xs font-medium text-accent">Impact: {issue.impact}</p>
                   </div>
                   <Button 
                     size="sm" 

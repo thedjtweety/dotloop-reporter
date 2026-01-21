@@ -74,7 +74,7 @@ export default function ExpenseSummaryReport({ records }: ExpenseSummaryReportPr
             <div className="text-4xl font-bold text-emerald-600">
               {formatCurrency(totalCollected)}
             </div>
-            <p className="text-sm text-foreground mt-2">
+            <p className="text-sm text-muted-foreground mt-2">
               From {expenseCategories.reduce((acc, curr) => acc + curr.count, 0)} total deductions
             </p>
           </CardContent>
@@ -136,7 +136,7 @@ export default function ExpenseSummaryReport({ records }: ExpenseSummaryReportPr
               ))}
               {expenseCategories.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-foreground">
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                     No expenses recorded yet. Add deductions to Commission Plans or use the "Adjust" button in Audit Log.
                   </TableCell>
                 </TableRow>

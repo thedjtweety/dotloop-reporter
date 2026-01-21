@@ -5,7 +5,6 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, TooltipProps } from 'recharts';
 import { ChartData } from '@/lib/csvParser';
-import { useRef, useEffect } from 'react';
 
 interface LeadSourceChartProps {
   data: ChartData[];
@@ -27,7 +26,7 @@ const CustomTooltip = ({ active, payload, total }: TooltipProps<number, string> 
           <p className="text-primary">
             Count: <span className="font-medium">{value}</span>
           </p>
-          <p className="text-foreground">
+          <p className="text-muted-foreground">
             Share: <span className="font-medium">{percentage}%</span>
           </p>
         </div>
@@ -38,33 +37,15 @@ const CustomTooltip = ({ active, payload, total }: TooltipProps<number, string> 
 };
 
 export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartProps) {
-  const chartRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Add entrance animation
-    if (chartRef.current) {
-      chartRef.current.style.opacity = '0';
-      chartRef.current.style.transform = 'scale(0.9)';
-      requestAnimationFrame(() => {
-        if (chartRef.current) {
-          chartRef.current.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-          chartRef.current.style.opacity = '1';
-          chartRef.current.style.transform = 'scale(1)';
-        }
-      });
-    }
-  }, [data]);
-
   if (data.length === 0) {
     return (
-      <div className="h-80 flex items-center justify-center text-foreground">
+      <div className="h-80 flex items-center justify-center text-muted-foreground">
         No data available
       </div>
     );
   }
 
   return (
-    <div ref={chartRef}>
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
@@ -80,35 +61,11 @@ export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartP
           dataKey="value"
           onClick={(data) => onSliceClick && onSliceClick(data.label)}
           className="cursor-pointer"
-          animationBegin={0}
-          animationDuration={1000}
-          animationEasing="ease-out"
-          style={{
-            filter: 'drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15))'
-          }}
         >
           {data.map((entry, index) => (
-            <Cell 
-              key={`cell-${index}`} 
-              fill={`url(#lead-gradient-${index})`}
-              style={{
-                transition: 'opacity 0.2s'
-              }}
-            />
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
-        <defs>
-          {data.map((entry, index) => {
-            const baseColor = COLORS[index % COLORS.length];
-            // Create radial gradient for pie slices
-            return (
-              <radialGradient key={`lead-gradient-${index}`} id={`lead-gradient-${index}`}>
-                <stop offset="0%" stopColor={baseColor} stopOpacity={1} />
-                <stop offset="100%" stopColor={baseColor} stopOpacity={0.7} />
-              </radialGradient>
-            );
-          })}
-        </defs>
         <Tooltip content={<CustomTooltip total={data.reduce((acc, curr) => acc + curr.value, 0)} />} />
         <Legend 
           layout="horizontal" 
@@ -119,11 +76,10 @@ export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartP
             const { payload } = entry;
             const total = data.reduce((acc, curr) => acc + curr.value, 0);
             const percent = ((payload.value / total) * 100).toFixed(1);
-            return <span className="text-sm font-medium ml-2 mr-4">{payload.label} <span className="text-foreground">({percent}%)</span></span>;
+            return <span className="text-sm font-medium ml-2 mr-4">{payload.label} <span className="text-muted-foreground">({percent}%)</span></span>;
           }}
         />
       </PieChart>
     </ResponsiveContainer>
-    </div>
   );
 }
