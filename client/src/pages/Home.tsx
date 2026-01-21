@@ -996,6 +996,7 @@ function HomeContent() {
                 <GeographicChart 
                   data={getGeographicData(allRecords)} 
                   onBarClick={(label) => openChartDrillDown('geographic', label, `Location: ${label}`)}
+                  transactions={allRecords}
                 />
               </Card>
             </TabsContent>
