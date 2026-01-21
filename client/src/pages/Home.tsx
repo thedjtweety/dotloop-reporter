@@ -994,8 +994,7 @@ function HomeContent() {
                   Geographic Distribution
                 </h2>
                 <GeographicChart 
-                  data={getGeographicData(allRecords)}
-                  transactions={filteredRecords}
+                  data={getGeographicData(allRecords)} 
                   onBarClick={(label) => openChartDrillDown('geographic', label, `Location: ${label}`)}
                 />
               </Card>

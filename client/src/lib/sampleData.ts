@@ -15,17 +15,6 @@ const CITIES = [
   'Leander', 'Hutto', 'Liberty Hill'
 ];
 
-const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
-  'Austin': { lat: 30.2672, lng: -97.7431 },
-  'Round Rock': { lat: 30.5085, lng: -97.6789 },
-  'Georgetown': { lat: 30.6327, lng: -97.6816 },
-  'Cedar Park': { lat: 30.3405, lng: -97.8081 },
-  'Pflugerville': { lat: 30.4359, lng: -97.6050 },
-  'Leander': { lat: 30.7668, lng: -97.8546 },
-  'Hutto': { lat: 30.5125, lng: -97.4758 },
-  'Liberty Hill': { lat: 30.7668, lng: -97.8546 }
-};
-
 const STREETS = [
   'Oak', 'Maple', 'Cedar', 'Pine', 'Elm', 'Main', 'Washington', 'Lake', 
   'Hill', 'Park', 'View', 'Meadow', 'Forest', 'River', 'Spring'
@@ -68,11 +57,7 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
     const city = CITIES[Math.floor(Math.random() * CITIES.length)];
     const streetName = STREETS[Math.floor(Math.random() * STREETS.length)];
     const streetNum = Math.floor(Math.random() * 9000) + 100;
-    const price = Math.floor(Math.random() * 800000) + 250000;
-    
-    const cityCoords = CITY_COORDS[city] || { lat: 30.2672, lng: -97.7431 };
-    const latVariation = (Math.random() - 0.5) * 0.05;
-    const lngVariation = (Math.random() - 0.5) * 0.05;
+    const price = Math.floor(Math.random() * 800000) + 250000; // 250k - 1.05M
     
     // Dates logic
     const createdDate = randomDate(oneYearAgo, now);
@@ -111,9 +96,7 @@ export function generateSampleData(count: number = 150): DotloopRecord[] {
       closingDate,
       listingDate,
       offerDate,
-      address: `${streetNum} ${streetName} St, ${city}, TX 78${Math.floor(Math.random() * 900) + 100}`,
-      latitude: cityCoords.lat + latVariation,
-      longitude: cityCoords.lng + lngVariation,
+      address: `${streetNum} ${streetName} St`,
       price: (status === 'Sold' || status === 'Under Contract') ? price : 0, 
       propertyType: PROPERTY_TYPES[Math.floor(Math.random() * PROPERTY_TYPES.length)],
       bedrooms: Math.floor(Math.random() * 4) + 2,
