@@ -1,12 +1,12 @@
 /**
  * GeographicChart Component
- * Displays geographic performance by state
+ * Displays geographic performance by state - Map is default view
  */
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, TooltipProps } from 'recharts';
 import { ChartData } from '@/lib/csvParser';
 import { useRef, useEffect, useState } from 'react';
-import { Map as MapIcon } from 'lucide-react';
+import { Map as MapIcon, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SimpleMapViewModal from '@/components/SimpleMapViewModal';
 
@@ -42,7 +42,7 @@ const CustomTooltip = ({ active, payload, label, total }: TooltipProps<number, s
 
 export default function GeographicChart({ data, onBarClick, transactions = [] }: GeographicChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
-  const [showMap, setShowMap] = useState(false);
+  const [viewMode, setViewMode] = useState<'map' | 'chart'>('map');
 
   useEffect(() => {
     // Add entrance animation
@@ -67,19 +67,49 @@ export default function GeographicChart({ data, onBarClick, transactions = [] }:
     );
   }
 
+  // If map view is selected, show full-screen map with chart toggle
+  if (viewMode === 'map') {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
+        <div className="w-screen h-screen bg-slate-900 flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-slate-700 bg-slate-800">
+            <h2 className="text-xl font-bold text-white">Geographic Distribution Map</h2>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setViewMode('chart')}
+                variant="outline"
+                size="sm"
+                className="gap-2 border-slate-600 text-slate-300 hover:bg-slate-800"
+              >
+                <BarChart3 className="w-4 h-4" />
+                Chart View
+              </Button>
+            </div>
+          </div>
+          
+          {/* Map Container */}
+          <div className="flex-1">
+            <SimpleMapViewModal
+              isOpen={true}
+              onClose={() => setViewMode('chart')}
+              title=""
+              transactions={transactions}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Chart view
   return (
     <>
-      <SimpleMapViewModal
-        isOpen={showMap}
-        onClose={() => setShowMap(false)}
-        title="Geographic Distribution Map"
-        transactions={transactions}
-      />
       <div ref={chartRef}>
         <div className="flex items-center justify-between mb-4">
           <div />
           <Button
-            onClick={() => setShowMap(true)}
+            onClick={() => setViewMode('map')}
             variant="outline"
             size="sm"
             className="gap-2 border-slate-600 text-slate-300 hover:bg-slate-800"
