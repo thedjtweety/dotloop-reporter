@@ -151,16 +151,22 @@ export default function SimpleMapViewModal({
 
       // Add click listener to show transaction details
       marker.addEventListener('click', () => {
+        const contentDiv = document.createElement('div');
+        contentDiv.style.padding = '12px';
+        contentDiv.style.fontSize = '13px';
+        contentDiv.style.maxWidth = '250px';
+        contentDiv.style.color = '#000';
+        contentDiv.innerHTML = `
+          <div style="font-weight: bold; margin-bottom: 8px; color: #1e3a5f;">${transaction.loopName || 'Property'}</div>
+          <div style="margin-bottom: 6px; color: #666;">${transaction.address || 'No address'}</div>
+          <div style="margin-bottom: 4px;"><strong>Status:</strong> ${transaction.loopStatus || 'Unknown'}</div>
+          <div style="margin-bottom: 4px;"><strong>Agent:</strong> ${transaction.agent || 'Unknown'}</div>
+          <div style="margin-bottom: 4px;"><strong>Price:</strong> $${(transaction.salePrice || transaction.price || 0).toLocaleString()}</div>
+          <div><strong>Commission:</strong> $${(transaction.commissionTotal || 0).toLocaleString()}</div>
+        `;
+        
         const infoWindow = new google.maps.InfoWindow({
-          content: `
-            <div style="padding: 8px; font-size: 12px; max-width: 200px;">
-              <strong>${transaction.loopName || 'Property'}</strong><br/>
-              ${transaction.address || ''}<br/>
-              <strong>Status:</strong> ${transaction.loopStatus || 'Unknown'}<br/>
-              <strong>Price:</strong> $${(transaction.salePrice || transaction.price || 0).toLocaleString()}<br/>
-              <strong>Commission:</strong> $${(transaction.commissionTotal || 0).toLocaleString()}
-            </div>
-          `,
+          content: contentDiv,
         });
         infoWindow.open(map, marker);
       });
