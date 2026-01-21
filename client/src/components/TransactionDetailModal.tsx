@@ -457,12 +457,12 @@ export default function TransactionDetailModal({
                 
                 <div className="w-px bg-border mx-2" />
                 
-                <Select value={agentFilter} onValueChange={setAgentFilter}>
+                <Select value={agentFilter || "all"} onValueChange={(val) => setAgentFilter(val === "all" ? "" : val)}>
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Filter by agent..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Agents</SelectItem>
+                    <SelectItem value="all">All Agents</SelectItem>
                     {uniqueAgents.map(agent => (
                       <SelectItem key={agent} value={agent}>
                         {agent}
@@ -495,7 +495,7 @@ export default function TransactionDetailModal({
                 <span className="text-sm font-medium">{selectedIds.size} selected</span>
                 
                 <div className="flex items-center gap-2">
-                  <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+                  <Select value={selectedAgent || ""} onValueChange={setSelectedAgent}>
                     <SelectTrigger className="w-40">
                       <SelectValue placeholder="Reassign agent..." />
                     </SelectTrigger>
@@ -517,7 +517,7 @@ export default function TransactionDetailModal({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <Select value={selectedStatus || ""} onValueChange={setSelectedStatus}>
                     <SelectTrigger className="w-40">
                       <SelectValue placeholder="Update status..." />
                     </SelectTrigger>
