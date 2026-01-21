@@ -317,6 +317,7 @@ export default function InteractivePipelineChart({ data, onDrillDown }: Interact
         onClose={() => setModalOpen(false)}
         title={modalTitle}
         transactions={modalTransactions}
+        fullScreen={true}
       />
     </>
   );

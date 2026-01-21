@@ -14,6 +14,7 @@ interface TransactionDetailModalProps {
   onClose: () => void;
   title: string;
   transactions: DotloopRecord[];
+  fullScreen?: boolean;
 }
 
 type SortField = 'address' | 'price' | 'agent' | 'closingDate' | 'status';
@@ -24,6 +25,7 @@ export default function TransactionDetailModal({
   onClose,
   title,
   transactions,
+  fullScreen = false,
 }: TransactionDetailModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('closingDate');
@@ -177,8 +179,8 @@ export default function TransactionDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b">
+      <DialogContent className={fullScreen ? "fixed inset-0 w-screen h-screen max-w-none max-h-none rounded-none overflow-hidden" : "max-w-6xl max-h-[90vh] overflow-y-auto"}>
+        <DialogHeader className={`sticky top-0 bg-background z-10 pb-4 border-b ${fullScreen ? 'px-6 py-4' : ''}`}>
           <div className="flex items-center justify-between">
             <DialogTitle>{title}</DialogTitle>
             <Button variant="ghost" size="sm" onClick={onClose}>
@@ -187,9 +189,9 @@ export default function TransactionDetailModal({
           </div>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className={`space-y-4 ${fullScreen ? 'px-6 pb-6' : ''}`}>
           {/* Summary Stats */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className={`grid ${fullScreen ? 'grid-cols-5' : 'grid-cols-4'} gap-4`}>
             <Card className="p-4">
               <p className="text-sm text-muted-foreground mb-1">Total Transactions</p>
               <p className="text-2xl font-bold">{formatNumber(filteredTransactions.length)}</p>
@@ -242,21 +244,21 @@ export default function TransactionDetailModal({
           {/* Transaction Table */}
           <div className="border border-border rounded-lg overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-muted/50 border-b border-border">
+              <thead className="bg-muted/50 border-b border-border sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold">
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-left font-semibold`}>
                     <SortHeader field="address" label="Address" />
                   </th>
-                  <th className="px-4 py-3 text-right font-semibold">
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-right font-semibold`}>
                     <SortHeader field="price" label="Price" />
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold">
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-left font-semibold`}>
                     <SortHeader field="agent" label="Agent" />
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold">
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-left font-semibold`}>
                     <SortHeader field="closingDate" label="Closing Date" />
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold">
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-left font-semibold`}>
                     <SortHeader field="status" label="Status" />
                   </th>
                 </tr>
@@ -265,21 +267,21 @@ export default function TransactionDetailModal({
                 {filteredTransactions.length > 0 ? (
                   filteredTransactions.map((transaction, idx) => (
                     <tr key={idx} className="hover:bg-muted/50 transition-colors">
-                      <td className="px-4 py-3 text-foreground">
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-foreground`}>
                         {transaction.address || 'N/A'}
                       </td>
-                      <td className="px-4 py-3 text-right font-medium">
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-right font-medium`}>
                         {formatCurrency(transaction.price || transaction.salePrice || 0)}
                       </td>
-                      <td className="px-4 py-3 text-foreground">
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-foreground`}>
                         {transaction.agent || 'N/A'}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground text-sm">
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-muted-foreground text-sm`}>
                         {transaction.closingDate
                           ? new Date(transaction.closingDate).toLocaleDateString()
                           : 'N/A'}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'}`}>
                         <span
                           className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
                             transaction.loopStatus?.toLowerCase().includes('closed')
@@ -298,7 +300,7 @@ export default function TransactionDetailModal({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                    <td colSpan={5} className={`${fullScreen ? 'px-6 py-12' : 'px-4 py-8'} text-center text-muted-foreground`}>
                       No transactions found
                     </td>
                   </tr>

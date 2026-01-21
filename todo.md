@@ -1974,3 +1974,14 @@
 - [x] Add legend and interactive tooltips
 - [x] Wire into dashboard below Pipeline Breakdown chart
 - [ ] Test with demo data showing seasonal patterns
+
+## Phase 7: Full-Screen Drill-Down Modal
+
+### Full-Screen Transaction Modal
+- [x] Add fullScreen prop to TransactionDetailModal
+- [x] Update modal styling for full-screen mode (inset-0, w-screen, h-screen)
+- [x] Increase table padding and spacing for full-screen view
+- [x] Add 5th summary stat card for full-screen layout
+- [x] Make table header sticky for scrolling
+- [x] Enable full-screen mode for pipeline breakdown drill-downs
+- [x] Test drill-down opens in full-screen with all details visible
