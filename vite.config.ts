@@ -41,8 +41,20 @@ export default defineConfig({
       deny: ["**/.*"],
     },
     watch: {
-      ignored: ["**/node_modules/**", "**/.git/**", "**/dist/**"],
+      ignored: [
+        "**/node_modules/**",
+        "**/.git/**",
+        "**/dist/**",
+        "**/.turbo/**",
+        "**/coverage/**",
+        "**/*.log",
+        "**/.DS_Store",
+      ],
       usePolling: false,
+      awaitWriteFinish: {
+        stabilityThreshold: 100,
+        pollInterval: 100,
+      },
     },
   },
 });
