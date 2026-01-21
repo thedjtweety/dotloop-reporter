@@ -2136,20 +2136,20 @@
 
 ### InteractivePipelineChart Presets
 - [x] Add "Save Filter" button to chart header (state initialized)
-- [ ] Create preset save dialog with name input
-- [ ] Add preset dropdown showing all saved presets
-- [ ] Implement quick-apply on preset selection
-- [ ] Show active preset badge
-- [ ] Add delete button for each preset
-- [ ] Persist date range filter in presets
+- [x] Create preset save dialog with name input
+- [x] Add preset dropdown showing all saved presets
+- [x] Implement quick-apply on preset selection
+- [x] Show active preset badge
+- [x] Add delete button for each preset
+- [x] Persist date range filter in presets
 
 ### MarketMap Presets
-- [ ] Add "Save Filter" button to map header
-- [ ] Create preset save dialog with name input
-- [ ] Add preset dropdown showing all saved presets
-- [ ] Implement quick-apply on preset selection
-- [ ] Show active preset badge
-- [ ] Add delete button for each preset
+- [x] Add "Save Filter" button to map header
+- [x] Create preset save dialog with name input
+- [x] Add preset dropdown showing all saved presets
+- [x] Implement quick-apply on preset selection
+- [x] Show active preset badge
+- [x] Add delete button for each preset
 
 ### Testing & Polish
 - [ ] Test preset save/load in TransactionDetailModal

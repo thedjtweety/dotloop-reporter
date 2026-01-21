@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Layers, Filter, ZoomIn } from 'lucide-react';
+import { MapPin, Layers, Filter, ZoomIn, Save, Bookmark, Trash2 } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import { MapView } from '@/components/Map';
 import {
@@ -11,6 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { saveFilterPreset, getFilterPresets, deleteFilterPreset, formatPresetDate, FilterPreset } from '@/lib/filterPresets';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import toast from 'react-hot-toast';
 
 interface MarketMapProps {
   data: DotloopRecord[];
@@ -92,6 +96,14 @@ export default function MarketMap({ data }: MarketMapProps) {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState<PropertyMarker | null>(null);
   const [infoWindow, setInfoWindow] = useState<google.maps.InfoWindow | null>(null);
+  const [presets, setPresets] = useState<FilterPreset[]>([]);
+  const [savePresetName, setSavePresetName] = useState('');
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+
+  useEffect(() => {
+    const loadedPresets = getFilterPresets('map');
+    setPresets(loadedPresets);
+  }, []);
 
   // Process property markers
   const propertyMarkers = useMemo(() => {
@@ -129,6 +141,42 @@ export default function MarketMap({ data }: MarketMapProps) {
   const uniqueAgents = useMemo(() => {
     return Array.from(new Set(data.map(r => r.agent || 'Unassigned'))).sort();
   }, [data]);
+
+  // Handle save preset
+  const handleSavePreset = () => {
+    if (!savePresetName.trim()) {
+      toast.error('Preset name is required');
+      return;
+    }
+    const preset = saveFilterPreset(
+      savePresetName,
+      { statusFilter, agentFilter },
+      'map'
+    );
+    if (preset) {
+      setPresets([...presets, preset]);
+      setSavePresetName('');
+      setShowSaveDialog(false);
+      toast.success(`Filter preset "${preset.name}" saved`);
+    } else {
+      toast.error('Failed to save preset');
+    }
+  };
+
+  // Handle apply preset
+  const handleApplyPreset = (preset: FilterPreset) => {
+    setStatusFilter(preset.filters.statusFilter || '');
+    setAgentFilter(preset.filters.agentFilter || '');
+    toast.success(`Applied preset: ${preset.name}`);
+  };
+
+  // Handle delete preset
+  const handleDeletePreset = (presetId: string) => {
+    if (deleteFilterPreset(presetId, 'map')) {
+      setPresets(presets.filter(p => p.id !== presetId));
+      toast.success('Preset deleted');
+    }
+  };
 
   // Calculate map center and bounds
   const mapCenter = useMemo(() => {
@@ -368,6 +416,85 @@ export default function MarketMap({ data }: MarketMapProps) {
                 ))}
               </SelectContent>
             </Select>
+
+            {/* Save Preset Button */}
+            <Popover open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  Save
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium">Preset Name</label>
+                    <Input
+                      placeholder="e.g., Active Listings"
+                      value={savePresetName}
+                      onChange={(e) => setSavePresetName(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleSavePreset}
+                    className="w-full"
+                    size="sm"
+                  >
+                    Save Preset
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Presets Dropdown */}
+            {presets.length > 0 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Bookmark className="h-4 w-4" />
+                    Presets ({presets.length})
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {presets.map(preset => (
+                      <div
+                        key={preset.id}
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 border border-border/50 cursor-pointer"
+                        onClick={() => handleApplyPreset(preset)}
+                      >
+                        <div>
+                          <div className="font-medium text-sm">{preset.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatPresetDate(preset.createdAt)}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeletePreset(preset.id);
+                          }}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
 
             <span className="text-sm text-muted-foreground ml-auto">
               {propertyMarkers.length} properties
