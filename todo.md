@@ -2012,3 +2012,26 @@
 - [x] Update selected transactions with new status
 - [x] Show success toast notification
 - [x] Auto-deselect after action
+
+
+## Phase 9: Batch Filters & Undo/Redo
+
+### Quick Filter Buttons
+- [x] Add filter button row below search bar
+- [x] Create Show Only Active filter button
+- [x] Create Show Only Closed filter button
+- [x] Create Show Only Contract filter button
+- [x] Create By Agent dropdown filter
+- [x] Track active filters in state
+- [x] Apply filters to transaction list
+- [x] Show Clear Filters button when filters active
+
+### Undo/Redo System
+- [x] Create action history stack (undo/redo)
+- [x] Store original state before bulk actions
+- [x] Track agent reassignments in history
+- [x] Track status updates in history
+- [x] Add Undo button to toolbar (disabled when no history)
+- [x] Add Redo button to toolbar (disabled when no redo history)
+- [x] Show toast on undo/redo completion
+- [x] Clear redo stack when new action performed

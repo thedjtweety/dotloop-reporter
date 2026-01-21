@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { ArrowUpDown, Download, X, FileText, CheckSquare, Square } from 'lucide-react';
+import { ArrowUpDown, Download, X, FileText, CheckSquare, Square, RotateCcw, RotateCw, Filter } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import { formatCurrency, formatNumber } from '@/lib/formatUtils';
 import jsPDF from 'jspdf';
@@ -28,6 +28,14 @@ interface TransactionDetailModalProps {
 type SortField = 'address' | 'price' | 'agent' | 'closingDate' | 'status';
 type SortOrder = 'asc' | 'desc';
 
+interface HistoryEntry {
+  action: 'reassign' | 'status_update';
+  selectedIndices: number[];
+  oldValues: Map<number, string>;
+  newValue: string;
+  timestamp: number;
+}
+
 export default function TransactionDetailModal({
   isOpen,
   onClose,
@@ -41,6 +49,15 @@ export default function TransactionDetailModal({
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [selectedAgent, setSelectedAgent] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  
+  // Filter state
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [agentFilter, setAgentFilter] = useState<string>('');
+  
+  // Undo/Redo state
+  const [undoStack, setUndoStack] = useState<HistoryEntry[]>([]);
+  const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
+  const [transactionUpdates, setTransactionUpdates] = useState<Map<number, Partial<DotloopRecord>>>(new Map());
 
   // Get unique agents and statuses
   const uniqueAgents = useMemo(() => {
@@ -53,10 +70,25 @@ export default function TransactionDetailModal({
     return Array.from(statuses).sort();
   }, [transactions]);
 
+  // Get updated transaction with applied changes
+  const getUpdatedTransaction = (transaction: DotloopRecord, index: number): DotloopRecord => {
+    const updates = transactionUpdates.get(index);
+    if (!updates) return transaction;
+    return { ...transaction, ...updates };
+  };
+
   // Filter and sort transactions
   const filteredTransactions = useMemo(() => {
-    let filtered = transactions.filter(t => {
+    let filtered = transactions.map((t, idx) => getUpdatedTransaction(t, idx)).filter(t => {
       const searchLower = searchTerm.toLowerCase();
+      
+      // Apply status filter
+      if (statusFilter && t.loopStatus !== statusFilter) return false;
+      
+      // Apply agent filter
+      if (agentFilter && t.agent !== agentFilter) return false;
+      
+      // Apply search
       return (
         (t.address || '').toLowerCase().includes(searchLower) ||
         (t.agent || '').toLowerCase().includes(searchLower) ||
@@ -101,7 +133,7 @@ export default function TransactionDetailModal({
     });
 
     return filtered;
-  }, [transactions, searchTerm, sortField, sortOrder]);
+  }, [transactions, searchTerm, sortField, sortOrder, statusFilter, agentFilter, transactionUpdates]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -139,14 +171,119 @@ export default function TransactionDetailModal({
 
   const handleBulkReassignAgent = () => {
     if (!selectedAgent || selectedIds.size === 0) return;
+    
+    // Store old values for undo
+    const oldValues = new Map<number, string>();
+    selectedIds.forEach(idx => {
+      const oldAgent = filteredTransactions[idx].agent || 'Unknown';
+      oldValues.set(idx, oldAgent);
+    });
+
+    // Create history entry
+    const historyEntry: HistoryEntry = {
+      action: 'reassign',
+      selectedIndices: Array.from(selectedIds),
+      oldValues,
+      newValue: selectedAgent,
+      timestamp: Date.now(),
+    };
+
+    // Apply changes
+    const newUpdates = new Map(transactionUpdates);
+    selectedIds.forEach(idx => {
+      newUpdates.set(idx, { ...getUpdatedTransaction(filteredTransactions[idx], idx), agent: selectedAgent });
+    });
+    setTransactionUpdates(newUpdates);
+
+    // Update history
+    setUndoStack([...undoStack, historyEntry]);
+    setRedoStack([]);
+
     toast.success(`Reassigned ${selectedIds.size} transaction(s) to ${selectedAgent}`);
     handleClearSelection();
   };
 
   const handleBulkUpdateStatus = () => {
     if (!selectedStatus || selectedIds.size === 0) return;
+    
+    // Store old values for undo
+    const oldValues = new Map<number, string>();
+    selectedIds.forEach(idx => {
+      const oldStatus = filteredTransactions[idx].loopStatus || 'Unknown';
+      oldValues.set(idx, oldStatus);
+    });
+
+    // Create history entry
+    const historyEntry: HistoryEntry = {
+      action: 'status_update',
+      selectedIndices: Array.from(selectedIds),
+      oldValues,
+      newValue: selectedStatus,
+      timestamp: Date.now(),
+    };
+
+    // Apply changes
+    const newUpdates = new Map(transactionUpdates);
+    selectedIds.forEach(idx => {
+      newUpdates.set(idx, { ...getUpdatedTransaction(filteredTransactions[idx], idx), loopStatus: selectedStatus });
+    });
+    setTransactionUpdates(newUpdates);
+
+    // Update history
+    setUndoStack([...undoStack, historyEntry]);
+    setRedoStack([]);
+
     toast.success(`Updated ${selectedIds.size} transaction(s) to ${selectedStatus}`);
     handleClearSelection();
+  };
+
+  const handleUndo = () => {
+    if (undoStack.length === 0) return;
+
+    const lastEntry = undoStack[undoStack.length - 1];
+    const newUpdates = new Map(transactionUpdates);
+
+    // Restore old values
+    lastEntry.selectedIndices.forEach(idx => {
+      const oldValue = lastEntry.oldValues.get(idx);
+      if (oldValue) {
+        const updated = { ...getUpdatedTransaction(filteredTransactions[idx], idx) };
+        if (lastEntry.action === 'reassign') {
+          updated.agent = oldValue;
+        } else {
+          updated.loopStatus = oldValue;
+        }
+        newUpdates.set(idx, updated);
+      }
+    });
+
+    setTransactionUpdates(newUpdates);
+    setUndoStack(undoStack.slice(0, -1));
+    setRedoStack([...redoStack, lastEntry]);
+    toast.success('Undo completed');
+  };
+
+  const handleRedo = () => {
+    if (redoStack.length === 0) return;
+
+    const lastEntry = redoStack[redoStack.length - 1];
+    const newUpdates = new Map(transactionUpdates);
+
+    // Apply changes again
+    lastEntry.selectedIndices.forEach(idx => {
+      const updated = { ...getUpdatedTransaction(filteredTransactions[idx], idx) };
+      if (lastEntry.action === 'reassign') {
+        updated.agent = lastEntry.newValue;
+      } else {
+        updated.loopStatus = lastEntry.newValue;
+      }
+      newUpdates.set(idx, updated);
+    });
+
+    setTransactionUpdates(newUpdates);
+    setRedoStack(redoStack.slice(0, -1));
+    setUndoStack([...undoStack, lastEntry]);
+    toast.success('Redo completed');
   };
 
   const handleExportCSV = () => {
@@ -288,6 +425,69 @@ export default function TransactionDetailModal({
             )}
           </div>
 
+          {/* Quick Filters */}
+          {fullScreen && (
+            <Card className="p-4 bg-amber-500/5 border-amber-500/20">
+              <div className="flex items-center gap-2 mb-3">
+                <Filter className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <span className="text-sm font-medium">Quick Filters</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={() => setStatusFilter(statusFilter === 'Active' ? '' : 'Active')}
+                  variant={statusFilter === 'Active' ? 'default' : 'outline'}
+                  size="sm"
+                >
+                  Active
+                </Button>
+                <Button
+                  onClick={() => setStatusFilter(statusFilter === 'Closed' ? '' : 'Closed')}
+                  variant={statusFilter === 'Closed' ? 'default' : 'outline'}
+                  size="sm"
+                >
+                  Closed
+                </Button>
+                <Button
+                  onClick={() => setStatusFilter(statusFilter === 'Contract' ? '' : 'Contract')}
+                  variant={statusFilter === 'Contract' ? 'default' : 'outline'}
+                  size="sm"
+                >
+                  Contract
+                </Button>
+                
+                <div className="w-px bg-border mx-2" />
+                
+                <Select value={agentFilter} onValueChange={setAgentFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Filter by agent..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Agents</SelectItem>
+                    {uniqueAgents.map(agent => (
+                      <SelectItem key={agent} value={agent}>
+                        {agent}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {(statusFilter || agentFilter) && (
+                  <Button
+                    onClick={() => {
+                      setStatusFilter('');
+                      setAgentFilter('');
+                    }}
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            </Card>
+          )}
+
           {/* Bulk Actions Toolbar */}
           {fullScreen && selectedIds.size > 0 && (
             <Card className="p-4 bg-blue-500/5 border-blue-500/20">
@@ -338,14 +538,33 @@ export default function TransactionDetailModal({
                   </Button>
                 </div>
 
-                <Button 
-                  onClick={handleClearSelection}
-                  variant="outline"
-                  size="sm"
-                  className="ml-auto"
-                >
-                  Clear Selection
-                </Button>
+                <div className="flex items-center gap-2 ml-auto">
+                  <Button 
+                    onClick={handleUndo}
+                    disabled={undoStack.length === 0}
+                    variant="outline"
+                    size="sm"
+                    title="Undo last action"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    onClick={handleRedo}
+                    disabled={redoStack.length === 0}
+                    variant="outline"
+                    size="sm"
+                    title="Redo last action"
+                  >
+                    <RotateCw className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    onClick={handleClearSelection}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Clear Selection
+                  </Button>
+                </div>
               </div>
             </Card>
           )}
