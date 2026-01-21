@@ -1,15 +1,14 @@
-import { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { ArrowUpDown, Download, X, FileText, CheckSquare, Square, RotateCcw, RotateCw, Filter, Save, Bookmark, Trash2 } from 'lucide-react';
+import { ArrowUpDown, Download, X, FileText, CheckSquare, Square, RotateCcw, RotateCw, Filter } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import { formatCurrency, formatNumber } from '@/lib/formatUtils';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import toast from 'react-hot-toast';
-import { saveFilterPreset, getFilterPresets, deleteFilterPreset, formatPresetDate, FilterPreset } from '@/lib/filterPresets';
 import {
   Select,
   SelectContent,
@@ -17,11 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 
 interface TransactionDetailModalProps {
   isOpen: boolean;
@@ -60,21 +54,10 @@ export default function TransactionDetailModal({
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [agentFilter, setAgentFilter] = useState<string>('');
   
-  // Preset state
-  const [presets, setPresets] = useState<FilterPreset[]>([]);
-  const [savePresetName, setSavePresetName] = useState('');
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  
   // Undo/Redo state
   const [undoStack, setUndoStack] = useState<HistoryEntry[]>([]);
   const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
   const [transactionUpdates, setTransactionUpdates] = useState<Map<number, Partial<DotloopRecord>>>(new Map());
-
-  // Load presets on mount
-  useEffect(() => {
-    const loadedPresets = getFilterPresets('modal');
-    setPresets(loadedPresets);
-  }, []);
 
   // Get unique agents and statuses
   const uniqueAgents = useMemo(() => {
@@ -116,12 +99,32 @@ export default function TransactionDetailModal({
 
     // Sort
     filtered.sort((a, b) => {
-      let aVal: any = a[sortField];
-      let bVal: any = b[sortField];
+      let aVal: any;
+      let bVal: any;
 
-      if (sortField === 'price') {
-        aVal = a.salePrice || a.price || 0;
-        bVal = b.salePrice || b.price || 0;
+      switch (sortField) {
+        case 'address':
+          aVal = a.address || '';
+          bVal = b.address || '';
+          break;
+        case 'price':
+          aVal = a.price || a.salePrice || 0;
+          bVal = b.price || b.salePrice || 0;
+          break;
+        case 'agent':
+          aVal = a.agent || '';
+          bVal = b.agent || '';
+          break;
+        case 'closingDate':
+          aVal = a.closingDate ? new Date(a.closingDate).getTime() : 0;
+          bVal = b.closingDate ? new Date(b.closingDate).getTime() : 0;
+          break;
+        case 'status':
+          aVal = a.loopStatus || '';
+          bVal = b.loopStatus || '';
+          break;
+        default:
+          return 0;
       }
 
       if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
@@ -130,65 +133,18 @@ export default function TransactionDetailModal({
     });
 
     return filtered;
-  }, [transactions, searchTerm, statusFilter, agentFilter, sortField, sortOrder, transactionUpdates]);
+  }, [transactions, searchTerm, sortField, sortOrder, statusFilter, agentFilter, transactionUpdates]);
 
-  // Handle save preset
-  const handleSavePreset = () => {
-    if (!savePresetName.trim()) {
-      toast.error('Preset name is required');
-      return;
-    }
-
-    const preset = saveFilterPreset(
-      savePresetName,
-      { statusFilter, agentFilter },
-      'modal'
-    );
-
-    if (preset) {
-      setPresets([...presets, preset]);
-      setSavePresetName('');
-      setShowSaveDialog(false);
-      toast.success(`Filter preset "${preset.name}" saved`);
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      toast.error('Failed to save preset');
+      setSortField(field);
+      setSortOrder('asc');
     }
   };
 
-  // Handle apply preset
-  const handleApplyPreset = (preset: FilterPreset) => {
-    setStatusFilter(preset.filters.statusFilter || '');
-    setAgentFilter(preset.filters.agentFilter || '');
-    toast.success(`Applied preset: ${preset.name}`);
-  };
-
-  // Handle delete preset
-  const handleDeletePreset = (presetId: string) => {
-    if (deleteFilterPreset(presetId, 'modal')) {
-      setPresets(presets.filter(p => p.id !== presetId));
-      toast.success('Preset deleted');
-    }
-  };
-
-  // Handle clear filters
-  const handleClearFilters = () => {
-    setStatusFilter('');
-    setAgentFilter('');
-    setSearchTerm('');
-    toast.success('Filters cleared');
-  };
-
-  // Handle select all
-  const handleSelectAll = () => {
-    if (selectedIds.size === filteredTransactions.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filteredTransactions.map((_, i) => i)));
-    }
-  };
-
-  // Handle toggle selection
-  const handleToggleSelection = (index: number) => {
+  const handleToggleSelect = (index: number) => {
     const newSelected = new Set(selectedIds);
     if (newSelected.has(index)) {
       newSelected.delete(index);
@@ -198,537 +154,535 @@ export default function TransactionDetailModal({
     setSelectedIds(newSelected);
   };
 
-  // Handle bulk reassign
-  const handleBulkReassign = () => {
-    if (!selectedAgent || selectedIds.size === 0) {
-      toast.error('Select transactions and an agent');
-      return;
+  const handleSelectAll = () => {
+    if (selectedIds.size === filteredTransactions.length) {
+      setSelectedIds(new Set());
+    } else {
+      const allIndices = new Set(filteredTransactions.map((_, idx) => idx));
+      setSelectedIds(allIndices);
     }
+  };
 
-    const oldValues = new Map<number, string>();
-    const updates = new Map(transactionUpdates);
-
-    selectedIds.forEach(idx => {
-      const transaction = filteredTransactions[idx];
-      oldValues.set(idx, transaction.agent || '');
-      updates.set(idx, { ...updates.get(idx), agent: selectedAgent });
-    });
-
-    setTransactionUpdates(updates);
-    setUndoStack([...undoStack, { action: 'reassign', selectedIndices: Array.from(selectedIds), oldValues, newValue: selectedAgent, timestamp: Date.now() }]);
-    setRedoStack([]);
+  const handleClearSelection = () => {
     setSelectedIds(new Set());
     setSelectedAgent('');
-    toast.success(`Reassigned ${selectedIds.size} transactions to ${selectedAgent}`);
+    setSelectedStatus('');
   };
 
-  // Handle bulk status update
-  const handleBulkStatusUpdate = () => {
-    if (!selectedStatus || selectedIds.size === 0) {
-      toast.error('Select transactions and a status');
-      return;
-    }
-
+  const handleBulkReassignAgent = () => {
+    if (!selectedAgent || selectedIds.size === 0) return;
+    
+    // Store old values for undo
     const oldValues = new Map<number, string>();
-    const updates = new Map(transactionUpdates);
-
     selectedIds.forEach(idx => {
-      const transaction = filteredTransactions[idx];
-      oldValues.set(idx, transaction.loopStatus || '');
-      updates.set(idx, { ...updates.get(idx), loopStatus: selectedStatus });
+      const oldAgent = filteredTransactions[idx].agent || 'Unknown';
+      oldValues.set(idx, oldAgent);
     });
 
-    setTransactionUpdates(updates);
-    setUndoStack([...undoStack, { action: 'status_update', selectedIndices: Array.from(selectedIds), oldValues, newValue: selectedStatus, timestamp: Date.now() }]);
+    // Create history entry
+    const historyEntry: HistoryEntry = {
+      action: 'reassign',
+      selectedIndices: Array.from(selectedIds),
+      oldValues,
+      newValue: selectedAgent,
+      timestamp: Date.now(),
+    };
+
+    // Apply changes
+    const newUpdates = new Map(transactionUpdates);
+    selectedIds.forEach(idx => {
+      newUpdates.set(idx, { ...getUpdatedTransaction(filteredTransactions[idx], idx), agent: selectedAgent });
+    });
+    setTransactionUpdates(newUpdates);
+
+    // Update history
+    setUndoStack([...undoStack, historyEntry]);
     setRedoStack([]);
-    setSelectedIds(new Set());
-    setSelectedStatus('');
-    toast.success(`Updated ${selectedIds.size} transactions to ${selectedStatus}`);
+
+    toast.success(`Reassigned ${selectedIds.size} transaction(s) to ${selectedAgent}`);
+    handleClearSelection();
   };
 
-  // Handle undo
+  const handleBulkUpdateStatus = () => {
+    if (!selectedStatus || selectedIds.size === 0) return;
+    
+    // Store old values for undo
+    const oldValues = new Map<number, string>();
+    selectedIds.forEach(idx => {
+      const oldStatus = filteredTransactions[idx].loopStatus || 'Unknown';
+      oldValues.set(idx, oldStatus);
+    });
+
+    // Create history entry
+    const historyEntry: HistoryEntry = {
+      action: 'status_update',
+      selectedIndices: Array.from(selectedIds),
+      oldValues,
+      newValue: selectedStatus,
+      timestamp: Date.now(),
+    };
+
+    // Apply changes
+    const newUpdates = new Map(transactionUpdates);
+    selectedIds.forEach(idx => {
+      newUpdates.set(idx, { ...getUpdatedTransaction(filteredTransactions[idx], idx), loopStatus: selectedStatus });
+    });
+    setTransactionUpdates(newUpdates);
+
+    // Update history
+    setUndoStack([...undoStack, historyEntry]);
+    setRedoStack([]);
+
+    toast.success(`Updated ${selectedIds.size} transaction(s) to ${selectedStatus}`);
+    handleClearSelection();
+  };
+
   const handleUndo = () => {
     if (undoStack.length === 0) return;
 
-    const entry = undoStack[undoStack.length - 1];
-    const updates = new Map(transactionUpdates);
+    const lastEntry = undoStack[undoStack.length - 1];
+    const newUpdates = new Map(transactionUpdates);
 
-    entry.selectedIndices.forEach(idx => {
-      const oldValue = entry.oldValues.get(idx);
-      if (entry.action === 'reassign') {
-        updates.set(idx, { ...updates.get(idx), agent: oldValue });
-      } else {
-        updates.set(idx, { ...updates.get(idx), loopStatus: oldValue });
+    // Restore old values
+    lastEntry.selectedIndices.forEach(idx => {
+      const oldValue = lastEntry.oldValues.get(idx);
+      if (oldValue) {
+        const updated = { ...getUpdatedTransaction(filteredTransactions[idx], idx) };
+        if (lastEntry.action === 'reassign') {
+          updated.agent = oldValue;
+        } else {
+          updated.loopStatus = oldValue;
+        }
+        newUpdates.set(idx, updated);
       }
     });
 
-    setTransactionUpdates(updates);
+    setTransactionUpdates(newUpdates);
     setUndoStack(undoStack.slice(0, -1));
-    setRedoStack([...redoStack, entry]);
-    toast.success('Undo successful');
+    setRedoStack([...redoStack, lastEntry]);
+    toast.success('Undo completed');
   };
 
-  // Handle redo
   const handleRedo = () => {
     if (redoStack.length === 0) return;
 
-    const entry = redoStack[redoStack.length - 1];
-    const updates = new Map(transactionUpdates);
+    const lastEntry = redoStack[redoStack.length - 1];
+    const newUpdates = new Map(transactionUpdates);
 
-    entry.selectedIndices.forEach(idx => {
-      if (entry.action === 'reassign') {
-        updates.set(idx, { ...updates.get(idx), agent: entry.newValue });
+    // Apply changes again
+    lastEntry.selectedIndices.forEach(idx => {
+      const updated = { ...getUpdatedTransaction(filteredTransactions[idx], idx) };
+      if (lastEntry.action === 'reassign') {
+        updated.agent = lastEntry.newValue;
       } else {
-        updates.set(idx, { ...updates.get(idx), loopStatus: entry.newValue });
+        updated.loopStatus = lastEntry.newValue;
       }
+      newUpdates.set(idx, updated);
     });
 
-    setTransactionUpdates(updates);
+    setTransactionUpdates(newUpdates);
     setRedoStack(redoStack.slice(0, -1));
-    setUndoStack([...undoStack, entry]);
-    toast.success('Redo successful');
+    setUndoStack([...undoStack, lastEntry]);
+    toast.success('Redo completed');
   };
 
-  // Handle CSV export
   const handleExportCSV = () => {
-    if (filteredTransactions.length === 0) {
-      toast.error('No transactions to export');
-      return;
-    }
-
-    const headers = ['Address', 'Price', 'Agent', 'Status', 'Closing Date'];
+    const headers = ['Address', 'Price', 'Agent', 'Closing Date', 'Status'];
     const rows = filteredTransactions.map(t => [
       t.address || '',
-      formatCurrency(t.salePrice || t.price || 0),
+      formatCurrency(t.price || t.salePrice || 0),
       t.agent || '',
-      t.loopStatus || '',
       t.closingDate ? new Date(t.closingDate).toLocaleDateString() : '',
+      t.loopStatus || '',
     ]);
 
-    let csv = headers.join(',') + '\n';
-    rows.forEach(row => {
-      csv += row.map(cell => `"${cell}"`).join(',') + '\n';
-    });
+    const csv = [headers, ...rows]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
 
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `${title}-transactions.csv`;
     a.click();
-    URL.revokeObjectURL(url);
-    toast.success('CSV exported successfully');
+    window.URL.revokeObjectURL(url);
   };
 
-  // Handle PDF export
   const handleExportPDF = () => {
-    if (filteredTransactions.length === 0) {
-      toast.error('No transactions to export');
-      return;
-    }
-
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-
+    
     // Add title
     doc.setFontSize(16);
-    doc.text(title, pageWidth / 2, 15, { align: 'center' });
-
-    // Add filter info
+    doc.text(title, 14, 15);
+    
+    // Add summary stats
     doc.setFontSize(10);
-    let filterText = 'Filters: ';
-    if (statusFilter) filterText += `Status: ${statusFilter} | `;
-    if (agentFilter) filterText += `Agent: ${agentFilter} | `;
-    filterText += `Total: ${filteredTransactions.length}`;
-    doc.text(filterText, 14, 25);
-
+    const totalVolume = filteredTransactions.reduce((sum, t) => sum + (t.price || t.salePrice || 0), 0);
+    const avgPrice = filteredTransactions.length > 0 ? totalVolume / filteredTransactions.length : 0;
+    
+    doc.text(`Total Transactions: ${filteredTransactions.length}`, 14, 25);
+    doc.text(`Total Volume: ${formatCurrency(totalVolume)}`, 14, 32);
+    doc.text(`Average Price: ${formatCurrency(avgPrice)}`, 14, 39);
+    doc.text(`Unique Agents: ${new Set(filteredTransactions.map(t => t.agent)).size}`, 14, 46);
+    
     // Add table
     const tableData = filteredTransactions.map(t => [
-      t.address || '',
-      formatCurrency(t.salePrice || t.price || 0),
-      t.agent || '',
-      t.loopStatus || '',
-      t.closingDate ? new Date(t.closingDate).toLocaleDateString() : '',
+      t.address || 'N/A',
+      formatCurrency(t.price || t.salePrice || 0),
+      t.agent || 'N/A',
+      t.closingDate ? new Date(t.closingDate).toLocaleDateString() : 'N/A',
+      t.loopStatus || 'Unknown',
     ]);
-
+    
     (doc as any).autoTable({
-      head: [['Address', 'Price', 'Agent', 'Status', 'Closing Date']],
+      head: [['Address', 'Price', 'Agent', 'Closing Date', 'Status']],
       body: tableData,
-      startY: 35,
-      margin: 14,
-      styles: { fontSize: 9, cellPadding: 3 },
-      headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' },
-      alternateRowStyles: { fillColor: [245, 245, 245] },
+      startY: 55,
+      margin: { top: 55, right: 14, bottom: 14, left: 14 },
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+      },
+      headStyles: {
+        fillColor: [59, 130, 246],
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 247, 250],
+      },
     });
-
-    doc.save(`transactions_${new Date().toISOString().split('T')[0]}.pdf`);
-    toast.success('PDF exported successfully');
+    
+    doc.save(`${title}-transactions.pdf`);
   };
 
-  const modalClass = fullScreen 
-    ? 'fixed inset-0 w-screen h-screen z-50' 
-    : '';
+  const SortHeader = ({ field, label }: { field: SortField; label: string }) => (
+    <button
+      onClick={() => handleSort(field)}
+      className="flex items-center gap-2 hover:text-foreground transition-colors"
+    >
+      {label}
+      <ArrowUpDown
+        className={`h-4 w-4 ${
+          sortField === field ? 'text-primary' : 'text-muted-foreground'
+        }`}
+      />
+    </button>
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`${modalClass} max-w-7xl max-h-screen overflow-y-auto`}>
-        <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b border-border">
-          <DialogTitle className="text-2xl font-bold">{title}</DialogTitle>
+      <DialogContent className={fullScreen ? "fixed inset-0 w-screen h-screen max-w-none max-h-none rounded-none overflow-hidden flex flex-col" : "max-w-6xl max-h-[90vh] overflow-y-auto"}>
+        <DialogHeader className={`sticky top-0 bg-background z-10 pb-4 border-b ${fullScreen ? 'px-6 py-4' : ''}`}>
+          <div className="flex items-center justify-between">
+            <DialogTitle>{title}</DialogTitle>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-4 p-4">
-          {/* Filter and Preset Toolbar */}
-          <div className="space-y-3 p-4 bg-card/50 rounded-lg border border-border/50">
-            {/* Search and Quick Filters */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <Input
-                placeholder="Search address, agent, status..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 min-w-48"
-              />
-              
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
-                  {uniqueStatuses.map(status => (
-                    <SelectItem key={status} value={status || ''}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={agentFilter} onValueChange={setAgentFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="All agents" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Agents</SelectItem>
-                  {uniqueAgents.map(agent => (
-                    <SelectItem key={agent} value={agent || ''}>
-                      {agent}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClearFilters}
-                className="gap-2"
-              >
-                <X className="h-4 w-4" />
-                Clear
-              </Button>
-            </div>
-
-            {/* Presets Row */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <Popover open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                  >
-                    <Save className="h-4 w-4" />
-                    Save Filter
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64">
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Preset Name</label>
-                      <Input
-                        placeholder="e.g., My Team's Closed Deals"
-                        value={savePresetName}
-                        onChange={(e) => setSavePresetName(e.target.value)}
-                        className="mt-1"
-                      />
-                    </div>
-                    <Button
-                      onClick={handleSavePreset}
-                      className="w-full"
-                      size="sm"
-                    >
-                      Save Preset
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              {presets.length > 0 && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                    >
-                      <Bookmark className="h-4 w-4" />
-                      Presets ({presets.length})
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80">
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {presets.map(preset => (
-                        <div
-                          key={preset.id}
-                          className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 border border-border/50"
-                        >
-                          <div
-                            className="flex-1 cursor-pointer"
-                            onClick={() => handleApplyPreset(preset)}
-                          >
-                            <div className="font-medium text-sm">{preset.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {formatPresetDate(preset.createdAt)}
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeletePreset(preset.id)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
-
-              <span className="text-sm text-muted-foreground ml-auto">
-                {filteredTransactions.length} of {transactions.length} transactions
-              </span>
-            </div>
+        <div className={`flex-1 overflow-y-auto space-y-4 ${fullScreen ? 'px-6 pb-6' : ''}`}>
+          {/* Summary Stats */}
+          <div className={`grid ${fullScreen ? 'grid-cols-5' : 'grid-cols-4'} gap-4`}>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground mb-1">Total Transactions</p>
+              <p className="text-2xl font-bold">{formatNumber(filteredTransactions.length)}</p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground mb-1">Total Volume</p>
+              <p className="text-2xl font-bold">
+                {formatCurrency(
+                  filteredTransactions.reduce((sum, t) => sum + (t.price || t.salePrice || 0), 0)
+                )}
+              </p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground mb-1">Average Price</p>
+              <p className="text-2xl font-bold">
+                {formatCurrency(
+                  filteredTransactions.length > 0
+                    ? filteredTransactions.reduce((sum, t) => sum + (t.price || t.salePrice || 0), 0) /
+                        filteredTransactions.length
+                    : 0
+                )}
+              </p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground mb-1">Unique Agents</p>
+              <p className="text-2xl font-bold">
+                {new Set(filteredTransactions.map(t => t.agent)).size}
+              </p>
+            </Card>
+            {fullScreen && (
+              <Card className="p-4 bg-blue-500/10 border-blue-500/20">
+                <p className="text-sm text-muted-foreground mb-1">Selected</p>
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selectedIds.size}</p>
+              </Card>
+            )}
           </div>
 
-          {/* Bulk Actions Toolbar */}
-          {selectedIds.size > 0 && (
-            <div className="sticky top-20 bg-primary/10 border border-primary/20 rounded-lg p-3 flex items-center gap-3 flex-wrap z-10">
-              <span className="text-sm font-medium">
-                {selectedIds.size} selected
-              </span>
+          {/* Quick Filters */}
+          {fullScreen && (
+            <Card className="p-4 bg-amber-500/5 border-amber-500/20">
+              <div className="flex items-center gap-2 mb-3">
+                <Filter className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <span className="text-sm font-medium">Quick Filters</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={() => setStatusFilter(statusFilter === 'Active' ? '' : 'Active')}
+                  variant={statusFilter === 'Active' ? 'default' : 'outline'}
+                  size="sm"
+                >
+                  Active
+                </Button>
+                <Button
+                  onClick={() => setStatusFilter(statusFilter === 'Closed' ? '' : 'Closed')}
+                  variant={statusFilter === 'Closed' ? 'default' : 'outline'}
+                  size="sm"
+                >
+                  Closed
+                </Button>
+                <Button
+                  onClick={() => setStatusFilter(statusFilter === 'Contract' ? '' : 'Contract')}
+                  variant={statusFilter === 'Contract' ? 'default' : 'outline'}
+                  size="sm"
+                >
+                  Contract
+                </Button>
+                
+                <div className="w-px bg-border mx-2" />
+                
+                <Select value={agentFilter || "all"} onValueChange={(val) => setAgentFilter(val === "all" ? "" : val)}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Filter by agent..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Agents</SelectItem>
+                    {uniqueAgents.map(agent => (
+                      <SelectItem key={agent} value={agent}>
+                        {agent}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              <Select value={selectedAgent} onValueChange={setSelectedAgent}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Select agent..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueAgents.map(agent => (
-                    <SelectItem key={agent} value={agent || ''}>
-                      {agent}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Button
-                onClick={handleBulkReassign}
-                size="sm"
-                className="gap-2"
-              >
-                Reassign
-              </Button>
-
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Select status..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueStatuses.map(status => (
-                    <SelectItem key={status} value={status || ''}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Button
-                onClick={handleBulkStatusUpdate}
-                size="sm"
-                className="gap-2"
-              >
-                Update Status
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={() => setSelectedIds(new Set())}
-                size="sm"
-                className="ml-auto"
-              >
-                Clear Selection
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={handleUndo}
-                disabled={undoStack.length === 0}
-                size="sm"
-                className="gap-2"
-              >
-                <RotateCcw className="h-4 w-4" />
-                Undo
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={handleRedo}
-                disabled={redoStack.length === 0}
-                size="sm"
-                className="gap-2"
-              >
-                <RotateCw className="h-4 w-4" />
-                Redo
-              </Button>
-            </div>
+                {(statusFilter || agentFilter) && (
+                  <Button
+                    onClick={() => {
+                      setStatusFilter('');
+                      setAgentFilter('');
+                    }}
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            </Card>
           )}
 
-          {/* Export Buttons */}
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleExportCSV}
-              variant="outline"
-              size="sm"
-              className="gap-2"
-            >
+          {/* Bulk Actions Toolbar */}
+          {fullScreen && selectedIds.size > 0 && (
+            <Card className="p-4 bg-blue-500/5 border-blue-500/20">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-sm font-medium">{selectedIds.size} selected</span>
+                
+                <div className="flex items-center gap-2">
+                  <Select value={selectedAgent || ""} onValueChange={setSelectedAgent}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Reassign agent..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueAgents.map(agent => (
+                        <SelectItem key={agent} value={agent}>
+                          {agent}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    onClick={handleBulkReassignAgent}
+                    disabled={!selectedAgent}
+                    size="sm"
+                  >
+                    Reassign
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Select value={selectedStatus || ""} onValueChange={setSelectedStatus}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Update status..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueStatuses.map(status => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    onClick={handleBulkUpdateStatus}
+                    disabled={!selectedStatus}
+                    size="sm"
+                  >
+                    Update
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2 ml-auto">
+                  <Button 
+                    onClick={handleUndo}
+                    disabled={undoStack.length === 0}
+                    variant="outline"
+                    size="sm"
+                    title="Undo last action"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    onClick={handleRedo}
+                    disabled={redoStack.length === 0}
+                    variant="outline"
+                    size="sm"
+                    title="Redo last action"
+                  >
+                    <RotateCw className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    onClick={handleClearSelection}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Clear Selection
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Search and Export */}
+          <div className="flex gap-2">
+            <Input
+              placeholder="Search by address, agent, or status..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1"
+            />
+            <Button onClick={handleExportCSV} variant="outline" className="gap-2">
               <Download className="h-4 w-4" />
-              Export CSV
+              CSV
             </Button>
-            <Button
-              onClick={handleExportPDF}
-              variant="outline"
-              size="sm"
-              className="gap-2"
-            >
+            <Button onClick={handleExportPDF} variant="outline" className="gap-2">
               <FileText className="h-4 w-4" />
-              Export PDF
+              PDF
             </Button>
           </div>
 
-          {/* Transactions Table */}
-          <div className="overflow-x-auto border border-border rounded-lg">
+          {/* Transaction Table */}
+          <div className="border border-border rounded-lg overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-muted/50 border-b border-border">
+              <thead className="bg-muted/50 border-b border-border sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-3 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.size === filteredTransactions.length && filteredTransactions.length > 0}
-                      onChange={handleSelectAll}
-                      className="rounded"
-                    />
+                  {fullScreen && (
+                    <th className="px-4 py-3 text-left w-10">
+                      <button
+                        onClick={handleSelectAll}
+                        className="flex items-center justify-center hover:bg-muted rounded p-1"
+                      >
+                        {selectedIds.size === filteredTransactions.length ? (
+                          <CheckSquare className="h-4 w-4 text-primary" />
+                        ) : (
+                          <Square className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </button>
+                    </th>
+                  )}
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-left font-semibold`}>
+                    <SortHeader field="address" label="Address" />
                   </th>
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-muted/70"
-                    onClick={() => {
-                      setSortField('address');
-                      setSortOrder(sortField === 'address' && sortOrder === 'asc' ? 'desc' : 'asc');
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      Address
-                      {sortField === 'address' && <ArrowUpDown className="h-4 w-4" />}
-                    </div>
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-right font-semibold`}>
+                    <SortHeader field="price" label="Price" />
                   </th>
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-muted/70"
-                    onClick={() => {
-                      setSortField('price');
-                      setSortOrder(sortField === 'price' && sortOrder === 'asc' ? 'desc' : 'asc');
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      Price
-                      {sortField === 'price' && <ArrowUpDown className="h-4 w-4" />}
-                    </div>
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-left font-semibold`}>
+                    <SortHeader field="agent" label="Agent" />
                   </th>
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-muted/70"
-                    onClick={() => {
-                      setSortField('agent');
-                      setSortOrder(sortField === 'agent' && sortOrder === 'asc' ? 'desc' : 'asc');
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      Agent
-                      {sortField === 'agent' && <ArrowUpDown className="h-4 w-4" />}
-                    </div>
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-left font-semibold`}>
+                    <SortHeader field="closingDate" label="Closing Date" />
                   </th>
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-muted/70"
-                    onClick={() => {
-                      setSortField('status');
-                      setSortOrder(sortField === 'status' && sortOrder === 'asc' ? 'desc' : 'asc');
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      Status
-                      {sortField === 'status' && <ArrowUpDown className="h-4 w-4" />}
-                    </div>
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-muted/70"
-                    onClick={() => {
-                      setSortField('closingDate');
-                      setSortOrder(sortField === 'closingDate' && sortOrder === 'asc' ? 'desc' : 'asc');
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      Closing Date
-                      {sortField === 'closingDate' && <ArrowUpDown className="h-4 w-4" />}
-                    </div>
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-left font-semibold`}>
+                    <SortHeader field="status" label="Status" />
                   </th>
                 </tr>
               </thead>
-              <tbody>
-                {filteredTransactions.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                      No transactions match your filters
-                    </td>
-                  </tr>
-                ) : (
-                  filteredTransactions.map((transaction, index) => (
-                    <tr
-                      key={index}
-                      className={`border-b border-border hover:bg-muted/50 ${
-                        selectedIds.has(index) ? 'bg-primary/10' : ''
+              <tbody className="divide-y divide-border">
+                {filteredTransactions.length > 0 ? (
+                  filteredTransactions.map((transaction, idx) => (
+                    <tr 
+                      key={idx} 
+                      className={`hover:bg-muted/50 transition-colors ${
+                        fullScreen && selectedIds.has(idx) ? 'bg-blue-500/10' : ''
                       }`}
                     >
-                      <td className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.has(index)}
-                          onChange={() => handleToggleSelection(index)}
-                          className="rounded"
-                        />
+                      {fullScreen && (
+                        <td className="px-4 py-3 text-center w-10">
+                          <button
+                            onClick={() => handleToggleSelect(idx)}
+                            className="flex items-center justify-center hover:bg-muted rounded p-1"
+                          >
+                            {selectedIds.has(idx) ? (
+                              <CheckSquare className="h-4 w-4 text-primary" />
+                            ) : (
+                              <Square className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </button>
+                        </td>
+                      )}
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-foreground`}>
+                        {transaction.address || 'N/A'}
                       </td>
-                      <td className="px-4 py-3 font-medium">{transaction.address}</td>
-                      <td className="px-4 py-3">{formatCurrency(transaction.salePrice || transaction.price || 0)}</td>
-                      <td className="px-4 py-3">{transaction.agent || 'Unassigned'}</td>
-                      <td className="px-4 py-3">
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                          {transaction.loopStatus}
-                        </span>
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-right font-medium`}>
+                        {formatCurrency(transaction.price || transaction.salePrice || 0)}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-foreground`}>
+                        {transaction.agent || 'N/A'}
+                      </td>
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-muted-foreground text-sm`}>
                         {transaction.closingDate
                           ? new Date(transaction.closingDate).toLocaleDateString()
-                          : '-'}
+                          : 'N/A'}
+                      </td>
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'}`}>
+                        <span
+                          className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                            transaction.loopStatus?.toLowerCase().includes('closed')
+                              ? 'bg-green-500/20 text-green-700 dark:text-green-400'
+                              : transaction.loopStatus?.toLowerCase().includes('active')
+                              ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400'
+                              : transaction.loopStatus?.toLowerCase().includes('contract')
+                              ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400'
+                              : 'bg-gray-500/20 text-gray-700 dark:text-gray-400'
+                          }`}
+                        >
+                          {transaction.loopStatus || 'Unknown'}
+                        </span>
                       </td>
                     </tr>
                   ))
+                ) : (
+                  <tr>
+                    <td colSpan={fullScreen ? 6 : 5} className={`${fullScreen ? 'px-6 py-12' : 'px-4 py-8'} text-center text-muted-foreground`}>
+                      No transactions found
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BarChart3, TrendingUp, TrendingDown, Home, CheckCircle, Clock, Archive, Save, Bookmark, Trash2 } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, Home, CheckCircle, Clock, Archive } from 'lucide-react';
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, PolarAngleAxis, PolarRadiusAxis, RadarChart, Radar, PolarGrid
@@ -11,10 +11,6 @@ import { formatNumber } from '@/lib/formatUtils';
 import { DateRange } from 'react-day-picker';
 import { DatePickerWithRange } from '@/components/DateRangePicker';
 import TransactionDetailModal from '@/components/TransactionDetailModal';
-import { saveFilterPreset, getFilterPresets, deleteFilterPreset, formatPresetDate, FilterPreset } from '@/lib/filterPresets';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
-import toast from 'react-hot-toast';
 
 interface InteractivePipelineChartProps {
   data: DotloopRecord[];
@@ -82,53 +78,6 @@ export default function InteractivePipelineChart({ data, onDrillDown }: Interact
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalTransactions, setModalTransactions] = useState<DotloopRecord[]>([]);
-  const [presets, setPresets] = useState<FilterPreset[]>([]);
-  const [savePresetName, setSavePresetName] = useState('');
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-
-  useEffect(() => {
-    const loadedPresets = getFilterPresets('pipeline');
-    setPresets(loadedPresets);
-  }, []);
-
-  // Handle save preset
-  const handleSavePreset = () => {
-    if (!savePresetName.trim()) {
-      toast.error('Preset name is required');
-      return;
-    }
-
-    const preset = saveFilterPreset(
-      savePresetName,
-      { dateRange },
-      'pipeline'
-    );
-
-    if (preset) {
-      setPresets([...presets, preset]);
-      setSavePresetName('');
-      setShowSaveDialog(false);
-      toast.success(`Filter preset "${preset.name}" saved`);
-    } else {
-      toast.error('Failed to save preset');
-    }
-  };
-
-  // Handle apply preset
-  const handleApplyPreset = (preset: FilterPreset) => {
-    if (preset.filters.dateRange) {
-      setDateRange(preset.filters.dateRange);
-    }
-    toast.success(`Applied preset: ${preset.name}`);
-  };
-
-  // Handle delete preset
-  const handleDeletePreset = (presetId: string) => {
-    if (deleteFilterPreset(presetId, 'pipeline')) {
-      setPresets(presets.filter(p => p.id !== presetId));
-      toast.success('Preset deleted');
-    }
-  };
 
   // Filter data by date range
   const filteredData = React.useMemo(() => {
@@ -365,91 +314,8 @@ export default function InteractivePipelineChart({ data, onDrillDown }: Interact
               </div>
             </div>
 
-            {/* Date Range Picker and Presets */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex-1 min-w-64">
-                <DatePickerWithRange date={dateRange} setDate={setDateRange} />
-              </div>
-              
-              {/* Save Preset Button */}
-              <Popover open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                  >
-                    <Save className="h-4 w-4" />
-                    Save
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64">
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Preset Name</label>
-                      <Input
-                        placeholder="e.g., Q4 Pipeline"
-                        value={savePresetName}
-                        onChange={(e) => setSavePresetName(e.target.value)}
-                        className="mt-1"
-                      />
-                    </div>
-                    <Button
-                      onClick={handleSavePreset}
-                      className="w-full"
-                      size="sm"
-                    >
-                      Save Preset
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              {/* Presets Dropdown */}
-              {presets.length > 0 && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                    >
-                      <Bookmark className="h-4 w-4" />
-                      Presets ({presets.length})
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80">
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {presets.map(preset => (
-                        <div
-                          key={preset.id}
-                          className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 border border-border/50 cursor-pointer"
-                          onClick={() => handleApplyPreset(preset)}
-                        >
-                          <div>
-                            <div className="font-medium text-sm">{preset.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {formatPresetDate(preset.createdAt)}
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeletePreset(preset.id);
-                            }}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
-            </div>
+            {/* Date Range Picker */}
+            <DatePickerWithRange date={dateRange} setDate={setDateRange} />
 
             {/* Conversion Metrics with Benchmarks - Enhanced */}
             {conversionMetrics.length > 0 && (
