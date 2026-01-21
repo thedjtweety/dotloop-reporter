@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, PolarAngleAxis, PolarRadiusAxis, RadarChart, Radar
+  PieChart, Pie, PolarAngleAxis, PolarRadiusAxis, RadarChart, Radar, PolarGrid
 } from 'recharts';
 import { DotloopRecord } from '@/lib/csvParser';
 import { formatNumber } from '@/lib/formatUtils';
