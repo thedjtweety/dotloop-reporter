@@ -62,40 +62,50 @@ export default function PropertyMapModal({
         attempts++;
       }
 
-      if (!window.google) {
-        console.error('Google Maps API failed to load');
-        setMapLoading(false);
-        return;
-      }
-
-      const geocoder = new window.google.maps.Geocoder();
+      const geocoder = window.google ? new window.google.maps.Geocoder() : null;
       const newPins: PropertyPin[] = [];
 
       for (const transaction of transactions) {
         if (!transaction.address) continue;
 
-        try {
-          const result = await new Promise<google.maps.GeocoderResult | null>((resolve) => {
-            geocoder.geocode({ address: transaction.address }, (results, status) => {
-              if (status === window.google.maps.GeocoderStatus.OK && results?.[0]) {
-                resolve(results[0]);
-              } else {
-                resolve(null);
-              }
-            });
-          });
+        let lat: number | null = null;
+        let lng: number | null = null;
 
-          if (result?.geometry?.location) {
-            newPins.push({
-              id: transaction.address || Math.random().toString(),
-              address: transaction.address,
-              lat: result.geometry.location.lat(),
-              lng: result.geometry.location.lng(),
-              transaction,
+        // First, try to use pre-generated coordinates from demo data
+        if (transaction.latitude && transaction.longitude) {
+          lat = transaction.latitude;
+          lng = transaction.longitude;
+        } else if (geocoder) {
+          // Fallback to geocoding if API is available
+          try {
+            const result = await new Promise<google.maps.GeocoderResult | null>((resolve) => {
+              geocoder.geocode({ address: transaction.address }, (results, status) => {
+                if (status === window.google.maps.GeocoderStatus.OK && results?.[0]) {
+                  resolve(results[0]);
+                } else {
+                  resolve(null);
+                }
+              });
             });
+
+            if (result?.geometry?.location) {
+              lat = result.geometry.location.lat();
+              lng = result.geometry.location.lng();
+            }
+          } catch (error) {
+            console.error('Geocoding error:', error);
           }
-        } catch (error) {
-          console.error('Geocoding error:', error);
+        }
+
+        // Only add pin if we have coordinates
+        if (lat !== null && lng !== null) {
+          newPins.push({
+            id: transaction.address || Math.random().toString(),
+            address: transaction.address,
+            lat,
+            lng,
+            transaction,
+          });
         }
       }
 
