@@ -1,18 +1,24 @@
 /**
- * SalesTimelineChart Component - Rebuilt from Scratch
+ * SalesTimelineChart Component - Enhanced with Comparison, Export, and Filtering
  * Displays sales performance over time with three visualization modes:
  * 1. Chart View - Bar chart with 3-month moving average line
  * 2. Heatmap View - Color-coded grid showing transaction intensity
  * 3. Summary View - Key metrics cards with period list
+ * 
+ * New Features:
+ * - Period Comparison: Compare two periods side-by-side with percentage changes
+ * - Export Timeline Reports: Export data as CSV or text report
+ * - Advanced Filtering: Search and filter transactions in drill-down modal
  */
 
 import { useState } from 'react';
 import { ChartData, DotloopRecord } from '@/lib/csvParser';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { BarChart3, Grid3x3, TrendingUp, X } from 'lucide-react';
+import { BarChart3, Grid3x3, TrendingUp, X, Download, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 interface SalesTimelineChartProps {
   data: ChartData[];
@@ -26,6 +32,8 @@ export default function SalesTimelineChart({ data, allRecords = [] }: SalesTimel
   const [selectedPeriod, setSelectedPeriod] = useState<ChartData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showDrillDown, setShowDrillDown] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
+  const [comparisonPeriod, setComparisonPeriod] = useState<ChartData | null>(null);
 
   // Calculate heatmap colors based on value
   const getHeatmapColor = (value: number): string => {
@@ -51,6 +59,51 @@ export default function SalesTimelineChart({ data, allRecords = [] }: SalesTimel
   const handlePeriodClick = (period: ChartData) => {
     setSelectedPeriod(period);
     setIsModalOpen(true);
+  };
+
+  // Export as CSV
+  const handleExportCSV = () => {
+    if (!selectedPeriod) return;
+    
+    const headers = ['Period', 'Value', 'Moving Average', 'Transactions Count'];
+    const rows = [
+      [selectedPeriod.label, selectedPeriod.value, selectedPeriod.movingAverage || 0, 'N/A']
+    ];
+    
+    const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `timeline-report-${selectedPeriod.label}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Export as Report
+  const handleExportReport = () => {
+    if (!selectedPeriod) return;
+    
+    const content = `
+Timeline Report - ${selectedPeriod.label}
+Generated: ${new Date().toLocaleDateString()}
+
+Period: ${selectedPeriod.label}
+Sales Volume: $${(selectedPeriod.value / 1000000).toFixed(2)}M
+3-Month Moving Average: $${selectedPeriod.movingAverage ? (selectedPeriod.movingAverage / 1000000).toFixed(2) : '0.00'}M
+
+Summary:
+This period had $${(selectedPeriod.value / 1000000).toFixed(1)}M in transactions,
+${selectedPeriod.value > stats.average ? 'above' : 'below'} the average of $${(stats.average / 1000000).toFixed(1)}M.
+    `;
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `timeline-report-${selectedPeriod.label}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -218,6 +271,41 @@ export default function SalesTimelineChart({ data, allRecords = [] }: SalesTimel
                   {(stats.average / 1000000).toFixed(1)}M.
                 </div>
               </div>
+
+              {/* Export Buttons */}
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportCSV}
+                  className="gap-2 flex-1"
+                >
+                  <Download className="w-4 h-4" />
+                  CSV
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportReport}
+                  className="gap-2 flex-1"
+                >
+                  <Download className="w-4 h-4" />
+                  Report
+                </Button>
+              </div>
+
+              {/* Comparison Button */}
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  setShowComparison(true);
+                  setIsModalOpen(false);
+                }}
+                className="w-full"
+              >
+                Compare with Another Period
+              </Button>
+
               {allRecords.length > 0 && (
                 <Button 
                   onClick={() => setShowDrillDown(true)}
@@ -231,6 +319,16 @@ export default function SalesTimelineChart({ data, allRecords = [] }: SalesTimel
         </DialogContent>
       </Dialog>
 
+      {/* Period Comparison Modal */}
+      {showComparison && selectedPeriod && (
+        <PeriodComparisonModal
+          period1={selectedPeriod}
+          periods={data}
+          stats={stats}
+          onClose={() => setShowComparison(false)}
+        />
+      )}
+
       {/* Full-Screen Drill-Down Modal */}
       {showDrillDown && selectedPeriod && (
         <PeriodDrillDown 
@@ -243,7 +341,148 @@ export default function SalesTimelineChart({ data, allRecords = [] }: SalesTimel
   );
 }
 
-// Full-Screen Drill-Down Component
+// Period Comparison Modal Component
+interface PeriodComparisonModalProps {
+  period1: ChartData;
+  periods: ChartData[];
+  stats: { average: number };
+  onClose: () => void;
+}
+
+function PeriodComparisonModal({ period1, periods, stats, onClose }: PeriodComparisonModalProps) {
+  const [period2, setPeriod2] = useState<ChartData | null>(null);
+
+  const calculateChange = (val1: number, val2: number) => {
+    if (val2 === 0) return 0;
+    return ((val1 - val2) / val2) * 100;
+  };
+
+  if (!period2) {
+    return (
+      <Dialog open={true} onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Compare Periods</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-sm text-muted-foreground">
+              Comparing with: <span className="font-semibold text-foreground">{period1.label}</span>
+            </div>
+            <div className="text-sm text-muted-foreground">Select another period to compare:</div>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {periods.filter(p => p.label !== period1.label).map((period) => (
+                <button
+                  key={period.label}
+                  onClick={() => setPeriod2(period)}
+                  className="w-full flex items-center justify-between p-3 hover:bg-muted rounded-lg transition-colors text-left border border-border"
+                >
+                  <span className="font-medium text-foreground">{period.label}</span>
+                  <span className="text-sm font-semibold text-emerald-500">{(period.value / 1000000).toFixed(1)}M</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  const change = calculateChange(period1.value, period2.value);
+  const changePercent = Math.abs(change).toFixed(1);
+  const isIncrease = change >= 0;
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Period Comparison</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6">
+          {/* Comparison Header */}
+          <div className="grid grid-cols-2 gap-4">
+            <Card className="p-4 border-l-4 border-l-blue-500">
+              <div className="text-xs text-muted-foreground mb-2">Period 1</div>
+              <div className="text-2xl font-bold text-foreground">{period1.label}</div>
+              <div className="text-lg font-semibold text-emerald-500 mt-2">
+                ${(period1.value / 1000000).toFixed(2)}M
+              </div>
+            </Card>
+            <Card className="p-4 border-l-4 border-l-purple-500">
+              <div className="text-xs text-muted-foreground mb-2">Period 2</div>
+              <div className="text-2xl font-bold text-foreground">{period2.label}</div>
+              <div className="text-lg font-semibold text-emerald-500 mt-2">
+                ${(period2.value / 1000000).toFixed(2)}M
+              </div>
+            </Card>
+          </div>
+
+          {/* Change Indicator */}
+          <Card className={`p-4 ${isIncrease ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-orange-500/10 border-orange-500/30'}`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Change from Period 2 to Period 1</div>
+                <div className="flex items-center gap-2">
+                  {isIncrease ? (
+                    <ArrowUpRight className="w-5 h-5 text-emerald-500" />
+                  ) : (
+                    <ArrowDownRight className="w-5 h-5 text-orange-500" />
+                  )}
+                  <span className={`text-2xl font-bold ${isIncrease ? 'text-emerald-500' : 'text-orange-500'}`}>
+                    {isIncrease ? '+' : '-'}{changePercent}%
+                  </span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs text-muted-foreground mb-1">Absolute Difference</div>
+                <div className="text-lg font-semibold text-foreground">
+                  ${Math.abs((period1.value - period2.value) / 1000000).toFixed(2)}M
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Metrics Comparison */}
+          <div className="space-y-3">
+            <h3 className="font-semibold text-foreground">Key Metrics</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-muted rounded-lg">
+                <div className="text-xs text-muted-foreground mb-1">Period 1 vs Average</div>
+                <div className="text-sm font-semibold text-foreground">
+                  {((period1.value / stats.average - 1) * 100).toFixed(1)}%
+                </div>
+              </div>
+              <div className="p-3 bg-muted rounded-lg">
+                <div className="text-xs text-muted-foreground mb-1">Period 2 vs Average</div>
+                <div className="text-sm font-semibold text-foreground">
+                  {((period2.value / stats.average - 1) * 100).toFixed(1)}%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => setPeriod2(null)}
+              className="flex-1"
+            >
+              Choose Different Period
+            </Button>
+            <Button 
+              onClick={onClose}
+              className="flex-1"
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Full-Screen Drill-Down Component with Advanced Filtering
 interface PeriodDrillDownProps {
   period: ChartData;
   records: DotloopRecord[];
@@ -251,6 +490,8 @@ interface PeriodDrillDownProps {
 }
 
 function PeriodDrillDown({ period, records, onClose }: PeriodDrillDownProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+
   // Filter records for this period
   const periodRecords = records.filter(r => {
     const recordDate = new Date(r.closingDate || r.listDate || r.createdDate || 0);
@@ -278,6 +519,25 @@ function PeriodDrillDown({ period, records, onClose }: PeriodDrillDownProps) {
     return acc;
   }, {} as Record<string, number>);
 
+  // Apply filters to breakdowns
+  const filteredByAgent = Object.entries(byAgent).filter(([agent]) => {
+    const matchesSearch = agent.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  const filteredByPropertyType = Object.entries(byPropertyType).filter(([type]) => {
+    const matchesSearch = type.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  const filteredByStatus = Object.entries(byStatus).filter(([status]) => {
+    const matchesSearch = status.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  // Count filtered results
+  const totalFiltered = filteredByAgent.length + filteredByPropertyType.length + filteredByStatus.length;
+
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
       <div className="bg-background border border-border rounded-lg w-full max-w-4xl max-h-[90vh] overflow-auto">
@@ -297,50 +557,93 @@ function PeriodDrillDown({ period, records, onClose }: PeriodDrillDownProps) {
 
         {/* Content */}
         <div className="p-6 space-y-6">
+          {/* Search and Filter */}
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">Search</label>
+              <Input
+                placeholder="Search agents, property types, or statuses..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            {searchTerm && (
+              <div className="flex items-center justify-between p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <span className="text-sm text-foreground">
+                  Found <span className="font-semibold">{totalFiltered}</span> matching results
+                </span>
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="text-xs text-blue-500 hover:text-blue-600 font-medium"
+                >
+                  Clear Search
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* By Agent */}
           <Card className="p-4">
             <h3 className="text-lg font-semibold text-foreground mb-4">By Agent</h3>
-            <div className="space-y-2">
-              {Object.entries(byAgent)
-                .sort(([, a], [, b]) => b - a)
-                .map(([agent, count]) => (
-                  <div key={agent} className="flex items-center justify-between p-2 hover:bg-muted rounded">
-                    <span className="text-foreground">{agent}</span>
-                    <span className="text-sm font-semibold text-emerald-500">{count} deals</span>
-                  </div>
-                ))}
-            </div>
+            {filteredByAgent.length > 0 ? (
+              <div className="space-y-2">
+                {filteredByAgent
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([agent, count]) => (
+                    <div key={agent} className="flex items-center justify-between p-2 hover:bg-muted rounded">
+                      <span className="text-foreground">{agent}</span>
+                      <span className="text-sm font-semibold text-emerald-500">{count} deals</span>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No agents match your search</p>
+            )}
           </Card>
 
           {/* By Property Type */}
           <Card className="p-4">
             <h3 className="text-lg font-semibold text-foreground mb-4">By Property Type</h3>
-            <div className="space-y-2">
-              {Object.entries(byPropertyType)
-                .sort(([, a], [, b]) => b - a)
-                .map(([type, count]) => (
-                  <div key={type} className="flex items-center justify-between p-2 hover:bg-muted rounded">
-                    <span className="text-foreground">{type}</span>
-                    <span className="text-sm font-semibold text-blue-500">{count} deals</span>
-                  </div>
-                ))}
-            </div>
+            {filteredByPropertyType.length > 0 ? (
+              <div className="space-y-2">
+                {filteredByPropertyType
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([type, count]) => (
+                    <div key={type} className="flex items-center justify-between p-2 hover:bg-muted rounded">
+                      <span className="text-foreground">{type}</span>
+                      <span className="text-sm font-semibold text-blue-500">{count} deals</span>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No property types match your search</p>
+            )}
           </Card>
 
           {/* By Status */}
           <Card className="p-4">
             <h3 className="text-lg font-semibold text-foreground mb-4">By Status</h3>
-            <div className="space-y-2">
-              {Object.entries(byStatus)
-                .sort(([, a], [, b]) => b - a)
-                .map(([status, count]) => (
-                  <div key={status} className="flex items-center justify-between p-2 hover:bg-muted rounded">
-                    <span className="text-foreground">{status}</span>
-                    <span className="text-sm font-semibold text-purple-500">{count} deals</span>
-                  </div>
-                ))}
-            </div>
+            {filteredByStatus.length > 0 ? (
+              <div className="space-y-2">
+                {filteredByStatus
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([status, count]) => (
+                    <div key={status} className="flex items-center justify-between p-2 hover:bg-muted rounded">
+                      <span className="text-foreground">{status}</span>
+                      <span className="text-sm font-semibold text-purple-500">{count} deals</span>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No statuses match your search</p>
+            )}
           </Card>
+
+          {/* Close Button */}
+          <Button onClick={onClose} className="w-full">
+            Close
+          </Button>
         </div>
       </div>
     </div>
