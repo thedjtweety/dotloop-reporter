@@ -50,12 +50,25 @@ export default function PropertyMapModal({
     return { lat: avgLat, lng: avgLng };
   };
 
-  // Geocode addresses and create pins
+  // Wait for Google Maps API and geocode addresses
   useEffect(() => {
     if (!isOpen || transactions.length === 0) return;
 
     const geocodeProp = async () => {
-      const geocoder = new google.maps.Geocoder();
+      // Wait for Google Maps API to be available
+      let attempts = 0;
+      while (!window.google && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+
+      if (!window.google) {
+        console.error('Google Maps API failed to load');
+        setMapLoading(false);
+        return;
+      }
+
+      const geocoder = new window.google.maps.Geocoder();
       const newPins: PropertyPin[] = [];
 
       for (const transaction of transactions) {
@@ -64,7 +77,7 @@ export default function PropertyMapModal({
         try {
           const result = await new Promise<google.maps.GeocoderResult | null>((resolve) => {
             geocoder.geocode({ address: transaction.address }, (results, status) => {
-              if (status === google.maps.GeocoderStatus.OK && results?.[0]) {
+              if (status === window.google.maps.GeocoderStatus.OK && results?.[0]) {
                 resolve(results[0]);
               } else {
                 resolve(null);
@@ -103,7 +116,7 @@ export default function PropertyMapModal({
 
     // Create new markers
     pins.forEach((pin) => {
-      const marker = new google.maps.marker.AdvancedMarkerElement({
+      const marker = new window.google.maps.marker.AdvancedMarkerElement({
         map: mapRef.current,
         position: { lat: pin.lat, lng: pin.lng },
         title: pin.address,
@@ -118,7 +131,7 @@ export default function PropertyMapModal({
 
     // Fit bounds to all markers
     if (pins.length > 0) {
-      const bounds = new google.maps.LatLngBounds();
+      const bounds = new window.google.maps.LatLngBounds();
       pins.forEach(pin => {
         bounds.extend({ lat: pin.lat, lng: pin.lng });
       });
