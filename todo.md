@@ -1957,3 +1957,20 @@
 - [x] Display benchmark comparison badges with TrendingUp/TrendingDown indicators
 - [x] Wire up drill-down to open modal (click stage to see filtered transactions)
 - [ ] Test all features with demo data (requires user testing)
+
+## Phase 6: Export & Time-Series Features
+
+### Export Transaction Lists
+- [x] Add CSV export button to TransactionDetailModal
+- [x] Add PDF export button to TransactionDetailModal
+- [x] Implement CSV generation with proper formatting
+- [x] Implement PDF generation with styled table (jsPDF with autoTable)
+- [ ] Test exports with various data sizes
+
+### Time-Series Conversion Trends
+- [x] Create ConversionTrendsChart component
+- [x] Calculate monthly conversion rates for each pipeline stage transition
+- [x] Display line chart showing trends over time (3 lines: Active→Contract, Contract→Closed, Overall Closed)
+- [x] Add legend and interactive tooltips
+- [x] Wire into dashboard below Pipeline Breakdown chart
+- [ ] Test with demo data showing seasonal patterns

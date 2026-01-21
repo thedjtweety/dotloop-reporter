@@ -3,9 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { ArrowUpDown, Download, X } from 'lucide-react';
+import { ArrowUpDown, Download, X, FileText } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import { formatCurrency, formatNumber } from '@/lib/formatUtils';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 interface TransactionDetailModalProps {
   isOpen: boolean;
@@ -86,13 +88,13 @@ export default function TransactionDetailModal({
     }
   };
 
-  const handleExport = () => {
+  const handleExportCSV = () => {
     const headers = ['Address', 'Price', 'Agent', 'Closing Date', 'Status'];
     const rows = filteredTransactions.map(t => [
       t.address || '',
-      t.price || t.salePrice || '',
+      formatCurrency(t.price || t.salePrice || 0),
       t.agent || '',
-      t.closingDate || '',
+      t.closingDate ? new Date(t.closingDate).toLocaleDateString() : '',
       t.loopStatus || '',
     ]);
 
@@ -100,13 +102,63 @@ export default function TransactionDetailModal({
       .map(row => row.map(cell => `"${cell}"`).join(','))
       .join('\n');
 
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `${title}-transactions.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    
+    // Add title
+    doc.setFontSize(16);
+    doc.text(title, 14, 15);
+    
+    // Add summary stats
+    doc.setFontSize(10);
+    const totalVolume = filteredTransactions.reduce((sum, t) => sum + (t.price || t.salePrice || 0), 0);
+    const avgPrice = filteredTransactions.length > 0 ? totalVolume / filteredTransactions.length : 0;
+    
+    doc.text(`Total Transactions: ${filteredTransactions.length}`, 14, 25);
+    doc.text(`Total Volume: ${formatCurrency(totalVolume)}`, 14, 32);
+    doc.text(`Average Price: ${formatCurrency(avgPrice)}`, 14, 39);
+    doc.text(`Unique Agents: ${new Set(filteredTransactions.map(t => t.agent)).size}`, 14, 46);
+    
+    // Add table
+    const tableData = filteredTransactions.map(t => [
+      t.address || 'N/A',
+      formatCurrency(t.price || t.salePrice || 0),
+      t.agent || 'N/A',
+      t.closingDate ? new Date(t.closingDate).toLocaleDateString() : 'N/A',
+      t.loopStatus || 'Unknown',
+    ]);
+    
+    (doc as any).autoTable({
+      head: [['Address', 'Price', 'Agent', 'Closing Date', 'Status']],
+      body: tableData,
+      startY: 55,
+      margin: { top: 55, right: 14, bottom: 14, left: 14 },
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+      },
+      headStyles: {
+        fillColor: [59, 130, 246],
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 247, 250],
+      },
+    });
+    
+    doc.save(`${title}-transactions.pdf`);
   };
 
   const SortHeader = ({ field, label }: { field: SortField; label: string }) => (
@@ -177,9 +229,13 @@ export default function TransactionDetailModal({
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1"
             />
-            <Button onClick={handleExport} variant="outline" className="gap-2">
+            <Button onClick={handleExportCSV} variant="outline" className="gap-2">
               <Download className="h-4 w-4" />
-              Export CSV
+              CSV
+            </Button>
+            <Button onClick={handleExportPDF} variant="outline" className="gap-2">
+              <FileText className="h-4 w-4" />
+              PDF
             </Button>
           </div>
 

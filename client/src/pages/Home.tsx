@@ -64,6 +64,7 @@ import FieldMapper, { ColumnMapping as FieldMapping } from '@/components/FieldMa
 import { DatePickerWithRange } from '@/components/DateRangePicker';
 import { normalizeRecord } from '@/lib/csvParser';
 import InteractivePipelineChart from '@/components/charts/InteractivePipelineChart';
+import ConversionTrendsChart from '@/components/charts/ConversionTrendsChart';
 import PipelineChartDrillDown from '@/components/PipelineChartDrillDown';
 import ChartDrillDown from '@/components/ChartDrillDown';
 import FinancialChart from '@/components/charts/FinancialChart';
@@ -937,6 +938,10 @@ function HomeContent() {
                 <InteractivePipelineChart 
                   data={allRecords}
                 />
+              </Card>
+              
+              <Card className="p-6 bg-card border border-border">
+                <ConversionTrendsChart data={allRecords} />
               </Card>
             </TabsContent>
 
