@@ -71,6 +71,20 @@
       "when": 1768438798653,
       "tag": "0009_hard_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1768535348579,
+      "tag": "0010_sparkling_deadpool",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1768611978345,
+      "tag": "0011_complete_apocalypse",
+      "breakpoints": true
     }
   ]
 }

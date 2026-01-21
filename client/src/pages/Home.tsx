@@ -73,7 +73,7 @@ import BuySellTrendChart from '@/components/charts/BuySellTrendChart';
 import AgentMixChart from '@/components/charts/AgentMixChart';
 import ComplianceChart from '@/components/charts/ComplianceChart';
 import TagsChart from '@/components/charts/TagsChart';
-import PropertyInsightsChart from '@/components/charts/PropertyInsightsChart';
+import EnhancedPriceVsYearBuiltChart from '@/components/charts/EnhancedPriceVsYearBuiltChart';
 import PriceReductionChart from '@/components/charts/PriceReductionChart';
 import LeadSourceChart from '@/components/charts/LeadSourceChart';
 import PropertyTypeChart from '@/components/charts/PropertyTypeChart';
@@ -1048,7 +1048,7 @@ function HomeContent() {
                   <h2 className="text-xl font-display font-bold text-foreground mb-4">
                     Market Insights
                   </h2>
-                  <PropertyInsightsChart data={filteredRecords} />
+                  <EnhancedPriceVsYearBuiltChart data={filteredRecords} />
                 </Card>
                 <Card className="p-6 bg-card border border-border">
                   <h2 className="text-xl font-display font-bold text-foreground mb-4">
