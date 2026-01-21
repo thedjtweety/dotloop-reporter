@@ -1,18 +1,11 @@
 /**
  * ChartDrillDown Component
- * Card-based layout for displaying filtered transactions from any chart
+ * Full-screen modal for displaying filtered transactions from any chart
  * Reusable across Lead Source, Property Type, Geographic, and Commission charts
  */
 
 import React, { useState, useMemo } from 'react';
 import { DotloopRecord } from '@/lib/csvParser';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -147,7 +140,7 @@ function TransactionCard({ record }: { record: DotloopRecord }) {
   const dotloopUrl = getDotloopUrl(record);
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-muted/30 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+    <div className="flex items-center gap-4 p-4 bg-slate-800/50 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors">
       {/* Status Badge */}
       <div className="flex-shrink-0">
         <Badge className={getStatusBadgeColor(record.loopStatus)}>
@@ -157,10 +150,10 @@ function TransactionCard({ record }: { record: DotloopRecord }) {
 
       {/* Address and Details */}
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-sm text-foreground truncate">
+        <h3 className="font-semibold text-sm text-white truncate">
           {record.address || 'N/A'}
         </h3>
-        <div className="flex flex-wrap gap-3 mt-1 text-xs text-muted-foreground">
+        <div className="flex flex-wrap gap-3 mt-1 text-xs text-slate-400">
           <span className="truncate">
             <span className="font-medium">Agent:</span> {record.agents || 'N/A'}
           </span>
@@ -180,14 +173,14 @@ function TransactionCard({ record }: { record: DotloopRecord }) {
             href={dotloopUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
+            className="inline-flex items-center gap-2 px-3 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors text-sm font-medium"
             title="View in Dotloop"
           >
             <ExternalLink className="w-4 h-4" />
             View
           </a>
         ) : (
-          <Button variant="ghost" size="sm" disabled>
+          <Button variant="ghost" size="sm" disabled className="text-slate-500">
             No ID
           </Button>
         )}
@@ -227,49 +220,94 @@ export const ChartDrillDown: React.FC<ChartDrillDownProps> = ({
     );
   }, [filteredByChart, searchTerm]);
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {title}
-            <Badge className={getBadgeColor(filterType)}>
-              {filteredByChart.length}
-            </Badge>
-          </DialogTitle>
-          <DialogDescription>
-            {getFilterLabel(filterType)}: <span className="font-semibold">{filterValue}</span>
-          </DialogDescription>
-        </DialogHeader>
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-0">
+      {/* Modal Container - Full screen width */}
+      <div className="w-screen h-screen max-w-none bg-slate-900 rounded-none flex flex-col">
+        {/* Header */}
+        <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-700">
+          <div>
+            <h2 className="text-xl font-display font-semibold text-white flex items-center gap-2">
+              {title}
+              <Badge className={`${getBadgeColor(filterType)} text-xs`}>
+                {filteredByChart.length}
+              </Badge>
+            </h2>
+            <p className="text-sm text-slate-400 mt-1">
+              {getFilterLabel(filterType)}: <span className="font-semibold text-slate-300">{filterValue}</span>
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => exportAsCSV({
+                title,
+                records: filteredByChart,
+                filters: { type: getFilterLabel(filterType), value: filterValue }
+              })}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
+              aria-label="Export as CSV"
+            >
+              <Download className="w-4 h-4" />
+              CSV
+            </button>
+            <button
+              onClick={() => exportAsExcel({
+                title,
+                records: filteredByChart,
+                filters: { type: getFilterLabel(filterType), value: filterValue }
+              })}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
+              aria-label="Export as Excel"
+            >
+              <Download className="w-4 h-4" />
+              Excel
+            </button>
+            <button
+              onClick={() => openPrintDialog({
+                title,
+                records: filteredByChart,
+                filters: { type: getFilterLabel(filterType), value: filterValue }
+              })}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
+              aria-label="Print"
+            >
+              <Printer className="w-4 h-4" />
+              Print
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5 text-slate-400" />
+            </button>
+          </div>
+        </div>
 
         {/* Search Bar */}
-        <div className="flex gap-2 px-6 py-3 border-b">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+        <div className="flex-shrink-0 px-6 py-4 border-b border-slate-700 bg-slate-800">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
             <Input
+              type="text"
               placeholder="Search by address, agent, property type, or price..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
             />
           </div>
-          {searchTerm && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSearchTerm('')}
-              className="h-10"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
         </div>
 
-        {/* Transactions Cards */}
+        {/* Transactions List */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {filteredRecords.length === 0 ? (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
-              {searchTerm ? 'No transactions match your search' : 'No transactions found'}
+            <div className="flex items-center justify-center h-full text-slate-400">
+              <div className="text-center">
+                <p className="text-lg font-medium mb-1">No transactions found</p>
+                <p className="text-sm">{searchTerm ? 'Try adjusting your search' : 'No data available for this filter'}</p>
+              </div>
             </div>
           ) : (
             <div className="space-y-3">
@@ -281,62 +319,30 @@ export const ChartDrillDown: React.FC<ChartDrillDownProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 border-t flex items-center justify-between bg-muted/20">
-          <p className="text-sm text-muted-foreground">
+        <div className="flex-shrink-0 px-6 py-4 border-t border-slate-700 bg-slate-800 flex items-center justify-between">
+          <p className="text-sm text-slate-400">
             Showing {filteredRecords.length} of {filteredByChart.length} transaction{filteredByChart.length !== 1 ? 's' : ''}
           </p>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => exportAsCSV({
-                title,
-                records: filteredByChart,
-                filters: { type: getFilterLabel(filterType), value: filterValue }
-              })}
-              className="gap-2"
-            >
-              <Download className="w-4 h-4" />
-              CSV
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => exportAsExcel({
-                title,
-                records: filteredByChart,
-                filters: { type: getFilterLabel(filterType), value: filterValue }
-              })}
-              className="gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Excel
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openPrintDialog({
-                title,
-                records: filteredByChart,
-                filters: { type: getFilterLabel(filterType), value: filterValue }
-              })}
-              className="gap-2"
-            >
-              <Printer className="w-4 h-4" />
-              Print
-            </Button>
             {onViewFullDetails && (
-              <Button variant="default" onClick={onViewFullDetails}>
+              <Button 
+                onClick={onViewFullDetails}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
                 View Full Details
               </Button>
             )}
-            <Button variant="outline" onClick={onClose}>
+            <Button 
+              onClick={onClose}
+              variant="outline"
+              className="border-slate-600 text-slate-300 hover:bg-slate-800"
+            >
               Close
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };
 
