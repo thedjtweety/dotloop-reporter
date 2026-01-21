@@ -1925,3 +1925,35 @@
 - [x] Add conversion rate display to chart header (2-column grid)
 - [x] Show conversion percentages and deal counts
 - [ ] Test all features with demo data (requires user testing)
+
+
+## Phase 57: Advanced Pipeline Features (Date Filtering, Modal, Benchmarks)
+
+### Feature 1: Date Range Filtering
+- [ ] Add DateRangePicker to InteractivePipelineChart header
+- [ ] Filter pipeline data by selected date range
+- [ ] Update conversion metrics based on date range
+- [ ] Show date range in chart title
+
+### Feature 2: Detailed Transaction Modal
+- [ ] Create TransactionDetailModal component
+- [ ] Display filtered transaction list with columns: Address, Price, Agent, Close Date, Status
+- [ ] Add sortable column headers
+- [ ] Add search/filter within modal
+- [ ] Add export to CSV button
+- [ ] Show transaction count and summary stats
+
+### Feature 3: Performance Benchmarks
+- [ ] Calculate historical conversion rates
+- [ ] Define industry benchmark rates (or use defaults)
+- [ ] Compare current rates to benchmarks
+- [ ] Show visual indicators (green for above, red for below)
+- [ ] Display percentage difference from benchmark
+
+### Implementation Tasks
+- [x] Update InteractivePipelineChart with date range picker (DatePickerWithRange integrated)
+- [x] Create TransactionDetailModal component with sortable columns and search
+- [x] Add benchmark calculation logic (BENCHMARK_RATES with Active->Contract and Contract->Closed)
+- [x] Display benchmark comparison badges with TrendingUp/TrendingDown indicators
+- [x] Wire up drill-down to open modal (click stage to see filtered transactions)
+- [ ] Test all features with demo data (requires user testing)
