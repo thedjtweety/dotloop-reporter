@@ -49,10 +49,6 @@ export default defineConfig({
         "**/coverage/**",
         "**/*.log",
         "**/.DS_Store",
-        "**/.manus/**",
-        "**/drizzle/migrations/**",
-        "**/.next/**",
-        "**/.cache/**",
       ],
       usePolling: false,
       awaitWriteFinish: {
