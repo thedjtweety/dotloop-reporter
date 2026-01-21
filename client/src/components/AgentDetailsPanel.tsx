@@ -27,6 +27,15 @@ export default function AgentDetailsPanel({
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Guard against undefined transactions
+  if (!transactions || !agent) {
+    return (
+      <Card className="p-6">
+        <p className="text-muted-foreground">No agent data available</p>
+      </Card>
+    );
+  }
+
   // Filter transactions for this agent
   const agentTransactions = transactions.filter(t => {
     const agents = t.agents ? t.agents.split(',').map(a => a.trim()) : [];
@@ -76,7 +85,7 @@ export default function AgentDetailsPanel({
           {/* Search Bar - Only visible in Transactions tab */}
           {activeTab === 'transactions' && (
             <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground w-4 h-4" />
               <Input 
                 placeholder="Search transactions by address, status, or type..." 
                 value={searchTerm}
@@ -91,7 +100,7 @@ export default function AgentDetailsPanel({
             <TabsContent value="overview" className="space-y-6 mt-0">
               <div className="grid grid-cols-2 gap-4">
                 <Card className="p-4 border-l-4 border-l-primary">
-                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
+                  <div className="text-xs font-bold text-foreground uppercase tracking-wider mb-1">
                     Total Deals
                   </div>
                   <div className="text-3xl font-bold text-foreground">
@@ -99,7 +108,7 @@ export default function AgentDetailsPanel({
                   </div>
                 </Card>
                 <Card className="p-4 border-l-4 border-l-emerald-500">
-                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
+                  <div className="text-xs font-bold text-foreground uppercase tracking-wider mb-1">
                     Closed
                   </div>
                   <div className="text-3xl font-bold text-emerald-600">
@@ -107,7 +116,7 @@ export default function AgentDetailsPanel({
                   </div>
                 </Card>
                 <Card className="p-4 border-l-4 border-l-blue-500">
-                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
+                  <div className="text-xs font-bold text-foreground uppercase tracking-wider mb-1">
                     Active
                   </div>
                   <div className="text-3xl font-bold text-blue-600">
@@ -115,7 +124,7 @@ export default function AgentDetailsPanel({
                   </div>
                 </Card>
                 <Card className="p-4 border-l-4 border-l-amber-500">
-                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
+                  <div className="text-xs font-bold text-foreground uppercase tracking-wider mb-1">
                     Pending
                   </div>
                   <div className="text-3xl font-bold text-amber-600">
@@ -126,7 +135,7 @@ export default function AgentDetailsPanel({
 
               <div className="grid grid-cols-1 gap-4">
                 <Card className="p-4">
-                  <h4 className="text-sm font-semibold text-muted-foreground mb-3">Financial Performance</h4>
+                  <h4 className="text-sm font-semibold text-foreground mb-3">Financial Performance</h4>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                       <span className="text-sm font-medium">Total GCI</span>
@@ -153,7 +162,7 @@ export default function AgentDetailsPanel({
 
             <TabsContent value="transactions" className="mt-0">
               <Card className="border-none shadow-none">
-                <div className="mb-2 text-sm text-muted-foreground">
+                <div className="mb-2 text-sm text-foreground">
                   Showing {filteredTransactions.length} of {agentTransactions.length} transactions
                 </div>
                 <TransactionTable transactions={filteredTransactions} limit={100} />

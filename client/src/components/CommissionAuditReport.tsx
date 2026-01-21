@@ -107,16 +107,16 @@ export default function CommissionAuditReport({ records }: CommissionAuditReport
                 <CardContent>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Company Dollar Paid</span>
+                      <span className="text-foreground">Company Dollar Paid</span>
                       <span className="font-medium">{formatCurrency(stat.ytdCompanyDollar)}</span>
                     </div>
                     <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-muted-foreground">
+                      <div className="flex justify-between text-xs text-foreground">
                         <span>Progress to Cap</span>
                         <span>{stat.percentToCap.toFixed(1)}%</span>
                       </div>
                       <Progress value={stat.percentToCap} className="h-2" indicatorClassName={stat.isCapped ? "bg-emerald-500" : ""} />
-                      <div className="flex justify-between text-xs text-muted-foreground pt-1">
+                      <div className="flex justify-between text-xs text-foreground pt-1">
                         <span>$0</span>
                         <span>Cap: {formatCurrency(stat.capAmount)}</span>
                       </div>
@@ -126,7 +126,7 @@ export default function CommissionAuditReport({ records }: CommissionAuditReport
               </Card>
             ))}
             {ytdStats.length === 0 && (
-              <div className="col-span-full text-center py-12 text-muted-foreground">
+              <div className="col-span-full text-center py-12 text-foreground">
                 No agent data found. Ensure agents are assigned to plans in Settings.
               </div>
             )}
@@ -164,19 +164,19 @@ export default function CommissionAuditReport({ records }: CommissionAuditReport
                         <TableCell className="max-w-[200px] truncate" title={res.loopName}>{res.loopName}</TableCell>
                         <TableCell>{res.agentName}</TableCell>
                         <TableCell className="text-right font-mono">{formatCurrency(res.actualCompanyDollar)}</TableCell>
-                        <TableCell className="text-right font-mono text-muted-foreground">{formatCurrency(res.expectedCompanyDollar)}</TableCell>
+                        <TableCell className="text-right font-mono text-foreground">{formatCurrency(res.expectedCompanyDollar)}</TableCell>
                         <TableCell className={`text-right font-mono font-medium ${
-                          res.status === 'match' ? 'text-muted-foreground' : 
+                          res.status === 'match' ? 'text-foreground' : 
                           res.status === 'underpaid' ? 'text-emerald-600' : 'text-red-600'
                         }`}>
                           {res.difference > 0 ? '+' : ''}{formatCurrency(res.difference)}
                         </TableCell>
                         <TableCell>
-                          {res.status === 'match' && <Badge variant="outline" className="text-muted-foreground"><CheckCircle2 className="w-3 h-3 mr-1"/> Match</Badge>}
+                          {res.status === 'match' && <Badge variant="outline" className="text-foreground"><CheckCircle2 className="w-3 h-3 mr-1"/> Match</Badge>}
                           {res.status === 'underpaid' && <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Broker +</Badge>}
                           {res.status === 'overpaid' && <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200"><AlertCircle className="w-3 h-3 mr-1"/> Check</Badge>}
                         </TableCell>
-                        <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate" title={res.notes}>
+                        <TableCell className="text-xs text-foreground max-w-[200px] truncate" title={res.notes}>
                           {res.notes}
                         </TableCell>
                         <TableCell>
@@ -239,7 +239,7 @@ export default function CommissionAuditReport({ records }: CommissionAuditReport
                 value={newAdjustment.amount}
                 onChange={(e) => setNewAdjustment({ ...newAdjustment, amount: Number(e.target.value) })}
               />
-              <p className="text-xs text-muted-foreground">Positive value = Deduction (Cost to Agent). Negative value = Credit (Payment to Agent).</p>
+              <p className="text-xs text-foreground">Positive value = Deduction (Cost to Agent). Negative value = Credit (Payment to Agent).</p>
             </div>
           </div>
           <DialogFooter>

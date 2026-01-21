@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Settings, Upload, BarChart2, Users, FileText, PieChart, Map, Activity, DollarSign } from 'lucide-react';
+import { Menu, Settings, Upload, BarChart2, Users, FileText, PieChart, Map, Activity, DollarSign, ArrowRight } from 'lucide-react';
+import { useLocation } from 'wouter';
 import { ModeToggle } from '@/components/ModeToggle';
 
 interface MobileNavProps {
@@ -20,6 +21,7 @@ export default function MobileNav({
   onTabChange
 }: MobileNavProps) {
   const [open, setOpen] = useState(false);
+  const [, setLocation] = useLocation();
 
   const handleTabClick = (tab: string) => {
     onTabChange(tab);
@@ -74,7 +76,7 @@ export default function MobileNav({
         
         <div className="flex flex-col gap-6 pb-8">
           <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-medium text-muted-foreground px-2">Dashboard Sections</h3>
+            <h3 className="text-sm font-medium text-foreground px-2">Dashboard Sections</h3>
             <Button 
               variant={activeTab === 'pipeline' ? 'secondary' : 'ghost'} 
               className="justify-start" 
@@ -142,17 +144,18 @@ export default function MobileNav({
           </div>
 
           <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-medium text-muted-foreground px-2">Tools</h3>
+            <h3 className="text-sm font-medium text-foreground px-2">Tools</h3>
             <Button 
               variant="ghost" 
               className="justify-start" 
               onClick={() => {
-                onOpenSettings();
+                setLocation('/commission');
                 setOpen(false);
               }}
             >
-              <Settings className="mr-2 h-4 w-4" />
-              Commission Settings
+              <DollarSign className="mr-2 h-4 w-4" />
+              Commission Management
+              <ArrowRight className="ml-auto h-4 w-4" />
             </Button>
             <Button 
               variant="ghost" 

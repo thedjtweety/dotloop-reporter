@@ -1,0 +1,6 @@
+Loop Name,Address,City,State,Zip,GCI,Company $,Agent Name,Status,Closed Date,Created By
+123 Main Street Deal,123 Main Street,Boston,MA,02101,$15000.00,$6000.00,John Smith,Closed,01/15/2024,Admin
+456 Oak Avenue Deal,456 Oak Avenue,Cambridge,MA,02138,$12500.00,$5000.00,Jane Doe,Closed,01/20/2024,Admin
+789 Pine Road Deal,789 Pine Road,Quincy,MA,02169,$18000.00,$7200.00,Bob Johnson,Closed,01/25/2024,Admin
+321 Elm Street Deal,321 Elm Street,Newton,MA,02158,$14000.00,$5600.00,Alice Williams,Closed,02/01/2024,Admin
+654 Maple Drive Deal,654 Maple Drive,Brookline,MA,02445,$16500.00,$6600.00,Charlie Brown,Closed,02/05/2024,Admin

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -315,100 +316,117 @@ export default function TransactionDetailModal({
     
     // Add title
     doc.setFontSize(16);
-    doc.text(title, pageWidth / 2, 15, { align: 'center' });
+    doc.text(title, 14, 15);
+    
+    // Add summary stats
+    doc.setFontSize(10);
+    const totalVolume = filteredTransactions.reduce((sum, t) => sum + (t.price || t.salePrice || 0), 0);
+    const avgPrice = filteredTransactions.length > 0 ? totalVolume / filteredTransactions.length : 0;
+    
+    doc.text(`Total Transactions: ${filteredTransactions.length}`, 14, 25);
+    doc.text(`Total Volume: ${formatCurrency(totalVolume)}`, 14, 32);
+    doc.text(`Average Price: ${formatCurrency(avgPrice)}`, 14, 39);
+    doc.text(`Unique Agents: ${new Set(filteredTransactions.map(t => t.agent)).size}`, 14, 46);
     
     // Add table
-    const headers = ['Address', 'Price', 'Agent', 'Closing Date', 'Status'];
-    const rows = filteredTransactions.map(t => [
-      t.address || '',
+    const tableData = filteredTransactions.map(t => [
+      t.address || 'N/A',
       formatCurrency(t.price || t.salePrice || 0),
-      t.agent || '',
-      t.closingDate ? new Date(t.closingDate).toLocaleDateString() : '',
-      t.loopStatus || '',
+      t.agent || 'N/A',
+      t.closingDate ? new Date(t.closingDate).toLocaleDateString() : 'N/A',
+      t.loopStatus || 'Unknown',
     ]);
-
+    
     (doc as any).autoTable({
-      head: [headers],
-      body: rows,
-      startY: 25,
-      margin: 10,
+      head: [['Address', 'Price', 'Agent', 'Closing Date', 'Status']],
+      body: tableData,
+      startY: 55,
+      margin: { top: 55, right: 14, bottom: 14, left: 14 },
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+      },
+      headStyles: {
+        fillColor: [59, 130, 246],
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 247, 250],
+      },
     });
-
+    
     doc.save(`${title}-transactions.pdf`);
   };
 
   const SortHeader = ({ field, label }: { field: SortField; label: string }) => (
     <button
       onClick={() => handleSort(field)}
-      className="flex items-center gap-2 hover:text-foreground/80 transition-colors"
+      className="flex items-center gap-2 hover:text-foreground transition-colors"
     >
       {label}
-      {sortField === field && (
-        <ArrowUpDown className={`h-3 w-3 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
-      )}
+      <ArrowUpDown
+        className={`h-4 w-4 ${
+          sortField === field ? 'text-primary' : 'text-muted-foreground'
+        }`}
+      />
     </button>
   );
 
-  if (!isOpen) return null;
-
-  // Full-screen modal with custom fixed positioning (not Dialog component)
-  if (fullScreen) {
-    return (
-      <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-0">
-        <div className="w-screen h-screen max-w-none bg-background rounded-none flex flex-col">
-          {/* Header */}
-          <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-border">
-            <div>
-              <h2 className="text-xl font-display font-semibold">{title}</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Showing {filteredTransactions.length} of {transactions.length} transaction{transactions.length !== 1 ? 's' : ''}
-              </p>
-            </div>
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className={fullScreen ? "fixed inset-0 w-screen h-screen max-w-none max-h-none rounded-none overflow-hidden flex flex-col" : "max-w-6xl max-h-[90vh] overflow-y-auto"}>
+        <DialogHeader className={`sticky top-0 bg-background z-10 pb-4 border-b ${fullScreen ? 'px-6 py-4' : ''}`}>
+          <div className="flex items-center justify-between">
+            <DialogTitle>{title}</DialogTitle>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
           </div>
+        </DialogHeader>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto space-y-4 px-6 py-6">
-            {/* Summary Stats */}
-            <div className="grid grid-cols-5 gap-4">
-              <Card className="p-4">
-                <p className="text-sm text-muted-foreground mb-1">Total Transactions</p>
-                <p className="text-2xl font-bold">{formatNumber(filteredTransactions.length)}</p>
-              </Card>
-              <Card className="p-4">
-                <p className="text-sm text-muted-foreground mb-1">Total Volume</p>
-                <p className="text-2xl font-bold">
-                  {formatCurrency(
-                    filteredTransactions.reduce((sum, t) => sum + (t.price || t.salePrice || 0), 0)
-                  )}
-                </p>
-              </Card>
-              <Card className="p-4">
-                <p className="text-sm text-muted-foreground mb-1">Average Price</p>
-                <p className="text-2xl font-bold">
-                  {formatCurrency(
-                    filteredTransactions.length > 0
-                      ? filteredTransactions.reduce((sum, t) => sum + (t.price || t.salePrice || 0), 0) /
-                          filteredTransactions.length
-                      : 0
-                  )}
-                </p>
-              </Card>
-              <Card className="p-4">
-                <p className="text-sm text-muted-foreground mb-1">Unique Agents</p>
-                <p className="text-2xl font-bold">
-                  {new Set(filteredTransactions.map(t => t.agent)).size}
-                </p>
-              </Card>
+        <div className={`flex-1 overflow-y-auto space-y-4 ${fullScreen ? 'px-6 pb-6' : ''}`}>
+          {/* Summary Stats */}
+          <div className={`grid ${fullScreen ? 'grid-cols-5' : 'grid-cols-4'} gap-4`}>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground mb-1">Total Transactions</p>
+              <p className="text-2xl font-bold">{formatNumber(filteredTransactions.length)}</p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground mb-1">Total Volume</p>
+              <p className="text-2xl font-bold">
+                {formatCurrency(
+                  filteredTransactions.reduce((sum, t) => sum + (t.price || t.salePrice || 0), 0)
+                )}
+              </p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground mb-1">Average Price</p>
+              <p className="text-2xl font-bold">
+                {formatCurrency(
+                  filteredTransactions.length > 0
+                    ? filteredTransactions.reduce((sum, t) => sum + (t.price || t.salePrice || 0), 0) /
+                        filteredTransactions.length
+                    : 0
+                )}
+              </p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground mb-1">Unique Agents</p>
+              <p className="text-2xl font-bold">
+                {new Set(filteredTransactions.map(t => t.agent)).size}
+              </p>
+            </Card>
+            {fullScreen && (
               <Card className="p-4 bg-blue-500/10 border-blue-500/20">
                 <p className="text-sm text-muted-foreground mb-1">Selected</p>
                 <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selectedIds.size}</p>
               </Card>
-            </div>
+            )}
+          </div>
 
-            {/* Quick Filters */}
+          {/* Quick Filters */}
+          {fullScreen && (
             <Card className="p-4 bg-amber-500/5 border-amber-500/20">
               <div className="flex items-center gap-2 mb-3">
                 <Filter className="h-4 w-4 text-amber-600 dark:text-amber-400" />
@@ -468,252 +486,88 @@ export default function TransactionDetailModal({
                 )}
               </div>
             </Card>
+          )}
 
-            {/* Bulk Actions Toolbar */}
-            {selectedIds.size > 0 && (
-              <Card className="p-4 bg-blue-500/5 border-blue-500/20">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="text-sm font-medium">{selectedIds.size} selected</span>
-                  
-                  <div className="flex items-center gap-2">
-                    <Select value={selectedAgent || ""} onValueChange={setSelectedAgent}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Reassign agent..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {uniqueAgents.map(agent => (
-                          <SelectItem key={agent} value={agent}>
-                            {agent}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button 
-                      onClick={handleBulkReassignAgent}
-                      disabled={!selectedAgent}
-                      size="sm"
-                    >
-                      Reassign
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Select value={selectedStatus || ""} onValueChange={setSelectedStatus}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Update status..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {uniqueStatuses.map(status => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button 
-                      onClick={handleBulkUpdateStatus}
-                      disabled={!selectedStatus}
-                      size="sm"
-                    >
-                      Update
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center gap-2 ml-auto">
-                    <Button 
-                      onClick={handleUndo}
-                      disabled={undoStack.length === 0}
-                      variant="outline"
-                      size="sm"
-                      title="Undo last action"
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      onClick={handleRedo}
-                      disabled={redoStack.length === 0}
-                      variant="outline"
-                      size="sm"
-                      title="Redo last action"
-                    >
-                      <RotateCw className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      onClick={handleClearSelection}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Clear Selection
-                    </Button>
-                  </div>
+          {/* Bulk Actions Toolbar */}
+          {fullScreen && selectedIds.size > 0 && (
+            <Card className="p-4 bg-blue-500/5 border-blue-500/20">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-sm font-medium">{selectedIds.size} selected</span>
+                
+                <div className="flex items-center gap-2">
+                  <Select value={selectedAgent || ""} onValueChange={setSelectedAgent}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Reassign agent..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueAgents.map(agent => (
+                        <SelectItem key={agent} value={agent}>
+                          {agent}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    onClick={handleBulkReassignAgent}
+                    disabled={!selectedAgent}
+                    size="sm"
+                  >
+                    Reassign
+                  </Button>
                 </div>
-              </Card>
-            )}
 
-            {/* Search and Export */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Search by address, agent, or status..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1"
-              />
-              <Button onClick={handleExportCSV} variant="outline" className="gap-2">
-                <Download className="h-4 w-4" />
-                CSV
-              </Button>
-              <Button onClick={handleExportPDF} variant="outline" className="gap-2">
-                <FileText className="h-4 w-4" />
-                PDF
-              </Button>
-            </div>
+                <div className="flex items-center gap-2">
+                  <Select value={selectedStatus || ""} onValueChange={setSelectedStatus}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Update status..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueStatuses.map(status => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    onClick={handleBulkUpdateStatus}
+                    disabled={!selectedStatus}
+                    size="sm"
+                  >
+                    Update
+                  </Button>
+                </div>
 
-            {/* Transaction Table */}
-            <div className="border border-border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 border-b border-border sticky top-0 z-10">
-                  <tr>
-                    <th className="px-4 py-3 text-left w-10">
-                      <button
-                        onClick={handleSelectAll}
-                        className="flex items-center justify-center hover:bg-muted rounded p-1"
-                      >
-                        {selectedIds.size === filteredTransactions.length ? (
-                          <CheckSquare className="h-4 w-4 text-primary" />
-                        ) : (
-                          <Square className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </button>
-                    </th>
-                    <th className="px-6 py-4 text-left font-semibold">
-                      <SortHeader field="address" label="Address" />
-                    </th>
-                    <th className="px-6 py-4 text-right font-semibold">
-                      <SortHeader field="price" label="Price" />
-                    </th>
-                    <th className="px-6 py-4 text-left font-semibold">
-                      <SortHeader field="agent" label="Agent" />
-                    </th>
-                    <th className="px-6 py-4 text-left font-semibold">
-                      <SortHeader field="closingDate" label="Closing Date" />
-                    </th>
-                    <th className="px-6 py-4 text-left font-semibold">
-                      <SortHeader field="status" label="Status" />
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {filteredTransactions.length > 0 ? (
-                    filteredTransactions.map((transaction, idx) => (
-                      <tr 
-                        key={idx} 
-                        className={`hover:bg-muted/50 transition-colors ${
-                          selectedIds.has(idx) ? 'bg-blue-500/10' : ''
-                        }`}
-                      >
-                        <td className="px-4 py-3 text-center w-10">
-                          <button
-                            onClick={() => handleToggleSelect(idx)}
-                            className="flex items-center justify-center hover:bg-muted rounded p-1"
-                          >
-                            {selectedIds.has(idx) ? (
-                              <CheckSquare className="h-4 w-4 text-primary" />
-                            ) : (
-                              <Square className="h-4 w-4 text-muted-foreground" />
-                            )}
-                          </button>
-                        </td>
-                        <td className="px-6 py-4 text-foreground">
-                          {transaction.address || 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 text-right font-medium">
-                          {formatCurrency(transaction.price || transaction.salePrice || 0)}
-                        </td>
-                        <td className="px-6 py-4 text-foreground">
-                          {transaction.agent || 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 text-muted-foreground text-sm">
-                          {transaction.closingDate
-                            ? new Date(transaction.closingDate).toLocaleDateString()
-                            : 'N/A'}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                              transaction.loopStatus?.toLowerCase().includes('closed')
-                                ? 'bg-green-500/20 text-green-700 dark:text-green-400'
-                                : transaction.loopStatus?.toLowerCase().includes('active')
-                                ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400'
-                                : transaction.loopStatus?.toLowerCase().includes('contract')
-                                ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400'
-                                : 'bg-gray-500/20 text-gray-700 dark:text-gray-400'
-                            }`}
-                          >
-                            {transaction.loopStatus || 'Unknown'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                        No transactions found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Non-fullscreen modal - standard centered dialog
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-background z-10">
-          <h2 className="text-xl font-display font-semibold">{title}</h2>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="space-y-4 p-6">
-          {/* Summary Stats */}
-          <div className="grid grid-cols-4 gap-4">
-            <Card className="p-4">
-              <p className="text-sm text-muted-foreground mb-1">Total Transactions</p>
-              <p className="text-2xl font-bold">{formatNumber(filteredTransactions.length)}</p>
+                <div className="flex items-center gap-2 ml-auto">
+                  <Button 
+                    onClick={handleUndo}
+                    disabled={undoStack.length === 0}
+                    variant="outline"
+                    size="sm"
+                    title="Undo last action"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    onClick={handleRedo}
+                    disabled={redoStack.length === 0}
+                    variant="outline"
+                    size="sm"
+                    title="Redo last action"
+                  >
+                    <RotateCw className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    onClick={handleClearSelection}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Clear Selection
+                  </Button>
+                </div>
+              </div>
             </Card>
-            <Card className="p-4">
-              <p className="text-sm text-muted-foreground mb-1">Total Volume</p>
-              <p className="text-2xl font-bold">
-                {formatCurrency(
-                  filteredTransactions.reduce((sum, t) => sum + (t.price || t.salePrice || 0), 0)
-                )}
-              </p>
-            </Card>
-            <Card className="p-4">
-              <p className="text-sm text-muted-foreground mb-1">Average Price</p>
-              <p className="text-2xl font-bold">
-                {formatCurrency(
-                  filteredTransactions.length > 0
-                    ? filteredTransactions.reduce((sum, t) => sum + (t.price || t.salePrice || 0), 0) /
-                        filteredTransactions.length
-                    : 0
-                )}
-              </p>
-            </Card>
-            <Card className="p-4">
-              <p className="text-sm text-muted-foreground mb-1">Unique Agents</p>
-              <p className="text-2xl font-bold">
-                {new Set(filteredTransactions.map(t => t.agent)).size}
-              </p>
-            </Card>
-          </div>
+          )}
 
           {/* Search and Export */}
           <div className="flex gap-2">
@@ -738,19 +592,33 @@ export default function TransactionDetailModal({
             <table className="w-full text-sm">
               <thead className="bg-muted/50 border-b border-border sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold">
+                  {fullScreen && (
+                    <th className="px-4 py-3 text-left w-10">
+                      <button
+                        onClick={handleSelectAll}
+                        className="flex items-center justify-center hover:bg-muted rounded p-1"
+                      >
+                        {selectedIds.size === filteredTransactions.length ? (
+                          <CheckSquare className="h-4 w-4 text-primary" />
+                        ) : (
+                          <Square className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </button>
+                    </th>
+                  )}
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-left font-semibold`}>
                     <SortHeader field="address" label="Address" />
                   </th>
-                  <th className="px-4 py-3 text-right font-semibold">
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-right font-semibold`}>
                     <SortHeader field="price" label="Price" />
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold">
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-left font-semibold`}>
                     <SortHeader field="agent" label="Agent" />
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold">
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-left font-semibold`}>
                     <SortHeader field="closingDate" label="Closing Date" />
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold">
+                  <th className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-left font-semibold`}>
                     <SortHeader field="status" label="Status" />
                   </th>
                 </tr>
@@ -760,23 +628,39 @@ export default function TransactionDetailModal({
                   filteredTransactions.map((transaction, idx) => (
                     <tr 
                       key={idx} 
-                      className="hover:bg-muted/50 transition-colors"
+                      className={`hover:bg-muted/50 transition-colors ${
+                        fullScreen && selectedIds.has(idx) ? 'bg-blue-500/10' : ''
+                      }`}
                     >
-                      <td className="px-4 py-3 text-foreground">
+                      {fullScreen && (
+                        <td className="px-4 py-3 text-center w-10">
+                          <button
+                            onClick={() => handleToggleSelect(idx)}
+                            className="flex items-center justify-center hover:bg-muted rounded p-1"
+                          >
+                            {selectedIds.has(idx) ? (
+                              <CheckSquare className="h-4 w-4 text-primary" />
+                            ) : (
+                              <Square className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </button>
+                        </td>
+                      )}
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-foreground`}>
                         {transaction.address || 'N/A'}
                       </td>
-                      <td className="px-4 py-3 text-right font-medium">
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-right font-medium`}>
                         {formatCurrency(transaction.price || transaction.salePrice || 0)}
                       </td>
-                      <td className="px-4 py-3 text-foreground">
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-foreground`}>
                         {transaction.agent || 'N/A'}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground text-sm">
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'} text-muted-foreground text-sm`}>
                         {transaction.closingDate
                           ? new Date(transaction.closingDate).toLocaleDateString()
                           : 'N/A'}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className={`${fullScreen ? 'px-6 py-4' : 'px-4 py-3'}`}>
                         <span
                           className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
                             transaction.loopStatus?.toLowerCase().includes('closed')
@@ -795,7 +679,7 @@ export default function TransactionDetailModal({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                    <td colSpan={fullScreen ? 6 : 5} className={`${fullScreen ? 'px-6 py-12' : 'px-4 py-8'} text-center text-muted-foreground`}>
                       No transactions found
                     </td>
                   </tr>
@@ -804,7 +688,7 @@ export default function TransactionDetailModal({
             </table>
           </div>
         </div>
-      </Card>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -122,7 +122,7 @@ export default function FieldMapper({ headers, initialMapping = {}, samples = {}
               Match columns from your CSV to the report fields. We've tried to auto-match them for you.
             </CardDescription>
           </div>
-          <div className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
+          <div className="text-sm text-foreground bg-muted px-3 py-1 rounded-full">
             {getMappedCount()} / {getTotalFields()} fields mapped
           </div>
         </div>
@@ -161,14 +161,14 @@ export default function FieldMapper({ headers, initialMapping = {}, samples = {}
                           <SelectValue placeholder="Select column..." />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="unmapped" className="text-muted-foreground italic">
+                          <SelectItem value="unmapped" className="text-foreground italic">
                             -- Not Mapped --
                           </SelectItem>
                           {headers.map((header) => (
                             <SelectItem key={header} value={header}>
                               <span className="font-medium">{header}</span>
                               {samples[header] && (
-                                <span className="ml-2 text-xs text-muted-foreground truncate max-w-[200px] inline-block align-bottom">
+                                <span className="ml-2 text-xs text-foreground truncate max-w-[200px] inline-block align-bottom">
                                   (e.g. "{samples[header].length > 30 ? samples[header].substring(0, 30) + '...' : samples[header]}")
                                 </span>
                               )}
@@ -194,7 +194,7 @@ export default function FieldMapper({ headers, initialMapping = {}, samples = {}
       </CardContent>
 
       <CardFooter className="flex justify-between border-t border-border pt-6">
-        <Button variant="ghost" onClick={handleReset} className="text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" onClick={handleReset} className="text-foreground hover:text-foreground">
           <RotateCcw className="w-4 h-4 mr-2" />
           Reset All
         </Button>

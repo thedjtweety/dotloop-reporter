@@ -44,6 +44,7 @@ pids
 *.pid
 *.seed
 *.pid.lock
+*.bak
 
 # Coverage directory used by tools like istanbul
 coverage/
@@ -104,3 +105,6 @@ temp/
 *.db
 *.sqlite
 *.sqlite3
+
+# Database backups
+backups/

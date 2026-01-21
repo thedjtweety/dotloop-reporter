@@ -1,0 +1,70 @@
+{
+  "query": "SELECT id, name, email, role FROM users WHERE role = 'admin';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 24ruGQuiASWpGv5.root --database gtMbYvvduSqhsHRvj39YWw --execute SELECT id, name, email, role FROM users WHERE role = 'admin';",
+  "rows": [
+    {
+      "id": "66",
+      "name": "Admin User",
+      "email": "admin@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "68",
+      "name": "Drew Bryant",
+      "email": "drewbr@zillowgroup.com",
+      "role": "admin"
+    },
+    {
+      "id": "60127",
+      "name": "Admin User",
+      "email": "admin-perf@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60129",
+      "name": "Admin User",
+      "email": "admin-perf@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60135",
+      "name": "Admin User",
+      "email": "admin-perf@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60143",
+      "name": "Admin User",
+      "email": "admin-perf@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60151",
+      "name": "Admin User",
+      "email": "admin-perf@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60157",
+      "name": "Admin User",
+      "email": "admin-perf@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60161",
+      "name": "Admin User",
+      "email": "admin-perf@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "90022",
+      "name": "Test Admin",
+      "email": "admin@test.com",
+      "role": "admin"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\n66\tAdmin User\tadmin@test.com\tadmin\n68\tDrew Bryant\tdrewbr@zillowgroup.com\tadmin\n60127\tAdmin User\tadmin-perf@test.com\tadmin\n60129\tAdmin User\tadmin-perf@test.com\tadmin\n60135\tAdmin User\tadmin-perf@test.com\tadmin\n60143\tAdmin User\tadmin-perf@test.com\tadmin\n60151\tAdmin User\tadmin-perf@test.com\tadmin\n60157\tAdmin User\tadmin-perf@test.com\tadmin\n60161\tAdmin User\tadmin-perf@test.com\tadmin\n90022\tTest Admin\tadmin@test.com\tadmin\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

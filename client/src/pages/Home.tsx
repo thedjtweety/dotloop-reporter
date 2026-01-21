@@ -10,7 +10,9 @@
 
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent, Settings, ArrowLeft, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { trpc } from '@/lib/trpc';
+import { Upload, TrendingUp, Home as HomeIcon, DollarSign, Calendar, Percent, Settings, ArrowLeft, AlertCircle, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -39,21 +41,32 @@ import {
   DashboardMetrics,
   AgentMetrics,
 } from '@/lib/csvParser';
+import { validateCSVFile, ValidationResult } from '@/lib/csvValidator';
+import { applyPlansToAllAgents } from '@/lib/commissionCalculator';
+import { ValidationErrorDisplay } from '@/components/ValidationErrorDisplay';
+import { UploadProgress, useUploadProgress } from '@/components/UploadProgress';
 import { filterRecordsByDate, getPreviousPeriod } from '@/lib/dateUtils';
+import { generateDashboardSparklineTrends } from '@/lib/sparklineTrendGenerator';
 import { cleanDate, cleanNumber, cleanPercentage, cleanText } from '@/lib/dataCleaning';
 import { findMatchingTemplate, saveTemplate } from '@/lib/importTemplates';
-import { generateSampleData } from '@/lib/sampleData';
+import { generateDemoData } from '@/lib/demoGenerator';
+import { setupDemoPlanData } from '@/lib/demoPlanSetup';
 import { getRecentFiles, saveRecentFile, deleteRecentFile } from '@/lib/storage';
 import UploadZone from '@/components/UploadZone';
-import TrustBar from '@/components/TrustBar';
 import CommissionProjector from '@/components/CommissionProjector';
 import RecentUploads, { RecentFile } from '@/components/RecentUploads';
+import UploadHistory from '@/components/UploadHistory';
+import ConnectDotloop from '@/components/ConnectDotloop';
 import MetricCard from '@/components/MetricCard';
+import ProjectedToCloseCard from '@/components/ProjectedToCloseCard';
 import ColumnMapping from '@/components/ColumnMapping';
 import FieldMapper, { ColumnMapping as FieldMapping } from '@/components/FieldMapper';
 import { DatePickerWithRange } from '@/components/DateRangePicker';
 import { normalizeRecord } from '@/lib/csvParser';
-import PipelineChart from '@/components/charts/PipelineChart';
+import InteractivePipelineChart from '@/components/charts/InteractivePipelineChart';
+import ConversionTrendsChart from '@/components/charts/ConversionTrendsChart';
+import PipelineChartDrillDown from '@/components/PipelineChartDrillDown';
+import ChartDrillDown from '@/components/ChartDrillDown';
 import FinancialChart from '@/components/charts/FinancialChart';
 import CommissionBreakdownChart from '@/components/CommissionBreakdownChart';
 import RevenueDistributionChart from '@/components/charts/RevenueDistributionChart';
@@ -61,7 +74,7 @@ import BuySellTrendChart from '@/components/charts/BuySellTrendChart';
 import AgentMixChart from '@/components/charts/AgentMixChart';
 import ComplianceChart from '@/components/charts/ComplianceChart';
 import TagsChart from '@/components/charts/TagsChart';
-import PropertyInsightsChart from '@/components/charts/PropertyInsightsChart';
+import EnhancedPriceVsYearBuiltChart from '@/components/charts/EnhancedPriceVsYearBuiltChart';
 import PriceReductionChart from '@/components/charts/PriceReductionChart';
 import LeadSourceChart from '@/components/charts/LeadSourceChart';
 import PropertyTypeChart from '@/components/charts/PropertyTypeChart';
@@ -74,25 +87,73 @@ import CommissionPlansManager from '@/components/CommissionPlansManager';
 import TeamManager from '@/components/TeamManager';
 import AgentAssignment from '@/components/AgentAssignment';
 import CommissionAuditReport from '@/components/CommissionAuditReport';
+import CommissionManagementPanel from '@/components/CommissionManagementPanel';
 import DataValidationReport from '@/components/DataValidationReport';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ModeToggle } from '@/components/ModeToggle';
 import MobileNav from '@/components/MobileNav';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import OnboardingTour from '@/components/OnboardingTour';
+import { useOnboardingTour, uploadTourSteps, dashboardTourSteps } from '@/hooks/useOnboardingTour';
+import { FilterProvider, useFilters } from '@/contexts/FilterContext';
+import FilterBadge from '@/components/FilterBadge';
+import toast, { Toaster } from 'react-hot-toast';
+// import SectionNav from '@/components/SectionNav'; // Removed floating navigation
+import BackToTop from '@/components/BackToTop';
+import CollapsibleSection from '@/components/CollapsibleSection';
 
-export default function Home() {
+function HomeContent() {
+  // The userAuth hooks provides authentication state
+  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
+  const { filters, addFilter } = useFilters();
+
   const [location, setLocation] = useLocation();
+  const { showTour, completeTour, skipTour } = useOnboardingTour();
   const [allRecords, setAllRecords] = useState<DotloopRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<DotloopRecord[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [agentMetrics, setAgentMetrics] = useState<AgentMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [sparklineTrends, setSparklineTrends] = useState<any>(null);
   
   // Drill-down state
   const [drillDownOpen, setDrillDownOpen] = useState(false);
   const [drillDownTitle, setDrillDownTitle] = useState('');
   const [drillDownTransactions, setDrillDownTransactions] = useState<DotloopRecord[]>([]);
+  
+  // Pipeline chart drill-down state
+  const [pipelineDrillDownOpen, setPipelineDrillDownOpen] = useState(false);
+  const [pipelineDrillDownStatus, setPipelineDrillDownStatus] = useState('');
+  const [pipelineFullDetailsOpen, setPipelineFullDetailsOpen] = useState(false);
+  
+  // Helper function to open full details view from pipeline drill-down
+  const openPipelineFullDetails = () => {
+    setPipelineDrillDownOpen(false);
+    setPipelineFullDetailsOpen(true);
+  };
+  
+  // Generic chart drill-down state
+  const [chartDrillDownOpen, setChartDrillDownOpen] = useState(false);
+  const [chartDrillDownType, setChartDrillDownType] = useState<'leadSource' | 'propertyType' | 'geographic' | 'commission'>('leadSource');
+  const [chartDrillDownValue, setChartDrillDownValue] = useState('');
+  const [chartDrillDownTitle, setChartDrillDownTitle] = useState('');
+  const [chartFullDetailsOpen, setChartFullDetailsOpen] = useState(false);
+  
+  // Helper function to open chart drill-down
+  const openChartDrillDown = (type: 'leadSource' | 'propertyType' | 'geographic' | 'commission', value: string, title: string) => {
+    setChartDrillDownType(type);
+    setChartDrillDownValue(value);
+    setChartDrillDownTitle(title);
+    setChartDrillDownOpen(true);
+  };
+  
+  // Helper function to open full details view from chart drill-down
+  const openChartFullDetails = () => {
+    setChartDrillDownOpen(false);
+    setChartFullDetailsOpen(true);
+  };
 
   // Import Wizard State
   const [showMapping, setShowMapping] = useState(false);
@@ -105,6 +166,20 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('pipeline');
   const [showConsultantConfirm, setShowConsultantConfirm] = useState(false);
   const [consultantRedirectData, setConsultantRedirectData] = useState<DotloopRecord[] | null>(null);
+  
+  // CSV Validation State
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const [showValidationError, setShowValidationError] = useState(false);
+  
+  // Upload Progress State
+  const [showProgress, setShowProgress] = useState(false);
+  const [uploadFileName, setUploadFileName] = useState('');
+  const [uploadFileSize, setUploadFileSize] = useState('');
+  const uploadProgress = useUploadProgress();
+
+  // Commission Management Panel State
+  const [commissionManagementTab, setCommissionManagementTab] = useState('plans');
+  const [commissionManagementHighlightAgent, setCommissionManagementHighlightAgent] = useState<string | undefined>();
 
   // Load saved mapping and recent files on mount
   useEffect(() => {
@@ -143,7 +218,8 @@ export default function Home() {
     setAllRecords(file.data);
     setFilteredRecords(file.data);
     setMetrics(calculateMetrics(file.data));
-    setAgentMetrics(calculateAgentMetrics(file.data));
+    const metrics1 = calculateAgentMetrics(file.data);
+    setAgentMetrics(applyPlansToAllAgents(metrics1, file.data));
   };
 
   const handleRecentDelete = (id: string, e: React.MouseEvent) => {
@@ -156,22 +232,32 @@ export default function Home() {
   const handleDemoMode = () => {
     setIsLoading(true);
     setTimeout(() => {
-      const sampleData = generateSampleData(150);
+      const { data: sampleData, stats } = generateDemoData({ complexity: 'random' });
+      
+      // Store demo data in localStorage so CommissionCalculator can access it
+      localStorage.setItem('dotloop_demo_data', JSON.stringify(sampleData));
+      
+      // Setup demo commission plans and agent assignments
+      const { plans, assignments } = setupDemoPlanData(sampleData);
+      console.log(`✅ Demo setup: ${plans.length} plans, ${assignments.length} agents assigned`);
+      console.log(`🎯 Demo Generated [${stats.complexity}]:\n  📊 ${stats.agentCount} agents | ${stats.transactionCount} transactions\n  💰 $${stats.totalGCI.toLocaleString()} GCI | $${stats.totalVolume.toLocaleString()} volume\n  🌎 ${stats.stateCount} states | ${stats.propertyTypeCount} property types\n  📅 ${stats.dateRange.earliest} to ${stats.dateRange.latest}`);
       setAllRecords(sampleData);
       setFilteredRecords(sampleData);
       setMetrics(calculateMetrics(sampleData));
-      setAgentMetrics(calculateAgentMetrics(sampleData));
+      const metrics2 = calculateAgentMetrics(sampleData);
+      setAgentMetrics(applyPlansToAllAgents(metrics2, sampleData));
       setIsLoading(false);
     }, 1500);
   };
 
-  // Update metrics when date range or records change
+  // Update metrics when date range, records, or filters change
   useEffect(() => {
     if (allRecords.length === 0) return;
 
     let currentRecords = allRecords;
     let previousRecords: DotloopRecord[] | undefined;
 
+    // Apply date range filter
     if (dateRange?.from && dateRange?.to) {
       currentRecords = filterRecordsByDate(allRecords, { from: dateRange.from, to: dateRange.to });
       
@@ -179,11 +265,34 @@ export default function Home() {
       previousRecords = filterRecordsByDate(allRecords, prevRange);
     }
 
+    // Apply chart drill-down filters
+    filters.forEach(filter => {
+      switch (filter.type) {
+        case 'pipeline':
+          currentRecords = currentRecords.filter(r => r.loopStatus === filter.value);
+          break;
+        case 'leadSource':
+          currentRecords = currentRecords.filter(r => (r.leadSource || 'Unknown') === filter.value);
+          break;
+        case 'propertyType':
+          currentRecords = currentRecords.filter(r => (r.transactionType || 'Unknown') === filter.value);
+          break;
+        case 'geographic':
+          currentRecords = currentRecords.filter(r => (r.state || 'Unknown') === filter.value);
+          break;
+      }
+    });
+
     setFilteredRecords(currentRecords);
     setMetrics(calculateMetrics(currentRecords, previousRecords));
-    setAgentMetrics(calculateAgentMetrics(currentRecords));
-  }, [allRecords, dateRange]);
+    // Calculate agent metrics and apply commission plans for recalculation
+    const baseMetrics = calculateAgentMetrics(currentRecords);
+    const metricsWithPlans = applyPlansToAllAgents(baseMetrics, currentRecords);
+    setAgentMetrics(metricsWithPlans);
+    setSparklineTrends(generateDashboardSparklineTrends(currentRecords, dateRange));
+  }, [allRecords, dateRange, filters]);
 
+  // Handle metric card clicks - opens modal with deal details
   const handleMetricClick = (type: 'total' | 'volume' | 'closing' | 'days' | 'active' | 'contract' | 'closed' | 'archived') => {
     let filtered: DotloopRecord[] = [];
     let title = '';
@@ -228,67 +337,210 @@ export default function Home() {
     setDrillDownOpen(true);
   };
 
+  // Handle chart segment clicks - applies drill-down filters
   const handleChartClick = (type: 'pipeline' | 'leadSource' | 'propertyType' | 'geographic' | 'commission', label: string) => {
-    let filtered: DotloopRecord[] = [];
     let title = '';
 
     switch (type) {
       case 'pipeline':
         title = `Pipeline: ${label}`;
-        filtered = filteredRecords.filter(r => r.loopStatus === label);
+        addFilter({ type: 'pipeline', label: title, value: label });
+        toast.success(`🔍 Now filtering by: ${label}`, {
+          duration: 3000,
+          position: 'top-center',
+          style: {
+            background: '#3b82f6',
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            padding: '16px',
+          },
+        });
         break;
       case 'leadSource':
         title = `Lead Source: ${label}`;
-        filtered = filteredRecords.filter(r => (r.leadSource || 'Unknown') === label);
+        addFilter({ type: 'leadSource', label: title, value: label });
+        toast.success(`🔍 Now filtering by lead source: ${label}`, {
+          duration: 3000,
+          position: 'top-center',
+          style: {
+            background: '#3b82f6',
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            padding: '16px',
+          },
+        });
         break;
       case 'propertyType':
         title = `Property Type: ${label}`;
-        filtered = filteredRecords.filter(r => (r.transactionType || 'Unknown') === label);
+        addFilter({ type: 'propertyType', label: title, value: label });
+        toast.success(`🔍 Now filtering by property type: ${label}`, {
+          duration: 3000,
+          position: 'top-center',
+          style: {
+            background: '#3b82f6',
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            padding: '16px',
+          },
+        });
         break;
       case 'geographic':
         title = `State: ${label}`;
-        filtered = filteredRecords.filter(r => (r.state || 'Unknown') === label);
+        addFilter({ type: 'geographic', label: title, value: label });
+        toast.success(`🔍 Now filtering by state: ${label}`, {
+          duration: 3000,
+          position: 'top-center',
+          style: {
+            background: '#3b82f6',
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            padding: '16px',
+          },
+        });
         break;
       case 'commission':
         title = `Commission Range: ${label}`;
         // Logic for commission range filtering would go here
-        filtered = filteredRecords;
         break;
     }
-
-    setDrillDownTitle(title);
-    setDrillDownTransactions(filtered);
-    setDrillDownOpen(true);
   };
+
+  // Client-side only - no database persistence needed
 
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
+    
+    // Show progress dialog for files > 1MB
+    const shouldShowProgress = file.size > 1024 * 1024; // 1MB
+    if (shouldShowProgress) {
+      setUploadFileName(file.name);
+      setUploadFileSize(formatBytes(file.size));
+      setShowProgress(true);
+      uploadProgress.reset();
+    }
+    
+    // Track performance metrics
+    const performanceMetrics = {
+      fileSize: file.size,
+      validationTimeMs: 0,
+      parsingTimeMs: 0,
+      totalTimeMs: 0,
+    };
+    const overallStartTime = Date.now();
+    
     try {
-      const text = await file.text();
-      const result = parseCSV(text);
+      // Step 1: Validate the CSV file
+      if (shouldShowProgress) {
+        uploadProgress.startStage('validation', 'Checking file format and structure...');
+      }
       
-      // Check if we need mapping
-      const headers = result.meta.fields || [];
-      const requiredFields = ['Loop Name', 'Loop Status', 'Price', 'Closing Date'];
-      const missingFields = requiredFields.filter(f => !headers.includes(f));
-
-      if (missingFields.length > 0 && Object.keys(customMapping).length === 0) {
-        // Show mapping wizard
-        setCsvHeaders(headers);
-        setRawCsvData(result.data);
-        setPendingFile({ headers, data: result.data });
-        setShowMapping(true);
+      const validationStartTime = Date.now();
+      const validationResult = await validateCSVFile(file, (progress, message) => {
+        if (shouldShowProgress) {
+          uploadProgress.updateProgress('validation', progress, message);
+        }
+      });
+      performanceMetrics.validationTimeMs = Date.now() - validationStartTime;
+      
+      // If validation fails with critical errors, show error display
+      if (!validationResult.isValid) {
+        if (shouldShowProgress) {
+          uploadProgress.errorStage('validation', 'Validation failed');
+          setTimeout(() => {
+            setShowProgress(false);
+            setValidationResult(validationResult);
+            setShowValidationError(true);
+          }, 1000);
+        } else {
+          setValidationResult(validationResult);
+          setShowValidationError(true);
+        }
         setIsLoading(false);
         return;
       }
-
-      // Process with existing mapping or default
-      processWithMapping(result.data, customMapping);
+      
+      if (shouldShowProgress) {
+        uploadProgress.completeStage('validation', 'Validation passed');
+      }
+      
+      // If there are warnings, show them but continue
+      if (validationResult.warnings.length > 0) {
+        console.warn('CSV validation warnings:', validationResult.warnings);
+      }
+      
+      // Step 2: Parse the CSV
+      if (shouldShowProgress) {
+        uploadProgress.startStage('parsing', 'Reading CSV data...');
+      }
+      
+      const parsingStartTime = Date.now();
+      const text = await file.text();
+      const records = parseCSV(text, (progress, message) => {
+        if (shouldShowProgress) {
+          uploadProgress.updateProgress('parsing', progress, message);
+        }
+      });
+      performanceMetrics.parsingTimeMs = Date.now() - parsingStartTime;
+      
+      if (shouldShowProgress) {
+        uploadProgress.completeStage('parsing', `Parsed ${records.length} records`);
+      }
+      
+      // Step 3: Complete - no database upload needed for MVP
+      if (shouldShowProgress) {
+        uploadProgress.startStage('upload', 'Processing complete');
+        uploadProgress.completeStage('upload', 'Ready to analyze');
+      }
+      
+      performanceMetrics.totalTimeMs = Date.now() - overallStartTime;
+      
+      // Process the records for immediate display
+      setAllRecords(records);
+      setFilteredRecords(records);
+      setMetrics(calculateMetrics(records));
+      const metrics3 = calculateAgentMetrics(records);
+      setAgentMetrics(applyPlansToAllAgents(metrics3, records));
+      setIsLoading(false);
+      
+      // Save to recent files (localStorage)
+      await handleSaveRecent(file.name, records);
+      
+      // Hide progress dialog after a short delay
+      if (shouldShowProgress) {
+        setTimeout(() => {
+          setShowProgress(false);
+        }, 2000);
+      }
       
     } catch (error) {
       console.error('Error parsing CSV:', error);
+      
+      if (shouldShowProgress) {
+        const activeStage = uploadProgress.stages.find(s => s.status === 'in-progress');
+        if (activeStage) {
+          uploadProgress.errorStage(
+            activeStage.id,
+            error instanceof Error ? error.message : 'Unknown error occurred'
+          );
+        }
+      }
+      
+      setIsLoading(false);
       // Show error toast
     }
+  };
+  
+  // Helper function to format bytes
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   const processWithMapping = (data: any[], mapping: FieldMapping) => {
@@ -308,7 +560,8 @@ export default function Home() {
     setAllRecords(processed);
     setFilteredRecords(processed);
     setMetrics(calculateMetrics(processed));
-    setAgentMetrics(calculateAgentMetrics(processed));
+    const metrics4 = calculateAgentMetrics(processed);
+    setAgentMetrics(applyPlansToAllAgents(metrics4, processed));
     setIsLoading(false);
     setShowMapping(false);
     setShowFieldMapper(false);
@@ -316,7 +569,7 @@ export default function Home() {
 
   if (!metrics) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col pb-16">
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
           <div className="container flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
@@ -326,8 +579,22 @@ export default function Home() {
               </h1>
             </div>
             <div className="flex items-center gap-4">
+              <ConnectDotloop variant="button" />
+
+              {isAuthenticated && user?.role === 'admin' && (
+                <Button variant="ghost" onClick={() => setLocation('/admin')}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Admin
+                </Button>
+              )}
+              {isAuthenticated && (
+                <Button variant="ghost" onClick={() => setLocation('/settings')}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Button>
+              )}
               <ModeToggle />
-              <Button variant="outline" onClick={handleDemoMode} disabled={isLoading}>
+              <Button variant="outline" onClick={handleDemoMode} disabled={isLoading} data-tour="demo-button">
                 {isLoading ? 'Loading...' : 'Try Demo'}
               </Button>
             </div>
@@ -340,18 +607,26 @@ export default function Home() {
               <h2 className="text-4xl font-display font-bold tracking-tight text-foreground sm:text-5xl">
                 Transform Your Data into <span className="text-primary">Actionable Insights</span>
               </h2>
-              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+              <p className="text-lg text-foreground max-w-xl mx-auto">
                 Upload your Dotloop export to instantly generate professional commission reports, agent leaderboards, and financial analytics.
               </p>
             </div>
 
-            <Card className="p-8 border-dashed border-2 border-border bg-card/50 hover:bg-card/80 transition-colors">
+            <Card className="p-8 border-dashed border-2 border-border bg-card/50 hover:bg-card/80 transition-colors" data-tour="upload-zone">
               <UploadZone onFileUpload={handleFileUpload} isLoading={isLoading} />
             </Card>
-
-            <TrustBar />
             
-            {recentFiles.length > 0 && (
+            {/* Show Upload History for authenticated users, RecentUploads for guests */}
+            {isAuthenticated && user ? (
+              <div className="mt-12 text-left">
+                <UploadHistory 
+                  onSelectUpload={(file) => {
+                    handleRecentSelect(file);
+                  }}
+                  currentUploadId={recentFiles.find(f => f.data === allRecords)?.id}
+                />
+              </div>
+            ) : recentFiles.length > 0 && (
               <div className="mt-12 text-left">
                 <RecentUploads 
                   files={recentFiles} 
@@ -362,6 +637,36 @@ export default function Home() {
             )}
           </div>
         </main>
+
+        {/* Upload Progress Dialog */}
+        <Dialog open={showProgress} onOpenChange={setShowProgress}>
+          <DialogContent className="max-w-2xl">
+            <UploadProgress
+              stages={uploadProgress.stages}
+              fileName={uploadFileName}
+              fileSize={uploadFileSize}
+              onCancel={() => {
+                setShowProgress(false);
+                setIsLoading(false);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* CSV Validation Error Dialog */}
+        <Dialog open={showValidationError} onOpenChange={setShowValidationError}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            {validationResult && (
+              <ValidationErrorDisplay
+                validationResult={validationResult}
+                onRetry={() => {
+                  setShowValidationError(false);
+                  setValidationResult(null);
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Mapping Dialogs */}
         <AlertDialog open={showMapping} onOpenChange={setShowMapping}>
@@ -412,6 +717,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Toaster />
+      {/* <SectionNav /> - Removed floating navigation */}
+      <BackToTop />
       {/* Dashboard Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container flex h-16 items-center justify-between">
@@ -442,6 +750,18 @@ export default function Home() {
               <DatePickerWithRange date={dateRange} setDate={setDateRange} />
             </div>
             <div className="flex items-center gap-2">
+              {isAuthenticated && user?.role === 'admin' && (
+                <Button variant="ghost" size="sm" onClick={() => setLocation('/admin')}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Admin
+                </Button>
+              )}
+              {isAuthenticated && (
+                <Button variant="ghost" size="sm" onClick={() => setLocation('/settings')}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Button>
+              )}
               <ModeToggle />
               <Button 
                 variant="ghost" 
@@ -467,15 +787,18 @@ export default function Home() {
 
       {/* Main Dashboard */}
       <main className="container py-8">
+        {/* Filter Badge */}
+        <FilterBadge />
+        
         {/* Top Metrics Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div data-section="metrics" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" data-tour="metrics">
             <MetricCard
               title="Total Transactions"
               value={metrics.totalTransactions}
               icon={<HomeIcon className="w-5 h-5" />}
               color="primary"
               trend={metrics.trends?.totalTransactions}
+              sparklineTrend={sparklineTrends?.totalTransactions}
               onClick={() => handleMetricClick('total')}
             />
             <MetricCard
@@ -485,6 +808,7 @@ export default function Home() {
               icon={<DollarSign className="w-5 h-5" />}
               color="accent"
               trend={metrics.trends?.totalVolume}
+              sparklineTrend={sparklineTrends?.totalVolume}
               onClick={() => handleMetricClick('volume')}
             />
             <MetricCard
@@ -494,6 +818,7 @@ export default function Home() {
               icon={<TrendingUp className="w-5 h-5" />}
               color="accent"
               trend={metrics.trends?.closingRate}
+              sparklineTrend={sparklineTrends?.closingRate}
               onClick={() => handleMetricClick('closing')}
             />
             <MetricCard
@@ -502,15 +827,17 @@ export default function Home() {
               icon={<Calendar className="w-5 h-5" />}
               color="primary"
               trend={metrics.trends?.avgDaysToClose}
+              sparklineTrend={sparklineTrends?.avgDaysToClose}
               onClick={() => handleMetricClick('days')}
             />
-          </div>
-          {metrics?.hasFinancialData && (
-            <div className="lg:col-span-1">
-              <CommissionProjector records={filteredRecords} />
-            </div>
-          )}
         </div>
+
+        {/* Projected to Close Card */}
+        {filteredRecords.length > 0 && (
+          <div className="mb-8">
+            <ProjectedToCloseCard records={filteredRecords} />
+          </div>
+        )}
 
         {/* Status Overview Row */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -520,7 +847,7 @@ export default function Home() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Active Listings</p>
+                <p className="text-sm text-foreground font-medium">Active Listings</p>
                 <p className="text-2xl font-display font-bold text-foreground">
                   {metrics.activeListings}
                 </p>
@@ -537,7 +864,7 @@ export default function Home() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Under Contract</p>
+                <p className="text-sm text-foreground font-medium">Under Contract</p>
                 <p className="text-2xl font-display font-bold text-foreground">
                   {metrics.underContract}
                 </p>
@@ -554,13 +881,13 @@ export default function Home() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Closed</p>
-                <p className="text-2xl font-display font-bold text-accent">
+                <p className="text-sm text-foreground dark:text-white font-medium">Closed</p>
+                <p className="text-2xl font-display font-bold text-foreground dark:text-white">
                   {metrics.closed}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-accent" />
+              <div className="w-12 h-12 rounded-lg bg-green-500/20 dark:bg-green-500/30 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
           </Card>
@@ -571,28 +898,22 @@ export default function Home() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Archived</p>
-                <p className="text-2xl font-display font-bold text-foreground">
+                <p className="text-sm text-foreground dark:text-white font-medium">Archived</p>
+                <p className="text-2xl font-display font-bold text-foreground dark:text-white">
                   {metrics.archived}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                <HomeIcon className="w-6 h-6 text-muted-foreground" />
+              <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                <HomeIcon className="w-6 h-6 text-gray-700 dark:text-gray-300" />
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Agent Leaderboard Section */}
-        {agentMetrics.length > 0 && (
-          <div className="mb-8">
-            <AgentLeaderboardWithExport agents={agentMetrics} records={filteredRecords} />
-          </div>
-        )}
-
         {/* Charts Section */}
-        <div className="mb-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div data-section="charts" data-tour="charts">
+          <CollapsibleSection title="Analytics Charts" icon={<TrendingUp className="w-6 h-6" />}>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3 lg:grid-cols-10 mb-6 h-auto">
               <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
@@ -600,10 +921,7 @@ export default function Home() {
               <TabsTrigger value="property">Property Type</TabsTrigger>
               <TabsTrigger value="geographic">Geographic</TabsTrigger>
               {metrics?.hasFinancialData && (
-                <>
-                  <TabsTrigger value="financial">Financial</TabsTrigger>
-                  <TabsTrigger value="audit" className="text-red-600 data-[state=active]:text-red-700 data-[state=active]:bg-red-50">Commission Audit</TabsTrigger>
-                </>
+                <TabsTrigger value="financial">Financial</TabsTrigger>
               )}
               <TabsTrigger value="insights">Insights</TabsTrigger>
               <TabsTrigger value="health">Data Health</TabsTrigger>
@@ -612,19 +930,22 @@ export default function Home() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="pipeline" className="space-y-4">
+            <TabsContent value="pipeline" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <Card className="p-6 bg-card border border-border">
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Pipeline Breakdown
                 </h2>
-                <PipelineChart 
-                  data={getPipelineData(filteredRecords)} 
-                  onBarClick={(label) => handleChartClick('pipeline', label)}
+                <InteractivePipelineChart 
+                  data={allRecords}
                 />
+              </Card>
+              
+              <Card className="p-6 bg-card border border-border">
+                <ConversionTrendsChart data={allRecords} />
               </Card>
             </TabsContent>
 
-            <TabsContent value="timeline" className="space-y-4">
+            <TabsContent value="timeline" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card className="p-6 bg-card border border-border">
                   <h2 className="text-xl font-display font-bold text-foreground mb-4">
@@ -643,45 +964,45 @@ export default function Home() {
               </div>
             </TabsContent>
 
-            <TabsContent value="leadsource" className="space-y-4">
+            <TabsContent value="leadsource" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <Card className="p-6 bg-card border border-border">
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Lead Source Performance
                 </h2>
                 <LeadSourceChart 
-                  data={getLeadSourceData(filteredRecords)} 
-                  onSliceClick={(label) => handleChartClick('leadSource', label)}
+                  data={getLeadSourceData(allRecords)} 
+                  onSliceClick={(label) => openChartDrillDown('leadSource', label, `Lead Source: ${label}`)}
                 />
               </Card>
             </TabsContent>
 
-            <TabsContent value="property" className="space-y-4">
+            <TabsContent value="property" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <Card className="p-6 bg-card border border-border">
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Property Type Distribution
                 </h2>
                 <PropertyTypeChart 
-                  data={getPropertyTypeData(filteredRecords)} 
-                  onBarClick={(label) => handleChartClick('propertyType', label)}
+                  data={getPropertyTypeData(allRecords)} 
+                  onBarClick={(label) => openChartDrillDown('propertyType', label, `Property Type: ${label}`)}
                 />
               </Card>
             </TabsContent>
 
-            <TabsContent value="geographic" className="space-y-4">
+            <TabsContent value="geographic" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <Card className="p-6 bg-card border border-border">
                 <h2 className="text-xl font-display font-bold text-foreground mb-4">
                   Geographic Distribution
                 </h2>
                 <GeographicChart 
-                  data={getGeographicData(filteredRecords)} 
-                  onBarClick={(label) => handleChartClick('geographic', label)}
+                  data={getGeographicData(allRecords)} 
+                  onBarClick={(label) => openChartDrillDown('geographic', label, `Location: ${label}`)}
                 />
               </Card>
             </TabsContent>
 
             {metrics?.hasFinancialData && (
               <>
-                <TabsContent value="financial" className="space-y-4">
+                <TabsContent value="financial" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card className="p-6 bg-card border border-border">
                       <h2 className="text-xl font-display font-bold text-foreground mb-4">
@@ -696,6 +1017,7 @@ export default function Home() {
                       <CommissionBreakdownChart 
                         buySide={filteredRecords.reduce((sum, r) => sum + (r.buySideCommission || 0), 0)}
                         sellSide={filteredRecords.reduce((sum, r) => sum + (r.sellSideCommission || 0), 0)}
+                        onSliceClick={(type: string) => openChartDrillDown('commission', type, `Commission: ${type}`)}
                       />
                     </Card>
                   </div>
@@ -718,19 +1040,16 @@ export default function Home() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="audit" className="space-y-4">
-                  <CommissionAuditReport records={filteredRecords} />
-                </TabsContent>
               </>
             )}
 
-            <TabsContent value="insights" className="space-y-4">
+            <TabsContent value="insights" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card className="p-6 bg-card border border-border">
                   <h2 className="text-xl font-display font-bold text-foreground mb-4">
                     Market Insights
                   </h2>
-                  <PropertyInsightsChart data={filteredRecords} />
+                  <EnhancedPriceVsYearBuiltChart data={filteredRecords} />
                 </Card>
                 <Card className="p-6 bg-card border border-border">
                   <h2 className="text-xl font-display font-bold text-foreground mb-4">
@@ -755,7 +1074,7 @@ export default function Home() {
               </div>
             </TabsContent>
 
-            <TabsContent value="health" className="space-y-4">
+            <TabsContent value="health" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
               <DataHealthCheck records={allRecords} />
               <DataValidationReport 
                 records={allRecords} 
@@ -771,46 +1090,65 @@ export default function Home() {
               />
             </TabsContent>
 
-            <TabsContent value="settings" className="space-y-4">
-              <Tabs defaultValue="commission" className="w-full">
-                <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
-                  <TabsTrigger 
-                    value="commission"
-                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
-                  >
-                    Commission Plans
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="teams"
-                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
-                  >
-                    Team Management
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="assignments"
-                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
-                  >
-                    Agent Assignments
-                  </TabsTrigger>
-                </TabsList>
-                
-                <div className="mt-6">
-                  <TabsContent value="commission">
-                    <CommissionPlansManager />
-                  </TabsContent>
-                  <TabsContent value="teams">
-                    <TeamManager />
-                  </TabsContent>
-                  <TabsContent value="assignments">
-                    <AgentAssignment 
-                      records={allRecords}
-                    />
-                  </TabsContent>
+            <TabsContent value="settings" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+              <Card className="p-6">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold mb-2">Settings</h3>
+                  <p className="text-sm text-muted-foreground">Manage your account and application settings.</p>
                 </div>
-              </Tabs>
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Settings functionality coming soon</p>
+                </div>
+              </Card>
             </TabsContent>
           </Tabs>
+          </CollapsibleSection>
         </div>
+
+        {/* Agent Leaderboard Section */}
+        {agentMetrics.length > 0 && (
+          <div data-section="leaderboard" data-tour="leaderboard">
+            <CollapsibleSection title="Agent Performance Leaderboard" icon={<Trophy className="w-6 h-6" />}>
+              <AgentLeaderboardWithExport 
+                agents={agentMetrics} 
+                records={filteredRecords}
+                onNavigateToAssignAgent={(agentName) => {
+                  setCommissionManagementTab('assignments');
+                  setCommissionManagementHighlightAgent(agentName);
+                  const element = document.querySelector('[data-section="commission-management"]');
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+              />
+            </CollapsibleSection>
+          </div>
+        )}
+
+        {/* Commission Management Panel */}
+        <div data-section="commission-management">
+          <CommissionManagementPanel 
+            records={filteredRecords} 
+            hasData={filteredRecords.length > 0}
+            initialTab={commissionManagementTab}
+            highlightAgent={commissionManagementHighlightAgent}
+            onTabChange={setCommissionManagementTab}
+            onAssignmentChange={() => {
+              setMetrics(calculateMetrics(filteredRecords));
+              const metrics5 = calculateAgentMetrics(filteredRecords);
+              setAgentMetrics(applyPlansToAllAgents(metrics5, filteredRecords));
+            }}
+          />
+        </div>
+
+        {/* Commission Projector Section */}
+        {metrics?.hasFinancialData && (
+          <div data-section="projector">
+            <CollapsibleSection title="Commission Projector" icon={<DollarSign className="w-6 h-6" />}>
+              <CommissionProjector records={filteredRecords} />
+            </CollapsibleSection>
+          </div>
+        )}
       </main>
 
       {/* Drill Down Modal */}
@@ -838,6 +1176,63 @@ export default function Home() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Onboarding Tour */}
+      {showTour && (
+        <OnboardingTour
+          steps={uploadTourSteps}
+          onComplete={completeTour}
+          onSkip={skipTour}
+        />
+      )}
+      
+      {/* Pipeline Chart Drill-Down Modal */}
+      <PipelineChartDrillDown
+        isOpen={pipelineDrillDownOpen}
+        onClose={() => setPipelineDrillDownOpen(false)}
+        status={pipelineDrillDownStatus}
+        records={allRecords}
+        onViewFullDetails={openPipelineFullDetails}
+      />
+      
+      {/* Pipeline Full Details Modal */}
+      {pipelineFullDetailsOpen && (
+        <DrillDownModal
+          isOpen={pipelineFullDetailsOpen}
+          onClose={() => setPipelineFullDetailsOpen(false)}
+          title={`Pipeline: ${pipelineDrillDownStatus}`}
+          transactions={filteredRecords}
+        />
+      )}
+      
+      {/* Generic Chart Drill-Down Modal */}
+      <ChartDrillDown
+        isOpen={chartDrillDownOpen}
+        onClose={() => setChartDrillDownOpen(false)}
+        title={chartDrillDownTitle}
+        filterType={chartDrillDownType}
+        filterValue={chartDrillDownValue}
+        records={allRecords}
+        onViewFullDetails={openChartFullDetails}
+      />
+      
+      {/* Chart Full Details Modal */}
+      {chartFullDetailsOpen && (
+        <DrillDownModal
+          isOpen={chartFullDetailsOpen}
+          onClose={() => setChartFullDetailsOpen(false)}
+          title={chartDrillDownTitle}
+          transactions={filteredRecords}
+        />
+      )}
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <FilterProvider>
+      <HomeContent />
+    </FilterProvider>
   );
 }

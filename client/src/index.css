@@ -46,89 +46,89 @@
 }
 
 :root {
-  /* Dotloop Brand Theme (Dark Mode Default) */
-  /* Primary Brand Color: Dodger Blue #39A6FA -> OKLCH(0.70 0.17 252) */
-  --primary: oklch(0.70 0.17 252);
+  /* Real Estate Theming - Professional Market Colors */
+  /* Primary: Deep Slate Blue - Trust & Professionalism */
+  --primary: oklch(0.45 0.14 250);
   --primary-foreground: oklch(0.98 0.001 0);
-  --sidebar-primary: oklch(0.70 0.17 252);
+  --sidebar-primary: oklch(0.45 0.14 250);
   --sidebar-primary-foreground: oklch(0.98 0.001 0);
   
-  /* Charts - Dotloop Inspired Palette */
-  --chart-1: oklch(0.70 0.17 252); /* Dotloop Blue */
-  --chart-2: oklch(0.60 0.15 220); /* Teal/Cyan */
-  --chart-3: oklch(0.55 0.20 280); /* Deep Purple/Blue */
-  --chart-4: oklch(0.85 0.15 85);  /* Soft Orange/Gold (Complementary) */
-  --chart-5: oklch(0.65 0.18 30);  /* Red/Pink (Alerts) */
+  /* Real Estate Market Palette */
+  --chart-1: oklch(0.65 0.18 120); /* Emerald Green - Successful Closings */
+  --chart-2: oklch(0.70 0.16 250); /* Professional Blue - Active Listings */
+  --chart-3: oklch(0.75 0.18 60);  /* Market Gold - Pending/Under Contract */
+  --chart-4: oklch(0.60 0.18 30);  /* Coral Red - Archived/Expired */
+  --chart-5: oklch(0.55 0.15 280); /* Deep Purple - Insights */
 
-  --radius: 0.5rem; /* Slightly sharper corners for a professional tool feel */
+  --radius: 0.75rem; /* Softer corners for premium feel */
 
-  /* Dark Mode Base (Navy/Slate) */
-  --background: oklch(0.15 0.04 250); /* Deep Navy */
-  --foreground: oklch(0.98 0.01 250); /* White-ish Blue */
+  /* Dark Mode Base (Warm Slate) */
+  --background: oklch(0.12 0.03 250); /* Deep Slate */
+  --foreground: oklch(0.98 0.01 250); /* Warm White */
   
-  --card: oklch(0.20 0.04 250); /* Lighter Navy */
+  --card: oklch(0.18 0.03 250); /* Warm Slate Card */
   --card-foreground: oklch(0.98 0.01 250);
   
-  --popover: oklch(0.20 0.04 250);
+  --popover: oklch(0.18 0.03 250);
   --popover-foreground: oklch(0.98 0.01 250);
   
-  --secondary: oklch(0.25 0.04 250);
+  --secondary: oklch(0.22 0.03 250);
   --secondary-foreground: oklch(0.98 0.01 250);
   
-  --muted: oklch(0.25 0.04 250);
-  --muted-foreground: oklch(0.70 0.02 250);
+  --muted: oklch(0.22 0.03 250);
+  --muted-foreground: oklch(0.65 0.02 250);
   
-  --accent: oklch(0.25 0.04 250);
-  --accent-foreground: oklch(0.98 0.01 250);
+  --accent: oklch(0.65 0.18 120); /* Emerald Accent */
+  --accent-foreground: oklch(0.98 0.001 0);
   
-  --destructive: oklch(0.60 0.20 30);
+  --destructive: oklch(0.60 0.18 30);
   --destructive-foreground: oklch(0.98 0.001 0);
   
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.70 0.17 252); /* Dotloop Blue Ring */
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.65 0.18 120); /* Emerald Ring */
   
-  --sidebar: oklch(0.18 0.04 250);
+  --sidebar: oklch(0.15 0.03 250);
   --sidebar-foreground: oklch(0.98 0.01 250);
-  --sidebar-accent: oklch(0.25 0.04 250);
+  --sidebar-accent: oklch(0.22 0.03 250);
   --sidebar-accent-foreground: oklch(0.98 0.01 250);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.70 0.17 252);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.65 0.18 120);
 }
 
 .light {
-  /* Light Mode (Dotloop Native Feel) */
+  /* Light Mode (Premium Real Estate) */
   --background: oklch(0.99 0.002 250); /* Clean White */
-  --foreground: oklch(0.25 0.05 252); /* Dark Navy Text */
+  --foreground: oklch(0.25 0.05 250); /* Deep Slate Text */
   
   --card: oklch(1 0 0); /* White Cards */
-  --card-foreground: oklch(0.25 0.05 252);
+  --card-foreground: oklch(0.25 0.05 250);
   
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.25 0.05 252);
+  --popover-foreground: oklch(0.25 0.05 250);
   
   --secondary: oklch(0.96 0.01 250); /* Very Light Blue/Grey */
-  --secondary-foreground: oklch(0.25 0.05 252);
+  --secondary-foreground: oklch(0.25 0.05 250);
   
   --muted: oklch(0.96 0.01 250);
   --muted-foreground: oklch(0.55 0.03 250);
   
-  --accent: oklch(0.94 0.02 250); /* Light Blue Accent */
-  --accent-foreground: oklch(0.25 0.05 252);
+  --accent: oklch(0.65 0.18 120); /* Emerald Accent */
+  --accent-foreground: oklch(0.98 0.001 0);
   
-  --destructive: oklch(0.60 0.20 30);
+  --destructive: oklch(0.60 0.18 30);
   --destructive-foreground: oklch(0.98 0.001 0);
   
   --border: oklch(0.90 0.02 250); /* Light Blue-Grey Border */
   --input: oklch(0.90 0.02 250);
-  --ring: oklch(0.70 0.17 252);
+  --ring: oklch(0.65 0.18 120);
   
   --sidebar: oklch(0.98 0.002 250);
-  --sidebar-foreground: oklch(0.25 0.05 252);
+  --sidebar-foreground: oklch(0.25 0.05 250);
   --sidebar-accent: oklch(0.94 0.02 250);
-  --sidebar-accent-foreground: oklch(0.25 0.05 252);
+  --sidebar-accent-foreground: oklch(0.25 0.05 250);
   --sidebar-border: oklch(0.90 0.02 250);
-  --sidebar-ring: oklch(0.70 0.17 252);
+  --sidebar-ring: oklch(0.65 0.18 120);
 }
 
 @layer base {
@@ -182,4 +182,113 @@
       max-width: 1280px;
     }
   }
+
+  /* Real Estate Premium Card Styling */
+  .re-card {
+    @apply bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow;
+  }
+
+  .re-card-header {
+    @apply flex items-center justify-between mb-4 pb-4 border-b border-border/50;
+  }
+
+  .re-card-title {
+    @apply text-lg font-semibold text-foreground;
+  }
+
+  .re-card-value {
+    @apply text-3xl font-bold text-primary;
+  }
+
+  /* Gradient Backgrounds for Market Stages */
+  .gradient-closed {
+    background: linear-gradient(135deg, oklch(0.65 0.18 120) 0%, oklch(0.60 0.16 110) 100%);
+  }
+
+  .gradient-active {
+    background: linear-gradient(135deg, oklch(0.70 0.16 250) 0%, oklch(0.65 0.14 240) 100%);
+  }
+
+  .gradient-contract {
+    background: linear-gradient(135deg, oklch(0.75 0.18 60) 0%, oklch(0.70 0.16 50) 100%);
+  }
+
+  .gradient-archived {
+    background: linear-gradient(135deg, oklch(0.60 0.18 30) 0%, oklch(0.55 0.16 20) 100%);
+  }
+
+  /* Property Icon Styling */
+  .property-icon {
+    @apply w-8 h-8 rounded-md flex items-center justify-center text-sm font-bold;
+  }
+
+  /* Market Penetration Badge */
+  .market-badge {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium;
+  }
+
+  .market-badge-success {
+    @apply bg-emerald-500/20 text-emerald-700 dark:text-emerald-400;
+  }
+
+  .market-badge-warning {
+    @apply bg-amber-500/20 text-amber-700 dark:text-amber-400;
+  }
+
+  .market-badge-info {
+    @apply bg-blue-500/20 text-blue-700 dark:text-blue-400;
+  }
+
+  /* Floating Action Button */
+  .fab {
+    @apply fixed bottom-8 right-8 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:scale-110 transition-all flex items-center justify-center cursor-pointer;
+  }
+}
+
+/* Agent highlight animation */
+@keyframes highlight-agent {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgb(34, 197, 94, 0.1);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.highlight-agent {
+  animation: highlight-agent 2s ease-in-out;
+  background-color: rgb(34, 197, 94, 0.05);
+}
+
+/* Smooth transitions for real estate elements */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Property stage pulse effect */
+@keyframes pulse-stage {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(101, 184, 192, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(101, 184, 192, 0);
+  }
+}
+
+.pulse-stage {
+  animation: pulse-stage 2s infinite;
 }

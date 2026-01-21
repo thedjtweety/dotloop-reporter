@@ -36,14 +36,14 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
   };
 
   return (
-    <div className="w-full bg-gradient-to-b from-blue-50/50 to-transparent rounded-xl p-8 mb-8">
+    <div className="w-full bg-gradient-to-b from-blue-50/50 to-transparent dark:from-slate-800/50 dark:to-transparent rounded-xl p-8 mb-8">
       <div className="text-center mb-12">
         <h3 className="text-2xl font-display font-bold text-primary flex items-center justify-center gap-2">
           <Trophy className="w-6 h-6 text-yellow-500 fill-yellow-500" />
           Top Performers
           <Trophy className="w-6 h-6 text-yellow-500 fill-yellow-500" />
         </h3>
-        <p className="text-muted-foreground">Celebrating our highest achievers this period</p>
+        <p className="text-foreground">Celebrating our highest achievers this period</p>
       </div>
 
       <motion.div 
@@ -72,8 +72,8 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
               </AvatarFallback>
             </Avatar>
             <div className="text-center">
-              <p className="font-bold text-gray-800 text-lg truncate w-full group-hover:text-primary transition-colors">{first.agentName}</p>
-              <p className="text-sm text-yellow-600 font-bold bg-yellow-100 px-2 py-0.5 rounded-full">
+              <p className="font-bold text-gray-800 dark:text-gray-100 text-lg truncate w-full group-hover:text-primary transition-colors">{first.agentName}</p>
+              <p className="text-sm text-yellow-700 dark:text-yellow-900 font-bold bg-yellow-100 dark:bg-yellow-300 px-2 py-0.5 rounded-full">
                 {formatCurrency(first.totalCommission)}
               </p>
             </div>
@@ -81,7 +81,7 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
           <div className="w-full h-40 bg-gradient-to-t from-yellow-100 to-yellow-50 rounded-t-lg border-t-4 border-yellow-400 flex flex-col items-center justify-start pt-4 shadow-lg relative overflow-hidden group-hover:brightness-105 transition-all">
             <div className="absolute inset-0 bg-white/40 skew-y-12 transform origin-bottom-left"></div>
             <Trophy className="w-10 h-10 text-yellow-500 fill-yellow-500 z-10" />
-            <span className="text-5xl font-bold text-yellow-500/20 absolute bottom-2">1</span>
+            <span className="text-5xl font-bold text-yellow-500/30 dark:text-yellow-600/40 absolute bottom-2">1</span>
           </div>
         </motion.div>
 
@@ -98,14 +98,14 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
               </AvatarFallback>
             </Avatar>
             <div className="text-center">
-              <p className="font-bold text-gray-700 truncate w-full group-hover:text-primary transition-colors">{second.agentName}</p>
-              <p className="text-sm text-gray-500 font-medium">{formatCurrency(second.totalCommission)}</p>
+              <p className="font-bold text-gray-700 dark:text-gray-100 truncate w-full group-hover:text-primary transition-colors">{second.agentName}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">{formatCurrency(second.totalCommission)}</p>
             </div>
           </div>
           <div className="w-full h-32 bg-gradient-to-t from-gray-200 to-gray-100 rounded-t-lg border-t-4 border-gray-300 flex flex-col items-center justify-start pt-4 shadow-md relative overflow-hidden group-hover:brightness-105 transition-all">
             <div className="absolute inset-0 bg-white/30 skew-y-12 transform origin-bottom-left"></div>
             <Medal className="w-8 h-8 text-gray-400 fill-gray-400 z-10" />
-            <span className="text-4xl font-bold text-gray-400/20 absolute bottom-2">2</span>
+            <span className="text-4xl font-bold text-gray-400/30 dark:text-gray-500/40 absolute bottom-2">2</span>
           </div>
         </motion.div>
 
@@ -129,8 +129,8 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
               </AvatarFallback>
             </Avatar>
             <div className="text-center">
-              <p className="font-bold text-gray-800 text-lg truncate w-full group-hover:text-primary transition-colors">{first.agentName}</p>
-              <p className="text-sm text-yellow-600 font-bold bg-yellow-100 px-2 py-0.5 rounded-full">
+              <p className="font-bold text-gray-800 dark:text-gray-100 text-lg truncate w-full group-hover:text-primary transition-colors">{first.agentName}</p>
+              <p className="text-sm text-yellow-700 dark:text-yellow-900 font-bold bg-yellow-100 dark:bg-yellow-300 px-2 py-0.5 rounded-full">
                 {formatCurrency(first.totalCommission)}
               </p>
             </div>
@@ -138,7 +138,7 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
           <div className="w-full h-40 bg-gradient-to-t from-yellow-100 to-yellow-50 rounded-t-lg border-t-4 border-yellow-400 flex flex-col items-center justify-start pt-4 shadow-lg relative overflow-hidden group-hover:brightness-105 transition-all">
             <div className="absolute inset-0 bg-white/40 skew-y-12 transform origin-bottom-left"></div>
             <Trophy className="w-10 h-10 text-yellow-500 fill-yellow-500 z-10" />
-            <span className="text-5xl font-bold text-yellow-500/20 absolute bottom-2">1</span>
+            <span className="text-5xl font-bold text-yellow-500/30 dark:text-yellow-600/40 absolute bottom-2">1</span>
           </div>
         </motion.div>
 
@@ -155,14 +155,14 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
               </AvatarFallback>
             </Avatar>
             <div className="text-center">
-              <p className="font-bold text-gray-700 truncate w-full group-hover:text-primary transition-colors">{third.agentName}</p>
-              <p className="text-sm text-gray-500 font-medium">{formatCurrency(third.totalCommission)}</p>
+              <p className="font-bold text-gray-700 dark:text-gray-100 truncate w-full group-hover:text-primary transition-colors">{third.agentName}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">{formatCurrency(third.totalCommission)}</p>
             </div>
           </div>
           <div className="w-full h-24 bg-gradient-to-t from-amber-100 to-amber-50 rounded-t-lg border-t-4 border-amber-600 flex flex-col items-center justify-start pt-4 shadow-md relative overflow-hidden group-hover:brightness-105 transition-all">
             <div className="absolute inset-0 bg-white/30 skew-y-12 transform origin-bottom-left"></div>
             <Medal className="w-8 h-8 text-amber-700 fill-amber-700 z-10" />
-            <span className="text-4xl font-bold text-amber-700/20 absolute bottom-2">3</span>
+            <span className="text-4xl font-bold text-amber-700/30 dark:text-amber-800/40 absolute bottom-2">3</span>
           </div>
         </motion.div>
       </motion.div>

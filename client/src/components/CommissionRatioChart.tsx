@@ -40,7 +40,7 @@ export default function CommissionRatioChart({
   if (chartData.length === 0) {
     return (
       <Card className="p-6 bg-muted/30">
-        <div className="text-center text-muted-foreground text-sm">
+        <div className="text-center text-foreground text-sm">
           No commission data available for {agent.agentName}
         </div>
       </Card>
@@ -55,7 +55,7 @@ export default function CommissionRatioChart({
         <h3 className="text-lg font-display font-semibold text-foreground">
           {agent.agentName}
         </h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-foreground">
           Total Commission: ${(agent.totalCommission / 1000).toFixed(1)}K
         </p>
       </div>

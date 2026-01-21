@@ -9,6 +9,10 @@ import {
   saveAgentAssignments 
 } from '@/lib/commission';
 import { DotloopRecord } from '@/lib/csvParser';
+import { trpc } from '@/lib/trpc';
+import toast from 'react-hot-toast';
+import { Loader2 } from 'lucide-react';
+import BulkPlanAssignment from './BulkPlanAssignment';
 import {
   Table,
   TableBody,
@@ -30,9 +34,11 @@ import { Badge } from '@/components/ui/badge';
 
 interface AgentAssignmentProps {
   records: DotloopRecord[]; // Used to extract unique agent names
+  highlightAgent?: string; // Agent name to highlight/scroll to
+  onAssignmentChange?: () => void; // Callback when assignment changes
 }
 
-export default function AgentAssignment({ records }: AgentAssignmentProps) {
+export default function AgentAssignment({ records, highlightAgent, onAssignmentChange }: AgentAssignmentProps) {
   const [plans, setPlans] = useState<CommissionPlan[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [assignments, setAssignments] = useState<AgentPlanAssignment[]>([]);
@@ -54,12 +60,28 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
     setAgents(Array.from(uniqueAgents).sort());
   }, [records]);
 
+  useEffect(() => {
+    if (highlightAgent) {
+      setTimeout(() => {
+        const element = document.querySelector(`[data-agent-row="${highlightAgent}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('highlight-agent');
+          setTimeout(() => {
+            element.classList.remove('highlight-agent');
+          }, 3000);
+        }
+      }, 100);
+    }
+  }, [highlightAgent]);
+
   const handleAssignPlan = (agentName: string, planId: string) => {
     const existing = assignments.find(a => a.agentName === agentName);
     const newAssignments = assignments.filter(a => a.agentName !== agentName);
     
     if (planId !== 'none') {
       newAssignments.push({
+        id: existing?.id || Math.random().toString(36).substr(2, 9),
         agentName,
         planId,
         teamId: existing?.teamId, // Preserve team
@@ -69,6 +91,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
        // Keep assignment if team exists but plan removed? No, require plan for now.
        // Actually, let's allow partial assignment.
        newAssignments.push({
+         id: existing.id,
          agentName,
          planId: 'none',
          teamId: existing.teamId
@@ -76,6 +99,9 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
     }
     setAssignments(newAssignments);
     saveAgentAssignments(newAssignments);
+    // Dispatch custom event to notify other components (like leaderboard) of the change
+    window.dispatchEvent(new CustomEvent('commission-assignment-updated'));
+    onAssignmentChange?.();
   };
 
   const handleAssignTeam = (agentName: string, teamId: string) => {
@@ -91,6 +117,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
       });
     } else if (newTeamId) {
       newAssignments.push({
+        id: Math.random().toString(36).substr(2, 9),
         agentName,
         planId: 'none', // Placeholder
         teamId: newTeamId,
@@ -99,6 +126,8 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
     }
     setAssignments(newAssignments);
     saveAgentAssignments(newAssignments);
+    // Dispatch custom event to notify other components of the change
+    window.dispatchEvent(new CustomEvent('commission-assignment-updated'));
   };
 
   const handleAnniversaryChange = (agentName: string, date: string) => {
@@ -112,6 +141,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
       });
     } else {
       newAssignments.push({
+        id: Math.random().toString(36).substr(2, 9),
         agentName,
         planId: 'none',
         anniversaryDate: date,
@@ -120,6 +150,8 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
     }
     setAssignments(newAssignments);
     saveAgentAssignments(newAssignments);
+    // Dispatch custom event to notify other components of the change
+    window.dispatchEvent(new CustomEvent('commission-assignment-updated'));
   };
 
   const getAgentPlanId = (agentName: string) => {
@@ -143,17 +175,24 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-medium">Agent Assignments</h3>
-          <p className="text-sm text-muted-foreground">Assign commission plans to your agents.</p>
+          <p className="text-sm text-foreground">Assign commission plans to your agents.</p>
         </div>
-        <div className="relative w-64">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search agents..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
+        <div className="flex items-center gap-4">
+          <BulkPlanAssignment
+            agents={agents}
+            assignments={assignments}
+            onAssignmentComplete={setAssignments}
           />
-        </div>
+            <div className="relative w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-foreground" />
+              <Input
+                placeholder="Search agents..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
       </div>
 
       <div className="border rounded-md">
@@ -170,7 +209,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
           <TableBody>
             {filteredAgents.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={3} className="text-center py-8 text-foreground">
                   No agents found. Upload a CSV to populate this list.
                 </TableCell>
               </TableRow>
@@ -182,7 +221,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
                 const currentTeam = teams.find(t => t.id === currentTeamId);
 
                 return (
-                  <TableRow key={agent}>
+                  <TableRow key={agent} data-agent-row={agent} className="transition-colors duration-300">
                     <TableCell className="font-medium">{agent}</TableCell>
                     <TableCell className="w-[250px]">
                       <Select
@@ -248,7 +287,7 @@ export default function AgentAssignment({ records }: AgentAssignmentProps) {
                           </Badge>
                         )}
                         {!currentPlan && !currentTeam && (
-                          <span className="text-sm text-muted-foreground italic">--</span>
+                          <span className="text-sm text-foreground italic">--</span>
                         )}
                       </div>
                     </TableCell>

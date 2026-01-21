@@ -1,4 +1,4 @@
-import { DotloopRecord } from './csvParser';
+import { DotloopRecord, AgentMetrics } from './csvParser';
 import { 
   CommissionPlan, 
   Team, 
@@ -6,7 +6,8 @@ import {
   getCommissionPlans, 
   getTeams, 
   getAgentAssignments,
-  getTransactionAdjustments
+  getTransactionAdjustments,
+  getPlanForAgent
 } from './commission';
 
 export interface AgentYTD {
@@ -279,3 +280,207 @@ export function calculateCommissionAudit(records: DotloopRecord[]): { ytdStats: 
 
   return { ytdStats, auditResults };
 }
+
+
+/**
+ * Commission Breakdown for Display (NEW FUNCTIONS)
+ * Represents a transaction's commission breakdown
+ */
+export interface CommissionBreakdownDisplay {
+  totalGCI: number; // Gross Commission Income (from CSV)
+  agentShare: number; // Agent's portion based on plan split
+  companyShare: number; // Company's portion
+  cappedCompanyShare: number; // Company share after cap applied
+  cappedAgentShare: number; // Agent share after cap applied
+  postCapSplit: number; // Agent's share after hitting cap
+}
+
+/**
+ * Calculate commission breakdown for a single transaction based on plan
+ * @param record - The transaction record
+ * @param plan - The commission plan to apply
+ * @returns Commission breakdown with plan-based calculations
+ */
+export function calculateTransactionCommissionNew(
+  record: DotloopRecord,
+  plan: CommissionPlan | undefined
+): CommissionBreakdownDisplay {
+  const totalGCI = record.commissionTotal || 0;
+
+  // If no plan assigned, return CSV values as-is
+  if (!plan) {
+    return {
+      totalGCI,
+      agentShare: record.buySideCommission || 0,
+      companyShare: record.companyDollar || 0,
+      cappedCompanyShare: record.companyDollar || 0,
+      cappedAgentShare: record.buySideCommission || 0,
+      postCapSplit: 0,
+    };
+  }
+
+  // Calculate agent and company shares based on plan split percentage
+  const agentShare = (totalGCI * plan.splitPercentage) / 100;
+  const companyShare = totalGCI - agentShare;
+
+  // Apply cap if specified
+  let cappedCompanyShare = companyShare;
+  let cappedAgentShare = agentShare;
+  let postCapSplit = 0;
+
+  if (plan.capAmount > 0) {
+    // If company share exceeds cap, agent gets the excess
+    if (companyShare > plan.capAmount) {
+      cappedCompanyShare = plan.capAmount;
+      const excess = companyShare - plan.capAmount;
+      cappedAgentShare = agentShare + excess;
+      postCapSplit = plan.postCapSplit || 100; // Agent gets 100% after cap
+    }
+  }
+
+  return {
+    totalGCI,
+    agentShare,
+    companyShare,
+    cappedCompanyShare,
+    cappedAgentShare,
+    postCapSplit,
+  };
+}
+
+/**
+ * Recalculate agent metrics with plan-based commissions
+ * @param agentRecords - All records for the agent
+ * @param agentName - The agent's name
+ * @returns Recalculated commission totals
+ */
+export function recalculateAgentCommission(
+  agentRecords: DotloopRecord[],
+  agentName: string
+): {
+  totalCommission: number;
+  companyDollar: number;
+  buySideCommission: number;
+  sellSideCommission: number;
+} {
+  const plan = getPlanForAgent(agentName);
+
+  let totalCommission = 0;
+  let companyDollar = 0;
+  let buySideCommission = 0;
+  let sellSideCommission = 0;
+
+  agentRecords.forEach(record => {
+    const breakdown = calculateTransactionCommissionNew(record, plan);
+    
+    // Use capped values for totals
+    totalCommission += breakdown.cappedAgentShare;
+    companyDollar += breakdown.cappedCompanyShare;
+    
+    // Keep buy/sell split from CSV (these are typically already split by side)
+    buySideCommission += record.buySideCommission || 0;
+    sellSideCommission += record.sellSideCommission || 0;
+  });
+
+  return {
+    totalCommission,
+    companyDollar,
+    buySideCommission,
+    sellSideCommission,
+  };
+}
+
+/**
+ * Calculate agent metrics with plan-based commissions
+ * This is used to override the standard calculateAgentMetrics when plans are assigned
+ * @param agentMetrics - Original agent metrics from CSV
+ * @param records - All records for the agent
+ * @returns Updated metrics with plan-based commissions
+ */
+export function applyPlanToAgentMetrics(
+  agentMetrics: AgentMetrics,
+  records: DotloopRecord[]
+): AgentMetrics {
+  const plan = getPlanForAgent(agentMetrics.agentName);
+
+  if (!plan) {
+    // No plan assigned, return original metrics
+    return agentMetrics;
+  }
+
+  // Get agent's records
+  const agentRecords = records.filter(r => {
+    const agents = r.agents ? r.agents.split(',').map(a => a.trim()) : [];
+    return agents.includes(agentMetrics.agentName);
+  });
+
+  const recalculated = recalculateAgentCommission(agentRecords, agentMetrics.agentName);
+
+  // Calculate average commission with new total
+  const averageCommission = agentMetrics.totalTransactions > 0
+    ? recalculated.totalCommission / agentMetrics.totalTransactions
+    : 0;
+
+  return {
+    ...agentMetrics,
+    totalCommission: recalculated.totalCommission,
+    companyDollar: recalculated.companyDollar,
+    buySideCommission: recalculated.buySideCommission,
+    sellSideCommission: recalculated.sellSideCommission,
+    averageCommission,
+  };
+}
+
+/**
+ * Apply plans to all agent metrics
+ * @param agentMetrics - Array of agent metrics
+ * @param records - All records
+ * @returns Updated metrics with plan-based commissions applied
+ */
+export function applyPlansToAllAgents(
+  agentMetrics: AgentMetrics[],
+  records: DotloopRecord[]
+): AgentMetrics[] {
+  return agentMetrics.map(metrics => applyPlanToAgentMetrics(metrics, records));
+}
+
+/**
+ * Get commission comparison for an agent (original vs plan-based)
+ * @param agentMetrics - Original metrics
+ * @param records - All records
+ * @returns Comparison data
+ */
+export function getCommissionComparison(
+  agentMetrics: AgentMetrics,
+  records: DotloopRecord[]
+) {
+  const plan = getPlanForAgent(agentMetrics.agentName);
+
+  if (!plan) {
+    return {
+      hasComparison: false,
+      originalCommission: agentMetrics.totalCommission,
+      planBasedCommission: agentMetrics.totalCommission,
+      difference: 0,
+      percentageDifference: 0,
+    };
+  }
+
+  const recalculated = recalculateAgentCommission(records, agentMetrics.agentName);
+
+  const difference = recalculated.totalCommission - agentMetrics.totalCommission;
+  const percentageDifference = agentMetrics.totalCommission > 0
+    ? (difference / agentMetrics.totalCommission) * 100
+    : 0;
+
+  return {
+    hasComparison: true,
+    originalCommission: agentMetrics.totalCommission,
+    planBasedCommission: recalculated.totalCommission,
+    difference,
+    percentageDifference,
+    planName: plan.name,
+  };
+}
+
+
