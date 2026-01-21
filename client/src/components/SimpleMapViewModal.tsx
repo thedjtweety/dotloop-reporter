@@ -1,8 +1,9 @@
-import { X } from 'lucide-react';
 import { MapView } from './Map';
 import { useRef, useEffect, useState } from 'react';
 import { DotloopRecord } from '@/lib/csvParser';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search, X } from 'lucide-react';
 
 interface SimpleMapViewModalProps {
   isOpen: boolean;
@@ -23,23 +24,42 @@ export default function SimpleMapViewModal({
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const clustererRef = useRef<any>(null);
   const [selectedStatus, setSelectedStatus] = useState<TransactionStatus>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Filter transactions by status
+  // Filter transactions by status and search query
   const filteredTransactions = transactions.filter(t => {
-    if (selectedStatus === 'all') return true;
-    const status = (t.loopStatus || '').toLowerCase();
-    switch (selectedStatus) {
-      case 'active':
-        return status.includes('active');
-      case 'contract':
-        return status.includes('contract') || status.includes('pending');
-      case 'closed':
-        return status.includes('closed') || status.includes('sold');
-      case 'archived':
-        return status.includes('archived');
-      default:
-        return true;
+    // Status filter
+    if (selectedStatus !== 'all') {
+      const status = (t.loopStatus || '').toLowerCase();
+      let statusMatch = false;
+      switch (selectedStatus) {
+        case 'active':
+          statusMatch = status.includes('active');
+          break;
+        case 'contract':
+          statusMatch = status.includes('contract') || status.includes('pending');
+          break;
+        case 'closed':
+          statusMatch = status.includes('closed') || status.includes('sold');
+          break;
+        case 'archived':
+          statusMatch = status.includes('archived');
+          break;
+      }
+      if (!statusMatch) return false;
     }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const address = ((t.address || '') + ' ' + (t.city || '') + ' ' + (t.state || '')).toLowerCase();
+      const agent = (t.agent || '').toLowerCase();
+      const loopName = (t.loopName || '').toLowerCase();
+      
+      return address.includes(query) || agent.includes(query) || loopName.includes(query);
+    }
+
+    return true;
   });
 
   // Get marker color based on status
@@ -182,6 +202,28 @@ export default function SimpleMapViewModal({
           >
             <X className="w-6 h-6 text-white" />
           </button>
+        </div>
+
+        {/* Search Bar */}
+        <div className="px-6 py-4 border-b border-slate-700 bg-slate-800">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              type="text"
+              placeholder="Search by address, agent name, or loop name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-slate-700 border-slate-600 text-white placeholder-slate-400"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-slate-600 rounded"
+              >
+                <X className="w-4 h-4 text-slate-400" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Status Filter Chips */}
