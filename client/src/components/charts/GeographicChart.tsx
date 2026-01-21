@@ -5,11 +5,15 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, TooltipProps } from 'recharts';
 import { ChartData } from '@/lib/csvParser';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import { Map as MapIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import PropertyMapModal from '@/components/PropertyMapModal';
 
 interface GeographicChartProps {
   data: ChartData[];
   onBarClick?: (label: string) => void;
+  transactions?: any[];
 }
 
 const COLORS = ['#1e3a5f', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -36,8 +40,9 @@ const CustomTooltip = ({ active, payload, label, total }: TooltipProps<number, s
   return null;
 };
 
-export default function GeographicChart({ data, onBarClick }: GeographicChartProps) {
+export default function GeographicChart({ data, onBarClick, transactions = [] }: GeographicChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
+  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     // Add entrance animation
@@ -62,8 +67,32 @@ export default function GeographicChart({ data, onBarClick }: GeographicChartPro
     );
   }
 
+  if (showMap && transactions.length > 0) {
+    return (
+      <PropertyMapModal
+        isOpen={showMap}
+        onClose={() => setShowMap(false)}
+        transactions={transactions}
+        title="Property Locations by Geographic Distribution"
+      />
+    );
+  }
+
   return (
     <div ref={chartRef}>
+      <div className="flex items-center justify-between mb-4">
+        <div />
+        <Button
+          onClick={() => setShowMap(true)}
+          variant="outline"
+          size="sm"
+          className="gap-2 border-slate-600 text-slate-300 hover:bg-slate-800"
+          disabled={transactions.length === 0}
+        >
+          <MapIcon className="w-4 h-4" />
+          Map View
+        </Button>
+      </div>
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 60 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
