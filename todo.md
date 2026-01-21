@@ -2080,3 +2080,21 @@
 - [ ] Add hover effects and visual feedback
 - [ ] Test responsive design across devices
 - [ ] Optimize performance
+
+
+## Phase 41: Full-Screen Drill-Down Details Modal (CURRENT)
+- [x] Create PeriodDrillDown component with full-screen modal display
+- [x] Implement transaction breakdown by agent with deal counts
+- [x] Implement transaction breakdown by property type with deal counts
+- [x] Implement transaction breakdown by status with deal counts
+- [x] Add "View Detailed Breakdown" button to Period Details modal
+- [x] Integrate drill-down component into SalesTimelineChart
+- [x] Pass allRecords prop to SalesTimelineChart for filtering
+- [x] Update Home.tsx to pass filteredRecords to SalesTimelineChart
+- [x] Test drill-down functionality with demo data
+- [x] Build production version and verify compilation
+- [ ] Test drill-down on production build
+- [ ] Verify period filtering logic works correctly
+- [ ] Test with both demo and uploaded CSV data
+- [ ] Add period comparison feature (side-by-side metrics)
+- [ ] Add export timeline reports (CSV/PDF)

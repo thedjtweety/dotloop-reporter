@@ -952,7 +952,8 @@ function HomeContent() {
                     Sales Volume Over Time
                   </h2>
                   <SalesTimelineChart 
-                    data={getSalesOverTime(filteredRecords)} 
+                    data={getSalesOverTime(filteredRecords)}
+                    allRecords={filteredRecords}
                   />
                 </Card>
                 <Card className="p-6 bg-card border border-border">
