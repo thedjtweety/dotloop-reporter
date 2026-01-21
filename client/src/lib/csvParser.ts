@@ -606,7 +606,18 @@ export function getSalesOverTime(records: DotloopRecord[]): ChartData[] {
     }
   });
 
-  return Object.entries(monthlyVolume)
-    .map(([label, value]) => ({ label, value }))
+  const sorted = Object.entries(monthlyVolume)
+    .map(([label, value]) => ({ label, value, movingAverage: 0 }))
     .sort((a, b) => a.label.localeCompare(b.label));
+
+  // Calculate 3-month moving average
+  sorted.forEach((item, idx) => {
+    const start = Math.max(0, idx - 2);
+    const end = idx + 1;
+    const window = sorted.slice(start, end);
+    const avg = window.reduce((sum, d) => sum + d.value, 0) / window.length;
+    item.movingAverage = avg;
+  });
+
+  return sorted;
 }
