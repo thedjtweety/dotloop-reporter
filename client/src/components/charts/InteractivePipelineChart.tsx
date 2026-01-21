@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BarChart3, TrendingUp, TrendingDown, Home, CheckCircle, Clock, Archive } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, Home, CheckCircle, Clock, Archive, Save, Bookmark, Trash2 } from 'lucide-react';
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, PolarAngleAxis, PolarRadiusAxis, RadarChart, Radar, PolarGrid
@@ -11,6 +11,10 @@ import { formatNumber } from '@/lib/formatUtils';
 import { DateRange } from 'react-day-picker';
 import { DatePickerWithRange } from '@/components/DateRangePicker';
 import TransactionDetailModal from '@/components/TransactionDetailModal';
+import { saveFilterPreset, getFilterPresets, deleteFilterPreset, formatPresetDate, FilterPreset } from '@/lib/filterPresets';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import toast from 'react-hot-toast';
 
 interface InteractivePipelineChartProps {
   data: DotloopRecord[];
@@ -78,6 +82,14 @@ export default function InteractivePipelineChart({ data, onDrillDown }: Interact
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalTransactions, setModalTransactions] = useState<DotloopRecord[]>([]);
+  const [presets, setPresets] = useState<FilterPreset[]>([]);
+  const [savePresetName, setSavePresetName] = useState('');
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+
+  useEffect(() => {
+    const loadedPresets = getFilterPresets('pipeline');
+    setPresets(loadedPresets);
+  }, []);
 
   // Filter data by date range
   const filteredData = React.useMemo(() => {

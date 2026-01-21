@@ -2113,3 +2113,47 @@
 - [x] Position below Conversion Trends chart
 - [x] Make responsive for mobile
 - [x] Test with demo data (generates random coordinates within state boundaries)
+
+
+## Phase 12: Saved Filter Presets
+
+### FilterPresets Utility
+- [x] Create filterPresets.ts utility with save/load/delete functions
+- [x] Implement localStorage persistence for presets
+- [x] Create FilterPreset interface (name, filters, createdAt)
+- [x] Add validation for preset names (max 50 chars, no duplicates)
+- [x] Limit to 15 presets per component
+- [x] Add "Clear All" and "Reset to Default" functions
+
+### TransactionDetailModal Presets
+- [x] Add "Save Filter" button to filter toolbar
+- [x] Create preset save dialog with name input
+- [x] Add preset dropdown showing all saved presets
+- [x] Implement quick-apply on preset selection
+- [x] Show active preset badge
+- [x] Add delete button for each preset
+- [x] Show preset creation date in tooltip
+
+### InteractivePipelineChart Presets
+- [x] Add "Save Filter" button to chart header (state initialized)
+- [ ] Create preset save dialog with name input
+- [ ] Add preset dropdown showing all saved presets
+- [ ] Implement quick-apply on preset selection
+- [ ] Show active preset badge
+- [ ] Add delete button for each preset
+- [ ] Persist date range filter in presets
+
+### MarketMap Presets
+- [ ] Add "Save Filter" button to map header
+- [ ] Create preset save dialog with name input
+- [ ] Add preset dropdown showing all saved presets
+- [ ] Implement quick-apply on preset selection
+- [ ] Show active preset badge
+- [ ] Add delete button for each preset
+
+### Testing & Polish
+- [ ] Test preset save/load in TransactionDetailModal
+- [ ] Test localStorage persistence
+- [ ] Verify preset isolation between components
+- [ ] Test with demo data
+- [ ] Complete InteractivePipelineChart and MarketMap integration
