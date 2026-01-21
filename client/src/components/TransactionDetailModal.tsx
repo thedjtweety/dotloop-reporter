@@ -375,7 +375,7 @@ export default function TransactionDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={fullScreen ? "fixed inset-0 w-screen h-screen max-w-none max-h-none rounded-none overflow-hidden flex flex-col" : "max-w-6xl max-h-[90vh] overflow-y-auto"}>
+      <DialogContent className={fullScreen ? "fixed inset-0 w-screen h-screen max-w-none max-h-none rounded-none overflow-hidden flex flex-col z-50 bg-background" : "max-w-6xl max-h-[90vh] overflow-y-auto"}>
         <DialogHeader className={`sticky top-0 bg-background z-10 pb-4 border-b ${fullScreen ? 'px-6 py-4' : ''}`}>
           <div className="flex items-center justify-between">
             <DialogTitle>{title}</DialogTitle>
