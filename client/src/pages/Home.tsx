@@ -604,7 +604,7 @@ function HomeContent() {
         <main className="flex-1 container flex items-center justify-center py-12">
           <div className="w-full max-w-2xl space-y-8 text-center">
             <div className="space-y-4">
-              <h2 className="text-4xl font-display font-bold tracking-tight text-foreground sm:text-5xl">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl">
                 Transform Your Data into <span className="text-primary">Actionable Insights</span>
               </h2>
               <p className="text-lg text-foreground max-w-xl mx-auto">
@@ -786,7 +786,7 @@ function HomeContent() {
       </header>
 
       {/* Main Dashboard */}
-      <main className="container py-8">
+      <main className="container py-4 sm:py-6 md:py-8 px-4 sm:px-6 md:px-8">
         {/* Filter Badge */}
         <FilterBadge />
         
