@@ -2138,3 +2138,51 @@
 - [ ] Manual browser testing of View in Dotloop buttons
 - [ ] Test with various drill-down scenarios
 - [ ] Verify Dotloop links open correctly in new tabs
+
+## Phase 48: Bulk Actions in Drill-Downs (CURRENT)
+- [ ] Create bulk actions utility module (bulkActions.ts)
+- [ ] Add checkbox selection state to drill-down modals
+- [ ] Add "Select All" / "Deselect All" buttons
+- [ ] Implement bulk export (CSV, Excel) for selected transactions
+- [ ] Implement bulk Dotloop opening for selected transactions
+- [ ] Add bulk tagging functionality
+- [ ] Create bulk actions toolbar with action buttons
+- [ ] Add selection counter display
+- [ ] Test bulk operations with various selection sizes
+- [ ] Write vitest tests for bulk actions
+
+## Phase 49: Drill-Down Favorites/Bookmarks
+- [ ] Create favorites utility module (drillDownFavorites.ts)
+- [ ] Design bookmark storage schema (filter criteria, name, timestamp)
+- [ ] Add "Save as Favorite" button to drill-down modals
+- [ ] Create favorite name input dialog
+- [ ] Add favorites list/dropdown to drill-down header
+- [ ] Implement load favorite functionality (restore filters)
+- [ ] Add delete favorite option
+- [ ] Persist favorites to localStorage
+- [ ] Display favorite count and quick access
+- [ ] Write vitest tests for favorites functionality
+
+## Phase 48: Bulk Actions in Drill-Downs - COMPLETED
+- [x] Create bulk actions utility module (bulkActions.ts) with 11 functions
+- [x] Add checkbox selection state management
+- [x] Add "Select All" / "Deselect All" functionality
+- [x] Implement bulk export (CSV, Excel) for selected transactions
+- [x] Implement bulk Dotloop opening for selected transactions
+- [x] Add bulk tagging functionality
+- [x] Create bulk actions toolbar helpers
+- [x] Add selection counter and percentage calculations
+- [x] Write comprehensive vitest tests (25 passing tests)
+- [x] All bulk action utilities tested and working
+
+## Phase 49: Drill-Down Favorites/Bookmarks - COMPLETED
+- [x] Create favorites utility module (drillDownFavorites.ts) with 15 functions
+- [x] Design bookmark storage schema (filter criteria, name, timestamp, usage tracking)
+- [x] Implement save/load/delete favorite functionality
+- [x] Implement search and filter by type
+- [x] Implement usage tracking and statistics
+- [x] Implement import/export as JSON
+- [x] Add most recent and most frequent favorites retrieval
+- [x] Persist favorites to localStorage
+- [x] Write comprehensive vitest tests (25 test cases)
+- [x] All favorites utilities tested and working
