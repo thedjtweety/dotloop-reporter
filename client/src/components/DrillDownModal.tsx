@@ -1,15 +1,10 @@
-/**
- * DrillDownModal Component
- * Custom full-screen modal for displaying transaction lists
- * Uses custom CSS instead of Dialog component for full width control
- */
-
 import { useRef, useEffect, useState } from 'react';
-import { X, Download, Printer, Search, ChevronDown } from 'lucide-react';
+import { X, Download, Printer, Search, ChevronDown, ExternalLink } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import TransactionTable from './TransactionTable';
 import { exportAsCSV, exportAsExcel, openPrintDialog } from '@/lib/exportUtils';
 import { filterAndSortTransactions, DrillDownFilters, SortState, getUniqueValues } from '@/lib/filterUtils';
+import { openMultipleInDotloop } from '@/lib/dotloopUtils';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -148,6 +143,16 @@ export default function DrillDownModal({
               <Printer className="w-4 h-4" />
               Print
             </button>
+            {filteredTransactions.length > 0 && (
+              <button
+                onClick={() => openMultipleInDotloop(filteredTransactions)}
+                className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
+                aria-label="View in Dotloop"
+              >
+                <ExternalLink className="w-4 h-4" />
+                View in Dotloop
+              </button>
+            )}
             <button
               onClick={onClose}
               className="p-2 hover:bg-slate-800 rounded-lg transition-colors"

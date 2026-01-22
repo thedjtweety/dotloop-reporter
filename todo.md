@@ -2126,3 +2126,15 @@
 - [ ] Test PDF generation with various data sizes
 - [ ] Verify chart rendering quality in PDF
 - [ ] Test PDF download functionality
+
+## Phase 47: View in Dotloop Buttons in All Drill-Downs
+- [x] Create Dotloop utility module (dotloopUtils.ts) with link generation functions
+- [x] Add View in Dotloop button to Period Drill-Down modal (SalesTimelineChart)
+- [x] Add View in Dotloop button to main DrillDownModal
+- [x] Add View in Dotloop button to ChartDrillDown modal (Lead Source, Property Type, Geographic)
+- [x] Add View in Dotloop button to PipelineChartDrillDown modal
+- [x] Write comprehensive vitest tests for Dotloop utility functions (8 test suites, 20+ tests)
+- [x] Verify all tests pass
+- [ ] Manual browser testing of View in Dotloop buttons
+- [ ] Test with various drill-down scenarios
+- [ ] Verify Dotloop links open correctly in new tabs

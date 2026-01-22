@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Search, X, Download, Printer } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatUtils';
 import { exportAsCSV, exportAsExcel, openPrintDialog } from '@/lib/exportUtils';
+import { openMultipleInDotloop } from '@/lib/dotloopUtils';
 
 interface ChartDrillDownProps {
   isOpen: boolean;
@@ -276,6 +277,16 @@ export const ChartDrillDown: React.FC<ChartDrillDownProps> = ({
               <Printer className="w-4 h-4" />
               Print
             </button>
+            {filteredByChart.length > 0 && (
+              <button
+                onClick={() => openMultipleInDotloop(filteredByChart)}
+                className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
+                aria-label="View in Dotloop"
+              >
+                <ExternalLink className="w-4 h-4" />
+                View in Dotloop
+              </button>
+            )}
             <button
               onClick={onClose}
               className="p-2 hover:bg-slate-800 rounded-lg transition-colors"

@@ -15,7 +15,8 @@ import { useState } from 'react';
 import { ChartData, DotloopRecord } from '@/lib/csvParser';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { BarChart3, Grid3x3, TrendingUp, X, Download, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { BarChart3, Grid3x3, TrendingUp, X, Download, ArrowUpRight, ArrowDownRight, ExternalLink } from 'lucide-react';
+import { openMultipleInDotloop } from '@/lib/dotloopUtils';
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -640,8 +641,20 @@ function PeriodDrillDown({ period, records, onClose }: PeriodDrillDownProps) {
             )}
           </Card>
 
+          {/* View in Dotloop Button */}
+          {periodRecords.length > 0 && (
+            <Button 
+              onClick={() => openMultipleInDotloop(periodRecords)}
+              variant="default"
+              className="w-full gap-2"
+            >
+              <ExternalLink className="w-4 h-4" />
+              View All {periodRecords.length} Transactions in Dotloop
+            </Button>
+          )}
+
           {/* Close Button */}
-          <Button onClick={onClose} className="w-full">
+          <Button onClick={onClose} variant="outline" className="w-full">
             Close
           </Button>
         </div>
