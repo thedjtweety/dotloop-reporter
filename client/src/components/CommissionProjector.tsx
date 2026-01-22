@@ -99,7 +99,7 @@ export default function CommissionProjector({ records }: CommissionProjectorProp
         </div>
 
         {/* Projections List */}
-        <div className="space-y-4">
+        <div className="space-y-3 landscape:space-y-2">
           <div className="flex justify-between items-center border-b border-border/50 pb-2">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500/40" />

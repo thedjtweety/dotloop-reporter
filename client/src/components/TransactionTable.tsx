@@ -210,7 +210,7 @@ export default function TransactionTable({ transactions, limit, compact = false 
         </div>
       )}
 
-      <div className="w-full overflow-x-auto sm:overflow-x-visible -mx-4 sm:mx-0 px-4 sm:px-0">
+      <div className="w-full overflow-x-auto sm:overflow-x-visible landscape:overflow-x-visible -mx-4 sm:mx-0 landscape:mx-0 px-4 sm:px-0 landscape:px-0">
       <Table className="w-full min-w-[600px] sm:min-w-full">
         <TableHeader>
           <TableRow className="border-border">

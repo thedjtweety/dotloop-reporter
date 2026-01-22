@@ -142,7 +142,7 @@ ${selectedPeriod.value > stats.average ? 'above' : 'below'} the average of $${(s
 
       {/* Chart View */}
       {viewMode === 'chart' && (
-        <div className="w-full h-64 sm:h-72 md:h-80 bg-card border border-border rounded-lg p-2 sm:p-4">
+        <div className="w-full h-64 sm:h-72 md:h-80 landscape:h-40 landscape:h-40 bg-card border border-border rounded-lg p-2 sm:p-4">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 60 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />

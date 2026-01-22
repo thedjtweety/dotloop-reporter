@@ -786,12 +786,12 @@ function HomeContent() {
       </header>
 
       {/* Main Dashboard */}
-      <main className="container py-4 sm:py-6 md:py-8 px-4 sm:px-6 md:px-8">
+      <main className="container py-4 sm:py-6 md:py-8 landscape:py-3 px-4 sm:px-6 md:px-8 landscape:px-4">
         {/* Filter Badge */}
         <FilterBadge />
         
         {/* Top Metrics Row */}
-        <div data-section="metrics" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" data-tour="metrics">
+        <div data-section="metrics" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 landscape:grid-cols-4 gap-3 landscape:gap-4 mb-8" data-tour="metrics">
             <MetricCard
               title="Total Transactions"
               value={metrics.totalTransactions}
@@ -840,7 +840,7 @@ function HomeContent() {
         )}
 
         {/* Status Overview Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 landscape:grid-cols-4 gap-3 landscape:gap-4 mb-8">
           <Card 
             className="p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:border-primary/50 active:scale-[0.99]"
             onClick={() => handleMetricClick('active')}
