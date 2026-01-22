@@ -2241,3 +2241,30 @@
 - [x] Remove exposed base64 code from HTML
 - [x] Verify clean page display
 - [ ] Save checkpoint after fix
+
+
+## Phase 43: Error Boundary & Logging
+- [ ] Create ErrorBoundary component with React error catching
+- [ ] Integrate Sentry for error tracking and logging
+- [ ] Add error fallback UI with user-friendly messages
+- [ ] Test error boundary with intentional errors
+- [ ] Verify Sentry receives error reports
+
+## Phase 44: CSV Upload Validation
+- [ ] Create CSV validation utility with file size check (max 10MB)
+- [ ] Add file type validation (CSV only)
+- [ ] Implement CSV structure validation (headers check)
+- [ ] Add user-friendly error messages for validation failures
+- [ ] Update UploadZone component with validation
+- [ ] Test validation with various file types and sizes
+- [ ] Save checkpoint after implementations
+
+
+## Phase 43: Error Boundary & CSV Validation
+- [x] Create ErrorBoundary component with Sentry integration
+- [x] Create CSV validation utility with file size, type, and structure checks
+- [x] Integrate validation into UploadZone component
+- [x] Add error display UI to UploadZone
+- [x] Write vitest tests for CSV validation (19 tests)
+- [x] Run tests and verify all pass (19/19 passing)
+- [ ] Save checkpoint after implementation

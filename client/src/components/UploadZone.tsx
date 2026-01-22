@@ -5,20 +5,52 @@
  */
 
 import { useState, useRef } from 'react';
-import { Upload, CheckCircle, FileSpreadsheet, ArrowRight, Play } from 'lucide-react';
+import { Upload, CheckCircle, FileSpreadsheet, ArrowRight, Play, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { validateCSVFile } from '@/lib/csvValidation';
 
 interface UploadZoneProps {
   onFileUpload: (file: File) => void;
   onDemoClick?: () => void;
   isLoading?: boolean;
+  onValidationError?: (error: string) => void;
 }
 
-export default function UploadZone({ onFileUpload, onDemoClick, isLoading = false }: UploadZoneProps) {
+export default function UploadZone({ onFileUpload, onDemoClick, isLoading = false, onValidationError }: UploadZoneProps) {
   const [isDragActive, setIsDragActive] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileValidation = async (file: File) => {
+    setIsValidating(true);
+    setValidationError(null);
+    
+    try {
+      const result = await validateCSVFile(file, {
+        maxSizeMB: 10,
+      });
+      
+      if (!result.isValid) {
+        setValidationError(result.error || 'Unknown validation error');
+        onValidationError?.(result.error || 'Unknown validation error');
+        setIsValidating(false);
+        return;
+      }
+      
+      setFileName(file.name);
+      setValidationError(null);
+      onFileUpload(file);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to validate file';
+      setValidationError(errorMessage);
+      onValidationError?.(errorMessage);
+    } finally {
+      setIsValidating(false);
+    }
+  };
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -37,22 +69,14 @@ export default function UploadZone({ onFileUpload, onDemoClick, isLoading = fals
 
     const files = e.dataTransfer.files;
     if (files && files[0]) {
-      const file = files[0];
-      if (file.name.endsWith('.csv')) {
-        setFileName(file.name);
-        onFileUpload(file);
-      } else {
-        alert('Please upload a CSV file');
-      }
+      handleFileValidation(files[0]);
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files[0]) {
-      const file = files[0];
-      setFileName(file.name);
-      onFileUpload(file);
+      handleFileValidation(files[0]);
     }
   };
 
@@ -90,6 +114,18 @@ export default function UploadZone({ onFileUpload, onDemoClick, isLoading = fals
           className="hidden"
         />
         
+        {validationError && (
+          <Card className="w-full max-w-xl p-6 mb-6 border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-900">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-red-900 dark:text-red-100 mb-1">Upload Failed</h4>
+                <p className="text-sm text-red-800 dark:text-red-200">{validationError}</p>
+              </div>
+            </div>
+          </Card>
+        )}
+        
         <Card
           className={`w-full max-w-xl p-10 border-2 border-dashed transition-all duration-300 cursor-pointer group backdrop-blur-sm ${
             isDragActive
@@ -103,7 +139,24 @@ export default function UploadZone({ onFileUpload, onDemoClick, isLoading = fals
           onDrop={handleDrop}
         >
           <div className="flex flex-col items-center justify-center space-y-6">
-            {isLoading ? (
+            {isValidating ? (
+              <>
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full border-4 border-emerald-500/30 border-t-emerald-500 animate-spin" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <FileSpreadsheet className="w-8 h-8 text-emerald-400" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-semibold text-white">
+                    Validating Your File...
+                  </h3>
+                  <p className="text-slate-300">
+                    Checking file size and format
+                  </p>
+                </div>
+              </>
+            ) : isLoading ? (
               <>
                 <div className="relative">
                   <div className="w-20 h-20 rounded-full border-4 border-emerald-500/30 border-t-emerald-500 animate-spin" />
@@ -177,9 +230,10 @@ export default function UploadZone({ onFileUpload, onDemoClick, isLoading = fals
                     </Button>
                   )}
                 </div>
-                <p className="text-xs text-slate-400 mt-4 font-medium tracking-wide uppercase">
-                  Supports Dotloop Broker Exports
-                </p>
+                <div className="text-xs text-slate-400 mt-4 font-medium tracking-wide uppercase space-y-2">
+                  <p>Supports Dotloop Broker Exports</p>
+                  <p className="text-slate-500 normal-case text-[11px]">Maximum file size: 10MB</p>
+                </div>
               </>
             )}
           </div>
