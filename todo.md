@@ -2098,3 +2098,31 @@
 - [ ] Test with both demo and uploaded CSV data
 - [ ] Add period comparison feature (side-by-side metrics)
 - [ ] Add export timeline reports (CSV/PDF)
+
+
+## Phase 46: PDF Export with Charts Feature (CURRENT)
+- [ ] Install jsPDF and html2canvas libraries
+- [ ] Create PDF export utility module (pdfExport.ts)
+- [ ] Implement chart-to-image conversion using html2canvas
+- [ ] Create PDF generation function with formatted layout
+- [ ] Add PDF export button to Period Details modal
+- [ ] Implement chart image capture and embedding in PDF
+- [ ] Add period comparison PDF export
+- [ ] Test PDF generation with various data sizes
+- [ ] Verify chart rendering quality in PDF
+- [ ] Test PDF download functionality
+
+## Phase 46: PDF Export with Charts Feature
+- [x] Install jsPDF and html2canvas libraries
+- [x] Create PDF export utility module (pdfExport.ts) with three export functions
+- [x] Implement chart-to-image conversion using html2canvas
+- [x] Create PDF generation function with formatted layout and breakdowns
+- [x] Create period comparison PDF export function
+- [x] Create timeline data PDF export function
+- [x] Fix TypeScript compatibility issues with jsPDF 4.0 API
+- [ ] Add PDF export button to Period Details modal
+- [ ] Integrate chart image capture and embedding in PDF
+- [ ] Add period comparison PDF export to comparison modal
+- [ ] Test PDF generation with various data sizes
+- [ ] Verify chart rendering quality in PDF
+- [ ] Test PDF download functionality
