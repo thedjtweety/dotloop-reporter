@@ -503,13 +503,13 @@ function PeriodDrillDown({ period, records, onClose }: PeriodDrillDownProps) {
 
   // Calculate breakdowns
   const byAgent = periodRecords.reduce((acc, r) => {
-    const agent = r.agent || 'Unknown';
+    const agent = r.agents || r.agent || 'Unknown';
     acc[agent] = (acc[agent] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
   const byPropertyType = periodRecords.reduce((acc, r) => {
-    const type = r.transactionType || 'Unknown';
+    const type = r.propertyType || r.transactionType || 'Unknown';
     acc[type] = (acc[type] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
