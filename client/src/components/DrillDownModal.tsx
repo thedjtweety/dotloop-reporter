@@ -250,16 +250,19 @@ export default function DrillDownModal({
               />
             </div>
           </div>
+          {/* Bulk Actions Toolbar */}
+          {selectedRecords.size > 0 && (
+            <div className="flex-shrink-0 px-6 py-4 border-t border-slate-700 bg-slate-800">
+              <BulkActionsToolbar
+                selectedRecords={selectedTransactionRecords}
+                allRecords={filteredTransactions}
+                title={title}
+                isVisible={true}
+              />
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Bulk Actions Toolbar */}
-      <BulkActionsToolbar
-        selectedRecords={selectedTransactionRecords}
-        allRecords={filteredTransactions}
-        title={title}
-        isVisible={selectedRecords.size > 0}
-      />
     </div>
   );
 }
