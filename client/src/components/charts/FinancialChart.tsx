@@ -102,7 +102,7 @@ export default function FinancialChart({ metrics, records = [] }: FinancialChart
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {financialMetrics.map((metric, index) => {
         const isPositive = metric.change >= 0;
         const Icon = isPositive ? ArrowUp : ArrowDown;
