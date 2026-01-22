@@ -42,8 +42,8 @@ export default function BulkActionsToolbar({
     return null;
   }
 
-  const selectionCount = selectedRecords.length;
-  const percentage = allRecords.length > 0 ? Math.round((selectionCount / allRecords.length) * 100) : 0;
+  const selectionCount = getSelectionCount(new Set(selectedRecords.map((_, i) => i.toString())));
+  const percentage = Math.round((selectionCount / allRecords.length) * 100);
 
   const handleExportCSV = () => {
     performBulkExportCSV(allRecords, selectedRecords, title);
