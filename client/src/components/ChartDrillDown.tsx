@@ -13,6 +13,8 @@ import { ExternalLink, Search, X, Download, Printer } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatUtils';
 import { exportAsCSV, exportAsExcel, openPrintDialog } from '@/lib/exportUtils';
 import { openMultipleInDotloop } from '@/lib/dotloopUtils';
+import BulkActionsToolbar from './BulkActionsToolbar';
+import FavoritesSelector from './FavoritesSelector';
 
 interface ChartDrillDownProps {
   isOpen: boolean;
@@ -200,6 +202,7 @@ export const ChartDrillDown: React.FC<ChartDrillDownProps> = ({
   onViewFullDetails,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRecords, setSelectedRecords] = useState<Set<number>>(new Set());
 
   // Filter records by chart type
   const filteredByChart = useMemo(
@@ -241,6 +244,15 @@ export const ChartDrillDown: React.FC<ChartDrillDownProps> = ({
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <FavoritesSelector
+              filterType={filterType as any}
+              filterValue={filterValue}
+              onLoadFavorite={(fav) => {
+                if (fav.filterValue) {
+                  // Reload with the favorite's filter value
+                }
+              }}
+            />
             <button
               onClick={() => exportAsCSV({
                 title,
@@ -353,6 +365,14 @@ export const ChartDrillDown: React.FC<ChartDrillDownProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Bulk Actions Toolbar */}
+      <BulkActionsToolbar
+        selectedRecords={Array.from(selectedRecords).map(index => filteredRecords[index])}
+        allRecords={filteredRecords}
+        title={title}
+        isVisible={selectedRecords.size > 0}
+      />
     </div>
   );
 };

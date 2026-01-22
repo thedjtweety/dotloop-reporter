@@ -2186,3 +2186,28 @@
 - [x] Persist favorites to localStorage
 - [x] Write comprehensive vitest tests (25 test cases)
 - [x] All favorites utilities tested and working
+
+## Phase 50: Integrate Bulk Actions UI - COMPLETED
+- [x] Create reusable BulkActionsToolbar component with floating toolbar
+- [x] Add checkbox selection state management to DrillDownModal
+- [x] Integrate BulkActionsToolbar into DrillDownModal
+- [x] Integrate BulkActionsToolbar into ChartDrillDown
+- [x] Display selection count and percentage
+- [x] Add export CSV/Excel buttons to toolbar
+- [x] Add "Open in Dotloop" button to toolbar
+- [x] Add Tag and Delete placeholder buttons
+- [x] Style toolbar with dark theme matching app design
+- [x] Test toolbar visibility and functionality
+
+## Phase 51: Integrate Favorites Dropdown - COMPLETED
+- [x] Create reusable FavoritesSelector component
+- [x] Add save favorite form with name and description
+- [x] Display recent favorites (5 most recent)
+- [x] Display all favorites of current filter type
+- [x] Implement load favorite functionality
+- [x] Implement delete favorite functionality
+- [x] Show usage count for each favorite
+- [x] Integrate FavoritesSelector into DrillDownModal
+- [x] Integrate FavoritesSelector into ChartDrillDown
+- [x] Add favorites dropdown to filter headers
+- [x] Test favorites save/load/delete workflow

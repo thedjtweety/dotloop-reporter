@@ -13,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import BulkActionsToolbar from './BulkActionsToolbar';
+import FavoritesSelector from './FavoritesSelector';
 
 interface DrillDownModalProps {
   isOpen: boolean;
@@ -39,6 +41,8 @@ export default function DrillDownModal({
     agent: 'All',
   });
   const [sortState, setSortState] = useState<SortState | null>(null);
+  const [selectedRecords, setSelectedRecords] = useState<Set<number>>(new Set());
+  const [selectAll, setSelectAll] = useState(false);
 
   // Get unique values for filters
   const uniqueStatuses = ['All', ...getUniqueValues(transactions, 'status')];
@@ -46,6 +50,9 @@ export default function DrillDownModal({
 
   // Apply filters and sorting
   const filteredTransactions = filterAndSortTransactions(transactions, filters, sortState);
+
+  // Get selected transaction records
+  const selectedTransactionRecords = Array.from(selectedRecords).map(index => filteredTransactions[index]);
 
   // Sync scrollbar with table scroll
   useEffect(() => {
@@ -202,6 +209,17 @@ export default function DrillDownModal({
                 ))}
               </SelectContent>
             </Select>
+            <div className="flex items-center gap-2 ml-auto">
+              <FavoritesSelector
+                filterType="custom"
+                customFilters={filters}
+                onLoadFavorite={(fav) => {
+                  if (fav.customFilters) {
+                    setFilters(fav.customFilters as DrillDownFilters);
+                  }
+                }}
+              />
+            </div>
           </div>
         </div>
 
@@ -234,6 +252,14 @@ export default function DrillDownModal({
           </div>
         </div>
       </div>
+
+      {/* Bulk Actions Toolbar */}
+      <BulkActionsToolbar
+        selectedRecords={selectedTransactionRecords}
+        allRecords={filteredTransactions}
+        title={title}
+        isVisible={selectedRecords.size > 0}
+      />
     </div>
   );
 }
