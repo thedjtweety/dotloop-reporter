@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { DotloopRecord } from '@/lib/csvParser';
 import { analyzeDataHealth, HealthIssue } from '@/lib/dataHealth';
+import { analyzeFieldCompleteness } from '@/lib/fieldCompletenessAnalysis';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { AlertTriangle, CheckCircle, XCircle, AlertCircle, ArrowRight } from 'lucide-react';
@@ -14,6 +15,7 @@ interface DataHealthCheckProps {
 
 export default function DataHealthCheck({ records }: DataHealthCheckProps) {
   const report = useMemo(() => analyzeDataHealth(records), [records]);
+  const completenessReport = useMemo(() => analyzeFieldCompleteness(records), [records]);
   const [selectedIssue, setSelectedIssue] = useState<HealthIssue | null>(null);
 
   const getScoreColor = (score: number) => {
@@ -101,6 +103,54 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Field Completeness Breakdown */}
+      <Card className="border-border bg-card">
+        <CardHeader>
+          <CardTitle>Field Completeness</CardTitle>
+          <CardDescription>
+            Data quality breakdown by field. Green indicates excellent (90%+), yellow indicates good (70-89%), red indicates needs attention (&lt;70%).
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {completenessReport.fields.map((field) => {
+              const getFieldColor = (status: string) => {
+                if (status === 'excellent') return 'bg-emerald-500';
+                if (status === 'good') return 'bg-amber-500';
+                if (status === 'warning') return 'bg-orange-500';
+                return 'bg-red-500';
+              };
+
+              const getFieldTextColor = (status: string) => {
+                if (status === 'excellent') return 'text-emerald-500';
+                if (status === 'good') return 'text-amber-500';
+                if (status === 'warning') return 'text-orange-500';
+                return 'text-red-500';
+              };
+
+              return (
+                <div key={field.fieldName} className="p-4 rounded-lg border border-border bg-muted/30">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-foreground text-sm">{field.displayName}</h4>
+                    <span className={`text-lg font-bold ${getFieldTextColor(field.status)}`}>
+                      {field.completenessPercentage}%
+                    </span>
+                  </div>
+                  <Progress 
+                    value={field.completenessPercentage} 
+                    className="h-2" 
+                    indicatorClassName={getFieldColor(field.status)}
+                  />
+                  <p className="text-xs text-foreground mt-2">
+                    {field.completedRecords} of {field.totalRecords} records
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Detailed Issues List */}
       <Card className="border-border bg-card">
