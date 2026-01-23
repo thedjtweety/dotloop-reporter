@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { CheckCircle2, Clock, Archive, AlertCircle, ChevronLeft, ChevronRight, Search, Settings } from 'lucide-react';
 import DotloopLogo from './DotloopLogo';
+import ExpandableTransactionRow from './ExpandableTransactionRow';
 import { useState, useMemo, useEffect } from 'react';
 
 interface TransactionTableProps {
@@ -214,6 +215,7 @@ export default function TransactionTable({ transactions, limit, compact = false 
       <Table className="w-full min-w-[600px] sm:min-w-full">
         <TableHeader>
           <TableRow className="border-border">
+            <TableHead className="font-semibold text-xs py-2 px-2 w-8">Details</TableHead>
             {isColumnVisible('status') && (
               <TableHead className="font-semibold text-xs py-2 px-2 w-[100px]">Status</TableHead>
             )}
@@ -238,76 +240,17 @@ export default function TransactionTable({ transactions, limit, compact = false 
           </TableRow>
         </TableHeader>
         <TableBody>
-          {displayTransactions.map((transaction, idx) => (
-            <TableRow key={idx} className="border-border hover:bg-muted/50">
-              {isColumnVisible('status') && (
-                <TableCell className="py-2 px-2 w-[100px]">
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    {getStatusIcon(transaction.loopStatus)}
-                    <span className="hidden sm:inline-block">
-                      {getStatusBadge(transaction.loopStatus)}
-                    </span>
-                    <span className="sm:hidden text-[10px] sm:text-xs font-medium text-foreground">
-                      {transaction.loopStatus}
-                    </span>
-                  </div>
-                </TableCell>
-              )}
-              {isColumnVisible('property') && (
-                <TableCell className="py-2 px-2 w-[220px]">
-                  <div className="flex flex-col gap-0">
-                    <span className="font-medium text-xs text-foreground line-clamp-1">
-                      {transaction.loopName || 'N/A'}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground line-clamp-1">
-                      {transaction.address || 'N/A'}
-                    </span>
-                  </div>
-                </TableCell>
-              )}
-              {isColumnVisible('agent') && (
-                <TableCell className="text-xs text-foreground py-2 px-2 w-[110px]">
-                  <span className="line-clamp-1">
-                    {transaction.agents || 'N/A'}
-                  </span>
-                </TableCell>
-              )}
-              {isColumnVisible('price') && (
-                <TableCell className="text-xs font-medium text-foreground py-2 px-2 w-[90px]">
-                  ${(transaction.price / 1000).toFixed(0)}K
-                </TableCell>
-              )}
-              {isColumnVisible('commission') && (
-                <TableCell className="text-xs font-semibold text-foreground py-2 px-2 w-[100px]">
-                  ${(transaction.commissionTotal / 1000).toFixed(1)}K
-                </TableCell>
-              )}
-              {isColumnVisible('date') && (
-                <TableCell className="text-xs text-foreground py-2 px-2 w-[100px]">
-                  {transaction.createdDate
-                    ? new Date(transaction.createdDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
-                    : 'N/A'}
-                </TableCell>
-              )}
-              {isColumnVisible('actions') && (
-                <TableCell className="py-2 px-2 w-[90px]">
-                  {transaction.loopViewUrl && (
-                    <a
-                      href={transaction.loopViewUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-[10px] sm:text-xs font-medium"
-                      title="View in Dotloop"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <DotloopLogo size={14} />
-                      <span className="hidden sm:inline">View</span>
-                    </a>
-                  )}
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
+          {displayTransactions.map((transaction, idx) => {
+            const visibleCols = (['status', 'property', 'agent', 'price', 'commission', 'date', 'actions'] as ColumnKey[]).filter(col => isColumnVisible(col));
+            return (
+              <ExpandableTransactionRow
+                key={idx}
+                transaction={transaction}
+                visibleColumns={visibleCols}
+                compact={compact}
+              />
+            );
+          })}
         </TableBody>
       </Table>
       </div>

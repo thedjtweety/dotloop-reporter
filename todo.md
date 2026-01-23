@@ -2268,3 +2268,15 @@
 - [x] Write vitest tests for CSV validation (19 tests)
 - [x] Run tests and verify all pass (19/19 passing)
 - [ ] Save checkpoint after implementation
+
+
+## Phase 44: Expandable Row Details in Drill-Down Modal
+- [x] Create ExpandableTransactionRow component with expand/collapse toggle
+- [x] Design metadata display layout (address, dates, commission breakdown, notes, etc.)
+- [x] Add smooth expand/collapse animation
+- [x] Integrate expandable rows into TransactionTable component
+- [x] Add expand/collapse icon to table rows
+- [x] Style expanded details with proper spacing and typography
+- [x] Test expandable rows in drill-down modal
+- [x] Verify mobile responsiveness of expanded details
+- [ ] Save checkpoint after implementation
