@@ -2280,3 +2280,12 @@
 - [x] Test expandable rows in drill-down modal
 - [x] Verify mobile responsiveness of expanded details
 - [ ] Save checkpoint after implementation
+
+
+## Phase 45: Fix Agent Column Showing N/A in Drill-Downs
+- [x] Investigate agent field mapping in DotloopRecord type
+- [x] Check data structure in drill-down modals
+- [x] Fix agent field display in ExpandableTransactionRow
+- [x] Fix agent field display in TransactionTable
+- [x] Verify agent data displays correctly in all drill-downs
+- [ ] Save checkpoint after fix
