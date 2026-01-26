@@ -100,6 +100,10 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
             <div className="text-center">
               <p className="font-bold text-slate-800 dark:text-slate-100 text-base truncate w-full group-hover:text-primary transition-colors">{second.agentName}</p>
               <p className="text-sm text-slate-600 dark:text-slate-400 font-semibold mt-1">{formatCurrency(second.totalCommission)}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1.5 flex items-center justify-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+                {second.closedDeals} {second.closedDeals === 1 ? 'Deal' : 'Deals'} Closed
+              </p>
             </div>
           </div>
           
@@ -136,6 +140,10 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
               <p className="text-sm text-yellow-700 dark:text-yellow-300 font-bold bg-yellow-100 dark:bg-yellow-900/40 px-3 py-1 rounded-full mt-1">
                 {formatCurrency(first.totalCommission)}
               </p>
+              <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1.5 flex items-center justify-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
+                {first.closedDeals} {first.closedDeals === 1 ? 'Deal' : 'Deals'} Closed
+              </p>
             </div>
           </div>
 
@@ -166,6 +174,10 @@ export default function WinnersPodium({ agents, transactions }: WinnersPodiumPro
             <div className="text-center">
               <p className="font-bold text-slate-800 dark:text-slate-100 text-base truncate w-full group-hover:text-primary transition-colors">{third.agentName}</p>
               <p className="text-sm text-slate-600 dark:text-slate-400 font-semibold mt-1">{formatCurrency(third.totalCommission)}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1.5 flex items-center justify-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 bg-amber-600 rounded-full"></span>
+                {third.closedDeals} {third.closedDeals === 1 ? 'Deal' : 'Deals'} Closed
+              </p>
             </div>
           </div>
 

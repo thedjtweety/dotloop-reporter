@@ -2333,3 +2333,12 @@
 - [x] Test responsive design on mobile
 - [x] Verify gamification feel is maintained
 - [ ] Save checkpoint after redesign
+
+
+## Phase 49: Add Deals Closed Metric to Podium
+- [x] Calculate deals closed for each agent from records
+- [x] Update WinnersPodium component to display deals closed
+- [x] Format deals closed display (e.g., "12 Deals Closed")
+- [x] Style metric display below revenue
+- [x] Test on mobile and desktop
+- [ ] Save checkpoint after implementation
