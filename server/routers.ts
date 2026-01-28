@@ -11,6 +11,7 @@ import { performanceRouter } from './performanceRouter';
 import { auditLogRouter } from './auditLogRouter';
 import { dotloopOAuthRouter } from './dotloopOAuthRouter';
 import { dotloopApiRouter } from './routers/dotloop-api';
+import { dotloopConnectionsRouter } from './routers/dotloop-connections';
 import { tenantSettingsRouter } from './tenantSettingsRouter';
 import { commissionRouter } from './commissionRouter';
 // import { tierHistoryRouter } from './tierHistoryRouter'; // Removed: tierHistory table was dropped in migration
@@ -222,6 +223,7 @@ export const appRouter = router({
   auditLogs: auditLogRouter,
   dotloopOAuth: dotloopOAuthRouter,
   dotloopApi: dotloopApiRouter,
+  dotloopConnections: dotloopConnectionsRouter,
   tenantSettings: tenantSettingsRouter,
   commission: commissionRouter,
   // tierHistory: tierHistoryRouter, // Removed: tierHistory table was dropped in migration

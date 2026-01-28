@@ -105,7 +105,15 @@ export const oauthTokens = mysqlTable("oauth_tokens", {
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	lastUsedAt: timestamp({ mode: 'string' }),
 	lastRefreshedAt: timestamp({ mode: 'string' }),
+	// Multi-connection support
+	connectionName: varchar({ length: 255 }),
+	isActive: int().default(1).notNull(),
+	isPrimary: int().default(0).notNull(),
+	
+	// Dotloop account info
 	dotloopAccountId: int(),
+	dotloopAccountEmail: varchar({ length: 320 }),
+	dotloopAccountName: varchar({ length: 255 }),
 	dotloopProfileId: int(),
 	dotloopDefaultProfileId: int(),
 	dotloopProfileIds: text(),
@@ -118,6 +126,7 @@ export const oauthTokens = mysqlTable("oauth_tokens", {
 	index("expires_idx").on(table.tokenExpiresAt),
 	index("tenant_provider_idx").on(table.tenantId, table.provider),
 	index("tenant_user_provider_idx").on(table.tenantId, table.userId, table.provider),
+	index("oauth_tokens_primary_idx").on(table.userId, table.isPrimary),
 ]);
 
 export const platformAdminLogs = mysqlTable("platform_admin_logs", {
@@ -372,4 +381,23 @@ export const uploads = mysqlTable("uploads", {
 	index("openId_tenant_unique").on(table.openId, table.tenantId),
 	index("email_tenant_unique").on(table.email, table.tenantId),
 	index("tenant_idx").on(table.tenantId),
+	]);
+
+export const userPreferences = mysqlTable("user_preferences", {
+	id: int().autoincrement().notNull(),
+	userId: int().notNull(),
+	tenantId: int().notNull(),
+	
+	// Current active Dotloop connection
+	activeOAuthTokenId: int(),
+	
+	// Other preferences
+	defaultUploadView: varchar({ length: 50 }).default('dashboard'),
+	theme: varchar({ length: 20 }).default('light'),
+	
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("user_preferences_user_unique").on(table.userId),
+	index("user_preferences_tenant_idx").on(table.tenantId),
 ]);

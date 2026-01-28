@@ -2466,3 +2466,26 @@
 - [x] Update DotloopAPIClient method signatures to match router usage
 - [ ] Test token refresh flow end-to-end
 - [ ] Update documentation with usage examples
+
+
+## Phase 15: Multi-Account Dotloop Connection Support
+- [x] Update oauth_tokens schema: add connectionName, isPrimary, isActive fields
+- [x] Update oauth_tokens schema: add dotloopAccountEmail, dotloopAccountName fields
+- [x] Create userPreferences table with activeOAuthTokenId field
+- [x] Run database migration (SQL ALTER TABLE)
+- [x] Add listConnections procedure to dotloopConnectionsRouter
+- [x] Add getActiveConnection procedure to dotloopConnectionsRouter
+- [x] Add switchConnection procedure to dotloopConnectionsRouter
+- [x] Add updateConnection procedure to dotloopConnectionsRouter
+- [x] Add setPrimaryConnection procedure to dotloopConnectionsRouter
+- [x] Add deleteConnection procedure to dotloopConnectionsRouter
+- [x] Add listAllConnections procedure (admin only) to dotloopConnectionsRouter
+- [x] Wire dotloopConnectionsRouter into main routers
+- [ ] Update handleCallback to support connectionName and auto-set primary
+- [ ] Create DotloopAccountSwitcher component (dropdown in header)
+- [ ] Create ManageDotloopConnections settings page
+- [ ] Update oauth-token-helper to use active connection
+- [ ] Update dotloopApiRouter to use active connection
+- [ ] Create migration script for existing connections
+- [ ] Test multi-connection workflow end-to-end
+- [ ] Update documentation with multi-account usage examples
