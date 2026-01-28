@@ -91,26 +91,34 @@ export const dotloopOAuthRouter = router({
       state: z.string().optional(),
     }))
     .query(async ({ input }) => {
-      const { clientId, redirectUri } = getDotloopCredentials();
+      try {
+        const { clientId, redirectUri } = getDotloopCredentials();
       
-      // Generate CSRF state token if not provided
-      const state = input.state || tokenEncryption.hashToken(
-        `${Date.now()}-${Math.random()}`
-      ).substring(0, 32);
+        // Generate CSRF state token if not provided
+        const state = input.state || tokenEncryption.hashToken(
+          `${Date.now()}-${Math.random()}`
+        ).substring(0, 32);
 
-      const params = new URLSearchParams({
-        response_type: 'code',
-        client_id: clientId,
-        redirect_uri: redirectUri,
-        state,
-        redirect_on_deny: 'true',
-        scope: 'account:read profile:* loop:* contact:* template:read',
-      });
+        const params = new URLSearchParams({
+          response_type: 'code',
+          client_id: clientId,
+          redirect_uri: redirectUri,
+          state,
+          redirect_on_deny: 'true',
+          scope: 'account:read profile:* loop:* contact:* template:read',
+        });
 
-      return {
-        url: `${DOTLOOP_AUTH_URL}?${params.toString()}`,
-        state,
-      };
+        const authUrl = `${DOTLOOP_AUTH_URL}?${params.toString()}`;
+        console.log('[dotloopOAuth.getAuthorizationUrl] Generated authorization URL');
+        
+        return {
+          url: authUrl,
+          state,
+        };
+      } catch (error) {
+        console.error('[dotloopOAuth.getAuthorizationUrl] Error:', error);
+        throw error;
+      }
     }),
 
   /**
