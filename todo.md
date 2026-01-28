@@ -2533,3 +2533,12 @@
 - [x] Ensure frontend and backend use same redirect URI
 - [x] Verify environment variables match Dotloop API application settings
 - [x] Update OAuthCallback route in App.tsx to /api/dotloop/callback
+
+
+## Phase 21: Fix OAuth Callback Server Errors
+- [x] Change handleCallback from protectedProcedure to publicProcedure
+- [x] Add authentication check in OAuthCallback component
+- [x] Redirect to login if user not authenticated
+- [x] Add null guard for ctx.user in handleCallback
+- [x] Verify all TypeScript errors resolved
+- [x] Confirm oauth-redirect-uri tests still passing (9/9)

@@ -10,7 +10,7 @@
  */
 
 import { z } from 'zod';
-import { protectedProcedure, router } from './_core/trpc';
+import { protectedProcedure, publicProcedure, router } from './_core/trpc';
 import { getDb } from './db';
 import { oauthTokens, tokenAuditLogs } from '../drizzle/schema';
 import { tokenEncryption } from './lib/token-encryption';
@@ -117,7 +117,7 @@ export const dotloopOAuthRouter = router({
    * Handle OAuth callback
    * Exchanges authorization code for access/refresh tokens
    */
-  handleCallback: protectedProcedure
+  handleCallback: publicProcedure
     .input(z.object({
       code: z.string(),
       state: z.string(),
@@ -127,6 +127,11 @@ export const dotloopOAuthRouter = router({
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new Error('Database not available');
+
+      // Ensure user is authenticated
+      if (!ctx.user) {
+        throw new Error('User must be authenticated to complete OAuth callback');
+      }
 
       const { clientId, clientSecret, redirectUri } = getDotloopCredentials();
       const tenantId = await getTenantIdFromUser(ctx.user.id);

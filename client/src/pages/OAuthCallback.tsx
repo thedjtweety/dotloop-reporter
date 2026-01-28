@@ -4,14 +4,26 @@ import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { trpc } from '@/lib/trpc';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { getLoginUrl } from '@/const';
 
 export default function OAuthCallback() {
   const [, setLocation] = useLocation();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
+  const { user, loading: authLoading } = useAuth();
   const handleCallbackMutation = trpc.dotloopOAuth.handleCallback.useMutation();
 
   useEffect(() => {
+    // Wait for auth to load
+    if (authLoading) return;
+
+    // Redirect to login if not authenticated
+    if (!user) {
+      window.location.href = getLoginUrl();
+      return;
+    }
+
     const processCallback = async () => {
       try {
         // Get query parameters from URL
@@ -56,7 +68,7 @@ export default function OAuthCallback() {
     };
 
     processCallback();
-  }, [setLocation, handleCallbackMutation]);
+  }, [setLocation, handleCallbackMutation, user, authLoading]);
 
   if (isProcessing && !error && !handleCallbackMutation.isError) {
     return (
