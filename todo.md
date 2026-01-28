@@ -2505,3 +2505,10 @@
 - [x] Green dot for active connections
 - [x] Gray dot for inactive connections
 - [x] Update dropdown item styling for better visual hierarchy
+
+
+## Phase 18: Fix Login to Dotloop OAuth Flow
+- [x] Investigate why "Login to Dotloop" button shows placeholder message
+- [x] Fix button to trigger actual OAuth authorization flow
+- [x] Verify OAuth redirect URL is correct
+- [ ] Test end-to-end OAuth flow

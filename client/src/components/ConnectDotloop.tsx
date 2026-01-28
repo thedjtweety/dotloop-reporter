@@ -1,14 +1,6 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Link2, CheckCircle2, Clock, Shield, Zap, RefreshCw } from 'lucide-react';
+import { Link2, CheckCircle2, Shield, Zap } from 'lucide-react';
 
 interface ConnectDotloopProps {
   variant?: 'button' | 'card';
@@ -16,10 +8,20 @@ interface ConnectDotloopProps {
 }
 
 export default function ConnectDotloop({ variant = 'button', onConnect }: ConnectDotloopProps) {
-  const [showDialog, setShowDialog] = useState(false);
 
   const handleConnect = () => {
-    setShowDialog(true);
+    // Redirect to Dotloop OAuth authorization
+    const clientId = import.meta.env.VITE_DOTLOOP_CLIENT_ID;
+    const redirectUri = import.meta.env.VITE_DOTLOOP_REDIRECT_URI;
+    const scopes = 'account:read profile:* loop:* contact:* template:read';
+    
+    const authUrl = `https://auth.dotloop.com/oauth/authorize?` +
+      `response_type=code&` +
+      `client_id=${encodeURIComponent(clientId)}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `scope=${encodeURIComponent(scopes)}`;
+    
+    window.location.href = authUrl;
     onConnect?.();
   };
 
@@ -59,8 +61,6 @@ export default function ConnectDotloop({ variant = 'button', onConnect }: Connec
             </div>
           </div>
         </Card>
-
-        <ComingSoonDialog open={showDialog} onOpenChange={setShowDialog} />
       </>
     );
   }
@@ -71,85 +71,8 @@ export default function ConnectDotloop({ variant = 'button', onConnect }: Connec
         <Link2 className="w-4 h-4" />
         Login to Dotloop
       </Button>
-
-      <ComingSoonDialog open={showDialog} onOpenChange={setShowDialog} />
     </>
   );
 }
 
-function ComingSoonDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Clock className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <DialogTitle className="text-xl">Dotloop Integration Coming Soon</DialogTitle>
-              <p className="text-sm text-foreground mt-1">
-                We're building something amazing
-              </p>
-            </div>
-          </div>
-        </DialogHeader>
-        
-        <div className="space-y-4 py-4">
-          <p className="text-sm text-foreground leading-relaxed">
-            We're currently in the process of integrating with Dotloop's OAuth system to provide you with seamless, automatic data synchronization.
-          </p>
 
-          <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-            <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
-              <RefreshCw className="w-4 h-4 text-primary" />
-              What to Expect
-            </h4>
-            <ul className="space-y-2 text-sm text-foreground">
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
-                <span><strong className="text-foreground">One-Click Connection:</strong> Securely link your Dotloop account with OAuth 2.0</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
-                <span><strong className="text-foreground">Automatic Sync:</strong> Your data updates nightly without manual uploads</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
-                <span><strong className="text-foreground">Read-Only Access:</strong> We never modify your Dotloop data—only read it</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
-                <span><strong className="text-foreground">Instant Revocation:</strong> Disconnect anytime from your Dotloop settings</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <div className="flex gap-3">
-              <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <h5 className="font-semibold text-sm text-blue-900 dark:text-blue-100">
-                  Security First
-                </h5>
-                <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
-                  We never store your Dotloop password. All connections use industry-standard OAuth 2.0, and you can revoke access instantly from your Dotloop account settings.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <p className="text-xs text-foreground italic">
-            In the meantime, continue using CSV uploads to access all reporting features.
-          </p>
-        </div>
-
-        <div className="flex justify-end">
-          <Button onClick={() => onOpenChange(false)}>
-            Got it
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
