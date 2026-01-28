@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Link2, CheckCircle2, Shield, Zap, Loader2 } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
+import { skipToken } from '@tanstack/react-query';
 
 interface ConnectDotloopProps {
   variant?: 'button' | 'card';
@@ -10,24 +12,31 @@ interface ConnectDotloopProps {
 
 export default function ConnectDotloop({ variant = 'button', onConnect }: ConnectDotloopProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const getAuthUrlQuery = trpc.dotloopOAuth.getAuthorizationUrl.useQuery(skipToken, {
+    enabled: false,
+  });
 
-  const handleConnect = () => {
+  const handleConnect = async () => {
     setIsLoading(true);
     
-    // Redirect to Dotloop OAuth authorization
-    const clientId = import.meta.env.VITE_DOTLOOP_CLIENT_ID;
-    const redirectUri = import.meta.env.VITE_DOTLOOP_REDIRECT_URI;
-    const scopes = 'account:read profile:* loop:* contact:* template:read';
-    
-    const authUrl = `https://auth.dotloop.com/oauth/authorize?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
-    
-    // Redirect is happening, no need for toast since page will navigate
-    
-    // Redirect after a brief delay to ensure toast is visible
-    setTimeout(() => {
-      window.location.href = authUrl;
-      onConnect?.();
-    }, 500);
+    try {
+      // Get authorization URL from backend
+      const result = await getAuthUrlQuery.refetch();
+      
+      if (result.data?.url) {
+        // Redirect after a brief delay to ensure UI updates
+        setTimeout(() => {
+          window.location.href = result.data.url;
+          onConnect?.();
+        }, 500);
+      } else {
+        console.error('Failed to get authorization URL');
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Error getting authorization URL:', error);
+      setIsLoading(false);
+    }
   };
 
   if (variant === 'card') {

@@ -2542,3 +2542,12 @@
 - [x] Add null guard for ctx.user in handleCallback
 - [x] Verify all TypeScript errors resolved
 - [x] Confirm oauth-redirect-uri tests still passing (9/9)
+
+
+## Phase 22: Fix Invalid OAuth Scope Error
+- [x] Verified DEFAULT_SCOPES in dotloopOAuthRouter.ts already has correct values
+- [x] Confirmed scope string: account:read profile:* loop:* contact:* template:read
+- [x] Updated ConnectDotloop to use backend getAuthorizationUrl procedure
+- [x] Fixed URL construction to properly handle scope parameter
+- [x] All TypeScript errors resolved
+- [x] Dev server running without errors
