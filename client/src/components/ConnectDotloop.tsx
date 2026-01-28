@@ -33,7 +33,7 @@ export default function ConnectDotloop({ variant = 'button', onConnect }: Connec
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-foreground mb-2">
-                Connect Your Dotloop Account
+                Login to Dotloop
               </h3>
               <p className="text-sm text-foreground mb-4">
                 Automatically sync your transaction data in real-time. No more manual CSV uploads—your reports update automatically every night.
@@ -54,7 +54,7 @@ export default function ConnectDotloop({ variant = 'button', onConnect }: Connec
               </div>
               <Button onClick={handleConnect} className="w-full md:w-auto">
                 <Link2 className="w-4 h-4 mr-2" />
-                Connect Dotloop
+                Login to Dotloop
               </Button>
             </div>
           </div>
@@ -69,7 +69,7 @@ export default function ConnectDotloop({ variant = 'button', onConnect }: Connec
     <>
       <Button onClick={handleConnect} variant="outline" className="gap-2">
         <Link2 className="w-4 h-4" />
-        Connect Dotloop
+        Login to Dotloop
       </Button>
 
       <ComingSoonDialog open={showDialog} onOpenChange={setShowDialog} />

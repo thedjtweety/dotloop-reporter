@@ -2449,8 +2449,8 @@
 - [x] Wire dotloopApiRouter into main routers
 - [ ] Add OAuth token retrieval helper function
 - [x] Create dual-column homepage layout (CSV upload left, API connection right)
-- [ ] Update UI to show "Login to Dotloop" instead of "Connect Dotloop"
-- [ ] Create 10-15 API integration tests (token exchange, refresh, profile fetch, sync)
+- [x] Update UI to show "Login to Dotloop" instead of "Connect Dotloop"
+- [x] Create 20 API integration tests (token exchange, refresh, profile fetch, sync, error handling, rate limiting)
 - [ ] Implement WebSocket support for real-time upload/sync notifications
 - [ ] Test end-to-end API sync workflow
 - [ ] Verify CSV upload functionality remains intact
