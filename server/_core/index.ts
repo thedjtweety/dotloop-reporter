@@ -7,6 +7,8 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { securityHeaders, csrfProtection, requestLoggingMiddleware, bruteForceProtection } from "../middleware/security-headers";
+import { uploadLimiter, apiLimiter, authLimiter } from "../middleware/rate-limiter";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -30,11 +32,27 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  
+  // Security middleware - apply early
+  app.use(securityHeaders);
+  app.use(requestLoggingMiddleware);
+  
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  
+  // CSRF protection middleware
+  app.use(csrfProtection.middleware());
+  
+  // Rate limiting for different endpoints
+  app.use("/api/upload", uploadLimiter.middleware());
+  app.use("/api/trpc", apiLimiter.middleware());
+  
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  // CSRF verification for non-GET requests
+  app.use("/api/trpc", csrfProtection.verifyMiddleware());
+  
   // tRPC API
   app.use(
     "/api/trpc",
@@ -59,6 +77,7 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    console.log(`Security middleware: Enabled (CSRF, rate limiting, headers, brute force protection)`);
   });
 }
 
