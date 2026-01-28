@@ -2498,3 +2498,10 @@
 - [x] Add /settings/dotloop route in App.tsx
 - [x] Test account switching functionality (33 tests passing)
 - [x] Test connection management UI (33 tests passing)
+
+
+## Phase 17: Visual Connection Status Indicators
+- [x] Add colored status dots to DotloopAccountSwitcher dropdown
+- [x] Green dot for active connections
+- [x] Gray dot for inactive connections
+- [x] Update dropdown item styling for better visual hierarchy

@@ -99,19 +99,33 @@ export default function DotloopAccountSwitcher() {
               disabled={!connection.isActive || switchMutation.isPending}
               className="cursor-pointer"
             >
-              <div className="flex items-center justify-between w-full">
-                <div className="flex flex-col">
-                  <span className="font-medium">{displayName}</span>
-                  {connection.dotloopAccountEmail && connection.connectionName && (
-                    <span className="text-xs text-muted-foreground">
-                      {connection.dotloopAccountEmail}
-                    </span>
-                  )}
-                  {connection.isPrimary === 1 && (
-                    <span className="text-xs text-primary">Primary</span>
-                  )}
+              <div className="flex items-center gap-3 w-full">
+                {/* Status indicator dot */}
+                <div className="flex-shrink-0">
+                  <div 
+                    className={`w-2 h-2 rounded-full ${
+                      connection.isActive === 1 
+                        ? 'bg-green-500' 
+                        : 'bg-gray-400'
+                    }`}
+                    title={connection.isActive === 1 ? 'Active' : 'Inactive'}
+                  />
                 </div>
-                {isActive && <Check className="w-4 h-4 text-primary" />}
+                
+                <div className="flex items-center justify-between flex-1 min-w-0">
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-medium truncate">{displayName}</span>
+                    {connection.dotloopAccountEmail && connection.connectionName && (
+                      <span className="text-xs text-muted-foreground truncate">
+                        {connection.dotloopAccountEmail}
+                      </span>
+                    )}
+                    {connection.isPrimary === 1 && (
+                      <span className="text-xs text-primary">Primary</span>
+                    )}
+                  </div>
+                  {isActive && <Check className="w-4 h-4 text-primary flex-shrink-0" />}
+                </div>
               </div>
             </DropdownMenuItem>
           );
