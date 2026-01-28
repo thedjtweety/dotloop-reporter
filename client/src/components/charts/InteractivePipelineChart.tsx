@@ -86,7 +86,7 @@ export default function InteractivePipelineChart({ data, onDrillDown }: Interact
     return data.filter(record => {
       const date = record.closingDate ? new Date(record.closingDate) : null;
       if (!date) return true;
-      return date >= dateRange.from && date <= dateRange.to;
+      return date >= (dateRange.from as Date) && date <= (dateRange.to as Date);
     });
   }, [data, dateRange]);
 

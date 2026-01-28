@@ -2342,3 +2342,31 @@
 - [x] Style metric display below revenue
 - [x] Test on mobile and desktop
 - [ ] Save checkpoint after implementation
+
+
+## Phase 11: Claude Code Review Recommendations
+- [x] Fix TypeScript errors in InteractivePipelineChart
+- [x] Implement commission tier-spanning transaction tests (10 tests)
+- [x] Implement commission cap handling tests (5 tests)
+- [x] Implement deductions and royalties tests (5 tests)
+- [x] Implement team splits tests (5 tests)
+- [x] Implement anniversary date tests (5 tests)
+- [x] Implement rounding and precision tests (5 tests)
+- [x] Implement commission edge cases tests (7 tests)
+- [x] Add rate limiting middleware to upload endpoints
+- [x] Configure database connection pooling
+- [x] Add CSRF token handling
+- [x] Add request logging for observability
+- [x] Add security headers (CSP, Helmet)
+- [x] Add brute force protection
+- [x] Create performance optimization utilities (caching, metrics)
+- [ ] Implement integration tests for full workflows (10 tests)
+- [ ] Implement performance benchmarks (5 tests)
+- [ ] Implement security/authorization tests (5 tests)
+- [ ] Implement soft deletes for data recovery
+- [ ] Optimize database queries with eager loading
+- [ ] Implement streaming for large file uploads (>25MB)
+- [ ] Add batch insert optimization for large datasets
+- [ ] Implement client-side virtualization for large tables
+- [ ] Document commission calculation rounding strategy
+- [ ] Create commission calculation edge case documentation
