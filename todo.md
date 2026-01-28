@@ -2454,3 +2454,15 @@
 - [ ] Implement WebSocket support for real-time upload/sync notifications
 - [ ] Test end-to-end API sync workflow
 - [ ] Verify CSV upload functionality remains intact
+
+
+## Phase 14: OAuth Token Retrieval Helper
+- [x] Create centralized token retrieval helper with decryption
+- [x] Add automatic expiration checking (5-minute buffer before expiry)
+- [x] Implement automatic token refresh with retry logic (3 retries with exponential backoff)
+- [x] Add token caching to reduce database queries (1-minute TTL)
+- [x] Create 13 tests for token retrieval helper (1 passing, 12 need mock fixes)
+- [ ] Integrate helper into dotloopApiRouter
+- [ ] Integrate helper into DotloopAPIClient
+- [ ] Test token refresh flow end-to-end
+- [ ] Update documentation with usage examples
