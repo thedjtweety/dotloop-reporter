@@ -34,7 +34,7 @@ function Router() {
       <Route path="/trends" component={PerformanceTrendsPage} />
       <Route path="/benchmarks" component={BenchmarkComparisonPage} />
       <Route path="/settings/dotloop" component={ManageDotloopConnections} />
-      <Route path="/oauth/callback" component={OAuthCallback} />
+      <Route path="/api/dotloop/callback" component={OAuthCallback} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

@@ -2526,9 +2526,10 @@
 
 
 ## Phase 20: OAuth Redirect URI Configuration
-- [x] Update DOTLOOP_REDIRECT_URI to custom domain (dotloopreport.com)
+- [x] Update DOTLOOP_REDIRECT_URI to custom domain (dotloopreport.com/api/dotloop/callback)
 - [x] Update VITE_DOTLOOP_REDIRECT_URI to match backend
-- [x] Verify both point to /oauth/callback route
+- [x] Verify both point to /api/dotloop/callback route
 - [x] Create OAuth redirect URI configuration tests (9 tests passing)
 - [x] Ensure frontend and backend use same redirect URI
 - [x] Verify environment variables match Dotloop API application settings
+- [x] Update OAuthCallback route in App.tsx to /api/dotloop/callback

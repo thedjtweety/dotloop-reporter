@@ -25,9 +25,9 @@ describe('OAuth Redirect URI Configuration', () => {
     expect(redirectUri).not.toBe('');
   });
 
-  it('should have DOTLOOP_REDIRECT_URI pointing to /oauth/callback route', () => {
+  it('should have DOTLOOP_REDIRECT_URI pointing to /api/dotloop/callback route', () => {
     const redirectUri = process.env.DOTLOOP_REDIRECT_URI;
-    expect(redirectUri).toContain('/oauth/callback');
+    expect(redirectUri).toContain('/api/dotloop/callback');
   });
 
   it('should have DOTLOOP_REDIRECT_URI as a valid URL', () => {
@@ -103,8 +103,8 @@ describe('OAuth Redirect URI Configuration', () => {
     const redirectUri = process.env.DOTLOOP_REDIRECT_URI;
     const url = new URL(redirectUri || '');
 
-    // Path should be /oauth/callback
-    expect(url.pathname).toBe('/oauth/callback');
+    // Path should be /api/dotloop/callback
+    expect(url.pathname).toBe('/api/dotloop/callback');
 
     // Should not have query parameters in the base redirect URI
     expect(url.search).toBe('');
