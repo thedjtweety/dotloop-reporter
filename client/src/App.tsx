@@ -16,6 +16,7 @@ import CommissionManagement from "./pages/CommissionManagement";
 import PerformanceTrendsPage from "./pages/PerformanceTrendsPage";
 import BenchmarkComparisonPage from "./pages/BenchmarkComparisonPage";
 import ManageDotloopConnections from "./pages/ManageDotloopConnections";
+import OAuthCallback from "./pages/OAuthCallback";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/trends" component={PerformanceTrendsPage} />
       <Route path="/benchmarks" component={BenchmarkComparisonPage} />
       <Route path="/settings/dotloop" component={ManageDotloopConnections} />
+      <Route path="/oauth/callback" component={OAuthCallback} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

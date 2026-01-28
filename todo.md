@@ -2512,3 +2512,14 @@
 - [x] Fix button to trigger actual OAuth authorization flow
 - [x] Verify OAuth redirect URL is correct
 - [ ] Test end-to-end OAuth flow
+
+
+## Phase 19: OAuth UX Improvements
+- [x] Add loading state to ConnectDotloop button during redirect
+- [x] Show "Redirecting to Dotloop..." message
+- [x] Disable button to prevent multiple clicks
+- [x] Create post-login success page with auto-redirect
+- [x] Update DotloopAccountSwitcher after successful connection
+- [x] Add error handling in OAuth callback page
+- [x] Display user-friendly error messages
+- [x] Add retry button for failed OAuth attempts
