@@ -2551,3 +2551,14 @@
 - [x] Fixed URL construction to properly handle scope parameter
 - [x] All TypeScript errors resolved
 - [x] Dev server running without errors
+
+
+## Phase 23: Debug Login to Dotloop Button Not Redirecting
+- [x] Check browser console for errors when clicking button
+- [x] Verify getAuthorizationUrl tRPC procedure is being called
+- [x] Fixed refetch() to use utils.fetch() instead
+- [x] Verify authorization URL is being returned from backend
+- [x] Test redirect with window.location.href
+- [x] Add error logging to ConnectDotloop component
+- [x] All TypeScript errors resolved
+- [x] Dev server running without errors

@@ -12,25 +12,22 @@ interface ConnectDotloopProps {
 
 export default function ConnectDotloop({ variant = 'button', onConnect }: ConnectDotloopProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const getAuthUrlQuery = trpc.dotloopOAuth.getAuthorizationUrl.useQuery(skipToken, {
-    enabled: false,
-  });
+  const utils = trpc.useUtils();
 
   const handleConnect = async () => {
     setIsLoading(true);
     
     try {
       // Get authorization URL from backend
-      const result = await getAuthUrlQuery.refetch();
+      const result = await utils.dotloopOAuth.getAuthorizationUrl.fetch({});
       
-      if (result.data?.url) {
-        // Redirect after a brief delay to ensure UI updates
-        setTimeout(() => {
-          window.location.href = result.data.url;
-          onConnect?.();
-        }, 500);
+      if (result?.url) {
+        console.log('Redirecting to:', result.url);
+        // Redirect to Dotloop authorization
+        window.location.href = result.url;
+        onConnect?.();
       } else {
-        console.error('Failed to get authorization URL');
+        console.error('No authorization URL returned from backend');
         setIsLoading(false);
       }
     } catch (error) {
