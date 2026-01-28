@@ -2489,3 +2489,12 @@
 - [ ] Create migration script for existing connections
 - [ ] Test multi-connection workflow end-to-end
 - [ ] Update documentation with multi-account usage examples
+
+
+## Phase 16: Complete Multi-Account Feature
+- [x] Wire DotloopAccountSwitcher into main header (next to Login button)
+- [x] Update OAuth callback to auto-set connectionName from profile
+- [x] Update OAuth callback to mark first connection as primary
+- [x] Add /settings/dotloop route in App.tsx
+- [x] Test account switching functionality (33 tests passing)
+- [x] Test connection management UI (33 tests passing)

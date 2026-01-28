@@ -91,6 +91,7 @@ import CommissionManagementPanel from '@/components/CommissionManagementPanel';
 import DataValidationReport from '@/components/DataValidationReport';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ModeToggle } from '@/components/ModeToggle';
+import DotloopAccountSwitcher from '@/components/DotloopAccountSwitcher';
 import MobileNav from '@/components/MobileNav';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import OnboardingTour from '@/components/OnboardingTour';
@@ -580,6 +581,7 @@ function HomeContent() {
             </div>
             <div className="flex items-center gap-4">
               <ConnectDotloop variant="button" />
+              <DotloopAccountSwitcher />
 
               {isAuthenticated && user?.role === 'admin' && (
                 <Button variant="ghost" onClick={() => setLocation('/admin')}>

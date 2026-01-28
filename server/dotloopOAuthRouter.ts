@@ -15,7 +15,7 @@ import { getDb } from './db';
 import { oauthTokens, tokenAuditLogs } from '../drizzle/schema';
 import { tokenEncryption } from './lib/token-encryption';
 import { getTenantIdFromUser } from './lib/tenant-context';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 
 const DOTLOOP_AUTH_URL = 'https://auth.dotloop.com/oauth/authorize';
 const DOTLOOP_TOKEN_URL = 'https://auth.dotloop.com/oauth/token';
@@ -181,6 +181,19 @@ export const dotloopOAuthRouter = router({
         // Calculate expiration time
         const expiresAt = new Date(Date.now() + (tokenData.expires_in * 1000)).toISOString();
 
+        // Check if this is the first connection for this user
+        const existingConnections = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(oauthTokens)
+          .where(
+            and(
+              eq(oauthTokens.userId, ctx.user.id),
+              eq(oauthTokens.provider, 'dotloop')
+            )
+          );
+        
+        const isFirstConnection = existingConnections[0].count === 0;
+
         // Store tokens in database
         const [result] = await db.insert(oauthTokens).values({
           tenantId,
@@ -193,6 +206,8 @@ export const dotloopOAuthRouter = router({
           tokenHash,
           ipAddress: input.ipAddress,
           userAgent: input.userAgent,
+          isPrimary: isFirstConnection ? 1 : 0,
+          isActive: 1,
         });
 
         const tokenId = Number(result.insertId);
@@ -223,11 +238,28 @@ export const dotloopOAuthRouter = router({
             if (profilesResponse.ok) {
               const profilesData = await profilesResponse.json();
               
+              // Get account email and name for auto-naming
+              const accountEmail = accountData.data?.email || '';
+              const accountName = accountData.data?.name || '';
+              
+              // Auto-generate connection name
+              let connectionName = '';
+              if (accountName) {
+                connectionName = accountName;
+              } else if (accountEmail) {
+                connectionName = accountEmail.split('@')[0];
+              } else {
+                connectionName = `Dotloop Account ${tokenId}`;
+              }
+              
               // Update token record with account and profile info
               await db
                 .update(oauthTokens)
                 .set({
                   dotloopAccountId: accountData.data?.id,
+                  dotloopAccountEmail: accountEmail,
+                  dotloopAccountName: accountName,
+                  connectionName: connectionName,
                   dotloopDefaultProfileId: accountData.data?.defaultProfileId,
                   dotloopProfileIds: JSON.stringify(profilesData.data?.map((p: any) => p.id) || []),
                 })
