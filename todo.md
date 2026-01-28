@@ -2523,3 +2523,12 @@
 - [x] Add error handling in OAuth callback page
 - [x] Display user-friendly error messages
 - [x] Add retry button for failed OAuth attempts
+
+
+## Phase 20: OAuth Redirect URI Configuration
+- [x] Update DOTLOOP_REDIRECT_URI to custom domain (dotloopreport.com)
+- [x] Update VITE_DOTLOOP_REDIRECT_URI to match backend
+- [x] Verify both point to /oauth/callback route
+- [x] Create OAuth redirect URI configuration tests (9 tests passing)
+- [x] Ensure frontend and backend use same redirect URI
+- [x] Verify environment variables match Dotloop API application settings
