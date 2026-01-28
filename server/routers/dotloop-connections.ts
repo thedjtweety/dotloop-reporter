@@ -49,10 +49,12 @@ export const dotloopConnectionsRouter = router({
    */
   listConnections: protectedProcedure
     .query(async ({ ctx }) => {
-      const db = await getDb();
-      if (!db) throw new Error('Database not available');
+      try {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
 
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        if (!tenantId) throw new Error('Unable to determine tenant for user');
 
       const connections = await db
         .select({
@@ -75,7 +77,11 @@ export const dotloopConnectionsRouter = router({
           )
         );
 
-      return connections;
+        return connections;
+      } catch (error) {
+        console.error('[dotloopConnections.listConnections] Error:', error);
+        throw error;
+      }
     }),
 
   /**
@@ -83,50 +89,56 @@ export const dotloopConnectionsRouter = router({
    */
   getActiveConnection: protectedProcedure
     .query(async ({ ctx }) => {
-      const db = await getDb();
-      if (!db) throw new Error('Database not available');
+      try {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
 
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        if (!tenantId) throw new Error('Unable to determine tenant for user');
 
-      // First check user preferences
-      const [prefs] = await db
+        // First check user preferences
+        const [prefs] = await db
         .select()
         .from(userPreferences)
         .where(eq(userPreferences.userId, ctx.user.id))
         .limit(1);
 
-      if (prefs?.activeOAuthTokenId) {
-        const [connection] = await db
+        if (prefs?.activeOAuthTokenId) {
+          const [connection] = await db
+            .select()
+            .from(oauthTokens)
+            .where(
+              and(
+                eq(oauthTokens.id, prefs.activeOAuthTokenId),
+                eq(oauthTokens.userId, ctx.user.id),
+                eq(oauthTokens.isActive, 1)
+              )
+            )
+            .limit(1);
+
+          if (connection) return connection;
+        }
+
+        // Fall back to primary connection
+        const [primary] = await db
           .select()
           .from(oauthTokens)
           .where(
             and(
-              eq(oauthTokens.id, prefs.activeOAuthTokenId),
+              eq(oauthTokens.tenantId, tenantId),
               eq(oauthTokens.userId, ctx.user.id),
+              eq(oauthTokens.provider, 'dotloop'),
+              eq(oauthTokens.isPrimary, 1),
               eq(oauthTokens.isActive, 1)
             )
           )
           .limit(1);
 
-        if (connection) return connection;
+        return primary || null;
+      } catch (error) {
+        console.error('[dotloopConnections.getActiveConnection] Error:', error);
+        throw error;
       }
-
-      // Fall back to primary connection
-      const [primary] = await db
-        .select()
-        .from(oauthTokens)
-        .where(
-          and(
-            eq(oauthTokens.tenantId, tenantId),
-            eq(oauthTokens.userId, ctx.user.id),
-            eq(oauthTokens.provider, 'dotloop'),
-            eq(oauthTokens.isPrimary, 1),
-            eq(oauthTokens.isActive, 1)
-          )
-        )
-        .limit(1);
-
-      return primary || null;
     }),
 
   /**
