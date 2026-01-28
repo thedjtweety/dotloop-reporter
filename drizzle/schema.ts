@@ -105,6 +105,10 @@ export const oauthTokens = mysqlTable("oauth_tokens", {
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	lastUsedAt: timestamp({ mode: 'string' }),
 	lastRefreshedAt: timestamp({ mode: 'string' }),
+	dotloopAccountId: int(),
+	dotloopProfileId: int(),
+	dotloopDefaultProfileId: int(),
+	dotloopProfileIds: text(),
 },
 (table) => [
 	index("oauth_tokens_tokenHash_unique").on(table.tokenHash),

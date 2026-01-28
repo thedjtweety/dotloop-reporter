@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE oauth_tokens \nADD COLUMN dotloopAccountId INT NULL,\nADD COLUMN dotloopProfileId INT NULL,\nADD COLUMN dotloopDefaultProfileId INT NULL,\nADD COLUMN dotloopProfileIds TEXT NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 24ruGQuiASWpGv5.root --database gtMbYvvduSqhsHRvj39YWw --execute ALTER TABLE oauth_tokens \nADD COLUMN dotloopAccountId INT NULL,\nADD COLUMN dotloopProfileId INT NULL,\nADD COLUMN dotloopDefaultProfileId INT NULL,\nADD COLUMN dotloopProfileIds TEXT NULL;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1472
+}

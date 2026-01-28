@@ -602,19 +602,52 @@ function HomeContent() {
         </header>
 
         <main className="flex-1 container flex items-center justify-center py-12">
-          <div className="w-full max-w-2xl space-y-8 text-center">
-            <div className="space-y-4">
+          <div className="w-full max-w-6xl space-y-8">
+            <div className="space-y-4 text-center">
               <h2 className="text-3xl sm:text-4xl md:text-5xl">
                 Transform Your Data into <span className="text-primary">Actionable Insights</span>
               </h2>
-              <p className="text-lg text-foreground max-w-xl mx-auto">
-                Upload your Dotloop export to instantly generate professional commission reports, agent leaderboards, and financial analytics.
+              <p className="text-lg text-foreground max-w-3xl mx-auto">
+                Upload your Dotloop export or connect directly to Dotloop to instantly generate professional commission reports, agent leaderboards, and financial analytics.
               </p>
             </div>
 
-            <Card className="p-8 border-dashed border-2 border-border bg-card/50 hover:bg-card/80 transition-colors" data-tour="upload-zone">
-              <UploadZone onFileUpload={handleFileUpload} isLoading={isLoading} />
-            </Card>
+            {/* Dual-column layout: CSV Upload (left) and Dotloop Connection (right) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column: CSV Upload */}
+              <div className="space-y-4">
+                <div className="text-center lg:text-left">
+                  <h3 className="text-xl font-semibold mb-2">Upload CSV File</h3>
+                  <p className="text-sm text-foreground/70 mb-4">
+                    Upload a Dotloop export CSV file to analyze your data
+                  </p>
+                </div>
+                <Card className="p-8 border-dashed border-2 border-border bg-card/50 hover:bg-card/80 transition-colors" data-tour="upload-zone">
+                  <UploadZone onFileUpload={handleFileUpload} isLoading={isLoading} />
+                </Card>
+              </div>
+
+              {/* Right Column: Dotloop Connection */}
+              <div className="space-y-4">
+                <div className="text-center lg:text-left">
+                  <h3 className="text-xl font-semibold mb-2">Connect to Dotloop</h3>
+                  <p className="text-sm text-foreground/70 mb-4">
+                    Sync data directly from your Dotloop account
+                  </p>
+                </div>
+                <Card className="p-8 border-2 border-border bg-card/50 hover:bg-card/80 transition-colors">
+                  <div className="flex flex-col items-center justify-center space-y-4 min-h-[200px]">
+                    <div className="text-center space-y-2">
+                      <img src="/dotloop-logo.png" alt="Dotloop" className="h-12 mx-auto mb-4" />
+                      <p className="text-sm text-foreground/70">
+                        Connect your Dotloop account to automatically sync your loops and transactions
+                      </p>
+                    </div>
+                    <ConnectDotloop variant="button" />
+                  </div>
+                </Card>
+              </div>
+            </div>
             
             {/* Show Upload History for authenticated users, RecentUploads for guests */}
             {isAuthenticated && user ? (

@@ -104,6 +104,7 @@ export const dotloopOAuthRouter = router({
         redirect_uri: redirectUri,
         state,
         redirect_on_deny: 'true',
+        scope: 'account:read profile:* loop:* contact:* template:read',
       });
 
       return {
@@ -139,17 +140,35 @@ export const dotloopOAuthRouter = router({
           state: input.state,
         });
 
-        const response = await fetch(`${DOTLOOP_TOKEN_URL}?${tokenParams.toString()}`, {
+        const response = await fetch(DOTLOOP_TOKEN_URL, {
           method: 'POST',
           headers: {
             'Authorization': createBasicAuthHeader(clientId, clientSecret),
             'Content-Type': 'application/x-www-form-urlencoded',
           },
+          body: tokenParams.toString(),
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Token exchange failed: ${response.status} ${errorText}`);
+          let errorDetails = '';
+          try {
+            const errorJson = await response.json();
+            errorDetails = JSON.stringify(errorJson);
+          } catch {
+            errorDetails = await response.text();
+          }
+          
+          console.error('[DotloopOAuth] Token exchange failed:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorDetails,
+            headers: Object.fromEntries(response.headers.entries()),
+          });
+          
+          throw new Error(
+            `Token exchange failed: ${response.status} ${response.statusText}. ` +
+            `Details: ${errorDetails}`
+          );
         }
 
         const tokenData = await response.json();
@@ -177,6 +196,54 @@ export const dotloopOAuthRouter = router({
         });
 
         const tokenId = Number(result.insertId);
+
+        // Fetch profile information from Dotloop
+        try {
+          const DOTLOOP_API_BASE = 'https://api-gateway.dotloop.com/public/v2';
+          
+          // Fetch account details
+          const accountResponse = await fetch(`${DOTLOOP_API_BASE}/account`, {
+            headers: {
+              'Authorization': `Bearer ${tokenData.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (accountResponse.ok) {
+            const accountData = await accountResponse.json();
+            
+            // Fetch user's profiles
+            const profilesResponse = await fetch(`${DOTLOOP_API_BASE}/profile`, {
+              headers: {
+                'Authorization': `Bearer ${tokenData.access_token}`,
+                'Content-Type': 'application/json',
+              },
+            });
+            
+            if (profilesResponse.ok) {
+              const profilesData = await profilesResponse.json();
+              
+              // Update token record with account and profile info
+              await db
+                .update(oauthTokens)
+                .set({
+                  dotloopAccountId: accountData.data?.id,
+                  dotloopDefaultProfileId: accountData.data?.defaultProfileId,
+                  dotloopProfileIds: JSON.stringify(profilesData.data?.map((p: any) => p.id) || []),
+                })
+                .where(eq(oauthTokens.id, tokenId));
+              
+              console.log('[DotloopOAuth] Profile info fetched:', {
+                accountId: accountData.data?.id,
+                defaultProfileId: accountData.data?.defaultProfileId,
+                profileCount: profilesData.data?.length || 0,
+              });
+            }
+          }
+        } catch (error) {
+          console.warn('[DotloopOAuth] Failed to fetch profile info:', error);
+          // Non-critical - continue with token storage
+        }
 
         // Log successful token creation
         await logTokenAudit({
@@ -258,17 +325,35 @@ export const dotloopOAuthRouter = router({
           refresh_token: refreshToken,
         });
 
-        const response = await fetch(`${DOTLOOP_TOKEN_URL}?${tokenParams.toString()}`, {
+        const response = await fetch(DOTLOOP_TOKEN_URL, {
           method: 'POST',
           headers: {
             'Authorization': createBasicAuthHeader(clientId, clientSecret),
             'Content-Type': 'application/x-www-form-urlencoded',
           },
+          body: tokenParams.toString(),
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Token refresh failed: ${response.status} ${errorText}`);
+          let errorDetails = '';
+          try {
+            const errorJson = await response.json();
+            errorDetails = JSON.stringify(errorJson);
+          } catch {
+            errorDetails = await response.text();
+          }
+          
+          console.error('[DotloopOAuth] Token refresh failed:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorDetails,
+            headers: Object.fromEntries(response.headers.entries()),
+          });
+          
+          throw new Error(
+            `Token refresh failed: ${response.status} ${response.statusText}. ` +
+            `Details: ${errorDetails}`
+          );
         }
 
         const tokenData = await response.json();
@@ -370,12 +455,13 @@ export const dotloopOAuthRouter = router({
           token: accessToken,
         });
 
-        const response = await fetch(`${DOTLOOP_REVOKE_URL}?${revokeParams.toString()}`, {
+        const response = await fetch(DOTLOOP_REVOKE_URL, {
           method: 'POST',
           headers: {
             'Authorization': createBasicAuthHeader(clientId, clientSecret),
             'Content-Type': 'application/x-www-form-urlencoded',
           },
+          body: revokeParams.toString(),
         });
 
         if (!response.ok) {

@@ -2436,3 +2436,21 @@
 - Authorization Tests: 30 tests
 - Soft Delete Tests: 28 tests
 - Query Optimization Tests: 28 tests
+
+
+## Phase 13: Dotloop API Integration & Fixes
+- [x] Fix Issue #1: Move token exchange parameters from query string to request body
+- [x] Fix Issue #2: Move token refresh parameters from query string to request body
+- [x] Fix Issue #3: Move token revocation parameters from query string to request body
+- [x] Fix Issue #4: Add OAuth scopes to authorization request (account:read profile:* loop:* contact:* template:read)
+- [x] Fix Issue #5: Improve error handling with detailed logging for API responses
+- [x] Fix Issue #6: Fetch and store profile ID after token exchange
+- [x] Add schema fields: dotloopAccountId, dotloopProfileId, dotloopDefaultProfileId, dotloopProfileIds
+- [x] Wire dotloopApiRouter into main routers
+- [ ] Add OAuth token retrieval helper function
+- [x] Create dual-column homepage layout (CSV upload left, API connection right)
+- [ ] Update UI to show "Login to Dotloop" instead of "Connect Dotloop"
+- [ ] Create 10-15 API integration tests (token exchange, refresh, profile fetch, sync)
+- [ ] Implement WebSocket support for real-time upload/sync notifications
+- [ ] Test end-to-end API sync workflow
+- [ ] Verify CSV upload functionality remains intact
