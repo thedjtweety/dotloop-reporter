@@ -86,16 +86,23 @@ export class DotloopAPIClient {
   /**
    * Get all loops for a specific profile
    */
-  async getLoops(profileId: string, params?: {
-    limit?: number;
-    offset?: number;
-    status?: string;
-  }): Promise<DotloopLoop[]> {
+  async getLoops(
+    profileId: string,
+    startDate?: string,
+    endDate?: string,
+    params?: {
+      limit?: number;
+      offset?: number;
+      status?: string;
+    }
+  ): Promise<DotloopLoop[]> {
     try {
       const response = await this.client.get(`/profile/${profileId}/loop`, {
         params: {
           limit: params?.limit || 100,
           offset: params?.offset || 0,
+          start_date: startDate,
+          end_date: endDate,
           ...params,
         },
       });
@@ -120,9 +127,9 @@ export class DotloopAPIClient {
   /**
    * Get participants (agents) for a specific loop
    */
-  async getLoopParticipants(loopId: string): Promise<DotloopParticipant[]> {
+  async getLoopParticipants(profileId: string, loopId: string): Promise<DotloopParticipant[]> {
     try {
-      const response = await this.client.get(`/loop/${loopId}/participant`);
+      const response = await this.client.get(`/profile/${profileId}/loop/${loopId}/participant`);
       return response.data.participants || [];
     } catch (error) {
       throw new Error(`Failed to fetch participants: ${DotloopAPIClient.getErrorMessage(error)}`);

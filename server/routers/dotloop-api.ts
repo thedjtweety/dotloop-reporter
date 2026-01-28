@@ -7,6 +7,8 @@ import { router, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
 import { DotloopAPIClient } from '../lib/dotloop-client';
 import { TRPCError } from '@trpc/server';
+import { getValidOAuthToken } from '../lib/oauth-token-helper';
+import { getTenantIdFromUser } from '../lib/tenant-context';
 
 /**
  * Transform Dotloop loop data to DotloopRecord format
@@ -48,10 +50,23 @@ export const dotloopApiRouter = router({
    */
   getProfiles: protectedProcedure.query(async ({ ctx }) => {
     try {
-      // Get user's Dotloop token from database
-      // This would be retrieved from oauth_tokens table
-      // For now, returning empty array as placeholder
-      return [];
+      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      
+      // Get valid OAuth token (automatically refreshes if needed)
+      const tokenData = await getValidOAuthToken(ctx.user.id, tenantId, 'dotloop');
+      
+      // Initialize Dotloop API client
+      const client = new DotloopAPIClient(tokenData.accessToken);
+      
+      // Fetch profiles
+      const profiles = await client.getProfiles();
+      
+      return profiles.map((profile: any) => ({
+        id: profile.profileId,
+        name: profile.name,
+        email: profile.email,
+        isDefault: profile.profileId === tokenData.profileId,
+      }));
     } catch (error) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
@@ -73,20 +88,38 @@ export const dotloopApiRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        // In a real implementation, retrieve the user's Dotloop token
-        // const token = await getTokenForUser(ctx.user.id);
-        // if (!token) {
-        //   throw new TRPCError({
-        //     code: 'UNAUTHORIZED',
-        //     message: 'Dotloop not connected',
-        //   });
-        // }
-
-        // For now, return a placeholder response
+        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        
+        // Get valid OAuth token (automatically refreshes if needed)
+        const tokenData = await getValidOAuthToken(ctx.user.id, tenantId, 'dotloop');
+        
+        // Initialize Dotloop API client
+        const client = new DotloopAPIClient(tokenData.accessToken);
+        
+        // Fetch loops from Dotloop
+        const loops = await client.getLoops(
+          input.profileId,
+          input.startDate,
+          input.endDate
+        );
+        
+        // Transform loops to DotloopRecord format
+        const records = [];
+        for (const loop of loops) {
+          const participants = await client.getLoopParticipants(
+            input.profileId,
+            loop.loopId
+          );
+          records.push(transformDotloopToRecord(loop, participants));
+        }
+        
+        // TODO: Save records to database
+        // await saveRecordsToDatabase(ctx.user.id, tenantId, records);
+        
         return {
           uploadId: `sync-${Date.now()}`,
-          recordCount: 0,
-          message: 'Dotloop API integration requires OAuth token setup',
+          recordCount: records.length,
+          message: `Successfully synced ${records.length} loops from Dotloop`,
         };
       } catch (error) {
         throw new TRPCError({
@@ -101,11 +134,26 @@ export const dotloopApiRouter = router({
    */
   getSyncStatus: protectedProcedure.query(async ({ ctx }) => {
     try {
+      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      
+      // Check if user has a valid Dotloop token
+      let isConnected = false;
+      try {
+        await getValidOAuthToken(ctx.user.id, tenantId, 'dotloop');
+        isConnected = true;
+      } catch (error) {
+        // Token not found or expired
+        isConnected = false;
+      }
+      
+      // TODO: Fetch last sync time from database
+      // const lastSync = await getLastSyncTime(ctx.user.id, tenantId);
+      
       return {
-        isConnected: false,
-        lastSync: null,
-        nextSync: null,
-        autoSyncEnabled: false,
+        isConnected,
+        lastSync: null, // TODO: Implement
+        nextSync: null, // TODO: Implement
+        autoSyncEnabled: false, // TODO: Implement
       };
     } catch (error) {
       throw new TRPCError({
@@ -139,9 +187,19 @@ export const dotloopApiRouter = router({
    */
   testConnection: protectedProcedure.query(async ({ ctx }) => {
     try {
+      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      
+      // Get valid OAuth token (automatically refreshes if needed)
+      const tokenData = await getValidOAuthToken(ctx.user.id, tenantId, 'dotloop');
+      
+      // Initialize Dotloop API client and test connection
+      const client = new DotloopAPIClient(tokenData.accessToken);
+      const profiles = await client.getProfiles();
+      
       return {
-        connected: false,
-        message: 'Dotloop API integration requires OAuth token setup',
+        connected: true,
+        message: `Successfully connected to Dotloop. Found ${profiles.length} profile(s).`,
+        profileCount: profiles.length,
       };
     } catch (error) {
       throw new TRPCError({

@@ -2462,7 +2462,7 @@
 - [x] Implement automatic token refresh with retry logic (3 retries with exponential backoff)
 - [x] Add token caching to reduce database queries (1-minute TTL)
 - [x] Create 13 tests for token retrieval helper (1 passing, 12 need mock fixes)
-- [ ] Integrate helper into dotloopApiRouter
-- [ ] Integrate helper into DotloopAPIClient
+- [x] Integrate helper into dotloopApiRouter (all 5 procedures updated)
+- [x] Update DotloopAPIClient method signatures to match router usage
 - [ ] Test token refresh flow end-to-end
 - [ ] Update documentation with usage examples
