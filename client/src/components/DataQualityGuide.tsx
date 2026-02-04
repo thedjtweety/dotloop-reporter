@@ -10,9 +10,12 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, AlertCircle, CheckCircle2, Users, Calendar, DollarSign, Tag, FileText } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import CSVPreparationGuide from '@/components/CSVPreparationGuide';
 
 export default function DataQualityGuide() {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -192,14 +195,8 @@ export default function DataQualityGuide() {
             Use the checklist above to verify your CSV before uploading. The system will show you a data health report after import, highlighting any completeness issues.
           </p>
           <div className="flex gap-2 pt-2">
-            <Button variant="outline" size="sm" asChild>
-              <a href="#" onClick={(e) => {
-                e.preventDefault();
-                // Link to full documentation
-                window.open('https://files.manuscdn.com/user_upload_by_module/session_file/310519663283621115/pOzNTdIHLmKwnBQO.zip', '_blank');
-              }}>
-                View Full Guide
-              </a>
+            <Button variant="outline" size="sm" onClick={() => setShowGuide(true)}>
+              View Full Guide
             </Button>
           </div>
         </div>
@@ -242,6 +239,13 @@ export default function DataQualityGuide() {
           </div>
         </div>
       </Card>
+
+      {/* CSV Preparation Guide Modal */}
+      <Dialog open={showGuide} onOpenChange={setShowGuide}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <CSVPreparationGuide />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

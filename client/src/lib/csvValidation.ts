@@ -177,3 +177,340 @@ export function getErrorMessage(error: string): string {
   // Already user-friendly, just return as-is
   return error;
 }
+
+
+// ============================================================================
+// CSV Data Quality Report Generation
+// ============================================================================
+
+export interface ValidationIssue {
+  field: string;
+  severity: 'error' | 'warning' | 'info';
+  count: number;
+  percentage: number;
+  examples: string[];
+  suggestion: string;
+}
+
+export interface ValidationReport {
+  fileName: string;
+  totalRecords: number;
+  validRecords: number;
+  recordsWithIssues: number;
+  overallQuality: number;
+  fieldCompleteness: {
+    field: string;
+    complete: number;
+    percentage: number;
+  }[];
+  issues: ValidationIssue[];
+  criticalIssues: number;
+  warnings: number;
+}
+
+export interface CSVData {
+  [key: string]: any;
+}
+
+/**
+ * Validates CSV data and generates a comprehensive validation report
+ */
+export function validateCSVData(
+  fileName: string,
+  records: CSVData[]
+): ValidationReport {
+  if (!records || records.length === 0) {
+    return {
+      fileName,
+      totalRecords: 0,
+      validRecords: 0,
+      recordsWithIssues: 0,
+      overallQuality: 0,
+      fieldCompleteness: [],
+      issues: [],
+      criticalIssues: 0,
+      warnings: 0,
+    };
+  }
+
+  const issues: ValidationIssue[] = [];
+  let criticalIssues = 0;
+  let warnings = 0;
+
+  // Check agent names consistency
+  const agentNameIssues = validateAgentNamesQuality(records);
+  if (agentNameIssues) {
+    issues.push(agentNameIssues);
+    if (agentNameIssues.severity === 'error') criticalIssues++;
+    else warnings++;
+  }
+
+  // Check date formatting
+  const dateIssues = validateDateFormattingQuality(records);
+  if (dateIssues) {
+    issues.push(dateIssues);
+    if (dateIssues.severity === 'error') criticalIssues++;
+    else warnings++;
+  }
+
+  // Check numeric data
+  const numericIssues = validateNumericDataQuality(records);
+  if (numericIssues) {
+    issues.push(numericIssues);
+    if (numericIssues.severity === 'error') criticalIssues++;
+    else warnings++;
+  }
+
+  // Check status values
+  const statusIssues = validateStatusValuesQuality(records);
+  if (statusIssues) {
+    issues.push(statusIssues);
+    if (statusIssues.severity === 'warning') warnings++;
+  }
+
+  // Check agent lists
+  const agentListIssues = validateAgentListsQuality(records);
+  if (agentListIssues) {
+    issues.push(agentListIssues);
+    if (agentListIssues.severity === 'warning') warnings++;
+  }
+
+  // Calculate field completeness
+  const fieldCompleteness = calculateFieldCompletenessQuality(records);
+
+  // Calculate overall quality
+  const validRecords = records.length - (criticalIssues > 0 ? Math.ceil(records.length * 0.1) : 0);
+  const overallQuality = Math.round((validRecords / records.length) * 100);
+
+  return {
+    fileName,
+    totalRecords: records.length,
+    validRecords,
+    recordsWithIssues: records.length - validRecords,
+    overallQuality,
+    fieldCompleteness,
+    issues,
+    criticalIssues,
+    warnings,
+  };
+}
+
+function validateAgentNamesQuality(records: CSVData[]): ValidationIssue | null {
+  const issues: string[] = [];
+  let problemCount = 0;
+
+  for (const record of records) {
+    const agent = record.agent || record.Agent || record.agentName || record['Agent Name'];
+    if (!agent) continue;
+
+    const agentStr = String(agent).trim();
+    
+    // Check for all uppercase (likely abbreviation)
+    if (agentStr === agentStr.toUpperCase() && agentStr.length > 2 && /[A-Z]/.test(agentStr)) {
+      problemCount++;
+      if (issues.length < 3) issues.push(agentStr);
+    }
+  }
+
+  if (problemCount > 0) {
+    return {
+      field: 'Agent Names',
+      severity: 'warning',
+      count: problemCount,
+      percentage: Math.round((problemCount / records.length) * 100),
+      examples: issues,
+      suggestion: 'Use consistent name formatting (e.g., "John Smith" not "JOHN SMITH"). Inconsistent formatting can cause agent metrics to be fragmented.',
+    };
+  }
+
+  return null;
+}
+
+function validateDateFormattingQuality(records: CSVData[]): ValidationIssue | null {
+  const dateFields = ['closingDate', 'Closing Date', 'closing_date', 'date', 'Date', 'contractDate', 'Contract Date'];
+  const issues: string[] = [];
+  let problemCount = 0;
+
+  const dateRegex = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+
+  for (const record of records) {
+    let dateValue = null;
+    for (const field of dateFields) {
+      if (record[field]) {
+        dateValue = record[field];
+        break;
+      }
+    }
+
+    if (!dateValue) continue;
+
+    const dateStr = String(dateValue).trim();
+    if (!dateRegex.test(dateStr)) {
+      problemCount++;
+      if (issues.length < 3) issues.push(dateStr);
+    }
+  }
+
+  if (problemCount > 0) {
+    return {
+      field: 'Date Formatting',
+      severity: 'error',
+      count: problemCount,
+      percentage: Math.round((problemCount / records.length) * 100),
+      examples: issues,
+      suggestion: 'All dates must be in MM/DD/YYYY format (e.g., 01/15/2024). This is critical for accurate date calculations and filtering.',
+    };
+  }
+
+  return null;
+}
+
+function validateNumericDataQuality(records: CSVData[]): ValidationIssue | null {
+  const numericFields = ['price', 'Price', 'salePrice', 'Sale Price', 'commission', 'Commission', 'rate', 'Rate'];
+  const issues: string[] = [];
+  let problemCount = 0;
+
+  for (const record of records) {
+    for (const field of numericFields) {
+      const value = record[field];
+      if (!value) continue;
+
+      const valueStr = String(value).trim();
+      // Check for currency symbols, commas, or other formatting
+      if (/[$,()%]/.test(valueStr)) {
+        problemCount++;
+        if (issues.length < 3) issues.push(`${field}: ${valueStr}`);
+        break;
+      }
+
+      // Check if it's a valid number
+      if (isNaN(Number(valueStr))) {
+        problemCount++;
+        if (issues.length < 3) issues.push(`${field}: ${valueStr}`);
+        break;
+      }
+    }
+  }
+
+  if (problemCount > 0) {
+    return {
+      field: 'Numeric Data',
+      severity: 'error',
+      count: problemCount,
+      percentage: Math.round((problemCount / records.length) * 100),
+      examples: issues,
+      suggestion: 'Remove currency symbols, commas, and percent signs. Enter prices as "500000" not "$500,000", and rates as "3" not "3%".',
+    };
+  }
+
+  return null;
+}
+
+function validateStatusValuesQuality(records: CSVData[]): ValidationIssue | null {
+  const validStatuses = ['Active', 'Pending', 'Closed', 'Sold', 'Archived', 'Withdrawn'];
+  const statusFields = ['status', 'Status', 'loopStatus', 'Loop Status', 'transactionStatus', 'Transaction Status'];
+  const issues: string[] = [];
+  let problemCount = 0;
+
+  for (const record of records) {
+    let statusValue = null;
+    for (const field of statusFields) {
+      if (record[field]) {
+        statusValue = record[field];
+        break;
+      }
+    }
+
+    if (!statusValue) continue;
+
+    const statusStr = String(statusValue).trim();
+    if (!validStatuses.includes(statusStr)) {
+      problemCount++;
+      if (issues.length < 3) issues.push(statusStr);
+    }
+  }
+
+  if (problemCount > 0) {
+    return {
+      field: 'Status Values',
+      severity: 'warning',
+      count: problemCount,
+      percentage: Math.round((problemCount / records.length) * 100),
+      examples: issues,
+      suggestion: 'Use standardized status values: Active, Pending, Closed, Sold, Archived, or Withdrawn. Invalid statuses may cause filtering issues.',
+    };
+  }
+
+  return null;
+}
+
+function validateAgentListsQuality(records: CSVData[]): ValidationIssue | null {
+  const agentFields = ['agents', 'Agents', 'agentList', 'Agent List', 'agent', 'Agent'];
+  const issues: string[] = [];
+  let problemCount = 0;
+
+  for (const record of records) {
+    let agentValue = null;
+    for (const field of agentFields) {
+      if (record[field]) {
+        agentValue = record[field];
+        break;
+      }
+    }
+
+    if (!agentValue) continue;
+
+    const agentStr = String(agentValue).trim();
+    
+    // Check for semicolons or other separators
+    if (agentStr.includes(';') || agentStr.includes('|')) {
+      problemCount++;
+      if (issues.length < 3) issues.push(agentStr);
+    }
+
+    // Check for trailing commas
+    if (agentStr.endsWith(',')) {
+      problemCount++;
+      if (issues.length < 3) issues.push(agentStr);
+    }
+  }
+
+  if (problemCount > 0) {
+    return {
+      field: 'Agent Lists',
+      severity: 'warning',
+      count: problemCount,
+      percentage: Math.round((problemCount / records.length) * 100),
+      examples: issues,
+      suggestion: 'Use comma-separated format for multiple agents. Avoid semicolons, pipes, or trailing commas.',
+    };
+  }
+
+  return null;
+}
+
+function calculateFieldCompletenessQuality(records: CSVData[]): Array<{ field: string; complete: number; percentage: number }> {
+  const fields = [
+    { key: 'loopName', name: 'Loop Name' },
+    { key: 'closingDate', name: 'Closing Date' },
+    { key: 'agent', name: 'Agents' },
+    { key: 'price', name: 'Price' },
+    { key: 'status', name: 'Status' },
+  ];
+
+  return fields.map(field => {
+    let complete = 0;
+    for (const record of records) {
+      const value = record[field.key] || record[field.name];
+      if (value && String(value).trim() !== '') {
+        complete++;
+      }
+    }
+
+    return {
+      field: field.name,
+      complete,
+      percentage: Math.round((complete / records.length) * 100),
+    };
+  });
+}
