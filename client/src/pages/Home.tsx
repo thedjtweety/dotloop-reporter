@@ -108,6 +108,9 @@ import toast, { Toaster } from 'react-hot-toast';
 import BackToTop from '@/components/BackToTop';
 import CollapsibleSection from '@/components/CollapsibleSection';
 import CSVPreparationGuide from '@/components/CSVPreparationGuide';
+import { useMetricsOrder, MetricId } from '@/hooks/useMetricsOrder';
+import { DraggableMetricsContainer, DraggableMetric } from '@/components/DraggableMetricsContainer';
+import { renderMetricCard } from '@/lib/metricRenderHelper';
 
 function HomeContent() {
   // The userAuth hooks provides authentication state
@@ -116,6 +119,7 @@ function HomeContent() {
   const { filters, addFilter } = useFilters();
 
   const [location, setLocation] = useLocation();
+  const { metricsOrder, isEditMode, isLoaded, reorderMetrics, resetToDefault, toggleEditMode } = useMetricsOrder();
   const { showTour, completeTour, skipTour } = useOnboardingTour();
   const [allRecords, setAllRecords] = useState<DotloopRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<DotloopRecord[]>([]);
@@ -124,6 +128,7 @@ function HomeContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [sparklineTrends, setSparklineTrends] = useState<any>(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   
   // Drill-down state
   const [drillDownOpen, setDrillDownOpen] = useState(false);
@@ -852,47 +857,73 @@ function HomeContent() {
         {/* Filter Badge */}
         <FilterBadge />
         
-        {/* Top Metrics Row */}
-        <div data-section="metrics" className="grid grid-cols-1 gap-3 mb-8" data-tour="metrics">
-            <MetricCard
-              title="Total Transactions"
-              value={metrics.totalTransactions}
-              icon={<HomeIcon className="w-5 h-5" />}
-              color="primary"
-              trend={metrics.trends?.totalTransactions}
-              sparklineTrend={sparklineTrends?.totalTransactions}
-              onClick={() => handleMetricClick('total')}
-            />
-            <MetricCard
-              title="Total Sales Volume"
-              value={formatCurrency(metrics.totalSalesVolume)}
-              subtitle={`Avg: ${formatCurrency(metrics.averagePrice)}`}
-              icon={<DollarSign className="w-5 h-5" />}
-              color="accent"
-              trend={metrics.trends?.totalVolume}
-              sparklineTrend={sparklineTrends?.totalVolume}
-              onClick={() => handleMetricClick('volume')}
-            />
-            <MetricCard
-              title="Closing Rate"
-              value={formatPercentage(metrics.closingRate)}
-              subtitle={`${metrics.closed} closed deals`}
-              icon={<TrendingUp className="w-5 h-5" />}
-              color="accent"
-              trend={metrics.trends?.closingRate}
-              sparklineTrend={sparklineTrends?.closingRate}
-              onClick={() => handleMetricClick('closing')}
-            />
-            <MetricCard
-              title="Avg Days to Close"
-              value={metrics.averageDaysToClose}
-              icon={<Calendar className="w-5 h-5" />}
-              color="primary"
-              trend={metrics.trends?.avgDaysToClose}
-              sparklineTrend={sparklineTrends?.avgDaysToClose}
-              onClick={() => handleMetricClick('days')}
-            />
+        {/* Top Metrics Row with Reordering */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-foreground">Key Metrics</h2>
+            <div className="flex gap-2">
+              {isEditMode && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowResetConfirm(true)}
+                  className="text-xs"
+                >
+                  Reset Order
+                </Button>
+              )}
+              <Button
+                variant={isEditMode ? 'default' : 'outline'}
+                size="sm"
+                onClick={toggleEditMode}
+                className="text-xs"
+              >
+                {isEditMode ? 'Done Editing' : 'Rearrange'}
+              </Button>
+            </div>
+          </div>
+          {isEditMode && (
+            <p className="text-xs text-muted-foreground mb-3">
+              Drag the grip icon to reorder metrics. Your preferences will be saved automatically.
+            </p>
+          )}
+          <DraggableMetricsContainer
+            metricsOrder={metricsOrder}
+            isEditMode={isEditMode}
+            onReorder={reorderMetrics}
+          >
+            <div data-section="metrics" className="grid grid-cols-1 gap-3" data-tour="metrics">
+              {metricsOrder.map((metricId) => (
+                <DraggableMetric key={metricId} id={metricId} isEditMode={isEditMode}>
+                  {renderMetricCard(metricId, metrics, sparklineTrends, handleMetricClick)}
+                </DraggableMetric>
+              ))}
+            </div>
+          </DraggableMetricsContainer>
         </div>
+
+        {/* Reset Confirmation Dialog */}
+        <AlertDialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Reset Metrics Order?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will restore the metrics to their default order. Your custom arrangement will be lost.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  resetToDefault();
+                  setShowResetConfirm(false);
+                }}
+              >
+                Reset
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Projected to Close Card */}
         {filteredRecords.length > 0 && (

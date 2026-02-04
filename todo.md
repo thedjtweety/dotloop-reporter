@@ -2634,3 +2634,18 @@
 - [ ] Add copy-to-clipboard for Commission Templates
 - [ ] Create 8-second video tutorials (4 workflows)
 - [ ] Build Video Walkthrough Library page
+
+## Phase 34: Metrics Reordering Feature
+- [x] Install @dnd-kit library for modern drag-and-drop (replaced deprecated react-beautiful-dnd)
+- [x] Create useMetricsOrder hook for managing metric order state
+- [x] Create localStorage utilities for persisting metric order
+- [x] Implement DraggableMetricsContainer component for drag-and-drop
+- [x] Add edit mode toggle button to metrics section ("Rearrange" button)
+- [x] Add reset to default order functionality with confirmation dialog
+- [x] Implement visual feedback during dragging (opacity changes, grip icon)
+- [x] Create metricRenderHelper utility for rendering metrics in correct order
+- [x] Create unit tests for metrics reordering (15+ tests in useMetricsOrder.test.ts)
+- [x] Integrate drag-and-drop into Home.tsx dashboard
+- [x] Verify localStorage persistence of custom metric order
+- [ ] Test drag-and-drop functionality in browser with demo data
+- [ ] Test on mobile devices (touch support)
