@@ -43,6 +43,9 @@ import {
 } from '@/lib/csvParser';
 import { validateCSVFile, ValidationResult } from '@/lib/csvValidator';
 import { applyPlansToAllAgents } from '@/lib/commissionCalculator';
+import { PipelineFunnelChart } from '@/components/PipelineFunnelChart';
+import { KPICard } from '@/components/KPICard';
+import { PipelineDrillDownModal } from '@/components/PipelineDrillDownModal';
 import { ValidationErrorDisplay } from '@/components/ValidationErrorDisplay';
 import { UploadProgress, useUploadProgress } from '@/components/UploadProgress';
 import { filterRecordsByDate, getPreviousPeriod } from '@/lib/dateUtils';
@@ -98,6 +101,7 @@ import MobileNav from '@/components/MobileNav';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import OnboardingTour from '@/components/OnboardingTour';
 import { useOnboardingTour, uploadTourSteps, dashboardTourSteps } from '@/hooks/useOnboardingTour';
+
 import { FilterProvider, useFilters } from '@/contexts/FilterContext';
 import FilterBadge from '@/components/FilterBadge';
 import { validateCSVData, ValidationReport } from '@/lib/csvValidation';
@@ -108,8 +112,8 @@ import toast, { Toaster } from 'react-hot-toast';
 import BackToTop from '@/components/BackToTop';
 import CollapsibleSection from '@/components/CollapsibleSection';
 import CSVPreparationGuide from '@/components/CSVPreparationGuide';
-import { useMetricsOrder, MetricId } from '@/hooks/useMetricsOrder';
-import { DraggableMetricsContainer, DraggableMetric } from '@/components/DraggableMetricsContainer';
+import { useMetricsOrder } from '@/hooks/useMetricsOrder';
+import { DraggableMetricsContainer } from '@/components/DraggableMetricsContainer';
 import { renderMetricCard } from '@/lib/metricRenderHelper';
 
 function HomeContent() {
@@ -194,6 +198,12 @@ function HomeContent() {
   // Commission Management Panel State
   const [commissionManagementTab, setCommissionManagementTab] = useState('plans');
   const [commissionManagementHighlightAgent, setCommissionManagementHighlightAgent] = useState<string | undefined>();
+
+  // Pipeline Pulse Drill-Down State
+  const [pipelinePulseModalOpen, setPipelinePulseModalOpen] = useState(false);
+  const [pipelinePulseModalTitle, setPipelinePulseModalTitle] = useState('');
+  const [pipelinePulseModalRecords, setPipelinePulseModalRecords] = useState<DotloopRecord[]>([]);
+  const [pipelinePulseStageColor, setPipelinePulseStageColor] = useState('');
 
   // Load saved mapping and recent files on mount
   const [showCSVGuide, setShowCSVGuide] = useState(false);
@@ -309,6 +319,14 @@ function HomeContent() {
   }, [allRecords, dateRange, filters]);
 
   // Handle metric card clicks - opens modal with deal details
+  // Pipeline Pulse handler
+  const handlePipelineStageClick = (stage: any) => {
+    setPipelinePulseModalTitle(stage.label);
+    setPipelinePulseModalRecords(stage.records);
+    setPipelinePulseStageColor(stage.color);
+    setPipelinePulseModalOpen(true);
+  };
+
   const handleMetricClick = (type: 'total' | 'volume' | 'closing' | 'days' | 'active' | 'contract' | 'closed' | 'archived') => {
     let filtered: DotloopRecord[] = [];
     let title = '';
@@ -857,50 +875,62 @@ function HomeContent() {
         {/* Filter Badge */}
         <FilterBadge />
         
-        {/* Top Metrics Row with Reordering */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-foreground">Key Metrics</h2>
-            <div className="flex gap-2">
-              {isEditMode && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowResetConfirm(true)}
-                  className="text-xs"
-                >
-                  Reset Order
-                </Button>
-              )}
-              <Button
-                variant={isEditMode ? 'default' : 'outline'}
-                size="sm"
-                onClick={toggleEditMode}
-                className="text-xs"
-              >
-                {isEditMode ? 'Done Editing' : 'Rearrange'}
-              </Button>
+        {/* Pipeline Pulse Dashboard */}
+        {metrics && filteredRecords.length > 0 && (
+          <div className="mb-12 space-y-6" data-tour="pipeline-pulse">
+            {/* KPI Cards Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <KPICard
+                title="Total Transactions"
+                value={metrics.totalTransactions}
+                subtitle={`Avg: ${formatCurrency(metrics.averagePrice)}`}
+                icon="📊"
+                trend={metrics.trends?.totalTransactions?.value}
+                trendLabel="vs previous period"
+                color="primary"
+                onClick={() => handleMetricClick('total')}
+              />
+              <KPICard
+                title="Total Sales Volume"
+                value={formatCurrency(metrics.totalSalesVolume)}
+                subtitle={`${metrics.closed} closed deals`}
+                icon="💰"
+                trend={metrics.trends?.totalVolume?.value}
+                trendLabel="vs previous period"
+                color="success"
+                onClick={() => handleMetricClick('volume')}
+              />
+              <KPICard
+                title="Closing Rate"
+                value={formatPercentage(metrics.closingRate)}
+                subtitle={`${metrics.averageDaysToClose} days avg`}
+                icon="🎯"
+                trend={metrics.trends?.closingRate?.value}
+                trendLabel="vs previous period"
+                color="accent"
+                onClick={() => handleMetricClick('closing')}
+              />
+            </div>
+
+            {/* Pipeline Funnel Chart */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <PipelineFunnelChart
+                records={filteredRecords}
+                onStageClick={handlePipelineStageClick}
+              />
+              <ProjectedToCloseCard records={filteredRecords} />
             </div>
           </div>
-          {isEditMode && (
-            <p className="text-xs text-muted-foreground mb-3">
-              Drag the grip icon to reorder metrics. Your preferences will be saved automatically.
-            </p>
-          )}
-          <DraggableMetricsContainer
-            metricsOrder={metricsOrder}
-            isEditMode={isEditMode}
-            onReorder={reorderMetrics}
-          >
-            <div data-section="metrics" className="grid grid-cols-1 gap-3" data-tour="metrics">
-              {metricsOrder.map((metricId) => (
-                <DraggableMetric key={metricId} id={metricId} isEditMode={isEditMode}>
-                  {renderMetricCard(metricId, metrics, sparklineTrends, handleMetricClick)}
-                </DraggableMetric>
-              ))}
-            </div>
-          </DraggableMetricsContainer>
-        </div>
+        )}
+
+        {/* Pipeline Drill-Down Modal */}
+        <PipelineDrillDownModal
+          isOpen={pipelinePulseModalOpen}
+          onClose={() => setPipelinePulseModalOpen(false)}
+          title={pipelinePulseModalTitle}
+          records={pipelinePulseModalRecords}
+          stageColor={pipelinePulseStageColor}
+        />
 
         {/* Reset Confirmation Dialog */}
         <AlertDialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
