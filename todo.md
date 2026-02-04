@@ -2595,3 +2595,29 @@
 - [x] Create unit tests for AgentAssignmentModal (10 tests)
 - [x] Create unit tests for RevenueOverview (10 tests)
 - [x] Run test suite (690 tests passing)
+
+
+## Phase 32: Real-Time Commission Recalculation
+- [ ] Create commissionRecalculation tRPC procedure in backend
+- [ ] Add recalculation trigger when agent is assigned
+- [ ] Add recalculation trigger when commission plan is updated
+- [ ] Implement real-time dashboard update using tRPC invalidation
+- [ ] Create useCommissionRecalculation hook for frontend
+- [ ] Add loading states during recalculation
+- [ ] Display recalculation progress to user
+- [ ] Test real-time updates with multiple agents
+- [ ] Test commission recalculation accuracy
+- [ ] Verify dashboard metrics update in real-time
+
+
+## Phase 32: Real-Time Commission Recalculation
+- [x] Create commission recalculation backend router
+- [x] Implement recalculateForAgent procedure
+- [x] Implement recalculateForPlan procedure
+- [x] Implement recalculateAll procedure
+- [x] Register router in main appRouter
+- [x] Create frontend hook for real-time updates (useCommissionRecalculation)
+- [x] Add cache invalidation logic
+- [x] Create unit tests for backend procedures (32 tests)
+- [x] Create unit tests for frontend hook (30 tests)
+- [x] Test suite running (750 tests passing)
