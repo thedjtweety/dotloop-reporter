@@ -98,6 +98,7 @@ import OnboardingTour from '@/components/OnboardingTour';
 import { useOnboardingTour, uploadTourSteps, dashboardTourSteps } from '@/hooks/useOnboardingTour';
 import { FilterProvider, useFilters } from '@/contexts/FilterContext';
 import FilterBadge from '@/components/FilterBadge';
+import DataQualityGuide from '@/components/DataQualityGuide';
 import toast, { Toaster } from 'react-hot-toast';
 // import SectionNav from '@/components/SectionNav'; // Removed floating navigation
 import BackToTop from '@/components/BackToTop';
@@ -649,6 +650,11 @@ function HomeContent() {
                   </div>
                 </Card>
               </div>
+            </div>
+            
+            {/* Data Quality Guide */}
+            <div className="mt-16 pt-8 border-t border-border">
+              <DataQualityGuide />
             </div>
             
             {/* Show Upload History for authenticated users, RecentUploads for guests */}
