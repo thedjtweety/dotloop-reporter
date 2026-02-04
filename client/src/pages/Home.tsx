@@ -58,6 +58,7 @@ import RecentUploads, { RecentFile } from '@/components/RecentUploads';
 import UploadHistory from '@/components/UploadHistory';
 import ConnectDotloop from '@/components/ConnectDotloop';
 import { OnboardingChecklist } from '@/components/OnboardingChecklist';
+import { CSVValidationReportModal } from '@/components/CSVValidationReportModal';
 import MetricCard from '@/components/MetricCard';
 import ProjectedToCloseCard from '@/components/ProjectedToCloseCard';
 import ColumnMapping from '@/components/ColumnMapping';
@@ -766,6 +767,12 @@ function HomeContent() {
 
         {/* CSV Preparation Guide Modal */}
         <CSVPreparationGuide isOpen={showCSVGuide} onClose={() => setShowCSVGuide(false)} />
+        <CSVValidationReportModal
+          isOpen={showValidationReport}
+          report={validationReport}
+          onClose={() => setShowValidationReport(false)}
+          onProceed={() => setShowValidationReport(false)}
+        />
       </div>
     );
   }
