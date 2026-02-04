@@ -23,7 +23,7 @@ const tutorials: Tutorial[] = [
     description: 'Learn how to upload your Dotloop export CSV file to the reporting tool. We\'ll walk you through selecting your file and understanding the validation process.',
     duration: '8 seconds',
     category: 'getting-started',
-    videoUrl: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663283621115/ZLSeLzvmTLBueVOK.mp4',
+    videoUrl: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663283621115/xVOrXAaWFyOkKBcY.mp4',
     difficulty: 'beginner',
   },
   {
@@ -32,7 +32,7 @@ const tutorials: Tutorial[] = [
     description: 'Understand how to read and interpret the dashboard metrics, charts, and key performance indicators. Learn what each metric means and how to use them for insights.',
     duration: '8 seconds',
     category: 'features',
-    videoUrl: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663283621115/OLHRkalHKGLdNNBA.mp4',
+    videoUrl: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663283621115/aXLfnQieHwOMwDMN.mp4',
     difficulty: 'beginner',
   },
   {
@@ -41,7 +41,7 @@ const tutorials: Tutorial[] = [
     description: 'Discover how to assign commission plans to your agents. We\'ll show you how to select agents, choose a template, and apply commission structures.',
     duration: '8 seconds',
     category: 'features',
-    videoUrl: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663283621115/pNFegzbbxLxsbQQv.mp4',
+    videoUrl: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663283621115/gvJGRHAOfxFwcrnV.mp4',
     difficulty: 'intermediate',
   },
   {
@@ -50,7 +50,7 @@ const tutorials: Tutorial[] = [
     description: 'Learn how to export your reports in multiple formats (CSV, Excel, PDF) and share them with your team. Perfect for presentations and analysis.',
     duration: '8 seconds',
     category: 'advanced',
-    videoUrl: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663283621115/jFWnXenZCRsbOOvd.mp4',
+    videoUrl: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663283621115/HteRharFNbUwvGdW.mp4',
     difficulty: 'beginner',
   },
 ];
