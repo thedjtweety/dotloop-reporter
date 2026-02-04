@@ -57,6 +57,7 @@ import CommissionProjector from '@/components/CommissionProjector';
 import RecentUploads, { RecentFile } from '@/components/RecentUploads';
 import UploadHistory from '@/components/UploadHistory';
 import ConnectDotloop from '@/components/ConnectDotloop';
+import { OnboardingChecklist } from '@/components/OnboardingChecklist';
 import MetricCard from '@/components/MetricCard';
 import ProjectedToCloseCard from '@/components/ProjectedToCloseCard';
 import ColumnMapping from '@/components/ColumnMapping';
@@ -626,6 +627,9 @@ function HomeContent() {
                 Upload your Dotloop export or connect directly to Dotloop to instantly generate professional commission reports, agent leaderboards, and financial analytics.
               </p>
             </div>
+
+            {/* Onboarding Checklist */}
+            <OnboardingChecklist />
 
             {/* Dual-column layout: CSV Upload (left) and Data Quality Tips (right) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
