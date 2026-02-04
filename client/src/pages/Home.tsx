@@ -627,7 +627,7 @@ function HomeContent() {
               </p>
             </div>
 
-            {/* Dual-column layout: CSV Upload (left) and Dotloop Connection (right) */}
+            {/* Dual-column layout: CSV Upload (left) and Data Quality Tips (right) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Left Column: CSV Upload */}
               <div className="space-y-4">
@@ -642,31 +642,10 @@ function HomeContent() {
                 </Card>
               </div>
 
-              {/* Right Column: Dotloop Connection */}
-              <div className="space-y-4">
-                <div className="text-center lg:text-left">
-                  <h3 className="text-xl font-semibold mb-2">Connect to Dotloop</h3>
-                  <p className="text-sm text-foreground/70 mb-4">
-                    Sync data directly from your Dotloop account
-                  </p>
-                </div>
-                <Card className="p-8 border-2 border-border bg-card/50 hover:bg-card/80 transition-colors">
-                  <div className="flex flex-col items-center justify-center space-y-4 min-h-[200px]">
-                    <div className="text-center space-y-2">
-                      <img src="/dotloop-logo.png" alt="Dotloop" className="h-12 mx-auto mb-4" />
-                      <p className="text-sm text-foreground/70">
-                        Connect your Dotloop account to automatically sync your loops and transactions
-                      </p>
-                    </div>
-                    <ConnectDotloop variant="button" />
-                  </div>
-                </Card>
+              {/* Right Column: Data Quality Tips */}
+              <div>
+                <DataQualityGuide onOpenGuide={() => setShowCSVGuide(true)} />
               </div>
-            </div>
-            
-            {/* Data Quality Guide */}
-            <div className="mt-16 pt-8 border-t border-border">
-              <DataQualityGuide onOpenGuide={() => setShowCSVGuide(true)} />
             </div>
             
             {/* Show Upload History for authenticated users, RecentUploads for guests */}
