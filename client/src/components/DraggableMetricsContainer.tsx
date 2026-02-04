@@ -7,10 +7,14 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-  DragOverlay,
 } from '@dnd-kit/core';
-
-import { useSortable, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
 import { MetricId } from '@/hooks/useMetricsOrder';

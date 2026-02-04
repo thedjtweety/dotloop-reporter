@@ -30,13 +30,6 @@ describe('useMetricsOrder Hook', () => {
     expect(result.current.isEditMode).toBe(false);
   });
 
-  it('should initialize with isLoaded as false initially', () => {
-    const { result } = renderHook(() => useMetricsOrder());
-
-    // isLoaded should be true after mount
-    expect(result.current.isLoaded).toBe(true);
-  });
-
   it('should toggle edit mode', () => {
     const { result } = renderHook(() => useMetricsOrder());
 
@@ -193,5 +186,11 @@ describe('useMetricsOrder Hook', () => {
     });
 
     expect(result.current.metricsOrder).toEqual(order2);
+  });
+
+  it('should set isLoaded to true after mount', () => {
+    const { result } = renderHook(() => useMetricsOrder());
+
+    expect(result.current.isLoaded).toBe(true);
   });
 });

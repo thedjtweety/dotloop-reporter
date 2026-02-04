@@ -2,12 +2,6 @@ import { useState, useEffect } from 'react';
 
 export type MetricId = 'transactions' | 'volume' | 'closingRate' | 'daysToClose';
 
-export interface Metric {
-  id: MetricId;
-  title: string;
-  order: number;
-}
-
 const DEFAULT_METRICS_ORDER: MetricId[] = [
   'transactions',
   'volume',

@@ -2649,3 +2649,20 @@
 - [x] Verify localStorage persistence of custom metric order
 - [ ] Test drag-and-drop functionality in browser with demo data
 - [ ] Test on mobile devices (touch support)
+
+
+## Phase 34: Metrics Reordering Feature
+- [x] Install @dnd-kit library for modern drag-and-drop (React 19 compatible)
+- [x] Create useMetricsOrder hook for managing metric order state with localStorage
+- [x] Create DraggableMetricsContainer component with drag-and-drop functionality
+- [x] Create DraggableMetric wrapper component with grip icon
+- [x] Integrate drag-and-drop into Home.tsx dashboard
+- [x] Add "Rearrange" button to toggle edit mode
+- [x] Add "Reset Order" button with confirmation dialog
+- [x] Create metricRenderHelper utility for rendering metrics in custom order
+- [x] Create comprehensive unit tests (15+ tests) for useMetricsOrder hook
+- [x] Verify localStorage persistence of custom metric order
+- [x] Verify edit mode persistence across page reloads
+- [ ] Test drag-and-drop functionality in browser with demo data
+- [ ] Test on mobile devices (touch support)
+- [ ] Verify metrics display in custom order after page reload
