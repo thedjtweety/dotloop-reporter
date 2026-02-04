@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -74,10 +74,15 @@ const pillars: Pillar[] = [
   }
 ];
 
-export default function CSVPreparationGuide() {
+interface CSVPreparationGuideProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function CSVPreparationGuide({ isOpen, onClose }: CSVPreparationGuideProps) {
   const [currentPillar, setCurrentPillar] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+
+  if (!isOpen) return null;
 
   const handleNext = () => {
     if (currentPillar < pillars.length - 1) {
@@ -94,97 +99,56 @@ export default function CSVPreparationGuide() {
   const pillar = pillars[currentPillar];
 
   return (
-    <div className="w-full space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-foreground">CSV Preparation Guide</h2>
-        <p className="text-muted-foreground">
-          Learn the 5 pillars of data quality. Step {currentPillar + 1} of {pillars.length}
-        </p>
-      </div>
-
-      <Card className="overflow-hidden bg-card/50 border-border">
-        {/* Image Section */}
-        <div className="relative bg-background/50 aspect-video overflow-hidden">
-          <img
-            src={pillar.image}
-            alt={pillar.title}
-            className="w-full h-full object-cover"
-          />
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-background rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="sticky top-0 bg-background border-b border-border p-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">CSV Preparation Guide</h2>
+            <p className="text-sm text-foreground/60">Learn the 5 pillars of data quality. Step {currentPillar + 1} of {pillars.length}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-card rounded-lg transition-colors"
+          >
+            <X className="h-6 w-6 text-foreground" />
+          </button>
         </div>
 
-        {/* Content Section */}
-        <div className="p-8 space-y-6">
-          <div className="space-y-3">
-            <h3 className="text-2xl font-bold text-foreground">{pillar.title}</h3>
-            <p className="text-foreground/80 leading-relaxed">{pillar.description}</p>
+        {/* Content */}
+        <div className="p-8 space-y-8">
+          {/* Image Section */}
+          <div className="relative bg-background/50 rounded-lg overflow-hidden aspect-video">
+            <img
+              src={pillar.image}
+              alt={pillar.title}
+              className="w-full h-full object-cover"
+            />
           </div>
 
-          {/* Tips */}
-          <div className="space-y-3">
-            <h4 className="font-semibold text-foreground">Key Tips:</h4>
-            <ul className="space-y-2">
-              {pillar.tips.map((tip, idx) => (
-                <li key={idx} className="flex gap-3 text-sm text-foreground/70">
-                  <span className="text-primary font-bold">•</span>
-                  <span>{tip}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Controls */}
-          <div className="flex items-center justify-between pt-4 border-t border-border">
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePrev}
-                disabled={currentPillar === 0}
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNext}
-                disabled={currentPillar === pillars.length - 1}
-              >
-                Next
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
+          {/* Text Content */}
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <h3 className="text-3xl font-bold text-foreground">{pillar.title}</h3>
+              <p className="text-lg text-foreground/80 leading-relaxed">{pillar.description}</p>
             </div>
 
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsPlaying(!isPlaying)}
-                title={isPlaying ? 'Pause narration' : 'Play narration'}
-              >
-                {isPlaying ? (
-                  <Pause className="h-4 w-4" />
-                ) : (
-                  <Play className="h-4 w-4" />
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsMuted(!isMuted)}
-                title={isMuted ? 'Unmute' : 'Mute'}
-              >
-                {isMuted ? (
-                  <VolumeX className="h-4 w-4" />
-                ) : (
-                  <Volume2 className="h-4 w-4" />
-                )}
-              </Button>
+            {/* Tips */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-foreground text-lg">Key Tips:</h4>
+              <ul className="space-y-3">
+                {pillar.tips.map((tip, idx) => (
+                  <li key={idx} className="flex gap-3 text-foreground/70">
+                    <span className="text-primary font-bold flex-shrink-0">✓</span>
+                    <span>{tip}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 
           {/* Progress Indicator */}
-          <div className="flex gap-1 justify-center">
+          <div className="flex gap-2 justify-center py-6">
             {pillars.map((_, idx) => (
               <button
                 key={idx}
@@ -198,28 +162,33 @@ export default function CSVPreparationGuide() {
               />
             ))}
           </div>
-        </div>
-      </Card>
 
-      {/* Quick Reference */}
-      <Card className="p-6 bg-card/30 border-border">
-        <h4 className="font-semibold text-foreground mb-4">Quick Reference</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {pillars.map((p, idx) => (
-            <button
-              key={p.id}
-              onClick={() => setCurrentPillar(idx)}
-              className={`p-3 rounded-lg border transition-all text-sm font-medium ${
-                idx === currentPillar
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border bg-background/50 text-foreground/70 hover:border-border/80'
-              }`}
+          {/* Navigation */}
+          <div className="flex items-center justify-between pt-6 border-t border-border">
+            <Button
+              variant="outline"
+              onClick={handlePrev}
+              disabled={currentPillar === 0}
             >
-              {p.id}. {p.title}
-            </button>
-          ))}
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+
+            <div className="text-sm text-foreground/60">
+              {currentPillar + 1} of {pillars.length}
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={handleNext}
+              disabled={currentPillar === pillars.length - 1}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

@@ -15,10 +15,13 @@ import CSVPreparationGuide from '@/components/CSVPreparationGuide';
 import { useLocation } from 'wouter';
 import { Play } from 'lucide-react';
 
-export default function DataQualityGuide() {
+interface DataQualityGuideProps {
+  onOpenGuide?: () => void;
+}
+
+export default function DataQualityGuide({ onOpenGuide }: DataQualityGuideProps = {}) {
   const [, setLocation] = useLocation();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  const [showGuide, setShowGuide] = useState(false);
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -198,7 +201,7 @@ export default function DataQualityGuide() {
             Use the checklist above to verify your CSV before uploading. The system will show you a data health report after import, highlighting any completeness issues.
           </p>
           <div className="flex gap-2 pt-2 flex-wrap">
-            <Button variant="outline" size="sm" onClick={() => setShowGuide(true)}>
+            <Button variant="outline" size="sm" onClick={onOpenGuide}>
               View Full Guide
             </Button>
             <Button variant="outline" size="sm" onClick={() => setLocation('/video-walkthroughs')}>
@@ -247,12 +250,7 @@ export default function DataQualityGuide() {
         </div>
       </Card>
 
-      {/* CSV Preparation Guide Modal */}
-      <Dialog open={showGuide} onOpenChange={setShowGuide}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <CSVPreparationGuide />
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 }

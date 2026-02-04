@@ -105,6 +105,7 @@ import toast, { Toaster } from 'react-hot-toast';
 // import SectionNav from '@/components/SectionNav'; // Removed floating navigation
 import BackToTop from '@/components/BackToTop';
 import CollapsibleSection from '@/components/CollapsibleSection';
+import CSVPreparationGuide from '@/components/CSVPreparationGuide';
 
 function HomeContent() {
   // The userAuth hooks provides authentication state
@@ -188,6 +189,8 @@ function HomeContent() {
   const [commissionManagementHighlightAgent, setCommissionManagementHighlightAgent] = useState<string | undefined>();
 
   // Load saved mapping and recent files on mount
+  const [showCSVGuide, setShowCSVGuide] = useState(false);
+
   useEffect(() => {
     const saved = localStorage.getItem('dotloop_field_mapping');
     if (saved) {
@@ -663,7 +666,7 @@ function HomeContent() {
             
             {/* Data Quality Guide */}
             <div className="mt-16 pt-8 border-t border-border">
-              <DataQualityGuide />
+              <DataQualityGuide onOpenGuide={() => setShowCSVGuide(true)} />
             </div>
             
             {/* Show Upload History for authenticated users, RecentUploads for guests */}
@@ -777,6 +780,9 @@ function HomeContent() {
             />
           </DialogContent>
         </Dialog>
+
+        {/* CSV Preparation Guide Modal */}
+        <CSVPreparationGuide isOpen={showCSVGuide} onClose={() => setShowCSVGuide(false)} />
       </div>
     );
   }
