@@ -2595,6 +2595,7 @@
 - [x] Create unit tests for AgentAssignmentModal (10 tests)
 - [x] Create unit tests for RevenueOverview (10 tests)
 - [x] Run test suite (690 tests passing)
+- [x] Change metrics grid from 4-column to full-width vertical stacking
 
 
 ## Phase 32: Real-Time Commission Recalculation
@@ -2622,7 +2623,13 @@
 - [x] Create unit tests for frontend hook (30 tests)
 - [x] Test suite running (750 tests passing)
 
-## Phase 31: Enhanced User Education & Validation
+## Phase 32: Dashboard Metrics Layout Optimization
+- [x] Change metrics grid from 4-column (lg:grid-cols-4) to full-width vertical stacking (grid-cols-1)
+- [x] Verify metrics display correctly in vertical layout
+- [x] Test responsive behavior on all screen sizes
+- [x] Confirm all metric information is visible without cramping
+
+## Phase 33: Enhanced User Education & Validation
 - [ ] Integrate CSV Validation Report into upload flow with modal
 - [ ] Add copy-to-clipboard for Commission Templates
 - [ ] Create 8-second video tutorials (4 workflows)

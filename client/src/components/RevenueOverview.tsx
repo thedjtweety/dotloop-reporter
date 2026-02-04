@@ -56,8 +56,8 @@ export default function RevenueOverview({
         Revenue Overview
       </h2>
 
-      {/* Horizontal Stacked Layout - Desktop */}
-      <div className="hidden lg:grid lg:grid-cols-3 gap-4">
+      {/* Full-Width Vertical Layout - Desktop */}
+      <div className="space-y-4">
         {metrics.map((metric, index) => (
           <Card
             key={index}

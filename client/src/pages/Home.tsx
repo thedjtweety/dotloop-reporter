@@ -853,7 +853,7 @@ function HomeContent() {
         <FilterBadge />
         
         {/* Top Metrics Row */}
-        <div data-section="metrics" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 landscape:grid-cols-4 gap-3 landscape:gap-4 mb-8" data-tour="metrics">
+        <div data-section="metrics" className="grid grid-cols-1 gap-3 mb-8" data-tour="metrics">
             <MetricCard
               title="Total Transactions"
               value={metrics.totalTransactions}
