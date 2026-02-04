@@ -2582,3 +2582,16 @@
 - [x] Dev server running without errors
 - [ ] Deploy to production and monitor server logs
 - [ ] Verify error messages appear in production logs when procedures fail
+
+
+## Phase 31: Agent Assignment Modal & Revenue Overview Redesign
+- [x] Create AgentAssignmentModal component with agent selection UI
+- [x] Add "Skip" button to bypass agent assignment during CSV upload
+- [ ] Integrate agent assignment modal into CSV upload workflow
+- [ ] Store agent assignments with transaction data
+- [x] Redesign Revenue Overview cards to horizontal stacked layout
+- [x] Stack metric cards vertically for better space utilization
+- [x] Improve responsive design for mobile/tablet
+- [x] Create unit tests for AgentAssignmentModal (10 tests)
+- [x] Create unit tests for RevenueOverview (10 tests)
+- [x] Run test suite (690 tests passing)
