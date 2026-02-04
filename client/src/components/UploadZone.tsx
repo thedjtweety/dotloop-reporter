@@ -90,7 +90,7 @@ export default function UploadZone({ onFileUpload, onDemoClick, isLoading = fals
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center"
         style={{ 
-          backgroundImage: 'url("/images/real-estate-bg.jpg")',
+          backgroundImage: 'url("https://files.manuscdn.com/user_upload_by_module/session_file/310519663283621115/SFhnYZOwluOkhsOj.jpg")',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 to-slate-900/70 backdrop-blur-[2px]" />
