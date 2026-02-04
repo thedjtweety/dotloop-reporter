@@ -878,8 +878,8 @@ function HomeContent() {
         {/* Pipeline Pulse Dashboard */}
         {metrics && filteredRecords.length > 0 && (
           <div className="mb-12 space-y-6" data-tour="pipeline-pulse">
-            {/* KPI Cards - Full Width Stacked */}
-            <div className="grid grid-cols-1 gap-4">
+            {/* KPI Cards Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <KPICard
                 title="Total Transactions"
                 value={metrics.totalTransactions}
