@@ -18,6 +18,7 @@ import BenchmarkComparisonPage from "./pages/BenchmarkComparisonPage";
 import ManageDotloopConnections from "./pages/ManageDotloopConnections";
 import OAuthCallback from "./pages/OAuthCallback";
 import CommissionTemplates from "./pages/CommissionTemplates";
+import VideoWalkthroughs from "./pages/VideoWalkthroughs";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -37,7 +38,8 @@ function Router() {
       <Route path="/settings/dotloop" component={ManageDotloopConnections} />
       <Route path="/api/dotloop/callback" component={OAuthCallback} />
       <Route path="/commission-templates" component={CommissionTemplates} />
-      <Route path={"/404"} component={NotFound} />
+      <Route path="/video-walkthroughs" component={VideoWalkthroughs} />
+      <Route path="{/404}" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>

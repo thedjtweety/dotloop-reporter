@@ -12,8 +12,11 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, AlertCircle, CheckCircle2, Users, Calendar, DollarSign, Tag, FileText } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import CSVPreparationGuide from '@/components/CSVPreparationGuide';
+import { useLocation } from 'wouter';
+import { Play } from 'lucide-react';
 
 export default function DataQualityGuide() {
+  const [, setLocation] = useLocation();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
 
@@ -194,9 +197,13 @@ export default function DataQualityGuide() {
           <p className="text-sm text-muted-foreground">
             Use the checklist above to verify your CSV before uploading. The system will show you a data health report after import, highlighting any completeness issues.
           </p>
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2 pt-2 flex-wrap">
             <Button variant="outline" size="sm" onClick={() => setShowGuide(true)}>
               View Full Guide
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setLocation('/video-walkthroughs')}>
+              <Play className="h-4 w-4 mr-2" />
+              Watch Tutorials
             </Button>
           </div>
         </div>

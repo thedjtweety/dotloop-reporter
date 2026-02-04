@@ -2621,3 +2621,9 @@
 - [x] Create unit tests for backend procedures (32 tests)
 - [x] Create unit tests for frontend hook (30 tests)
 - [x] Test suite running (750 tests passing)
+
+## Phase 31: Enhanced User Education & Validation
+- [ ] Integrate CSV Validation Report into upload flow with modal
+- [ ] Add copy-to-clipboard for Commission Templates
+- [ ] Create 8-second video tutorials (4 workflows)
+- [ ] Build Video Walkthrough Library page

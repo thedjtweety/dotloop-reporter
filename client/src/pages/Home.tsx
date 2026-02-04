@@ -98,6 +98,8 @@ import OnboardingTour from '@/components/OnboardingTour';
 import { useOnboardingTour, uploadTourSteps, dashboardTourSteps } from '@/hooks/useOnboardingTour';
 import { FilterProvider, useFilters } from '@/contexts/FilterContext';
 import FilterBadge from '@/components/FilterBadge';
+import { validateCSVData, ValidationReport } from '@/lib/csvValidation';
+import CSVValidationReport from '@/components/CSVValidationReport';
 import DataQualityGuide from '@/components/DataQualityGuide';
 import toast, { Toaster } from 'react-hot-toast';
 // import SectionNav from '@/components/SectionNav'; // Removed floating navigation
@@ -178,6 +180,8 @@ function HomeContent() {
   const [uploadFileName, setUploadFileName] = useState('');
   const [uploadFileSize, setUploadFileSize] = useState('');
   const uploadProgress = useUploadProgress();
+  const [showValidationReport, setShowValidationReport] = useState(false);
+  const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
 
   // Commission Management Panel State
   const [commissionManagementTab, setCommissionManagementTab] = useState('plans');
@@ -500,6 +504,11 @@ function HomeContent() {
       
       performanceMetrics.totalTimeMs = Date.now() - overallStartTime;
       
+      // Generate validation report
+      const report = validateCSVData(file.name, records);
+      setValidationReport(report);
+      setShowValidationReport(true);
+      
       // Process the records for immediate display
       setAllRecords(records);
       setFilteredRecords(records);
@@ -691,6 +700,22 @@ function HomeContent() {
                 setIsLoading(false);
               }}
             />
+          </DialogContent>
+        </Dialog>
+
+        {/* CSV Validation Report Dialog */}
+        <Dialog open={showValidationReport} onOpenChange={setShowValidationReport}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            {validationReport && (
+              <CSVValidationReport
+                report={validationReport}
+                onProceed={() => setShowValidationReport(false)}
+                onReview={() => {
+                  // Could open detailed review modal if needed
+                  console.log('Review validation details');
+                }}
+              />
+            )}
           </DialogContent>
         </Dialog>
 

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Copy, Check, TrendingUp, Users, Zap, Target } from 'lucide-react';
 import { useLocation } from 'wouter';
+import toast from 'react-hot-toast';
 
 interface Template {
   id: string;
@@ -228,9 +229,34 @@ export default function CommissionTemplates() {
   const [, setLocation] = useLocation();
   const [copied, setCopied] = useState<string | null>(null);
 
-  const handleCopy = (templateId: string) => {
-    setCopied(templateId);
-    setTimeout(() => setCopied(null), 2000);
+  const handleCopy = (template: Template) => {
+    const templateJSON = {
+      name: template.name,
+      description: template.description,
+      splits: template.splits,
+      caps: template.caps || [],
+      bestFor: template.bestFor
+    };
+    
+    const jsonString = JSON.stringify(templateJSON, null, 2);
+    navigator.clipboard.writeText(jsonString).then(() => {
+      setCopied(template.id);
+      toast.success(`✓ ${template.name} copied to clipboard!`, {
+        duration: 2000,
+        position: 'top-center',
+        style: {
+          background: '#10b981',
+          color: '#fff',
+          fontWeight: 'bold',
+        },
+      });
+      setTimeout(() => setCopied(null), 2000);
+    }).catch(() => {
+      toast.error('Failed to copy to clipboard', {
+        duration: 2000,
+        position: 'top-center',
+      });
+    });
   };
 
   const getCategoryIcon = (category: string) => {
@@ -298,7 +324,7 @@ export default function CommissionTemplates() {
                 key={template.id}
                 template={template}
                 isCopied={copied === template.id}
-                onCopy={() => handleCopy(template.id)}
+                onCopy={() => handleCopy(template)}
                 getCategoryIcon={getCategoryIcon}
                 getCategoryColor={getCategoryColor}
                 onSelect={() => setLocation('/commission-management')}
@@ -313,7 +339,7 @@ export default function CommissionTemplates() {
                 key={template.id}
                 template={template}
                 isCopied={copied === template.id}
-                onCopy={() => handleCopy(template.id)}
+                onCopy={() => handleCopy(template)}
                 getCategoryIcon={getCategoryIcon}
                 getCategoryColor={getCategoryColor}
                 onSelect={() => setLocation('/commission-management')}
@@ -328,7 +354,7 @@ export default function CommissionTemplates() {
                 key={template.id}
                 template={template}
                 isCopied={copied === template.id}
-                onCopy={() => handleCopy(template.id)}
+                onCopy={() => handleCopy(template)}
                 getCategoryIcon={getCategoryIcon}
                 getCategoryColor={getCategoryColor}
                 onSelect={() => setLocation('/commission-management')}
@@ -343,7 +369,7 @@ export default function CommissionTemplates() {
                 key={template.id}
                 template={template}
                 isCopied={copied === template.id}
-                onCopy={() => handleCopy(template.id)}
+                onCopy={() => handleCopy(template)}
                 getCategoryIcon={getCategoryIcon}
                 getCategoryColor={getCategoryColor}
                 onSelect={() => setLocation('/commission-management')}
@@ -358,7 +384,7 @@ export default function CommissionTemplates() {
                 key={template.id}
                 template={template}
                 isCopied={copied === template.id}
-                onCopy={() => handleCopy(template.id)}
+                onCopy={() => handleCopy(template)}
                 getCategoryIcon={getCategoryIcon}
                 getCategoryColor={getCategoryColor}
                 onSelect={() => setLocation('/commission-management')}
@@ -374,7 +400,7 @@ export default function CommissionTemplates() {
 interface TemplateCardProps {
   template: Template;
   isCopied: boolean;
-  onCopy: () => void;
+  onCopy: (template: Template) => void;
   getCategoryIcon: (category: string) => React.ReactNode;
   getCategoryColor: (category: string) => string;
   onSelect: () => void;
@@ -493,7 +519,7 @@ function TemplateCard({
           <Button
             variant="outline"
             size="sm"
-            onClick={onCopy}
+            onClick={() => onCopy(template)}
             className="flex-1"
           >
             {isCopied ? (
