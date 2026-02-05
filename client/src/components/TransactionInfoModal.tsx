@@ -1,4 +1,4 @@
-import { X, ExternalLink, Calendar, DollarSign, Home, User, Tag, FileText } from 'lucide-react';
+import { X, ExternalLink, Calendar, DollarSign, Home, User, Tag, FileText, Download, StickyNote } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import { formatCurrency } from '@/lib/formatUtils';
 import { Button } from '@/components/ui/button';
@@ -255,6 +255,34 @@ export default function TransactionInfoModal({
             )}
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                // Export transaction as JSON
+                const dataStr = JSON.stringify(transaction, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                const exportFileDefaultName = `transaction_${transaction.loopId || 'export'}.json`;
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+              }}
+              className="border-slate-600 text-white hover:bg-slate-700"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                // Show toast notification (placeholder for future feature)
+                alert('Add Notes feature coming soon! This will allow you to add custom notes to transactions.');
+              }}
+              className="border-slate-600 text-white hover:bg-slate-700"
+            >
+              <StickyNote className="w-4 h-4 mr-2" />
+              Add Notes
+            </Button>
             {transaction.dotloopUrl && (
               <Button
                 variant="outline"

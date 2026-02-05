@@ -2918,12 +2918,24 @@
 
 
 ## Phase 51: Transaction Clickability in Drill-Down Modals
-- [ ] Create TransactionDetailModal component for full transaction details
-- [ ] Add click handler to transaction cards in DrillDownModal
-- [ ] Display comprehensive transaction information (all fields, dates, commission, notes)
-- [ ] Improve list format with better spacing and visual hierarchy
-- [ ] Add hover effects to indicate clickability
-- [ ] Test with Property Type drill-down
-- [ ] Test with Lead Source drill-down
-- [ ] Verify modal opens and closes properly
-- [ ] Ensure responsive design on mobile/tablet
+- [x] Create TransactionDetailModal component for full transaction details
+- [x] Add click handler to transaction cards in DrillDownModal
+- [x] Display comprehensive transaction information (all fields, dates, commission, notes)
+- [x] Improve list format with better spacing and visual hierarchy
+- [x] Add hover effects to indicate clickability
+- [x] Test with Property Type drill-down
+- [x] Test with Lead Source drill-down
+- [x] Verify modal opens and closes properly
+- [x] Ensure responsive design on mobile/tablet
+
+## Phase 50: Chart Click Handlers & Transaction Actions
+- [x] Investigate Property Type chart click handler
+- [x] Investigate Lead Source chart click handler
+- [x] Fix Property Type chart to open drill-down modal on segment click (added clickable legend buttons)
+- [x] Fix Lead Source chart to open drill-down modal on segment click (added clickable legend buttons)
+- [x] Add "View in Dotloop" button to TransactionInfoModal (already existed)
+- [x] Add "Export Transaction" button to TransactionInfoModal
+- [x] Add "Add Notes" button to TransactionInfoModal
+- [x] Test chart click handlers with demo data
+- [x] Test transaction action buttons
+- [x] Verify complete user flow: Chart click → DrillDownModal → Transaction click → TransactionInfoModal → Actions

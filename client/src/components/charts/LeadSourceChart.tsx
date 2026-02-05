@@ -1,58 +1,55 @@
 /**
- * LeadSourceChart Component
- * Displays lead source distribution using a pie chart
+ * Lead Source Performance Chart
+ * Donut chart showing distribution of transactions by lead source
  */
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, TooltipProps } from 'recharts';
-import { ChartData } from '@/lib/csvParser';
 import { useRef, useEffect } from 'react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface LeadSourceChartProps {
-  data: ChartData[];
+  data: Array<{
+    label: string;
+    value: number;
+  }>;
   onSliceClick?: (label: string) => void;
 }
 
-const COLORS = ['#1e3a5f', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const COLORS = [
+  '#3b82f6', // blue
+  '#10b981', // emerald
+  '#f59e0b', // amber
+  '#ef4444', // red
+  '#8b5cf6', // violet
+  '#ec4899', // pink
+  '#06b6d4', // cyan
+  '#14b8a6', // teal
+];
 
-const CustomTooltip = ({ active, payload, total }: TooltipProps<number, string> & { total: number }) => {
+/**
+ * Custom Tooltip Component
+ */
+function CustomTooltip({ active, payload, total }: any) {
   if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    const value = payload[0].value as number;
-    const percentage = ((value / total) * 100).toFixed(2);
-    
+    const data = payload[0];
+    const percent = ((data.value / total) * 100).toFixed(1);
     return (
-      <div className="bg-background border border-border p-3 rounded-lg shadow-lg">
-        <p className="font-semibold text-foreground mb-1">{data.label}</p>
-        <div className="flex flex-col gap-1 text-sm">
-          <p className="text-primary">
-            Count: <span className="font-medium">{value}</span>
-          </p>
-          <p className="text-foreground">
-            Share: <span className="font-medium">{percentage}%</span>
-          </p>
-        </div>
+      <div className="bg-card border border-border rounded-lg shadow-lg p-3">
+        <p className="text-sm font-semibold text-foreground">{data.name}</p>
+        <p className="text-sm text-muted-foreground">
+          {data.value} transactions ({percent}%)
+        </p>
       </div>
     );
   }
   return null;
-};
+}
 
 export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
 
+  // Log when component mounts or data changes
   useEffect(() => {
-    // Add entrance animation
-    if (chartRef.current) {
-      chartRef.current.style.opacity = '0';
-      chartRef.current.style.transform = 'scale(0.9)';
-      requestAnimationFrame(() => {
-        if (chartRef.current) {
-          chartRef.current.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-          chartRef.current.style.opacity = '1';
-          chartRef.current.style.transform = 'scale(1)';
-        }
-      });
-    }
+    console.log('[LeadSourceChart] Mounted/Updated with data:', data.length, 'items, onSliceClick:', onSliceClick);
   }, [data]);
 
   if (data.length === 0) {
@@ -65,7 +62,7 @@ export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartP
 
   return (
     <div ref={chartRef}>
-    <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
           data={data}
@@ -78,7 +75,6 @@ export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartP
           paddingAngle={2}
           fill="#8884d8"
           dataKey="value"
-          onClick={(data) => onSliceClick && onSliceClick(data.label)}
           className="cursor-pointer"
           animationBegin={0}
           animationDuration={1000}
@@ -91,8 +87,13 @@ export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartP
             <Cell 
               key={`cell-${index}`} 
               fill={`url(#lead-gradient-${index})`}
+              onClick={() => {
+                console.log('[LeadSourceChart] Cell clicked:', entry.label, 'onSliceClick:', onSliceClick);
+                onSliceClick && onSliceClick(entry.label);
+              }}
               style={{
-                transition: 'opacity 0.2s'
+                transition: 'opacity 0.2s',
+                cursor: 'pointer'
               }}
             />
           ))}
@@ -110,20 +111,37 @@ export default function LeadSourceChart({ data, onSliceClick }: LeadSourceChartP
           })}
         </defs>
         <Tooltip content={<CustomTooltip total={data.reduce((acc, curr) => acc + curr.value, 0)} />} />
-        <Legend 
-          layout="horizontal" 
-          verticalAlign="bottom" 
-          align="center"
-          wrapperStyle={{ paddingTop: '20px' }}
-          formatter={(value, entry: any) => {
-            const { payload } = entry;
-            const total = data.reduce((acc, curr) => acc + curr.value, 0);
-            const percent = ((payload.value / total) * 100).toFixed(1);
-            return <span className="text-sm font-medium ml-2 mr-4">{payload.label} <span className="text-foreground">({percent}%)</span></span>;
-          }}
-        />
       </PieChart>
-    </ResponsiveContainer>
+      </ResponsiveContainer>
+      
+      {/* Custom Clickable Legend */}
+      <div className="flex flex-wrap gap-2 justify-center mt-4">
+      {data.map((entry, index) => {
+        const total = data.reduce((acc, curr) => acc + curr.value, 0);
+        const percent = ((entry.value / total) * 100).toFixed(1);
+        const color = COLORS[index % COLORS.length];
+        
+        return (
+          <button
+            key={`legend-${index}`}
+            onClick={() => {
+              console.log('[LeadSourceChart] Legend clicked:', entry.label);
+              onSliceClick && onSliceClick(entry.label);
+            }}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card/50 hover:bg-card border border-border hover:border-primary/50 transition-all cursor-pointer group"
+          >
+            <div 
+              className="w-3 h-3 rounded-full" 
+              style={{ backgroundColor: color }}
+            />
+            <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+              {entry.label}
+            </span>
+            <span className="text-sm text-muted-foreground">({percent}%)</span>
+          </button>
+        );
+      })}
+      </div>
     </div>
   );
 }

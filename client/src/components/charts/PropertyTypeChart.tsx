@@ -105,7 +105,36 @@ export default function PropertyTypeChart({ data, onBarClick }: PropertyTypeChar
           })}
         </defs>
       </BarChart>
-    </ResponsiveContainer>
+      </ResponsiveContainer>
+      
+      {/* Custom Clickable Legend */}
+      <div className="flex flex-wrap gap-2 justify-center mt-4">
+        {data.map((entry, index) => {
+          const total = data.reduce((acc, curr) => acc + curr.value, 0);
+          const percent = ((entry.value / total) * 100).toFixed(1);
+          const color = COLORS[index % COLORS.length];
+          
+          return (
+            <button
+              key={`legend-${index}`}
+              onClick={() => {
+                console.log('[PropertyTypeChart] Legend clicked:', entry.label);
+                onBarClick && onBarClick(entry.label);
+              }}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card/50 hover:bg-card border border-border hover:border-primary/50 transition-all cursor-pointer group"
+            >
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: color }}
+              />
+              <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                {entry.label}
+              </span>
+              <span className="text-sm text-muted-foreground">({percent}%)</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
