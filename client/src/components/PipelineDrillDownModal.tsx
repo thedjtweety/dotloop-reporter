@@ -34,7 +34,7 @@ interface PipelineDrillDownModalProps {
   stageColor: string;
 }
 
-type SortField = 'loopName' | 'closingDate' | 'price' | 'agent' | 'loopStatus';
+type SortField = 'loopName' | 'closingDate' | 'price' | 'agents' | 'loopStatus';
 type SortOrder = 'asc' | 'desc';
 
 /**
@@ -63,7 +63,7 @@ export function PipelineDrillDownModal({
       filtered = filtered.filter(
         r =>
           r.loopName?.toLowerCase().includes(term) ||
-          r.agent?.toLowerCase().includes(term) ||
+          r.agents?.toLowerCase().includes(term) ||
           r.loopStatus?.toLowerCase().includes(term)
       );
     }
@@ -126,7 +126,7 @@ export function PipelineDrillDownModal({
       r.loopName || '',
       r.closingDate || '',
       r.price || '',
-      r.agent || '',
+      r.agents || '',
       r.loopStatus || '',
     ]);
 
@@ -239,12 +239,12 @@ export function PipelineDrillDownModal({
                   </div>
                 </TableHead>
                 <TableHead
-                  onClick={() => handleSort('agent')}
+                  onClick={() => handleSort('agents')}
                   className="cursor-pointer hover:bg-accent/50 transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     Agent
-                    {sortField === 'agent' && (
+                    {sortField === 'agents' && (
                       sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
                     )}
                   </div>
@@ -269,7 +269,7 @@ export function PipelineDrillDownModal({
                   <TableCell className="font-medium text-foreground">{record.loopName}</TableCell>
                   <TableCell className="text-muted-foreground">{formatDate(record.closingDate)}</TableCell>
                   <TableCell className="text-right font-medium">{formatCurrency(record.price)}</TableCell>
-                  <TableCell className="text-muted-foreground">{record.agent}</TableCell>
+                  <TableCell className="text-muted-foreground">{record.agents}</TableCell>
                   <TableCell>
                     <button className="p-1 hover:bg-accent rounded transition-colors">
                       <ExternalLink className="w-4 h-4 text-muted-foreground hover:text-foreground" />

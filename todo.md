@@ -294,9 +294,10 @@
 ## Phase 33: Fix Table Column Layout
 - [x] Fix overlapping column headers (removed table-fixed, added min-width to each column)
 - [x] Fix missing data - properties showing N/A instead of actual names/addresses (fixed: use loopName and address)
-- [x] Fix missing agent names showing N/A (fixed: use agents field)
+- [x] Fix missing agent names showing N/A (fixed: use agents field - updated all 5 references in PipelineDrillDownModal.tsx)
 - [x] Adjust column widths to prevent header overlap (using min-w-[] classes)
 - [x] Verify data mapping from transaction records to table cells (corrected all field names)
+- [x] Test agent display in drill-down modal (verified: agent names now display correctly instead of N/A)
 
 ## Phase 34: Multi-Tenant Architecture with Secure OAuth Token Storage
 
