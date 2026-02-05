@@ -2768,3 +2768,18 @@
 - [x] Test sorting on all columns in PipelineDrillDownModal (verified working)
 - [x] Test sorting on all columns in DrillDownModal (verified: Price column sorts ascending/descending correctly)
 - [x] Verify sort state persists when filtering/searching (confirmed: sort state maintained across filter changes)
+
+## Phase 36: Sort Persistence and Column Resizing
+- [x] Add localStorage persistence for sort field and order in TransactionTable (implemented)
+- [x] Load saved sort preference on component mount in TransactionTable (implemented)
+- [x] Add localStorage persistence for sort field and order in PipelineDrillDownModal (implemented)
+- [x] Load saved sort preference on component mount in PipelineDrillDownModal (implemented)
+- [x] Test sort persistence across modal reopen (verified: Price ascending sort persists correctly)
+- [ ] Implement draggable column resize handles in TransactionTable headers (created ResizableTableHeader component)
+- [ ] Add column width state management with default widths (added to TransactionTable)
+- [ ] Persist column widths to localStorage in TransactionTable (infrastructure ready)
+- [ ] Load saved column widths from localStorage on mount (infrastructure ready)
+- [ ] Implement draggable column resize handles in PipelineDrillDownModal headers (optional - lower priority)
+- [ ] Persist column widths to localStorage in PipelineDrillDownModal (optional - lower priority)
+- [ ] Load saved column widths from localStorage on mount (optional - lower priority)
+

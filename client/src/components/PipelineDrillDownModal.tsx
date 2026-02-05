@@ -51,8 +51,30 @@ export function PipelineDrillDownModal({
   stageColor,
   onAgentClick,
 }: PipelineDrillDownModalProps) {
-  const [sortField, setSortField] = useState<SortField>('closingDate');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [sortField, setSortField] = useState<SortField>(() => {
+    const saved = localStorage.getItem('pipelineDrillDownSort');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.field || 'closingDate';
+      } catch {
+        return 'closingDate';
+      }
+    }
+    return 'closingDate';
+  });
+  const [sortOrder, setSortOrder] = useState<SortOrder>(() => {
+    const saved = localStorage.getItem('pipelineDrillDownSort');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.order || 'desc';
+      } catch {
+        return 'desc';
+      }
+    }
+    return 'desc';
+  });
   const [selectedRecords, setSelectedRecords] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -91,12 +113,17 @@ export function PipelineDrillDownModal({
   }, [records, sortField, sortOrder, searchTerm]);
 
   const handleSort = (field: SortField) => {
+    let newOrder: SortOrder = 'asc';
     if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+      setSortOrder(newOrder);
     } else {
       setSortField(field);
-      setSortOrder('desc');
+      setSortOrder('asc');
+      newOrder = 'asc';
     }
+    // Save sort preference to localStorage
+    localStorage.setItem('pipelineDrillDownSort', JSON.stringify({ field, order: newOrder }));
   };
 
   const toggleSelectAll = () => {

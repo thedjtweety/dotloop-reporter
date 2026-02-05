@@ -28,6 +28,7 @@ import {
 import { CheckCircle2, Clock, Archive, AlertCircle, ChevronLeft, ChevronRight, Search, Settings, ChevronUp, ChevronDown } from 'lucide-react';
 import DotloopLogo from './DotloopLogo';
 import ExpandableTransactionRow from './ExpandableTransactionRow';
+import ResizableTableHeader from './ResizableTableHeader';
 import { useState, useMemo, useEffect } from 'react';
 
 interface TransactionTableProps {
@@ -60,18 +61,53 @@ export default function TransactionTable({ transactions, limit, compact = false 
   const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const itemsPerPage = 20;
-
-  // Load column preferences from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('transactionTableColumns');
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem('transactionTableColumnWidths');
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
+        return JSON.parse(saved);
+      } catch {
+        return {};
+      }
+    }
+    return {};
+  });
+  const itemsPerPage = 20;
+
+  // Load column preferences, sort preferences, and column widths from localStorage on mount
+  useEffect(() => {
+    const savedColumns = localStorage.getItem('transactionTableColumns');
+    if (savedColumns) {
+      try {
+        const parsed = JSON.parse(savedColumns);
         setColumns(parsed);
       } catch (e) {
         // If parsing fails, use defaults
         setColumns(DEFAULT_COLUMNS);
+      }
+    }
+
+    const savedSort = localStorage.getItem('transactionTableSort');
+    if (savedSort) {
+      try {
+        const parsed = JSON.parse(savedSort);
+        setSortField(parsed.field);
+        setSortOrder(parsed.order);
+      } catch (e) {
+        // If parsing fails, use defaults
+        setSortField(null);
+        setSortOrder('asc');
+      }
+    }
+
+    const savedWidths = localStorage.getItem('transactionTableColumnWidths');
+    if (savedWidths) {
+      try {
+        const parsed = JSON.parse(savedWidths);
+        setColumnWidths(parsed);
+      } catch (e) {
+        // If parsing fails, use defaults
+        setColumnWidths({});
       }
     }
   }, []);
@@ -90,14 +126,26 @@ export default function TransactionTable({ transactions, limit, compact = false 
     localStorage.setItem('transactionTableColumns', JSON.stringify(DEFAULT_COLUMNS));
   };
 
-  // Handle sort
+  const handleColumnWidthChange = (columnKey: string, newWidth: number) => {
+    const updated = { ...columnWidths, [columnKey]: newWidth };
+    setColumnWidths(updated);
+    localStorage.setItem('transactionTableColumnWidths', JSON.stringify(updated));
+  };
+
+  // Handle sort and persist to localStorage
   const handleSort = (field: string) => {
+    let newOrder: 'asc' | 'desc' = 'asc';
     if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+      setSortOrder(newOrder);
     } else {
       setSortField(field);
       setSortOrder('asc');
+      newOrder = 'asc';
     }
+    // Save to localStorage
+    const fieldToSave = sortField === field ? field : field;
+    localStorage.setItem('transactionTableSort', JSON.stringify({ field: fieldToSave, order: newOrder }));
   };
 
   // Filter and sort transactions
