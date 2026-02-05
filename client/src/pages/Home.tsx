@@ -949,6 +949,10 @@ function HomeContent() {
           title={pipelinePulseModalTitle}
           records={pipelinePulseModalRecords}
           stageColor={pipelinePulseStageColor}
+          onAgentClick={(agentName) => {
+            // Handle agent click - could add agent filter here in future
+            console.log('Agent clicked:', agentName);
+          }}
         />
 
         {/* Reset Confirmation Dialog */}
@@ -1258,6 +1262,12 @@ function HomeContent() {
                   if (element) {
                     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
+                }}
+                onAgentDrillDown={(agentName, transactions) => {
+                  setPipelinePulseModalOpen(true);
+                  setPipelinePulseModalTitle(agentName + "'s Transactions");
+                  setPipelinePulseModalRecords(transactions);
+                  setPipelinePulseStageColor('#3b82f6');
                 }}
               />
             </CollapsibleSection>

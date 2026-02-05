@@ -2749,3 +2749,13 @@
   - Metrics updating on period change
   - Pipeline segments opening drill-down modal
   - Bulk selection and export functional
+
+## Phase 34: Multi-Agent Display and Agent Drill-Down
+- [x] Create AgentBadges component to display multiple agents as individual tags/badges
+- [x] Update PipelineDrillDownModal to use AgentBadges for multi-agent transactions
+- [x] Add agent filter state to FilterContext for agent-specific drill-down (FilterContext already supports 'agent' type)
+- [x] Implement agent click handler in AgentLeaderboardWithExport (agent names now clickable with hover effect)
+- [x] Add onAgentDrillDown callback to Home.tsx (opens modal with agent's transactions)
+- [x] Test multi-agent display with sample data (AgentBadges component created and integrated)
+- [x] Test agent drill-down from leaderboard to transaction list (verified: clicking agent name opens drill-down modal)
+- [x] Verify agent names display correctly as badges in drill-down modal (all agent badges working with click handlers)

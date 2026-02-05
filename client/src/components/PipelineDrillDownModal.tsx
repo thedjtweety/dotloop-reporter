@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import AgentBadges from './AgentBadges';
 
 // Helper function to format dates
 function formatDate(date: string | undefined): string {
@@ -32,6 +33,7 @@ interface PipelineDrillDownModalProps {
   title: string;
   records: DotloopRecord[];
   stageColor: string;
+  onAgentClick?: (agentName: string) => void;
 }
 
 type SortField = 'loopName' | 'closingDate' | 'price' | 'agents' | 'loopStatus';
@@ -47,6 +49,7 @@ export function PipelineDrillDownModal({
   title,
   records,
   stageColor,
+  onAgentClick,
 }: PipelineDrillDownModalProps) {
   const [sortField, setSortField] = useState<SortField>('closingDate');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
@@ -269,7 +272,13 @@ export function PipelineDrillDownModal({
                   <TableCell className="font-medium text-foreground">{record.loopName}</TableCell>
                   <TableCell className="text-muted-foreground">{formatDate(record.closingDate)}</TableCell>
                   <TableCell className="text-right font-medium">{formatCurrency(record.price)}</TableCell>
-                  <TableCell className="text-muted-foreground">{record.agents}</TableCell>
+                  <TableCell>
+                    <AgentBadges
+                      agents={record.agents}
+                      onAgentClick={onAgentClick}
+                      compact={true}
+                    />
+                  </TableCell>
                   <TableCell>
                     <button className="p-1 hover:bg-accent rounded transition-colors">
                       <ExternalLink className="w-4 h-4 text-muted-foreground hover:text-foreground" />

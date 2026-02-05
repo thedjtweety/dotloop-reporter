@@ -39,6 +39,7 @@ interface AgentLeaderboardProps {
   records?: DotloopRecord[];
   agentAssignments?: Array<{ agentName: string; planId: string; planName?: string }>;
   onNavigateToAssignAgent?: (agentName: string) => void;
+  onAgentDrillDown?: (agentName: string, transactions: DotloopRecord[]) => void;
 }
 
 type SortField = keyof AgentMetrics;
@@ -46,7 +47,7 @@ type FilterType = 'all' | 'top10' | 'bottom10';
 
 const ITEMS_PER_PAGE = 10;
 
-export default function AgentLeaderboardWithExport({ agents, records = [], agentAssignments = [], onNavigateToAssignAgent }: AgentLeaderboardProps) {
+export default function AgentLeaderboardWithExport({ agents, records = [], agentAssignments = [], onNavigateToAssignAgent, onAgentDrillDown }: AgentLeaderboardProps) {
   const [sortField, setSortField] = useState<SortField>('totalCommission');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [exportingAgent, setExportingAgent] = useState<string | null>(null);
@@ -389,7 +390,18 @@ export default function AgentLeaderboardWithExport({ agents, records = [], agent
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <span className="font-medium text-foreground">{agent.agentName}</span>
+                      <span
+                        className="font-medium text-foreground cursor-pointer hover:text-primary transition-colors"
+                        onClick={() => {
+                          const agentTransactions = records.filter(
+                            r => r.agents?.includes(agent.agentName)
+                          );
+                          onAgentDrillDown?.(agent.agentName, agentTransactions);
+                        }}
+                        title="Click to view agent's transactions"
+                      >
+                        {agent.agentName}
+                      </span>
                       {!agentHasCommissionPlan(agent.agentName) && (
                         <CommissionPlanWarning 
                           agentName={agent.agentName} 
