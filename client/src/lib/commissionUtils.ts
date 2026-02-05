@@ -47,8 +47,9 @@ export function calculateCommissionForecast(
   avgDaysToClose: number,
   daysToForecast: number = 30
 ): CommissionForecast {
-  // Get forecasted deals using probability-based forecasting
+  console.log('[calculateCommissionForecast] Input records:', records.length);
   const forecastedDeals = calculateForecastedDeals(records, historicalCloseRate, avgDaysToClose, daysToForecast);
+  console.log('[calculateCommissionForecast] Forecasted deals returned:', forecastedDeals.length);
   
   let totalCommission = 0;
   const agentMap = new Map<string, AgentCommission>();

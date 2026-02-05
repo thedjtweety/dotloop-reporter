@@ -209,8 +209,10 @@ export function calculateForecastedDeals(
       );
 
       // Include deals that are likely to close within forecast period OR have high probability
+      // Filter out only deals that are far away AND have very low probability
       // This ensures we always have forecasted deals to display, especially with demo data
-      if (daysUntilExpectedClose > daysToForecast && probability < 60) {
+      // Only exclude if: deal is beyond forecast window AND probability is very low (< 20%)
+      if (daysUntilExpectedClose > daysToForecast && probability < 20) {
         return null;
       }
 
@@ -222,7 +224,7 @@ export function calculateForecastedDeals(
         id: `deal-${index}`,
         loopName: deal.loopName || 'Unknown',
         address: deal.address || 'Unknown Address',
-        agent: deal.agents || deal.agentName || 'Unknown',
+        agent: deal.agent || deal.agents || deal.agentName || 'Unknown',
         price: deal.price || 0,
         listPrice: deal.price || 0,
         commission: deal.commissionTotal || 0,

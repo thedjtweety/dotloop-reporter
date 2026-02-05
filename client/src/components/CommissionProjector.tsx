@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -20,15 +20,24 @@ export default function CommissionProjector({ records, daysToForecast = 30 }: Co
   const [showAgentBreakdown, setShowAgentBreakdown] = useState(false);
   const [showSimulator, setShowSimulator] = useState(false);
 
+  // Log when component mounts/updates
+  useEffect(() => {
+    console.log('[CommissionProjector] Component rendered with records:', records.length);
+  }, [records]);
+
   // Calculate historical metrics
   const historicalCloseRate = useMemo(() => calculateHistoricalCloseRate(records), [records]);
 
   // Filter for under-contract deals
   const underContractDeals = useMemo(() => {
-    return records.filter(r => 
+    const filtered = records.filter(r => 
       r.loopStatus?.toLowerCase().includes('contract') || 
       r.loopStatus?.toLowerCase().includes('pending')
     );
+    console.log('[CommissionProjector] Total records:', records.length);
+    console.log('[CommissionProjector] Under-contract deals:', filtered.length);
+    console.log('[CommissionProjector] Sample deal statuses:', records.slice(0, 5).map(r => ({ name: r.loopName, status: r.loopStatus })));
+    return filtered;
   }, [records]);
 
   // Calculate average days to close from historical data
@@ -65,7 +74,15 @@ export default function CommissionProjector({ records, daysToForecast = 30 }: Co
   // Calculate commission forecast with probability weighting
   const commissionData = useMemo(() => {
     try {
-      return calculateCommissionForecast(underContractDeals, historicalCloseRate, avgDaysToClose, daysToForecast);
+      console.log('[CommissionProjector] Calculating forecast with:', {
+        underContractDeals: underContractDeals.length,
+        historicalCloseRate,
+        avgDaysToClose,
+        daysToForecast
+      });
+      const result = calculateCommissionForecast(underContractDeals, historicalCloseRate, avgDaysToClose, daysToForecast);
+      console.log('[CommissionProjector] Commission forecast result:', result);
+      return result;
     } catch (e) {
       console.error('Error calculating commission forecast:', e);
       return {
@@ -76,7 +93,7 @@ export default function CommissionProjector({ records, daysToForecast = 30 }: Co
         riskAdjustedCommission: 0,
       };
     }
-  }, [records, historicalCloseRate, avgDaysToClose, daysToForecast]);
+  }, [underContractDeals, historicalCloseRate, avgDaysToClose, daysToForecast]);
 
   // Apply risk adjustment
   const riskAdjustedCommission = useMemo(() => {
