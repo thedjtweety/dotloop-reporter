@@ -336,7 +336,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
               variant="outline"
               onClick={() => exportForecastAsPDF(selectedTimeframe, forecastedDeals, {
                 totalDeals: forecastedDeals.length,
-                avgProbability: historicalCloseRate / 100,
+                avgProbability: historicalCloseRate,
                 projectedCommission: current.projectedCommission,
                 pipelineCount: underContractDeals.length,
               })}
@@ -349,7 +349,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
               variant="outline"
               onClick={() => exportForecastAsCSV(selectedTimeframe, forecastedDeals, {
                 totalDeals: forecastedDeals.length,
-                avgProbability: historicalCloseRate / 100,
+                avgProbability: historicalCloseRate,
                 projectedCommission: current.projectedCommission,
                 pipelineCount: underContractDeals.length,
               })}

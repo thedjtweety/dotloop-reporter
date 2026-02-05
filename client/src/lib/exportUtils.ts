@@ -398,7 +398,7 @@ export function generateForecastPDF(
     ['Metric', 'Value'],
     ['Projected Deals', summary.totalDeals.toString()],
     ['Pipeline Count', summary.pipelineCount.toString()],
-    ['Avg Probability', `${(summary.avgProbability * 100).toFixed(1)}%`],
+    ['Avg Probability', `${summary.avgProbability.toFixed(1)}%`],
     ['Projected Commission', `$${summary.projectedCommission.toLocaleString('en-US', { maximumFractionDigits: 2 })}`],
   ];
   
@@ -425,7 +425,7 @@ export function generateForecastPDF(
     deal.address,
     deal.agent || 'Unknown',
     `$${(deal.listPrice || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
-    `${(deal.probability * 100).toFixed(0)}%`,
+    `${deal.probability.toFixed(0)}%`,
     `$${(deal.commission || 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}`,
     deal.expectedCloseDate ? new Date(deal.expectedCloseDate).toLocaleDateString() : 'N/A',
   ]);
@@ -482,7 +482,7 @@ export function generateForecastCSV(
   rows.push('SUMMARY');
   rows.push(`Projected Deals,${summary.totalDeals}`);
   rows.push(`Pipeline Count,${summary.pipelineCount}`);
-  rows.push(`Average Probability,${(summary.avgProbability * 100).toFixed(1)}%`);
+  rows.push(`Average Probability,${summary.avgProbability.toFixed(1)}%`);
   rows.push(`Projected Commission,$${summary.projectedCommission.toLocaleString('en-US', { maximumFractionDigits: 2 })}`);
   rows.push('');
   
@@ -496,7 +496,7 @@ export function generateForecastCSV(
       `"${deal.address}"`,
       deal.agent || 'Unknown',
       deal.listPrice || 0,
-      `${(deal.probability * 100).toFixed(0)}%`,
+      `${deal.probability.toFixed(0)}%`,
       deal.commission || 0,
       deal.expectedCloseDate ? new Date(deal.expectedCloseDate).toLocaleDateString() : 'N/A',
       deal.daysInContract || 0,

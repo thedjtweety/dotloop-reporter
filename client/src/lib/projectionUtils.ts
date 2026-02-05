@@ -222,7 +222,7 @@ export function calculateForecastedDeals(
         id: `deal-${index}`,
         loopName: deal.loopName || 'Unknown',
         address: deal.address || 'Unknown Address',
-        agent: deal.agent || 'Unknown',
+        agent: deal.agents || deal.agentName || 'Unknown',
         price: deal.price || 0,
         listPrice: deal.price || 0,
         commission: deal.commissionTotal || 0,

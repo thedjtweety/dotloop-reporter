@@ -106,7 +106,7 @@ export default function ForecastedDealsModal({
             <button
               onClick={() => exportForecastAsPDF(timeframe, sortedDeals, {
                 totalDeals: filteredDeals.length,
-                avgProbability: avgProbability / 100,
+                avgProbability: avgProbability,
                 projectedCommission: totalProjectedCommission,
                 pipelineCount: totalDealsInPipeline,
               })}
@@ -119,7 +119,7 @@ export default function ForecastedDealsModal({
             <button
               onClick={() => exportForecastAsCSV(timeframe, sortedDeals, {
                 totalDeals: filteredDeals.length,
-                avgProbability: avgProbability / 100,
+                avgProbability: avgProbability,
                 projectedCommission: totalProjectedCommission,
                 pipelineCount: totalDealsInPipeline,
               })}
