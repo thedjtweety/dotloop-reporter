@@ -36,6 +36,10 @@ interface TransactionTableProps {
   limit?: number;
   compact?: boolean;
   onTransactionClick?: (transaction: DotloopRecord) => void;
+  selectedRecords?: Set<number>;
+  onSelectionChange?: (selected: Set<number>) => void;
+  selectAll?: boolean;
+  onSelectAllChange?: (selectAll: boolean) => void;
 }
 
 type ColumnKey = 'status' | 'property' | 'agent' | 'price' | 'commission' | 'date' | 'actions';
@@ -56,7 +60,16 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
   { key: 'actions', label: 'Actions', visible: true },
 ];
 
-export default function TransactionTable({ transactions, limit, compact = false, onTransactionClick }: TransactionTableProps) {
+export default function TransactionTable({ 
+  transactions, 
+  limit, 
+  compact = false, 
+  onTransactionClick,
+  selectedRecords = new Set(),
+  onSelectionChange,
+  selectAll = false,
+  onSelectAllChange
+}: TransactionTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState(() => {
     const saved = localStorage.getItem('transactionTableSearchQuery');
@@ -309,6 +322,26 @@ export default function TransactionTable({ transactions, limit, compact = false,
       <Table className="w-full min-w-[600px] sm:min-w-full">
         <TableHeader>
           <TableRow className="border-border">
+            {onSelectionChange && (
+              <TableHead className="font-semibold text-xs py-2 px-2 w-12">
+                <input
+                  type="checkbox"
+                  checked={selectAll}
+                  onChange={(e) => {
+                    const newSelectAll = e.target.checked;
+                    onSelectAllChange?.(newSelectAll);
+                    if (newSelectAll) {
+                      const allIndices = new Set(displayTransactions.map((_, i) => i));
+                      onSelectionChange(allIndices);
+                    } else {
+                      onSelectionChange(new Set());
+                    }
+                  }}
+                  className="w-4 h-4 cursor-pointer"
+                  aria-label="Select all transactions"
+                />
+              </TableHead>
+            )}
             <TableHead className="font-semibold text-xs py-2 px-2 w-8">Details</TableHead>
             {isColumnVisible('status') && (
               <TableHead
@@ -403,6 +436,19 @@ export default function TransactionTable({ transactions, limit, compact = false,
                 visibleColumns={visibleCols}
                 compact={compact}
                 onTransactionClick={onTransactionClick}
+                isSelected={selectedRecords.has(idx)}
+                onSelectionChange={(selected) => {
+                  if (onSelectionChange) {
+                    const newSelected = new Set(selectedRecords);
+                    if (selected) {
+                      newSelected.add(idx);
+                    } else {
+                      newSelected.delete(idx);
+                    }
+                    onSelectionChange(newSelected);
+                  }
+                }}
+                showCheckbox={!!onSelectionChange}
               />
             );
           })}

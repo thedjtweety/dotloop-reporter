@@ -17,6 +17,9 @@ interface ExpandableTransactionRowProps {
   visibleColumns: string[];
   compact?: boolean;
   onTransactionClick?: (transaction: DotloopRecord) => void;
+  isSelected?: boolean;
+  onSelectionChange?: (selected: boolean) => void;
+  showCheckbox?: boolean;
 }
 
 const getStatusColor = (status: string): string => {
@@ -48,6 +51,9 @@ export default function ExpandableTransactionRow({
   visibleColumns,
   compact = false,
   onTransactionClick,
+  isSelected = false,
+  onSelectionChange,
+  showCheckbox = false,
 }: ExpandableTransactionRowProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -111,6 +117,21 @@ export default function ExpandableTransactionRow({
         }}
         className={`cursor-pointer hover:bg-muted/50 transition-colors ${isExpanded ? 'bg-muted/30' : ''}`}
       >
+        {showCheckbox && (
+          <TableCell className={`w-12 ${compact ? 'py-1 px-2' : 'py-2 px-4'}`}>
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={(e) => {
+                e.stopPropagation();
+                onSelectionChange?.(e.target.checked);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-4 h-4 cursor-pointer"
+              aria-label="Select transaction"
+            />
+          </TableCell>
+        )}
         <TableCell className={`w-8 ${compact ? 'py-1 px-2' : 'py-2 px-4'}`}>
           <Button
             variant="ghost"

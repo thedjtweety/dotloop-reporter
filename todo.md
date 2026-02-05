@@ -3012,3 +3012,26 @@
 - [ ] Test all charts with demo data
 - [ ] Verify all formulas are calculating correctly
 - [ ] Verify all visualizations display accurately
+
+
+## Phase 58: Remaining Charts Audit & Formula Fixes
+- [x] Audit Lead Source chart data processing and calculations (no issues found)
+- [x] Audit Property Type chart data processing and calculations (no issues found)
+- [x] Audit Geographic chart data processing and calculations (no issues found)
+- [x] Audit Financial chart data processing and calculations (no issues found)
+- [x] Document all formula errors found in audit (REMAINING_CHARTS_AUDIT.md)
+- [x] Create fix plan for identified issues (no fixes needed - all charts correct)
+- [x] Verify all charts display accurate data (all charts pass audit)
+
+## Phase 59: Bulk Export & Actions for Drill-Down Modals
+- [x] Add bulk selection capability to DrillDownModal (checkbox column added)
+- [x] Add "Select All" / "Deselect All" functionality (header checkbox implemented)
+- [x] Implement Export CSV for selected transactions (BulkActionsToolbar already exists)
+- [x] Implement Export Excel for selected transactions (BulkActionsToolbar already exists)
+- [x] Implement "Open Multiple in Dotloop" for selected transactions (BulkActionsToolbar already exists)
+- [x] Implement Bulk Tag functionality for selected transactions (BulkActionsToolbar already exists)
+- [x] Add bulk action toolbar to modal (already integrated in DrillDownModal)
+- [x] Add selection props to TransactionTable component
+- [x] Add selection props to ExpandableTransactionRow component
+- [x] Connect selection state between TransactionTable and DrillDownModal
+- [x] Create comprehensive tests for bulk selection (bulkSelection.test.tsx with 15 tests)

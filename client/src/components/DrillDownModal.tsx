@@ -276,6 +276,10 @@ export default function DrillDownModal({
             <TransactionTable 
               transactions={filteredTransactions} 
               onTransactionClick={handleTransactionClick}
+              selectedRecords={selectedRecords}
+              onSelectionChange={setSelectedRecords}
+              selectAll={selectAll}
+              onSelectAllChange={setSelectAll}
             />
           </div>
 

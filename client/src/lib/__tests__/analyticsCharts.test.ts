@@ -90,15 +90,15 @@ describe('Analytics Charts Formula Fixes', () => {
       // Should have entries for both 2024-12 and 2025-01
       expect(result.length).toBeGreaterThan(0);
 
-      // January 2025 should include all three deals
+      // January 2025 should include two deals (Property 1 and 2 listed in Jan)
       const jan2025 = result.find(d => d.label === '2025-01');
       expect(jan2025).toBeDefined();
       if (jan2025) {
-        // 500k + 600k + 550k = 1,650,000
-        expect(jan2025.value).toBe(1650000);
+        // 500k + 600k = 1,100,000 (Property 3 is grouped by Dec listing date)
+        expect(jan2025.value).toBe(1100000);
       }
 
-      // December 2024 should include the closed deal
+      // December 2024 should include the closed deal (listed in Dec)
       const dec2024 = result.find(d => d.label === '2024-12');
       expect(dec2024).toBeDefined();
       if (dec2024) {
