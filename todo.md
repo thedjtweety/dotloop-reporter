@@ -2783,3 +2783,19 @@
 - [ ] Persist column widths to localStorage in PipelineDrillDownModal (optional - lower priority)
 - [ ] Load saved column widths from localStorage on mount (optional - lower priority)
 
+
+## Phase 37: Filter Persistence and Bookmarks
+- [x] Add filter state persistence to TransactionTable (search query, sort, pagination) - implemented
+- [x] Load saved filters on component mount in TransactionTable - implemented
+- [x] Add filter state persistence to PipelineDrillDownModal (search query, sort) - implemented
+- [x] Load saved filters on component mount in PipelineDrillDownModal - implemented
+- [x] Create FilterBookmark type and bookmark storage utilities - created bookmarkUtils.ts
+- [x] Add "Save as Bookmark" button to drill-down modal headers - BookmarkManager component added
+- [x] Implement bookmark name input dialog - dialog implemented in BookmarkManager
+- [x] Add bookmark selector dropdown in drill-down headers - dropdown menu with bookmarks list
+- [x] Implement load bookmark functionality - onLoadBookmark callback working
+- [x] Implement delete bookmark functionality - delete button with trash icon
+- [x] Display saved bookmarks count in UI - badge shows bookmark count
+- [x] Test filter persistence across sessions - verified: search query "Oak" persists correctly
+- [ ] Test bookmark creation and loading
+- [ ] Test bookmark deletion

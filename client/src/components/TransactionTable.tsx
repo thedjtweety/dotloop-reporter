@@ -57,7 +57,10 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
 
 export default function TransactionTable({ transactions, limit, compact = false }: TransactionTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(() => {
+    const saved = localStorage.getItem('transactionTableSearchQuery');
+    return saved || '';
+  });
   const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -147,6 +150,11 @@ export default function TransactionTable({ transactions, limit, compact = false 
     const fieldToSave = sortField === field ? field : field;
     localStorage.setItem('transactionTableSort', JSON.stringify({ field: fieldToSave, order: newOrder }));
   };
+
+  // Persist search query to localStorage
+  useEffect(() => {
+    localStorage.setItem('transactionTableSearchQuery', searchQuery);
+  }, [searchQuery]);
 
   // Filter and sort transactions
   const filteredTransactions = useMemo(() => {

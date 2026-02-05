@@ -15,6 +15,9 @@ import {
 } from '@/components/ui/select';
 import BulkActionsToolbar from './BulkActionsToolbar';
 import FavoritesSelector from './FavoritesSelector';
+import BookmarkManager from './BookmarkManager';
+import { saveBookmark, getBookmarks, FilterBookmark } from '@/lib/bookmarkUtils';
+
 
 interface DrillDownModalProps {
   isOpen: boolean;
@@ -35,14 +38,46 @@ export default function DrillDownModal({
   const scrollbarRef = useRef<HTMLDivElement>(null);
   const scrollbarThumbRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [filters, setFilters] = useState<DrillDownFilters>({
-    searchQuery: '',
-    status: 'All',
-    agent: 'All',
+  const [filters, setFilters] = useState<DrillDownFilters>(() => {
+    const saved = localStorage.getItem('drillDownFilters');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { searchQuery: '', status: 'All', agent: 'All' };
+      }
+    }
+    return { searchQuery: '', status: 'All', agent: 'All' };
   });
-  const [sortState, setSortState] = useState<SortState | null>(null);
+  const [sortState, setSortState] = useState<SortState | null>(() => {
+    const saved = localStorage.getItem('drillDownSortState');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
   const [selectedRecords, setSelectedRecords] = useState<Set<number>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
+  const [showBookmarkDialog, setShowBookmarkDialog] = useState(false);
+  const [bookmarkName, setBookmarkName] = useState('');
+
+  // Persist filters to localStorage
+  useEffect(() => {
+    localStorage.setItem('drillDownFilters', JSON.stringify(filters));
+  }, [filters]);
+
+  // Persist sort state to localStorage
+  useEffect(() => {
+    if (sortState) {
+      localStorage.setItem('drillDownSortState', JSON.stringify(sortState));
+    } else {
+      localStorage.removeItem('drillDownSortState');
+    }
+  }, [sortState]);
 
   // Get unique values for filters
   const uniqueStatuses = ['All', ...getUniqueValues(transactions, 'status')];
@@ -210,13 +245,11 @@ export default function DrillDownModal({
               </SelectContent>
             </Select>
             <div className="flex items-center gap-2 ml-auto">
-              <FavoritesSelector
-                filterType="custom"
-                customFilters={filters}
-                onLoadFavorite={(fav) => {
-                  if (fav.customFilters) {
-                    setFilters(fav.customFilters as DrillDownFilters);
-                  }
+              <BookmarkManager
+                type="transaction"
+                currentFilters={filters}
+                onLoadBookmark={(bookmark) => {
+                  setFilters(bookmark.filters as DrillDownFilters);
                 }}
               />
             </div>
