@@ -913,12 +913,28 @@ function HomeContent() {
               />
             </div>
 
-            {/* Pipeline Funnel Chart */}
-            <div className="grid grid-cols-1 gap-6">
-              <PipelineFunnelChart
-                records={filteredRecords}
-                onStageClick={handlePipelineStageClick}
-              />
+            {/* Pipeline Funnel Chart & Projected to Close - Side by Side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              {/* Left: Pipeline Breakdown */}
+              <div>
+                <PipelineFunnelChart
+                  records={filteredRecords}
+                  onStageClick={handlePipelineStageClick}
+                />
+              </div>
+              
+              {/* Right: Enhanced Projected to Close */}
+              {filteredRecords.length > 0 && metrics && (
+                <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-800">
+                  <EnhancedProjectedToClose
+                    metrics={metrics}
+                    selectedPeriod="30"
+                    onPeriodChange={() => {}}
+                    onExportPDF={() => {}}
+                    onExportCSV={() => {}}
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -955,18 +971,7 @@ function HomeContent() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Enhanced Projected to Close Card */}
-        {filteredRecords.length > 0 && metrics && (
-          <div className="mb-8 bg-slate-900/50 rounded-lg p-6 border border-slate-800">
-            <EnhancedProjectedToClose
-              metrics={metrics}
-              selectedPeriod="30"
-              onPeriodChange={() => {}}
-              onExportPDF={() => {}}
-              onExportCSV={() => {}}
-            />
-          </div>
-        )}
+
 
         {/* Status Overview Row */}
         <div className="grid grid-cols-1 md:grid-cols-4 landscape:grid-cols-4 gap-3 landscape:gap-4 mb-8">
