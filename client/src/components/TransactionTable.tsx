@@ -25,7 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu';
-import { CheckCircle2, Clock, Archive, AlertCircle, ChevronLeft, ChevronRight, Search, Settings } from 'lucide-react';
+import { CheckCircle2, Clock, Archive, AlertCircle, ChevronLeft, ChevronRight, Search, Settings, ChevronUp, ChevronDown } from 'lucide-react';
 import DotloopLogo from './DotloopLogo';
 import ExpandableTransactionRow from './ExpandableTransactionRow';
 import { useState, useMemo, useEffect } from 'react';
@@ -58,6 +58,8 @@ export default function TransactionTable({ transactions, limit, compact = false 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const itemsPerPage = 20;
 
   // Load column preferences from localStorage on mount
@@ -88,17 +90,52 @@ export default function TransactionTable({ transactions, limit, compact = false 
     localStorage.setItem('transactionTableColumns', JSON.stringify(DEFAULT_COLUMNS));
   };
 
-  // Filter transactions based on search query
+  // Handle sort
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  // Filter and sort transactions
   const filteredTransactions = useMemo(() => {
-    if (!searchQuery.trim()) return transactions;
-    const query = searchQuery.toLowerCase();
-    return transactions.filter(t => 
-      t.loopName?.toLowerCase().includes(query) ||
-      t.address?.toLowerCase().includes(query) ||
-      t.loopStatus?.toLowerCase().includes(query) ||
-      t.agents?.toLowerCase().includes(query)
-    );
-  }, [transactions, searchQuery]);
+    let result = transactions;
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(t => 
+        t.loopName?.toLowerCase().includes(query) ||
+        t.address?.toLowerCase().includes(query) ||
+        t.loopStatus?.toLowerCase().includes(query) ||
+        t.agents?.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply sorting
+    if (sortField) {
+      result = [...result].sort((a, b) => {
+        let aVal: any = a[sortField as keyof DotloopRecord];
+        let bVal: any = b[sortField as keyof DotloopRecord];
+
+        if (aVal == null) aVal = '';
+        if (bVal == null) bVal = '';
+
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+          return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+
+        const aStr = String(aVal).toLowerCase();
+        const bStr = String(bVal).toLowerCase();
+        return sortOrder === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
+      });
+    }
+
+    return result;
+  }, [transactions, searchQuery, sortField, sortOrder]);
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
@@ -217,22 +254,82 @@ export default function TransactionTable({ transactions, limit, compact = false 
           <TableRow className="border-border">
             <TableHead className="font-semibold text-xs py-2 px-2 w-8">Details</TableHead>
             {isColumnVisible('status') && (
-              <TableHead className="font-semibold text-xs py-2 px-2 w-[100px]">Status</TableHead>
+              <TableHead
+                onClick={() => handleSort('loopStatus')}
+                className="font-semibold text-xs py-2 px-2 w-[100px] cursor-pointer hover:bg-accent/50 transition-colors"
+              >
+                <div className="flex items-center gap-1">
+                  Status
+                  {sortField === 'loopStatus' && (
+                    sortOrder === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                  )}
+                </div>
+              </TableHead>
             )}
             {isColumnVisible('property') && (
-              <TableHead className="font-semibold text-xs py-2 px-2 w-[220px]">Property</TableHead>
+              <TableHead
+                onClick={() => handleSort('loopName')}
+                className="font-semibold text-xs py-2 px-2 w-[220px] cursor-pointer hover:bg-accent/50 transition-colors"
+              >
+                <div className="flex items-center gap-1">
+                  Property
+                  {sortField === 'loopName' && (
+                    sortOrder === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                  )}
+                </div>
+              </TableHead>
             )}
             {isColumnVisible('agent') && (
-              <TableHead className="font-semibold text-xs py-2 px-2 w-[110px]">Agent</TableHead>
+              <TableHead
+                onClick={() => handleSort('agents')}
+                className="font-semibold text-xs py-2 px-2 w-[110px] cursor-pointer hover:bg-accent/50 transition-colors"
+              >
+                <div className="flex items-center gap-1">
+                  Agent
+                  {sortField === 'agents' && (
+                    sortOrder === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                  )}
+                </div>
+              </TableHead>
             )}
             {isColumnVisible('price') && (
-              <TableHead className="font-semibold text-xs py-2 px-2 w-[90px]">Price</TableHead>
+              <TableHead
+                onClick={() => handleSort('price')}
+                className="font-semibold text-xs py-2 px-2 w-[90px] cursor-pointer hover:bg-accent/50 transition-colors"
+              >
+                <div className="flex items-center gap-1">
+                  Price
+                  {sortField === 'price' && (
+                    sortOrder === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                  )}
+                </div>
+              </TableHead>
             )}
             {isColumnVisible('commission') && (
-              <TableHead className="font-semibold text-xs py-2 px-2 w-[100px]">Commission</TableHead>
+              <TableHead
+                onClick={() => handleSort('commission')}
+                className="font-semibold text-xs py-2 px-2 w-[100px] cursor-pointer hover:bg-accent/50 transition-colors"
+              >
+                <div className="flex items-center gap-1">
+                  Commission
+                  {sortField === 'commission' && (
+                    sortOrder === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                  )}
+                </div>
+              </TableHead>
             )}
             {isColumnVisible('date') && (
-              <TableHead className="font-semibold text-xs py-2 px-2 w-[100px]">Date</TableHead>
+              <TableHead
+                onClick={() => handleSort('closingDate')}
+                className="font-semibold text-xs py-2 px-2 w-[100px] cursor-pointer hover:bg-accent/50 transition-colors"
+              >
+                <div className="flex items-center gap-1">
+                  Date
+                  {sortField === 'closingDate' && (
+                    sortOrder === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                  )}
+                </div>
+              </TableHead>
             )}
             {isColumnVisible('actions') && (
               <TableHead className="font-semibold text-xs py-2 px-2 w-[90px]">Actions</TableHead>

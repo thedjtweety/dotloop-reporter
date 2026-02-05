@@ -2759,3 +2759,12 @@
 - [x] Test multi-agent display with sample data (AgentBadges component created and integrated)
 - [x] Test agent drill-down from leaderboard to transaction list (verified: clicking agent name opens drill-down modal)
 - [x] Verify agent names display correctly as badges in drill-down modal (all agent badges working with click handlers)
+
+## Phase 35: Clickable Column Headers for Sorting in Drill-Downs
+- [x] Update PipelineDrillDownModal table headers to be clickable for sorting (already implemented)
+- [x] Update DrillDownModal table headers to be clickable for sorting (updated TransactionTable component)
+- [x] Add visual sort direction indicators (↑↓ arrows) to active sort column (ChevronUp/ChevronDown icons)
+- [x] Implement cursor pointer and hover effects on sortable headers (cursor-pointer + hover:bg-accent/50)
+- [x] Test sorting on all columns in PipelineDrillDownModal (verified working)
+- [x] Test sorting on all columns in DrillDownModal (verified: Price column sorts ascending/descending correctly)
+- [x] Verify sort state persists when filtering/searching (confirmed: sort state maintained across filter changes)
