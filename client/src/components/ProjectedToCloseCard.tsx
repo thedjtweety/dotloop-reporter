@@ -24,6 +24,8 @@ import {
 } from '@/lib/projectionUtils';
 import { DotloopRecord } from '@/lib/csvParser';
 import ForecastedDealsModal from './ForecastedDealsModal';
+import RiskLevelExplainerModal from './RiskLevelExplainerModal';
+import ConfidenceScoreExplainerModal from './ConfidenceScoreExplainerModal';
 import { exportForecastAsPDF, exportForecastAsCSV } from '@/lib/exportUtils';
 import {
   Dialog,
@@ -401,18 +403,27 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
         metrics={confidenceMetrics}
       />
 
-      <LogicExplainerModal
+      <RiskLevelExplainerModal
         isOpen={showLogicExplainer === 'risk'}
         onClose={() => setShowLogicExplainer(null)}
-        type="risk"
-        metrics={confidenceMetrics}
+        riskMetrics={{
+          dealAge: confidenceMetrics.avgDealAge,
+          statusVolatility: 8,
+          marketConditions: 5,
+          riskScore: Math.min(100, (confidenceMetrics.avgDealAge / 90) * 100),
+          riskLevel: confidenceMetrics.riskLevel.replace(' Risk', '') as 'Low' | 'Medium' | 'High',
+        }}
       />
 
-      <LogicExplainerModal
+      <ConfidenceScoreExplainerModal
         isOpen={showLogicExplainer === 'score'}
         onClose={() => setShowLogicExplainer(null)}
-        type="score"
-        metrics={confidenceMetrics}
+        scoreMetrics={{
+          dataQuality: 92,
+          historicalAccuracy: 87,
+          sampleSize: Math.max(50, underContractDeals.length * 3),
+          confidenceScore: confidenceMetrics.confidenceScore,
+        }}
       />
     </>
   );

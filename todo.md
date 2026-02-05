@@ -2847,3 +2847,19 @@
 - [ ] Test all drill-down modals open correctly
 - [ ] Test all logic explainer modals open correctly
 - [ ] Test export buttons generate downloadable files
+
+## Phase 41: Transaction List Drill-Down & Logic Explainers
+- [x] Create RiskLevelExplainerModal component with detailed risk calculation logic
+- [x] Create ConfidenceScoreExplainerModal component with detailed confidence calculation logic
+- [x] Add imports for new modal components to ProjectedToCloseCard
+- [x] Replace generic LogicExplainerModal with dedicated RiskLevelExplainerModal for risk info icon
+- [x] Replace generic LogicExplainerModal with dedicated ConfidenceScoreExplainerModal for score info icon
+- [x] Wire up Risk Level info icon to open RiskLevelExplainerModal
+- [x] Wire up Confidence Score info icon to open ConfidenceScoreExplainerModal
+- [x] Test Risk Level modal displays correctly with deal age, status volatility, market conditions
+- [x] Test Confidence Score modal displays correctly with data quality, historical accuracy, sample size
+- [x] Verify all modals have proper color coding and progress bars
+- [x] Verify all modals have detailed explanations and interpretations
+- [x] Test modal close buttons and overlay interactions
+- [x] Verify ForecastedDealsModal displays transaction list with probability scores
+- [x] Verify all three info icons (Confidence, Risk Level, Confidence Score) are clickable and functional
