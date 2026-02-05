@@ -14,7 +14,7 @@
 import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Target, DollarSign, Download, FileText, Info, ChevronRight } from 'lucide-react';
+import { TrendingUp, Target, DollarSign, Download, FileText, Info, ChevronRight, AlertTriangle } from 'lucide-react';
 import { formatCurrency, formatNumber } from '@/lib/formatUtils';
 import {
   calculateProjectedToClose,
@@ -23,6 +23,7 @@ import {
   ProjectionMetrics,
 } from '@/lib/projectionUtils';
 import { DotloopRecord } from '@/lib/csvParser';
+import { Slider } from '@/components/ui/slider';
 import ForecastedDealsModal from './ForecastedDealsModal';
 import RiskLevelExplainerModal from './RiskLevelExplainerModal';
 import ConfidenceScoreExplainerModal from './ConfidenceScoreExplainerModal';
@@ -44,6 +45,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
   const [showDealsModal, setShowDealsModal] = useState(false);
   const [showMetricDrill, setShowMetricDrill] = useState<'deals' | 'revenue' | 'rate' | null>(null);
   const [showLogicExplainer, setShowLogicExplainer] = useState<'confidence' | 'risk' | 'score' | null>(null);
+  const [commissionRiskAdjustment, setCommissionRiskAdjustment] = useState([0]); // 0-50% risk adjustment
 
   // Debug logging
   const handleMetricClick = (metric: 'deals' | 'revenue' | 'rate') => {
@@ -328,6 +330,27 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Commission Risk Adjustment */}
+          <div className="space-y-3 bg-muted/30 p-4 rounded-lg border border-border/50 mt-4">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                Commission Risk Adjustment
+              </label>
+              <span className="text-sm font-bold text-amber-500">{commissionRiskAdjustment[0]}%</span>
+            </div>
+            <Slider
+              value={commissionRiskAdjustment}
+              onValueChange={setCommissionRiskAdjustment}
+              max={50}
+              step={1}
+              className="py-2"
+            />
+            <p className="text-xs text-foreground">
+              Adjust projected commission to account for deals that might not close.
+            </p>
           </div>
 
           {/* Export Buttons */}

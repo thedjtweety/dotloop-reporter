@@ -3,60 +3,82 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Slider } from '@/components/ui/slider';
 import { DotloopRecord } from '@/lib/csvParser';
 import { formatCurrency } from '@/lib/formatUtils';
-import { TrendingUp, AlertTriangle, Calendar, DollarSign } from 'lucide-react';
+import { calculateCommissionForecast, applyRiskAdjustment } from '@/lib/commissionUtils';
+import { calculateHistoricalCloseRate } from '@/lib/projectionUtils';
+import { TrendingUp, AlertTriangle, Calendar, DollarSign, Users } from 'lucide-react';
 
 interface CommissionProjectorProps {
   records: DotloopRecord[];
+  daysToForecast?: number;
 }
 
-export default function CommissionProjector({ records }: CommissionProjectorProps) {
+export default function CommissionProjector({ records, daysToForecast = 30 }: CommissionProjectorProps) {
   const [fallThroughRate, setFallThroughRate] = useState([10]); // Default 10% risk
+  const [showAgentBreakdown, setShowAgentBreakdown] = useState(false);
 
-  const projections = useMemo(() => {
-    const now = new Date();
-    const thirtyDays = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-    const sixtyDays = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
-    const ninetyDays = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-
-    let p30 = 0;
-    let p60 = 0;
-    let p90 = 0;
-    let count30 = 0;
-    let count60 = 0;
-    let count90 = 0;
-
-    records.forEach(record => {
-      // Filter for active/pending/under contract deals
-      const status = (record.loopStatus || '').toLowerCase();
-      if (!status.includes('contract') && !status.includes('pending') && !status.includes('active')) {
-        return;
-      }
-
-      const closingDate = record.closingDate ? new Date(record.closingDate) : null;
-      if (!closingDate || isNaN(closingDate.getTime())) return;
-
-      // Calculate potential commission (Company Dollar or Total Commission)
-      // prioritizing company dollar if available, else total commission
-      const commission = record.companyDollar || record.commissionTotal || (record.price * 0.03) || 0;
-
-      if (closingDate <= thirtyDays && closingDate >= now) {
-        p30 += commission;
-        count30++;
-      }
-      if (closingDate <= sixtyDays && closingDate >= now) {
-        p60 += commission;
-        count60++;
-      }
-      if (closingDate <= ninetyDays && closingDate >= now) {
-        p90 += commission;
-        count90++;
+  // Calculate historical metrics
+  const historicalCloseRate = useMemo(() => calculateHistoricalCloseRate(records), [records]);
+  
+  // Calculate average days to close from historical data
+  const avgDaysToClose = useMemo(() => {
+    const closedDeals = records.filter(r => 
+      r.loopStatus?.toLowerCase().includes('closed') || 
+      r.loopStatus?.toLowerCase().includes('sold')
+    );
+    
+    if (closedDeals.length === 0) return 45; // Default 45 days if no closed deals
+    
+    let totalDays = 0;
+    let count = 0;
+    
+    closedDeals.forEach(deal => {
+      if (deal.closingDate && deal.createdDate) {
+        try {
+          const created = new Date(deal.createdDate);
+          const closed = new Date(deal.closingDate);
+          const days = Math.floor((closed.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+          if (days > 0 && days < 365) { // Reasonable range
+            totalDays += days;
+            count++;
+          }
+        } catch (e) {
+          // Skip invalid dates
+        }
       }
     });
-
-    return { p30, p60, p90, count30, count60, count90 };
+    
+    return count > 0 ? Math.round(totalDays / count) : 45;
   }, [records]);
 
-  const riskFactor = 1 - (fallThroughRate[0] / 100);
+  // Calculate commission forecast with probability weighting
+  const commissionData = useMemo(() => {
+    try {
+      return calculateCommissionForecast(records, historicalCloseRate, avgDaysToClose, daysToForecast);
+    } catch (e) {
+      console.error('Error calculating commission forecast:', e);
+      return {
+        totalCommission: 0,
+        dealCount: 0,
+        avgCommissionPerDeal: 0,
+        agentBreakdown: [],
+        riskAdjustedCommission: 0,
+      };
+    }
+  }, [records, historicalCloseRate, avgDaysToClose, daysToForecast]);
+
+  // Apply risk adjustment
+  const riskAdjustedCommission = useMemo(() => {
+    return applyRiskAdjustment(commissionData.totalCommission, fallThroughRate[0]);
+  }, [commissionData.totalCommission, fallThroughRate]);
+
+  // Calculate timeframe-based projections for display
+  const timeframeProjections = useMemo(() => {
+    const p30 = applyRiskAdjustment(commissionData.totalCommission * 0.33, fallThroughRate[0]);
+    const p60 = applyRiskAdjustment(commissionData.totalCommission * 0.67, fallThroughRate[0]);
+    const p90 = applyRiskAdjustment(commissionData.totalCommission, fallThroughRate[0]);
+    
+    return { p30, p60, p90 };
+  }, [commissionData.totalCommission, fallThroughRate]);
 
   return (
     <Card className="h-full border-l-4 border-l-emerald-500 shadow-lg bg-card/50 backdrop-blur-sm">
@@ -68,7 +90,7 @@ export default function CommissionProjector({ records }: CommissionProjectorProp
               Commission Projector
             </CardTitle>
             <CardDescription>
-              Forecasted revenue based on pending deals
+              Probability-weighted commission forecast ({historicalCloseRate}% close rate)
             </CardDescription>
           </div>
           <div className="bg-emerald-500/10 p-2 rounded-full">
@@ -94,11 +116,23 @@ export default function CommissionProjector({ records }: CommissionProjectorProp
             className="py-2"
           />
           <p className="text-xs text-foreground">
-            Adjust to account for deals that might not close.
+            Adjust to account for deals that might not close. (0% = no adjustment, 50% = maximum risk)
           </p>
         </div>
 
-        {/* Projections List */}
+        {/* Summary Stats */}
+        <div className="grid grid-cols-2 gap-3 bg-muted/20 p-4 rounded-lg border border-border/50">
+          <div>
+            <div className="text-xs text-muted-foreground font-medium">Projected Deals</div>
+            <div className="text-lg font-bold text-foreground">{commissionData.dealCount}</div>
+          </div>
+          <div>
+            <div className="text-xs text-muted-foreground font-medium">Avg Commission/Deal</div>
+            <div className="text-lg font-bold text-emerald-500">{formatCurrency(commissionData.avgCommissionPerDeal)}</div>
+          </div>
+        </div>
+
+        {/* Timeframe Projections */}
         <div className="space-y-3 landscape:space-y-2">
           <div className="flex justify-between items-center border-b border-border/50 pb-2">
             <div className="flex items-center gap-2">
@@ -106,8 +140,8 @@ export default function CommissionProjector({ records }: CommissionProjectorProp
               <span className="text-sm font-medium text-foreground">30 Days</span>
             </div>
             <div className="text-right">
-              <div className="text-lg font-bold text-foreground">{formatCurrency(projections.p30 * riskFactor)}</div>
-              <div className="text-xs text-foreground">{projections.count30} deals</div>
+              <div className="text-lg font-bold text-foreground">{formatCurrency(timeframeProjections.p30)}</div>
+              <div className="text-xs text-muted-foreground">Risk-adjusted</div>
             </div>
           </div>
 
@@ -117,8 +151,8 @@ export default function CommissionProjector({ records }: CommissionProjectorProp
               <span className="text-sm font-medium text-foreground">60 Days</span>
             </div>
             <div className="text-right">
-              <div className="text-lg font-bold text-foreground">{formatCurrency(projections.p60 * riskFactor)}</div>
-              <div className="text-xs text-foreground">{projections.count60} deals</div>
+              <div className="text-lg font-bold text-foreground">{formatCurrency(timeframeProjections.p60)}</div>
+              <div className="text-xs text-muted-foreground">Risk-adjusted</div>
             </div>
           </div>
 
@@ -128,10 +162,50 @@ export default function CommissionProjector({ records }: CommissionProjectorProp
               <span className="text-sm font-medium text-foreground">90 Days</span>
             </div>
             <div className="text-right">
-              <div className="text-lg font-bold text-foreground">{formatCurrency(projections.p90 * riskFactor)}</div>
-              <div className="text-xs text-foreground">{projections.count90} deals</div>
+              <div className="text-lg font-bold text-foreground">{formatCurrency(timeframeProjections.p90)}</div>
+              <div className="text-xs text-muted-foreground">Risk-adjusted</div>
             </div>
           </div>
+        </div>
+
+        {/* Agent Breakdown Toggle */}
+        {commissionData.agentBreakdown.length > 0 && (
+          <div className="space-y-3 border-t border-border/50 pt-4">
+            <button
+              onClick={() => setShowAgentBreakdown(!showAgentBreakdown)}
+              className="w-full flex items-center justify-between text-sm font-medium text-foreground hover:text-emerald-500 transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Agent Breakdown ({commissionData.agentBreakdown.length} agents)
+              </span>
+              <span>{showAgentBreakdown ? '▼' : '▶'}</span>
+            </button>
+
+            {showAgentBreakdown && (
+              <div className="space-y-2 bg-muted/20 p-3 rounded border border-border/50 max-h-48 overflow-y-auto">
+                {commissionData.agentBreakdown.map((agent, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-sm pb-2 border-b border-border/30 last:border-0">
+                    <div>
+                      <div className="font-medium text-foreground">{agent.agent}</div>
+                      <div className="text-xs text-muted-foreground">{agent.dealCount} deals</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-emerald-500">{formatCurrency(agent.totalCommission)}</div>
+                      <div className="text-xs text-muted-foreground">{formatCurrency(agent.avgCommissionPerDeal)}/deal</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Data Quality Note */}
+        <div className="text-xs text-muted-foreground bg-muted/10 p-2 rounded border border-border/30">
+          <strong>Formula:</strong> Commission = Price × 3% × Probability × (1 - Risk%)
+          <br />
+          <strong>Based on:</strong> {commissionData.dealCount} forecasted deals, {historicalCloseRate}% historical close rate
         </div>
       </CardContent>
     </Card>
