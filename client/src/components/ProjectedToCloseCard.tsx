@@ -219,7 +219,11 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
                 </p>
                 <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors" />
               </div>
-              <p className="text-3xl font-display font-bold text-green-600 dark:text-green-400 mb-2">
+              <p className="font-display font-bold text-green-600 dark:text-green-400 mb-2 line-clamp-2" style={{
+                fontSize: formatCurrency(current.projectedRevenue).length > 15 ? '1.5rem' : 
+                         formatCurrency(current.projectedRevenue).length > 12 ? '2rem' : '1.875rem',
+                lineHeight: '1.2'
+              }}>
                 {formatCurrency(current.projectedRevenue)}
               </p>
               <p className="text-xs text-muted-foreground">

@@ -73,6 +73,19 @@ export default function ForecastedDealsModal({
     return 'Low';
   };
 
+  const getAgingIndicator = (deal: ForecastedDeal) => {
+    const daysInPipeline = deal.daysInContract;
+    
+    return {
+      days: daysInPipeline,
+      color: daysInPipeline > 120 ? 'bg-red-500/20 text-red-700 dark:text-red-400' : 
+             daysInPipeline > 60 ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400' : 
+             'bg-green-500/20 text-green-700 dark:text-green-400',
+      label: daysInPipeline > 120 ? 'Stalled' : 
+             daysInPipeline > 60 ? 'Aging' : 'Fresh'
+    };
+  }
+
   if (!isOpen) return null;
 
   return (
@@ -260,16 +273,24 @@ export default function ForecastedDealsModal({
                       <tr>
                         <th className="px-4 py-3 text-left text-slate-300 font-semibold">Loop Name</th>
                         <th className="px-4 py-3 text-left text-slate-300 font-semibold">Agent</th>
+                        <th className="px-4 py-3 text-left text-slate-300 font-semibold">Age</th>
                         <th className="px-4 py-3 text-left text-slate-300 font-semibold">Probability</th>
                         <th className="px-4 py-3 text-right text-slate-300 font-semibold">Price</th>
                         <th className="px-4 py-3 text-right text-slate-300 font-semibold">Commission</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {paginatedDeals.map((deal, idx) => (
+                      {paginatedDeals.map((deal, idx) => {
+                        const aging = getAgingIndicator(deal);
+                        return (
                         <tr key={idx} className="border-b border-slate-700 hover:bg-slate-800/50 transition-colors">
                           <td className="px-4 py-3 text-slate-200">{deal.loopName}</td>
                           <td className="px-4 py-3 text-slate-400">{deal.agent}</td>
+                          <td className="px-4 py-3">
+                            <Badge className={aging.color}>
+                              {aging.days}d {aging.label}
+                            </Badge>
+                          </td>
                           <td className="px-4 py-3">
                             <Badge className={getProbabilityColor(deal.probability)}>
                               {deal.probability}% {getProbabilityLabel(deal.probability)}
@@ -278,7 +299,8 @@ export default function ForecastedDealsModal({
                           <td className="px-4 py-3 text-right text-slate-200">{formatCurrency(deal.price)}</td>
                           <td className="px-4 py-3 text-right text-emerald-400 font-semibold">{formatCurrency(deal.commission)}</td>
                         </tr>
-                      ))}
+                      );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -337,10 +359,17 @@ export default function ForecastedDealsModal({
                         <p className="text-sm font-semibold text-white truncate">{deal.loopName}</p>
                         <p className="text-xs text-slate-400">{deal.agent}</p>
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {(() => {
+                          const aging = getAgingIndicator(deal);
+                          return <Badge className={aging.color}>{aging.days}d {aging.label}</Badge>;
+                        })()}
                         <Badge className={getProbabilityColor(deal.probability)}>
                           {deal.probability}%
                         </Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-slate-400">Commission:</span>
                         <span className="text-sm font-semibold text-emerald-400">{formatCurrency(deal.commission)}</span>
                       </div>
                       <div className="text-xs text-slate-400">

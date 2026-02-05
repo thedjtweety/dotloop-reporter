@@ -1,11 +1,14 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { DotloopRecord } from '@/lib/csvParser';
 import { formatCurrency } from '@/lib/formatUtils';
 import { calculateCommissionForecast, applyRiskAdjustment } from '@/lib/commissionUtils';
-import { calculateHistoricalCloseRate } from '@/lib/projectionUtils';
-import { TrendingUp, AlertTriangle, Calendar, DollarSign, Users } from 'lucide-react';
+import { calculateHistoricalCloseRate, calculateForecastedDeals } from '@/lib/projectionUtils';
+import { TrendingUp, AlertTriangle, Calendar, DollarSign, Users, Zap } from 'lucide-react';
+import CommissionPlanSimulator from './CommissionPlanSimulator';
+import { CommissionPlan } from '@/lib/commissionSimulationUtils';
 
 interface CommissionProjectorProps {
   records: DotloopRecord[];
@@ -15,10 +18,11 @@ interface CommissionProjectorProps {
 export default function CommissionProjector({ records, daysToForecast = 30 }: CommissionProjectorProps) {
   const [fallThroughRate, setFallThroughRate] = useState([10]); // Default 10% risk
   const [showAgentBreakdown, setShowAgentBreakdown] = useState(false);
+  const [showSimulator, setShowSimulator] = useState(false);
 
   // Calculate historical metrics
   const historicalCloseRate = useMemo(() => calculateHistoricalCloseRate(records), [records]);
-  
+
   // Calculate average days to close from historical data
   const avgDaysToClose = useMemo(() => {
     const closedDeals = records.filter(r => 
@@ -80,7 +84,21 @@ export default function CommissionProjector({ records, daysToForecast = 30 }: Co
     return { p30, p60, p90 };
   }, [commissionData.totalCommission, fallThroughRate]);
 
+  // Get forecasted deals for simulator
+  const forecastedDeals = useMemo(() => {
+    return calculateForecastedDeals(records, historicalCloseRate, avgDaysToClose, daysToForecast);
+  }, [records, historicalCloseRate, avgDaysToClose, daysToForecast]);
+
+  // Current plan (for simulator)
+  const currentPlan: CommissionPlan = {
+    id: 'current',
+    name: 'Current Plan',
+    agentSplit: 60,
+    companySplit: 40,
+  };
+
   return (
+    <>
     <Card className="h-full border-l-4 border-l-emerald-500 shadow-lg bg-card/50 backdrop-blur-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
@@ -201,6 +219,15 @@ export default function CommissionProjector({ records, daysToForecast = 30 }: Co
           </div>
         )}
 
+        {/* Simulator Button */}
+        <Button
+          onClick={() => setShowSimulator(true)}
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+        >
+          <Zap className="h-4 w-4 mr-2" />
+          Test Different Commission Plans
+        </Button>
+
         {/* Data Quality Note */}
         <div className="text-xs text-muted-foreground bg-muted/10 p-2 rounded border border-border/30">
           <strong>Formula:</strong> Commission = Price × 3% × Probability × (1 - Risk%)
@@ -209,5 +236,15 @@ export default function CommissionProjector({ records, daysToForecast = 30 }: Co
         </div>
       </CardContent>
     </Card>
+
+    {/* Commission Plan Simulator Modal */}
+    <CommissionPlanSimulator
+      isOpen={showSimulator}
+      onClose={() => setShowSimulator(false)}
+      deals={forecastedDeals}
+      currentPlan={currentPlan}
+      timeframe="30"
+    />
+    </>
   );
 }
