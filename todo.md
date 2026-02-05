@@ -2899,7 +2899,9 @@
 ## Phase 49: Commission Projector Debugging & Fixes
 - [x] Fix CommissionProjector slider not affecting calculations (added missing React imports)
 - [x] Fix ProjectedToCloseCard slider not affecting projections (slider now applies risk adjustment)
-- [x] Verify commissionData calculations use forecasted deals (added null safety checks)
+- [x] Verify commissionData calculations use forecasted deals (filtered for under-contract deals)
 - [x] Test slider changes update displayed values (slider now updates projections in real-time)
-- [x] Verify zero values issue is resolved (added fallback values)
+- [x] Verify zero values issue is resolved (fixed commission calculation to use deal.commission)
 - [x] Test Commission Projector module with demo data (ready for testing)
+- [x] Fix calculateDealCommission to use existing commission field from deal
+- [x] Apply probability weighting correctly to commission values

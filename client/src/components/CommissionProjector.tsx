@@ -23,6 +23,14 @@ export default function CommissionProjector({ records, daysToForecast = 30 }: Co
   // Calculate historical metrics
   const historicalCloseRate = useMemo(() => calculateHistoricalCloseRate(records), [records]);
 
+  // Filter for under-contract deals
+  const underContractDeals = useMemo(() => {
+    return records.filter(r => 
+      r.loopStatus?.toLowerCase().includes('contract') || 
+      r.loopStatus?.toLowerCase().includes('pending')
+    );
+  }, [records]);
+
   // Calculate average days to close from historical data
   const avgDaysToClose = useMemo(() => {
     const closedDeals = records.filter(r => 
@@ -57,7 +65,7 @@ export default function CommissionProjector({ records, daysToForecast = 30 }: Co
   // Calculate commission forecast with probability weighting
   const commissionData = useMemo(() => {
     try {
-      return calculateCommissionForecast(records, historicalCloseRate, avgDaysToClose, daysToForecast);
+      return calculateCommissionForecast(underContractDeals, historicalCloseRate, avgDaysToClose, daysToForecast);
     } catch (e) {
       console.error('Error calculating commission forecast:', e);
       return {
@@ -86,8 +94,8 @@ export default function CommissionProjector({ records, daysToForecast = 30 }: Co
 
   // Get forecasted deals for simulator
   const forecastedDeals = useMemo(() => {
-    return calculateForecastedDeals(records, historicalCloseRate, avgDaysToClose, daysToForecast);
-  }, [records, historicalCloseRate, avgDaysToClose, daysToForecast]);
+    return calculateForecastedDeals(underContractDeals, historicalCloseRate, avgDaysToClose, daysToForecast);
+  }, [underContractDeals, historicalCloseRate, avgDaysToClose, daysToForecast]);
 
   // Current plan (for simulator)
   const currentPlan: CommissionPlan = {

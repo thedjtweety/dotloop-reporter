@@ -27,15 +27,11 @@ export interface CommissionForecast {
  * Uses probability-weighted commission to account for deal uncertainty
  */
 export function calculateDealCommission(deal: ForecastedDeal): number {
-  // Commission = Price × Commission Rate × Probability
-  const basePrice = deal.price || 0;
-  const commissionRate = 0.03; // Default 3% commission rate
+  // Use the commission from the deal record and apply probability weighting
+  const baseCommission = deal.commission || 0;
   const probability = deal.probability / 100; // Convert 0-100 to 0-1
   
-  // Calculate base commission
-  const baseCommission = basePrice * commissionRate;
-  
-  // Apply probability weighting
+  // Apply probability weighting to account for deal uncertainty
   const probabilityWeightedCommission = baseCommission * probability;
   
   return probabilityWeightedCommission;
