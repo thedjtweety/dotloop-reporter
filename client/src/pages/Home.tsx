@@ -206,6 +206,9 @@ function HomeContent() {
   const [pipelinePulseModalRecords, setPipelinePulseModalRecords] = useState<DotloopRecord[]>([]);
   const [pipelinePulseStageColor, setPipelinePulseStageColor] = useState('');
 
+  // Projected to Close Period State
+  const [selectedPeriod, setSelectedPeriod] = useState<'30' | '60' | '90'>('30');
+
   // Load saved mapping and recent files on mount
   const [showCSVGuide, setShowCSVGuide] = useState(false);
 
@@ -928,8 +931,8 @@ function HomeContent() {
                 <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-800">
                   <EnhancedProjectedToClose
                     metrics={metrics}
-                    selectedPeriod="30"
-                    onPeriodChange={() => {}}
+                    selectedPeriod={selectedPeriod}
+                    onPeriodChange={setSelectedPeriod}
                     onExportPDF={() => {}}
                     onExportCSV={() => {}}
                   />

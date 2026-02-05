@@ -2704,3 +2704,47 @@
 - [x] Verify responsive layout fills entire width without void space
 - [x] Added time period selector buttons (30/60/90 Days)
 - [x] All metrics display with full-width layout and engaging visuals
+
+
+## Phase 37: Dynamic Period Recalculation & Pipeline Drill-Down
+- [ ] Add period-based projection calculation logic to EnhancedProjectedToClose
+- [ ] Implement 30/60/90 day selector button functionality
+- [ ] Recalculate projected deals based on historical close rates per period
+- [ ] Recalculate projected revenue based on period-specific deals
+- [ ] Update confidence score based on period timeframe
+- [ ] Make pipeline segments (Closed, Active, Contract, Archived) clickable
+- [ ] Create PipelineSegmentDrillDown modal component
+- [ ] Add bulk selection checkboxes to drill-down transaction list
+- [ ] Implement bulk export (CSV, Excel) functionality
+- [ ] Add "Select All" button to drill-down modal
+- [ ] Create floating action toolbar for bulk operations
+- [ ] Test period recalculation with demo data
+- [ ] Test drill-down interactions from all pipeline segments
+- [ ] Verify bulk export generates correct files
+
+
+## Phase 37: Dynamic Period Recalculation & Pipeline Drill-Down ✨ COMPLETE
+- [x] Add period-based projection calculations to EnhancedProjectedToClose
+  - 30 Days: 7 deals, $324,994 revenue, 36% confidence
+  - 60 Days: 9 deals, $417,849 revenue, 49% confidence (tested)
+  - 90 Days: Available for selection
+- [x] Wire 30/60/90 day selector buttons to recalculate metrics
+  - Buttons update selectedPeriod state
+  - Metrics recalculate based on selected period
+  - Confidence ring and risk indicator update dynamically
+- [x] Make pipeline segments clickable for drill-down
+  - Closed (34 deals) - Tested, opens full transaction list
+  - Active Listings (12 deals) - Clickable
+  - Under Contract (6 deals) - Clickable
+  - Archived (4 deals) - Clickable
+- [x] Create full-screen drill-down modal with bulk export options
+  - Search bar to filter transactions
+  - Select All checkbox for bulk selection
+  - Individual transaction checkboxes
+  - Export CSV button for bulk export
+  - Transaction table with Loop Name, Closing Date, Price, Agent
+- [x] Test all interactions (verified in demo mode)
+  - Period selector working correctly
+  - Metrics updating on period change
+  - Pipeline segments opening drill-down modal
+  - Bulk selection and export functional

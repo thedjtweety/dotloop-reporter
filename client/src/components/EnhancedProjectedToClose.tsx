@@ -153,11 +153,40 @@ export default function EnhancedProjectedToClose({
   onExportPDF,
   onExportCSV,
 }: EnhancedProjectedToCloseProps) {
-  // Calculate projected deals based on close rate
+  const [periodData, setPeriodData] = useState<{
+    deals: number;
+    revenue: number;
+    confidence: number;
+  }>({ deals: 0, revenue: 0, confidence: 0 });
+
+  // Calculate period-based projections
+  useEffect(() => {
+    const activeDealCount = metrics.activeListings + metrics.underContract;
+    const periodDays = parseInt(selectedPeriod);
+    
+    // Adjust close rate based on period
+    const periodAdjustment = periodDays === 30 ? 0.6 : periodDays === 60 ? 0.8 : 1.0;
+    const adjustedCloseRate = metrics.closingRate * periodAdjustment;
+    
+    // Calculate projected deals
+    const projectedDeals = Math.round(activeDealCount * (adjustedCloseRate / 100));
+    
+    // Calculate average commission per deal
+    const avgCommissionPerDeal = metrics.totalCommission / Math.max(metrics.closed, 1);
+    const projectedRevenue = projectedDeals * avgCommissionPerDeal;
+    
+    // Calculate confidence based on period
+    const confidence = Math.min(Math.round(adjustedCloseRate), 100);
+    
+    setPeriodData({
+      deals: projectedDeals,
+      revenue: projectedRevenue,
+      confidence,
+    });
+  }, [selectedPeriod, metrics]);
+
   const activeDealCount = metrics.activeListings + metrics.underContract;
-  const projectedDeals = Math.round(activeDealCount * (metrics.closingRate / 100));
   const avgCommissionPerDeal = metrics.totalCommission / Math.max(metrics.closed, 1);
-  const projectedRevenue = projectedDeals * avgCommissionPerDeal;
 
   // Generate historical close rate trend data
   const closeRateTrend = [
@@ -166,8 +195,8 @@ export default function EnhancedProjectedToClose({
 
   // Determine risk level based on confidence
   const getRiskLevel = (): 'low' | 'medium' | 'high' => {
-    if (metrics.closingRate >= 50) return 'low';
-    if (metrics.closingRate >= 40) return 'medium';
+    if (periodData.confidence >= 50) return 'low';
+    if (periodData.confidence >= 40) return 'medium';
     return 'high';
   };
 
@@ -205,7 +234,7 @@ export default function EnhancedProjectedToClose({
         <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
           <p className="text-xs font-medium text-slate-400 mb-2">Projected Deals</p>
           <div className="text-3xl font-bold text-blue-400 mb-2">
-            <AnimatedCounter value={projectedDeals} />
+            <AnimatedCounter value={periodData.deals} />
           </div>
           <p className="text-xs text-slate-500">of {activeDealCount} in pipeline</p>
         </div>
@@ -214,7 +243,7 @@ export default function EnhancedProjectedToClose({
         <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 lg:col-span-2">
           <p className="text-xs font-medium text-slate-400 mb-2">Projected Revenue</p>
           <div className="text-3xl font-bold text-emerald-400 mb-2">
-            $<AnimatedCounter value={Math.round(projectedRevenue)} />
+            $<AnimatedCounter value={Math.round(periodData.revenue)} />
           </div>
           <p className="text-xs text-slate-500">
             Avg: ${avgCommissionPerDeal.toLocaleString('en-US', { maximumFractionDigits: 0 })} per deal
@@ -235,7 +264,7 @@ export default function EnhancedProjectedToClose({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Confidence Ring */}
         <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700/50 flex justify-center">
-          <ConfidenceRing confidence={Math.round(metrics.closingRate)} />
+          <ConfidenceRing confidence={periodData.confidence} />
         </div>
 
         {/* Stats Grid */}
@@ -258,7 +287,7 @@ export default function EnhancedProjectedToClose({
             <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
               <p className="text-xs font-medium text-slate-400 mb-2">Confidence Score</p>
               <div className="text-2xl font-bold text-emerald-400">
-                <AnimatedCounter value={Math.round(metrics.closingRate)} />%
+                <AnimatedCounter value={periodData.confidence} />%
               </div>
             </div>
           </div>
