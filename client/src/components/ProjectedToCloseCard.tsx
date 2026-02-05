@@ -105,15 +105,29 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
     const proj60 = calculateProjectedToClose(underContractDeals, historicalCloseRate, 60);
     const proj90 = calculateProjectedToClose(underContractDeals, historicalCloseRate, 90);
 
-    return { 30: proj30, 60: proj60, 90: proj90 };
-  }, [underContractDeals, historicalCloseRate]);
+    // Apply risk adjustment multiplier to commission values
+    const riskMultiplier = 1 - (commissionRiskAdjustment[0] / 100);
+    const applyRisk = (proj: any) => ({
+      ...proj,
+      projectedCommission: (proj.projectedCommission || 0) * riskMultiplier,
+      projectedRevenue: (proj.projectedRevenue || 0) * riskMultiplier,
+    });
+
+    return { 30: applyRisk(proj30), 60: applyRisk(proj60), 90: applyRisk(proj90) };
+  }, [underContractDeals, historicalCloseRate, commissionRiskAdjustment]);
 
   // Calculate forecasted deals
   const forecastedDeals = useMemo(() => {
-    return calculateForecastedDeals(underContractDeals, historicalCloseRate, avgDaysToClose, selectedTimeframe);
-  }, [underContractDeals, historicalCloseRate, avgDaysToClose, selectedTimeframe]);
+    const deals = calculateForecastedDeals(underContractDeals, historicalCloseRate, avgDaysToClose, selectedTimeframe);
+    // Apply risk adjustment to deal commission values
+    const riskMultiplier = 1 - (commissionRiskAdjustment[0] / 100);
+    return deals.map(deal => ({
+      ...deal,
+      commission: (deal.commission || 0) * riskMultiplier,
+    }));
+  }, [underContractDeals, historicalCloseRate, avgDaysToClose, selectedTimeframe, commissionRiskAdjustment]);
 
-  const current = projections[selectedTimeframe];
+  const current = projections[selectedTimeframe] || { projectedClosedDeals: 0, projectedCommission: 0, projectedRevenue: 0, baselineCloseRate: historicalCloseRate };
 
   // Calculate confidence and risk metrics
   const confidenceMetrics = useMemo(() => {
@@ -197,10 +211,10 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
                 <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
               <p className="text-3xl font-display font-bold text-foreground mb-2">
-                {formatNumber(current.projectedClosedDeals)}
+                {formatNumber(current?.projectedClosedDeals || 0)}
               </p>
               <p className="text-xs text-muted-foreground">
-                of {formatNumber(Math.ceil(current.projectedClosedDeals / (current.baselineCloseRate / 100)))} in pipeline
+                of {formatNumber(Math.ceil((current?.projectedClosedDeals || 0) / ((current?.baselineCloseRate || 50) / 100)))} in pipeline
               </p>
               <p className="text-xs text-primary mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
                 View calculation details →
