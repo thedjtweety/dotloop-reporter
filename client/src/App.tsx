@@ -18,6 +18,7 @@ import BenchmarkComparisonPage from "./pages/BenchmarkComparisonPage";
 import ManageDotloopConnections from "./pages/ManageDotloopConnections";
 import OAuthCallback from "./pages/OAuthCallback";
 import CommissionTemplates from "./pages/CommissionTemplates";
+import Privacy from "./pages/Privacy";
 
 
 function Router() {
@@ -38,6 +39,7 @@ function Router() {
       <Route path="/settings/dotloop" component={ManageDotloopConnections} />
       <Route path="/api/dotloop/callback" component={OAuthCallback} />
       <Route path="/commission-templates" component={CommissionTemplates} />
+      <Route path="/privacy" component={Privacy} />
 
       <Route path="{/404}" component={NotFound} />
       {/* Final fallback route */}
