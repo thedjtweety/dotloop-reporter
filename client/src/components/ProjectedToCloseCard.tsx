@@ -43,6 +43,17 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
   const [showMetricDrill, setShowMetricDrill] = useState<'deals' | 'revenue' | 'rate' | null>(null);
   const [showLogicExplainer, setShowLogicExplainer] = useState<'confidence' | 'risk' | 'score' | null>(null);
 
+  // Debug logging
+  const handleMetricClick = (metric: 'deals' | 'revenue' | 'rate') => {
+    console.log('[ProjectedToCloseCard] Metric clicked:', metric);
+    setShowMetricDrill(metric);
+  };
+
+  const handleLogicClick = (type: 'confidence' | 'risk' | 'score') => {
+    console.log('[ProjectedToCloseCard] Logic explainer clicked:', type);
+    setShowLogicExplainer(type);
+  };
+
   // Get under contract deals
   const underContractDeals = useMemo(
     () =>
@@ -170,7 +181,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
           <div className="grid grid-cols-3 gap-4">
             {/* Projected Deals */}
             <button
-              onClick={() => setShowMetricDrill('deals')}
+              onClick={() => handleMetricClick('deals')}
               className="p-6 rounded-lg bg-muted/50 dark:bg-muted/30 hover:bg-muted/70 dark:hover:bg-muted/50 transition-all text-left group border border-border hover:border-primary/50"
             >
               <div className="flex items-center justify-between mb-3">
@@ -190,7 +201,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
 
             {/* Projected Revenue */}
             <button
-              onClick={() => setShowMetricDrill('revenue')}
+              onClick={() => handleMetricClick('revenue')}
               className="p-6 rounded-lg bg-green-500/10 dark:bg-green-500/20 hover:bg-green-500/20 dark:hover:bg-green-500/30 transition-all text-left group border border-green-500/30 hover:border-green-500/50"
             >
               <div className="flex items-center justify-between mb-3">
@@ -213,7 +224,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
 
             {/* Close Rate */}
             <button
-              onClick={() => setShowMetricDrill('rate')}
+              onClick={() => handleMetricClick('rate')}
               className="p-6 rounded-lg bg-purple-500/10 dark:bg-purple-500/20 hover:bg-purple-500/20 dark:hover:bg-purple-500/30 transition-all text-left group border border-purple-500/30 hover:border-purple-500/50"
             >
               <div className="flex items-center justify-between mb-3">
@@ -239,7 +250,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
               <div className="flex items-center justify-between mb-4">
                 <p className="text-xs text-foreground font-medium">CONFIDENCE</p>
                 <button
-                  onClick={() => setShowLogicExplainer('confidence')}
+                  onClick={() => handleLogicClick('confidence')}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                   title="View calculation logic"
                 >
@@ -282,7 +293,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs text-foreground font-medium">RISK LEVEL</p>
                   <button
-                    onClick={() => setShowLogicExplainer('risk')}
+                    onClick={() => handleLogicClick('risk')}
                     className="text-muted-foreground hover:text-foreground transition-colors"
                     title="View risk calculation"
                   >
@@ -299,7 +310,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs text-foreground font-medium">CONFIDENCE SCORE</p>
                   <button
-                    onClick={() => setShowLogicExplainer('score')}
+                    onClick={() => handleLogicClick('score')}
                     className="text-muted-foreground hover:text-foreground transition-colors"
                     title="View score calculation"
                   >

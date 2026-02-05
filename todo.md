@@ -2830,3 +2830,20 @@
 - [ ] Test PDF export generation (forecasted deals calculation may need adjustment)
 - [ ] Test CSV export generation (forecasted deals calculation may need adjustment)
 - [ ] Fix forecasted deals filtering to ensure non-empty dataset for export
+
+## Phase 40: Debug and Fix Projected to Close Card Issues
+- [ ] Debug MetricDrillDownModal rendering - check if modal state is being set correctly
+- [ ] Debug LogicExplainerModal rendering - verify modal components are properly defined
+- [ ] Add console logging to track modal state changes
+- [ ] Fix calculateForecastedDeals function to return non-empty arrays
+- [ ] Adjust daysToForecast filter logic to include more deals
+- [ ] Test PDF export functionality after fixing forecasted deals
+- [ ] Test CSV export functionality after fixing forecasted deals
+- [ ] Verify exported files contain correct data
+- [ ] Add info icons (Info circle) next to Confidence metric
+- [ ] Add info icons next to Risk Level metric
+- [ ] Add info icons next to Confidence Score metric
+- [ ] Wire up info icon click handlers to open LogicExplainerModal
+- [ ] Test all drill-down modals open correctly
+- [ ] Test all logic explainer modals open correctly
+- [ ] Test export buttons generate downloadable files

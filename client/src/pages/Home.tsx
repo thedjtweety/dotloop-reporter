@@ -926,17 +926,11 @@ function HomeContent() {
                 />
               </div>
               
-              {/* Right: Enhanced Projected to Close */}
+              {/* Right: Projected to Close with Drill-Down */}
               {filteredRecords.length > 0 && metrics && (
-                <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-800">
-                  <EnhancedProjectedToClose
-                    metrics={metrics}
-                    selectedPeriod={selectedPeriod}
-                    onPeriodChange={setSelectedPeriod}
-                    onExportPDF={() => {}}
-                    onExportCSV={() => {}}
-                  />
-                </div>
+                <ProjectedToCloseCard
+                  records={filteredRecords}
+                />
               )}
             </div>
           </div>

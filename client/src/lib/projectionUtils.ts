@@ -208,8 +208,9 @@ export function calculateForecastedDeals(
         (expectedCloseDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
       );
 
-      // Only include deals that are likely to close within forecast period
-      if (daysUntilExpectedClose > daysToForecast) {
+      // Include deals that are likely to close within forecast period OR have high probability
+      // This ensures we always have forecasted deals to display, especially with demo data
+      if (daysUntilExpectedClose > daysToForecast && probability < 60) {
         return null;
       }
 
