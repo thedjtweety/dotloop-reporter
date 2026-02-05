@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { X, TrendingUp, Download, FileText, Grid3x3, List } from 'lucide-react';
+import { X, TrendingUp, Download, FileText, Grid3x3, List, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ForecastedDeal } from '@/lib/projectionUtils';
 import { formatCurrency, formatPercentage } from '@/lib/formatUtils';
 import { exportForecastAsPDF, exportForecastAsCSV } from '@/lib/exportUtils';
@@ -26,6 +26,8 @@ export default function ForecastedDealsModal({
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [searchTerm, setSearchTerm] = useState('');
   const [probabilityFilter, setProbabilityFilter] = useState<[number, number]>([0, 100]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const filteredDeals = deals.filter((deal) => {
     const matchesSearch = deal.loopName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -45,6 +47,16 @@ export default function ForecastedDealsModal({
         return b.probability - a.probability;
     }
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(sortedDeals.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedDeals = sortedDeals.slice(startIndex, startIndex + itemsPerPage);
+
+  // Reset to page 1 when filtering changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, probabilityFilter, sortBy]);
 
   const totalProjectedCommission = deals.reduce((sum, deal) => sum + deal.commission, 0);
   const avgProbability = deals.length > 0 ? Math.round(deals.reduce((sum, deal) => sum + deal.probability, 0) / deals.length) : 0;
@@ -140,9 +152,9 @@ export default function ForecastedDealsModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col">
           {/* Summary Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-3 gap-4 mb-6 flex-shrink-0">
             <Card className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20">
               <p className="text-sm text-slate-400 mb-1">Projected Deals</p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">{filteredDeals.length}</p>
@@ -166,7 +178,7 @@ export default function ForecastedDealsModal({
 
           {/* Filter Controls - Only show in table view */}
           {viewMode === 'table' && (
-            <div className="mb-4 space-y-3 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+            <div className="mb-4 space-y-3 p-4 bg-slate-800/50 rounded-lg border border-slate-700 flex-shrink-0">
               <div>
                 <label className="text-sm text-slate-300 mb-2 block">Search by Loop Name or Agent</label>
                 <input
@@ -210,7 +222,7 @@ export default function ForecastedDealsModal({
           )}
 
           {/* Sort Controls */}
-          <div className="flex gap-2 mb-4 flex-wrap items-center">
+          <div className="flex gap-2 mb-4 flex-wrap items-center flex-shrink-0">
             <Button
               variant={sortBy === 'probability' ? 'default' : 'outline'}
               size="sm"
@@ -237,149 +249,154 @@ export default function ForecastedDealsModal({
             </Button>
           </div>
 
-          {/* Deals View */}
-          {viewMode === 'table' ? (
-            // Table View
-            <div className="border border-slate-700 rounded-lg overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-800 border-b border-slate-700">
-                      <th className="px-4 py-3 text-left text-slate-300 font-semibold">Loop Name</th>
-                      <th className="px-4 py-3 text-left text-slate-300 font-semibold">Agent</th>
-                      <th className="px-4 py-3 text-right text-slate-300 font-semibold cursor-pointer hover:text-white transition-colors" onClick={() => setSortBy('probability')} title="Click to sort">Probability</th>
-                      <th className="px-4 py-3 text-right text-slate-300 font-semibold cursor-pointer hover:text-white transition-colors" onClick={() => setSortBy('price')} title="Click to sort">Price</th>
-                      <th className="px-4 py-3 text-right text-slate-300 font-semibold cursor-pointer hover:text-white transition-colors" onClick={() => setSortBy('commission')} title="Click to sort">Commission</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedDeals.length === 0 ? (
+          {/* Deals View - Scrollable */}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            {viewMode === 'table' ? (
+              // Table View with Sticky Header
+              <div className="border border-slate-700 rounded-lg overflow-hidden flex flex-col h-full">
+                <div className="overflow-x-auto flex-1">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-slate-800 border-b border-slate-700 z-10">
                       <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
-                          No deals match your filters
-                        </td>
+                        <th className="px-4 py-3 text-left text-slate-300 font-semibold">Loop Name</th>
+                        <th className="px-4 py-3 text-left text-slate-300 font-semibold">Agent</th>
+                        <th className="px-4 py-3 text-left text-slate-300 font-semibold">Probability</th>
+                        <th className="px-4 py-3 text-right text-slate-300 font-semibold">Price</th>
+                        <th className="px-4 py-3 text-right text-slate-300 font-semibold">Commission</th>
                       </tr>
-                    ) : (
-                      sortedDeals.map((deal) => (
-                        <tr key={deal.id} className="border-b border-slate-700 hover:bg-slate-800/50 transition-colors">
-                          <td className="px-4 py-3 text-white">{deal.loopName}</td>
-                          <td className="px-4 py-3 text-slate-300">{deal.agent}</td>
-                          <td className="px-4 py-3 text-right">
-                            <Badge className={`${getProbabilityColor(deal.probability)} border-0`}>
-                              {deal.probability}%
+                    </thead>
+                    <tbody>
+                      {paginatedDeals.map((deal, idx) => (
+                        <tr key={idx} className="border-b border-slate-700 hover:bg-slate-800/50 transition-colors">
+                          <td className="px-4 py-3 text-slate-200">{deal.loopName}</td>
+                          <td className="px-4 py-3 text-slate-400">{deal.agent}</td>
+                          <td className="px-4 py-3">
+                            <Badge className={getProbabilityColor(deal.probability)}>
+                              {deal.probability}% {getProbabilityLabel(deal.probability)}
                             </Badge>
                           </td>
-                          <td className="px-4 py-3 text-right text-white">{formatCurrency(deal.price)}</td>
+                          <td className="px-4 py-3 text-right text-slate-200">{formatCurrency(deal.price)}</td>
                           <td className="px-4 py-3 text-right text-emerald-400 font-semibold">{formatCurrency(deal.commission)}</td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-slate-800 border-t border-slate-700">
+                    <p className="text-sm text-slate-400">
+                      Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, sortedDeals.length)} of {sortedDeals.length}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                        className="border-slate-600 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      <div className="flex items-center gap-2">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`px-2 py-1 rounded text-sm transition-colors ${
+                              currentPage === page
+                                ? 'bg-emerald-600 text-white'
+                                : 'hover:bg-slate-700 text-slate-300'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        disabled={currentPage === totalPages}
+                        className="border-slate-600 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ) : (
-            // Card View
-            <div className="space-y-3">
-              {sortedDeals.length === 0 ? (
-                <Card className="p-8 text-center bg-slate-800/50 border-slate-700">
-                  <p className="text-slate-400">No deals projected to close in this timeframe</p>
-                </Card>
-              ) : (
-                sortedDeals.map((deal) => (
-                  <Card
-                    key={deal.id}
-                    className="p-4 hover:shadow-md transition-shadow border-l-4 bg-slate-800/50 border-slate-700"
-                    style={{
-                      borderLeftColor:
-                        deal.status === 'high'
-                          ? '#10b981'
-                          : deal.status === 'medium'
-                            ? '#f59e0b'
-                            : '#ef4444',
-                    }}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-white">{deal.loopName}</h3>
-                        <p className="text-sm text-slate-400">Agent: {deal.agent}</p>
-                      </div>
-                      <Badge className={`${getProbabilityColor(deal.probability)} border-0`}>
-                        {deal.probability}% • {getProbabilityLabel(deal.probability)}
-                      </Badge>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            ) : (
+              // Card View
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {paginatedDeals.map((deal, idx) => (
+                  <Card key={idx} className="p-4 bg-slate-800 border-slate-700 hover:border-emerald-500/50 transition-colors">
+                    <div className="space-y-3">
                       <div>
-                        <p className="text-slate-400">List Price</p>
-                        <p className="font-semibold text-white">{formatCurrency(deal.price)}</p>
+                        <p className="text-sm font-semibold text-white truncate">{deal.loopName}</p>
+                        <p className="text-xs text-slate-400">{deal.agent}</p>
                       </div>
-                      <div>
-                        <p className="text-slate-400">Commission</p>
-                        <p className="font-semibold text-white">{formatCurrency(deal.commission)}</p>
+                      <div className="flex items-center justify-between">
+                        <Badge className={getProbabilityColor(deal.probability)}>
+                          {deal.probability}%
+                        </Badge>
+                        <span className="text-sm font-semibold text-emerald-400">{formatCurrency(deal.commission)}</span>
                       </div>
-                      <div>
-                        <p className="text-slate-400">Days in Contract</p>
-                        <p className="font-semibold text-white">{deal.daysInContract} days</p>
+                      <div className="text-xs text-slate-400">
+                        <p>Price: {formatCurrency(deal.price)}</p>
                       </div>
-                      <div>
-                        <p className="text-slate-400">Expected Close</p>
-                        <p className="font-semibold text-white">
-                          {deal.expectedCloseDate.toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Probability Indicator */}
-                    <div className="mt-3 flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all ${
-                            deal.status === 'high'
-                              ? 'bg-green-500'
-                              : deal.status === 'medium'
-                                ? 'bg-amber-500'
-                                : 'bg-red-500'
-                          }`}
-                          style={{ width: `${deal.probability}%` }}
-                        />
-                      </div>
-                      <span className="text-xs text-slate-500 w-8 text-right">{deal.probability}%</span>
                     </div>
                   </Card>
-                ))
-              )}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
 
-          {/* Footer Info */}
-          <div className="mt-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-            <div className="flex items-start gap-2">
-              <TrendingUp className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-slate-400">
-                <p className="font-semibold text-white mb-1">How we calculate probability:</p>
-                <ul className="space-y-1 text-xs">
-                  <li>• Base rate: Historical close rate for similar deals</li>
-                  <li>• Days in contract: Deals in contract longer are more likely to close</li>
-                  <li>• Deal complexity: High-value deals may have slightly lower probability</li>
-                </ul>
+          {/* Pagination for Card View */}
+          {viewMode === 'cards' && totalPages > 1 && (
+            <div className="flex-shrink-0 flex items-center justify-between mt-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+              <p className="text-sm text-slate-400">
+                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, sortedDeals.length)} of {sortedDeals.length}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-2 py-1 rounded text-sm transition-colors ${
+                        currentPage === page
+                          ? 'bg-emerald-600 text-white'
+                          : 'hover:bg-slate-700 text-slate-300'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  {totalPages > 5 && <span className="text-slate-400">...</span>}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex-shrink-0 px-6 py-4 border-t border-slate-700 bg-slate-800 flex items-center justify-end">
-          <Button 
-            onClick={onClose}
-            variant="outline"
-            className="border-slate-600 text-slate-300 hover:bg-slate-800"
-          >
-            Close
-          </Button>
+          )}
         </div>
       </div>
     </div>

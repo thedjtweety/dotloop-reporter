@@ -184,11 +184,11 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
           </div>
 
           {/* Main Metrics Grid - Full Width */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4 min-w-0">
             {/* Projected Deals */}
             <button
               onClick={() => handleMetricClick('deals')}
-              className="p-6 rounded-lg bg-muted/50 dark:bg-muted/30 hover:bg-muted/70 dark:hover:bg-muted/50 transition-all text-left group border border-border hover:border-primary/50"
+              className="p-6 rounded-lg bg-muted/50 dark:bg-muted/30 hover:bg-muted/70 dark:hover:bg-muted/50 transition-all text-left group border border-border hover:border-primary/50 min-w-0 overflow-hidden"
             >
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs text-foreground font-medium">PROJECTED DEALS</p>
@@ -208,7 +208,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
             {/* Projected Revenue */}
             <button
               onClick={() => handleMetricClick('revenue')}
-              className="p-6 rounded-lg bg-green-500/10 dark:bg-green-500/20 hover:bg-green-500/20 dark:hover:bg-green-500/30 transition-all text-left group border border-green-500/30 hover:border-green-500/50"
+              className="p-6 rounded-lg bg-green-500/10 dark:bg-green-500/20 hover:bg-green-500/20 dark:hover:bg-green-500/30 transition-all text-left group border border-green-500/30 hover:border-green-500/50 min-w-0 overflow-hidden"
             >
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs text-foreground font-medium flex items-center gap-1">
@@ -231,7 +231,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
             {/* Close Rate */}
             <button
               onClick={() => handleMetricClick('rate')}
-              className="p-6 rounded-lg bg-purple-500/10 dark:bg-purple-500/20 hover:bg-purple-500/20 dark:hover:bg-purple-500/30 transition-all text-left group border border-purple-500/30 hover:border-purple-500/50"
+              className="p-6 rounded-lg bg-purple-500/10 dark:bg-purple-500/20 hover:bg-purple-500/20 dark:hover:bg-purple-500/30 transition-all text-left group border border-purple-500/30 hover:border-purple-500/50 min-w-0 overflow-hidden"
             >
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs text-foreground font-medium">CLOSE RATE</p>
