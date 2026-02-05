@@ -520,9 +520,15 @@ export function exportForecastAsPDF(
     pipelineCount: number;
   }
 ) {
-  const doc = generateForecastPDF(timeframe, forecastedDeals, summary);
-  const filename = `forecast-${timeframe}days-${new Date().toISOString().split('T')[0]}.pdf`;
-  doc.save(filename);
+  try {
+    const doc = generateForecastPDF(timeframe, forecastedDeals, summary);
+    const filename = `forecast-${timeframe}days-${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(filename);
+    console.log(`✓ PDF exported successfully: ${filename}`);
+  } catch (error) {
+    console.error('Error exporting PDF:', error);
+    alert('Failed to export PDF. Please check the console for details.');
+  }
 }
 
 /**
@@ -538,20 +544,26 @@ export function exportForecastAsCSV(
     pipelineCount: number;
   }
 ) {
-  const csv = generateForecastCSV(timeframe, forecastedDeals, summary);
-  const filename = `forecast-${timeframe}days-${new Date().toISOString().split('T')[0]}.csv`;
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  try {
+    const csv = generateForecastCSV(timeframe, forecastedDeals, summary);
+    const filename = `forecast-${timeframe}days-${new Date().toISOString().split('T')[0]}.csv`;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    console.log(`✓ CSV exported successfully: ${filename}`);
+  } catch (error) {
+    console.error('Error exporting CSV:', error);
+    alert('Failed to export CSV. Please check the console for details.');
+  }
 }
 
 

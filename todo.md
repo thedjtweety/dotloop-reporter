@@ -2813,3 +2813,20 @@
 - [x] Test export with bookmarked views (bookmark name included in export filename)
 - [x] Verify exported file contains correct filtered data (verified: filtered CSV created successfully)
 - [x] Add export success notification/toast (export buttons provide immediate feedback)
+
+## Phase 39: Projected to Close Card Enhancements
+- [x] Expand Projected to Close card to full width (implemented)
+- [x] Reorganize card layout to use full space efficiently (grid layout with 3-column metrics)
+- [x] Create drill-down modal for Projected Deals metric (MetricDrillDownModal created)
+- [x] Create drill-down modal for Projected Revenue metric (MetricDrillDownModal created)
+- [x] Create drill-down modal for Close Rate metric (MetricDrillDownModal created)
+- [x] Add detailed logic explanation for Confidence calculation (LogicExplainerModal created)
+- [x] Add detailed logic explanation for Risk Level determination (LogicExplainerModal created)
+- [x] Add detailed logic explanation for Confidence Score (LogicExplainerModal created)
+- [x] Add trendline drill-down showing historical close rate progression (Close Rate Trend chart)
+- [x] Implement PDF export for Projected to Close report (exportForecastAsPDF with error handling)
+- [x] Implement CSV export for Projected to Close report (exportForecastAsCSV with error handling)
+- [x] Test drill-down modals for all metrics (all modals working correctly)
+- [ ] Test PDF export generation (forecasted deals calculation may need adjustment)
+- [ ] Test CSV export generation (forecasted deals calculation may need adjustment)
+- [ ] Fix forecasted deals filtering to ensure non-empty dataset for export
