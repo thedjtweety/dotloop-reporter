@@ -13,7 +13,20 @@ import {
 } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { DotloopRecord } from '@/lib/csvParser';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ConversionTrendsChartProps {
   data: DotloopRecord[];
@@ -32,14 +45,43 @@ interface MonthlyConversionData {
 
 export default function ConversionTrendsChart({ data }: ConversionTrendsChartProps) {
   const [chartType, setChartType] = useState<'line' | 'area'>('line');
+  const [selectedAgent, setSelectedAgent] = useState<string>('all');
+  const [drillDownOpen, setDrillDownOpen] = useState(false);
+  const [drillDownMonth, setDrillDownMonth] = useState<string>('');
+  const [drillDownDeals, setDrillDownDeals] = useState<{ 
+    active: DotloopRecord[]; 
+    contract: DotloopRecord[]; 
+    closed: DotloopRecord[] 
+  }>({ active: [], contract: [], closed: [] });
+
+  // Get unique agents for filter
+  const agents = useMemo(() => {
+    const agentSet = new Set<string>();
+    data.forEach(record => {
+      if (record.agents) {
+        record.agents.split(',').forEach(agent => {
+          agentSet.add(agent.trim());
+        });
+      }
+    });
+    return Array.from(agentSet).sort();
+  }, [data]);
+
+  // Filter data by selected agent
+  const filteredData = useMemo(() => {
+    if (selectedAgent === 'all') return data;
+    return data.filter(record => 
+      record.agents?.split(',').some(agent => agent.trim() === selectedAgent)
+    );
+  }, [data, selectedAgent]);
 
   const chartData = useMemo(() => {
-    if (data.length === 0) return [];
+    if (filteredData.length === 0) return [];
 
     // Group transactions by their listing month (when they entered the pipeline)
     const monthlyData: { [key: string]: DotloopRecord[] } = {};
 
-    data.forEach(record => {
+    filteredData.forEach(record => {
       let date: Date | null = null;
 
       // Use listing date as the start of the pipeline
@@ -112,7 +154,36 @@ export default function ConversionTrendsChart({ data }: ConversionTrendsChartPro
     });
 
     return conversionData;
-  }, [data]);
+  }, [filteredData]);
+
+  // Handle drill-down click
+  const handleDrillDown = (monthKey: string) => {
+    const monthRecords = filteredData.filter(record => {
+      let date: Date | null = null;
+      if (record.listingDate) {
+        date = new Date(record.listingDate);
+      } else if (record.contractDate) {
+        date = new Date(record.contractDate);
+      } else if (record.closingDate) {
+        date = new Date(record.closingDate);
+      }
+      if (!date || isNaN(date.getTime())) return false;
+      const recordMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      return recordMonth === monthKey;
+    });
+
+    const active = monthRecords.filter(t => t.loopStatus?.toLowerCase().includes('active'));
+    const contract = monthRecords.filter(t => 
+      t.loopStatus?.toLowerCase().includes('contract') || t.loopStatus?.toLowerCase().includes('pending')
+    );
+    const closed = monthRecords.filter(t => 
+      t.loopStatus?.toLowerCase().includes('closed') || t.loopStatus?.toLowerCase().includes('sold')
+    );
+
+    setDrillDownMonth(monthKey);
+    setDrillDownDeals({ active, contract, closed });
+    setDrillDownOpen(true);
+  };
 
   if (chartData.length === 0) {
     return (
@@ -141,7 +212,7 @@ export default function ConversionTrendsChart({ data }: ConversionTrendsChartPro
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+        <div className="bg-background border border-border rounded-lg p-3 shadow-lg cursor-pointer hover:border-primary/50 transition-colors" onClick={() => handleDrillDown(data.monthKey)}>
           <p className="font-semibold text-foreground text-sm mb-2">{data.month}</p>
           <p className="text-xs text-blue-400 mb-1">
             Active → Contract: <span className="font-bold">{data.activeToContractRate.toFixed(1)}%</span>
@@ -155,10 +226,20 @@ export default function ConversionTrendsChart({ data }: ConversionTrendsChartPro
           <div className="mt-2 pt-2 border-t border-border text-xs text-foreground/70">
             <p>Active: {data.activeCount} | Contract: {data.contractCount} | Closed: {data.closedCount}</p>
           </div>
+          <p className="mt-2 text-xs text-primary font-medium">Click to view deals →</p>
         </div>
       );
     }
     return null;
+  };
+
+  // Format month name for display
+  const getMonthName = (monthKey: string) => {
+    const [year, monthNum] = monthKey.split('-');
+    return new Date(parseInt(year), parseInt(monthNum) - 1).toLocaleString('default', {
+      month: 'long',
+      year: 'numeric',
+    });
   };
 
   return (
@@ -192,9 +273,24 @@ export default function ConversionTrendsChart({ data }: ConversionTrendsChartPro
         </div>
       </div>
 
-      <p className="text-sm text-foreground/70 mb-6">
-        Monthly pipeline progression showing how deals move from Active Listings → Under Contract → Closed
-      </p>
+      <div className="flex items-center gap-4 mb-6">
+        <p className="text-sm text-foreground/70 flex-1">
+          Monthly pipeline progression showing how deals move from Active Listings → Under Contract → Closed
+        </p>
+        <div className="w-48">
+          <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Filter by agent..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Agents</SelectItem>
+              {agents.map(agent => (
+                <SelectItem key={agent} value={agent}>{agent}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       <ResponsiveContainer width="100%" height={400}>
         {chartType === 'line' ? (
@@ -226,7 +322,7 @@ export default function ConversionTrendsChart({ data }: ConversionTrendsChartPro
               dataKey="activeToContractRate"
               stroke="#3b82f6"
               strokeWidth={3}
-              dot={{ fill: '#3b82f6', r: 5 }}
+              dot={{ fill: '#3b82f6', r: 5, cursor: 'pointer' }}
               activeDot={{ r: 7, fill: '#3b82f6' }}
               name="Active → Contract"
               isAnimationActive={true}
@@ -238,7 +334,7 @@ export default function ConversionTrendsChart({ data }: ConversionTrendsChartPro
               dataKey="contractToClosedRate"
               stroke="#10b981"
               strokeWidth={3}
-              dot={{ fill: '#10b981', r: 5 }}
+              dot={{ fill: '#10b981', r: 5, cursor: 'pointer' }}
               activeDot={{ r: 7, fill: '#10b981' }}
               name="Contract → Closed"
               isAnimationActive={true}
@@ -250,7 +346,7 @@ export default function ConversionTrendsChart({ data }: ConversionTrendsChartPro
               dataKey="overallClosedRate"
               stroke="#f59e0b"
               strokeWidth={3}
-              dot={{ fill: '#f59e0b', r: 5 }}
+              dot={{ fill: '#f59e0b', r: 5, cursor: 'pointer' }}
               activeDot={{ r: 7, fill: '#f59e0b' }}
               name="Overall Closed Rate"
               isAnimationActive={true}
@@ -362,10 +458,81 @@ export default function ConversionTrendsChart({ data }: ConversionTrendsChartPro
             <strong className="text-amber-400">Overall Closed:</strong> Percentage of all deals (regardless of current status) that have closed
           </li>
           <li className="mt-2 text-foreground/60">
-            💡 <strong>Tip:</strong> Use these trends to identify seasonal patterns and optimize your pipeline strategy. Higher contract-to-closed rates indicate strong closing ability.
+            💡 <strong>Tip:</strong> Click on any data point or hover to view specific deals for that month. Use the agent filter to compare individual performance.
           </li>
         </ul>
       </div>
+
+      {/* Drill-Down Modal */}
+      <Dialog open={drillDownOpen} onOpenChange={setDrillDownOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Conversion Details - {getMonthName(drillDownMonth)}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Active Deals */}
+            <div>
+              <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+                Active Listings ({drillDownDeals.active.length})
+              </h4>
+              <div className="space-y-2">
+                {drillDownDeals.active.length > 0 ? (
+                  drillDownDeals.active.map((deal, idx) => (
+                    <div key={idx} className="p-3 bg-blue-500/5 rounded border border-blue-500/20">
+                      <p className="font-medium">{deal.loopName}</p>
+                      <p className="text-sm text-foreground/70">${deal.salePrice?.toLocaleString() || 'N/A'}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-foreground/60">No active deals</p>
+                )}
+              </div>
+            </div>
+
+            {/* Contract Deals */}
+            <div>
+              <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                Under Contract ({drillDownDeals.contract.length})
+              </h4>
+              <div className="space-y-2">
+                {drillDownDeals.contract.length > 0 ? (
+                  drillDownDeals.contract.map((deal, idx) => (
+                    <div key={idx} className="p-3 bg-green-500/5 rounded border border-green-500/20">
+                      <p className="font-medium">{deal.loopName}</p>
+                      <p className="text-sm text-foreground/70">${deal.salePrice?.toLocaleString() || 'N/A'}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-foreground/60">No contract deals</p>
+                )}
+              </div>
+            </div>
+
+            {/* Closed Deals */}
+            <div>
+              <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-amber-500"></span>
+                Closed ({drillDownDeals.closed.length})
+              </h4>
+              <div className="space-y-2">
+                {drillDownDeals.closed.length > 0 ? (
+                  drillDownDeals.closed.map((deal, idx) => (
+                    <div key={idx} className="p-3 bg-amber-500/5 rounded border border-amber-500/20">
+                      <p className="font-medium">{deal.loopName}</p>
+                      <p className="text-sm text-foreground/70">${deal.salePrice?.toLocaleString() || 'N/A'}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-foreground/60">No closed deals</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
