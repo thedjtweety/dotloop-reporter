@@ -2915,3 +2915,15 @@
 - [x] Ensure consistent data display across all components (all components showing real data)
 - [x] Verify ProjectedToCloseCard slider also works correctly (18 projected deals, $468,594.00 revenue)
 - [x] Create comprehensive testing summary document (COMMISSION_PROJECTOR_TESTING_SUMMARY.md)
+
+
+## Phase 51: Transaction Clickability in Drill-Down Modals
+- [ ] Create TransactionDetailModal component for full transaction details
+- [ ] Add click handler to transaction cards in DrillDownModal
+- [ ] Display comprehensive transaction information (all fields, dates, commission, notes)
+- [ ] Improve list format with better spacing and visual hierarchy
+- [ ] Add hover effects to indicate clickability
+- [ ] Test with Property Type drill-down
+- [ ] Test with Lead Source drill-down
+- [ ] Verify modal opens and closes properly
+- [ ] Ensure responsive design on mobile/tablet

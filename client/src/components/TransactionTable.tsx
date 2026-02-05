@@ -35,6 +35,7 @@ interface TransactionTableProps {
   transactions: DotloopRecord[];
   limit?: number;
   compact?: boolean;
+  onTransactionClick?: (transaction: DotloopRecord) => void;
 }
 
 type ColumnKey = 'status' | 'property' | 'agent' | 'price' | 'commission' | 'date' | 'actions';
@@ -55,7 +56,7 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
   { key: 'actions', label: 'Actions', visible: true },
 ];
 
-export default function TransactionTable({ transactions, limit, compact = false }: TransactionTableProps) {
+export default function TransactionTable({ transactions, limit, compact = false, onTransactionClick }: TransactionTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState(() => {
     const saved = localStorage.getItem('transactionTableSearchQuery');
@@ -401,6 +402,7 @@ export default function TransactionTable({ transactions, limit, compact = false 
                 transaction={transaction}
                 visibleColumns={visibleCols}
                 compact={compact}
+                onTransactionClick={onTransactionClick}
               />
             );
           })}

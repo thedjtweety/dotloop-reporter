@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import { X, Download, Printer, Search, ChevronDown, ExternalLink } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import TransactionTable from './TransactionTable';
+import TransactionInfoModal from './TransactionInfoModal';
 import { exportAsCSV, exportAsExcel, openPrintDialog, exportFilteredToCSV, exportFilteredToExcel } from '@/lib/exportUtils';
 import { filterAndSortTransactions, DrillDownFilters, SortState, getUniqueValues } from '@/lib/filterUtils';
 import { openMultipleInDotloop } from '@/lib/dotloopUtils';
@@ -64,6 +65,13 @@ export default function DrillDownModal({
   const [selectAll, setSelectAll] = useState(false);
   const [showBookmarkDialog, setShowBookmarkDialog] = useState(false);
   const [bookmarkName, setBookmarkName] = useState('');
+  const [selectedTransaction, setSelectedTransaction] = useState<DotloopRecord | null>(null);
+  const [showTransactionInfo, setShowTransactionInfo] = useState(false);
+
+  const handleTransactionClick = (transaction: DotloopRecord) => {
+    setSelectedTransaction(transaction);
+    setShowTransactionInfo(true);
+  };
 
   // Persist filters to localStorage
   useEffect(() => {
@@ -265,7 +273,10 @@ export default function DrillDownModal({
             ref={scrollContainerRef}
             className="flex-1 overflow-x-auto overflow-y-auto"
           >
-            <TransactionTable transactions={filteredTransactions} />
+            <TransactionTable 
+              transactions={filteredTransactions} 
+              onTransactionClick={handleTransactionClick}
+            />
           </div>
 
           {/* Floating Scrollbar */}
@@ -294,6 +305,13 @@ export default function DrillDownModal({
         allRecords={filteredTransactions}
         title={title}
         isVisible={selectedRecords.size > 0}
+      />
+
+      {/* Transaction Info Modal */}
+      <TransactionInfoModal
+        isOpen={showTransactionInfo}
+        onClose={() => setShowTransactionInfo(false)}
+        transaction={selectedTransaction}
       />
     </div>
   );

@@ -16,6 +16,7 @@ interface ExpandableTransactionRowProps {
   transaction: DotloopRecord;
   visibleColumns: string[];
   compact?: boolean;
+  onTransactionClick?: (transaction: DotloopRecord) => void;
 }
 
 const getStatusColor = (status: string): string => {
@@ -46,6 +47,7 @@ export default function ExpandableTransactionRow({
   transaction,
   visibleColumns,
   compact = false,
+  onTransactionClick,
 }: ExpandableTransactionRowProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -100,7 +102,13 @@ export default function ExpandableTransactionRow({
   return (
     <>
       <TableRow
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={() => {
+          if (onTransactionClick) {
+            onTransactionClick(transaction);
+          } else {
+            setIsExpanded(!isExpanded);
+          }
+        }}
         className={`cursor-pointer hover:bg-muted/50 transition-colors ${isExpanded ? 'bg-muted/30' : ''}`}
       >
         <TableCell className={`w-8 ${compact ? 'py-1 px-2' : 'py-2 px-4'}`}>
