@@ -553,3 +553,146 @@ export function exportForecastAsCSV(
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+
+/**
+ * Filtered Export Functions with Bookmark Support
+ * Allows exporting drill-down data with filters applied
+ */
+
+/**
+ * Export filtered transactions to CSV format with bookmark name
+ * @param records - Array of filtered transaction records to export
+ * @param filename - Base filename (without extension)
+ * @param bookmarkName - Optional bookmark name to include in filename
+ */
+export function exportFilteredToCSV(
+  records: DotloopRecord[],
+  filename: string = 'export',
+  bookmarkName?: string
+): void {
+  if (records.length === 0) {
+    console.warn('No records to export');
+    return;
+  }
+
+  // Build filename with timestamp and bookmark name
+  const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+  const bookmarkPart = bookmarkName ? `_${bookmarkName.replace(/\s+/g, '_')}` : '';
+  const fullFilename = `${filename}${bookmarkPart}_${timestamp}.csv`;
+
+  // Get all unique keys from records to use as headers
+  const headers = new Set<string>();
+  records.forEach(record => {
+    Object.keys(record).forEach(key => headers.add(key));
+  });
+
+  const headerArray = Array.from(headers);
+
+  // Build CSV content
+  const csvContent = [
+    // Header row
+    headerArray.map(h => `"${h}"`).join(','),
+    // Data rows
+    ...records.map(record =>
+      headerArray
+        .map(header => {
+          const value = record[header as keyof DotloopRecord];
+          if (value === null || value === undefined) {
+            return '';
+          }
+          // Escape quotes and wrap in quotes
+          const stringValue = String(value).replace(/"/g, '""');
+          return `"${stringValue}"`;
+        })
+        .join(',')
+    ),
+  ].join('\n');
+
+  // Create blob and download
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+
+  link.setAttribute('href', url);
+  link.setAttribute('download', fullFilename);
+  link.style.visibility = 'hidden';
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Export filtered transactions to Excel format with bookmark name
+ * @param records - Array of filtered transaction records to export
+ * @param filename - Base filename (without extension)
+ * @param bookmarkName - Optional bookmark name to include in filename
+ */
+export function exportFilteredToExcel(
+  records: DotloopRecord[],
+  filename: string = 'export',
+  bookmarkName?: string
+): void {
+  if (records.length === 0) {
+    console.warn('No records to export');
+    return;
+  }
+
+  try {
+    // Build filename with timestamp and bookmark name
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    const bookmarkPart = bookmarkName ? `_${bookmarkName.replace(/\s+/g, '_')}` : '';
+    const fullFilename = `${filename}${bookmarkPart}_${timestamp}.xlsx`;
+
+    // Get all unique keys from records
+    const headers = new Set<string>();
+    records.forEach(record => {
+      Object.keys(record).forEach(key => headers.add(key));
+    });
+
+    const headerArray = Array.from(headers);
+
+    // Convert records to array format for xlsx
+    const data = records.map(record =>
+      headerArray.map(header => record[header as keyof DotloopRecord] ?? '')
+    );
+
+    // Create worksheet
+    const worksheet = XLSX.utils.aoa_to_sheet([headerArray, ...data]);
+
+    // Auto-fit column widths
+    const colWidths = headerArray.map(header => {
+      const maxLength = Math.max(
+        header.length,
+        ...records.map(r => String(r[header as keyof DotloopRecord] ?? '').length)
+      );
+      return { wch: Math.min(maxLength + 2, 50) };
+    });
+    worksheet['!cols'] = colWidths;
+
+    // Create workbook and add worksheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Transactions');
+
+    // Write file
+    XLSX.writeFile(workbook, fullFilename);
+  } catch (error) {
+    console.error('Error exporting to Excel:', error);
+    throw new Error('Failed to export to Excel. Please ensure xlsx library is installed.');
+  }
+}
+
+/**
+ * Get export summary for UI display
+ * @param records - Array of records being exported
+ * @param bookmarkName - Optional bookmark name
+ * @returns Summary string for display
+ */
+export function getFilteredExportSummary(records: DotloopRecord[], bookmarkName?: string): string {
+  const count = records.length;
+  const totalValue = records.reduce((sum, r) => sum + (r.salePrice || r.price || 0), 0);
+  const bookmarkInfo = bookmarkName ? ` (${bookmarkName})` : '';
+  return `Exporting ${count} transactions${bookmarkInfo} • Total Value: $${totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+}

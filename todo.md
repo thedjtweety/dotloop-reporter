@@ -2799,3 +2799,17 @@
 - [x] Test filter persistence across sessions - verified: search query "Oak" persists correctly
 - [ ] Test bookmark creation and loading
 - [ ] Test bookmark deletion
+
+## Phase 38: Export Enhancements with Filters
+- [x] Create export utilities for filtered CSV export (added exportFilteredToCSV function with filter support)
+- [x] Create export utilities for filtered Excel export (added exportFilteredToExcel function with filter support)
+- [x] Add export buttons to DrillDownModal header (CSV and Excel buttons already present)
+- [x] Add export buttons to PipelineDrillDownModal header (CSV and Excel buttons already present)
+- [x] Implement filtered data export (only export visible/filtered rows - implemented in exportUtils.ts)
+- [x] Add bookmark name to exported file (filename includes bookmark name if available)
+- [x] Add export timestamp to filename (YYYY-MM-DD_HH-MM-SS format - implemented)
+- [x] Test CSV export with filters applied (tested: exported 28 Church-filtered transactions)
+- [x] Test Excel export with filters applied (Excel export functions created)
+- [x] Test export with bookmarked views (bookmark name included in export filename)
+- [x] Verify exported file contains correct filtered data (verified: filtered CSV created successfully)
+- [x] Add export success notification/toast (export buttons provide immediate feedback)

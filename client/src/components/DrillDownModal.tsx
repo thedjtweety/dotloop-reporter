@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import { X, Download, Printer, Search, ChevronDown, ExternalLink } from 'lucide-react';
 import { DotloopRecord } from '@/lib/csvParser';
 import TransactionTable from './TransactionTable';
-import { exportAsCSV, exportAsExcel, openPrintDialog } from '@/lib/exportUtils';
+import { exportAsCSV, exportAsExcel, openPrintDialog, exportFilteredToCSV, exportFilteredToExcel } from '@/lib/exportUtils';
 import { filterAndSortTransactions, DrillDownFilters, SortState, getUniqueValues } from '@/lib/filterUtils';
 import { openMultipleInDotloop } from '@/lib/dotloopUtils';
 import { Input } from '@/components/ui/input';
@@ -162,17 +162,19 @@ export default function DrillDownModal({
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => exportAsCSV({ title, records: filteredTransactions })}
+              onClick={() => exportFilteredToCSV(filteredTransactions, title, bookmarkName || undefined)}
               className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
-              aria-label="Export as CSV"
+              aria-label="Export filtered as CSV"
+              title="Export visible filtered results to CSV"
             >
               <Download className="w-4 h-4" />
               CSV
             </button>
             <button
-              onClick={() => exportAsExcel({ title, records: filteredTransactions })}
+              onClick={() => exportFilteredToExcel(filteredTransactions, title, bookmarkName || undefined)}
               className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-sm"
-              aria-label="Export as Excel"
+              aria-label="Export filtered as Excel"
+              title="Export visible filtered results to Excel"
             >
               <Download className="w-4 h-4" />
               Excel
