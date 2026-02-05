@@ -8,21 +8,28 @@ Welcome! This is your quick reference guide to the Dotloop Reporting Tool docume
 
 ### **Phase 1: Understanding the Project (30 minutes)**
 
-1. **[README.md](./README.md)** ⭐ START HERE
+1. **[PRESENTATION_GUIDE.md](./PRESENTATION_GUIDE.md)** ⭐ START HERE FOR PRESENTATIONS
+   - Executive summary for dev presentations
+   - Recent developments and features
+   - Architecture overview
+   - Quick reference commands
+   - **Time:** 15 minutes
+
+2. **[README.md](./README.md)** ⭐ PROJECT OVERVIEW
    - What is this project?
    - Key features overview
    - Tech stack summary
    - Quick start instructions
    - **Time:** 10 minutes
 
-2. **[CLAUDE_COLLABORATION_GUIDE.md](./CLAUDE_COLLABORATION_GUIDE.md)** ⭐ READ NEXT
+3. **[CLAUDE_COLLABORATION_GUIDE.md](./CLAUDE_COLLABORATION_GUIDE.md)** ⭐ READ NEXT
    - How to work with Claude effectively
    - What Claude can help with
    - How to ask for help
    - Project conventions
    - **Time:** 10 minutes
 
-3. **[CLAUDE_PACKAGE_SUMMARY.md](./CLAUDE_PACKAGE_SUMMARY.md)** ⭐ NAVIGATION GUIDE
+4. **[CLAUDE_PACKAGE_SUMMARY.md](./CLAUDE_PACKAGE_SUMMARY.md)** ⭐ NAVIGATION GUIDE
    - Overview of all documentation
    - Where to find everything
    - Quick navigation by task
@@ -32,7 +39,7 @@ Welcome! This is your quick reference guide to the Dotloop Reporting Tool docume
 
 ### **Phase 2: Understanding the Code (45 minutes)**
 
-4. **[CLAUDE_CODE_GUIDE.md](./CLAUDE_CODE_GUIDE.md)** 📁 CODE ORGANIZATION
+5. **[CLAUDE_CODE_GUIDE.md](./CLAUDE_CODE_GUIDE.md)** 📁 CODE ORGANIZATION
    - Frontend structure
    - Backend structure
    - Database schema
@@ -40,7 +47,7 @@ Welcome! This is your quick reference guide to the Dotloop Reporting Tool docume
    - Data flow examples
    - **Time:** 20 minutes
 
-5. **[DESIGN_DECISIONS.md](./DESIGN_DECISIONS.md)** 🏗️ ARCHITECTURE
+6. **[DESIGN_DECISIONS.md](./DESIGN_DECISIONS.md)** 🏗️ ARCHITECTURE
    - Why decisions were made
    - Frontend architecture
    - Backend architecture
