@@ -12,6 +12,7 @@ interface MetricDrillDownModalProps {
   projection: ProjectionMetrics;
   underContractDeals: DotloopRecord[];
   historicalCloseRate: number;
+  onViewDetails?: () => void;
 }
 
 export default function MetricDrillDownModal({
@@ -21,6 +22,7 @@ export default function MetricDrillDownModal({
   projection,
   underContractDeals,
   historicalCloseRate,
+  onViewDetails,
 }: MetricDrillDownModalProps) {
   const getMetricContent = () => {
     switch (metric) {
@@ -214,6 +216,19 @@ export default function MetricDrillDownModal({
         <div className="mt-6">
           {content}
         </div>
+        {metric === 'deals' && onViewDetails && (
+          <div className="mt-6 pt-6 border-t border-border">
+            <button
+              onClick={() => {
+                onViewDetails();
+                onClose();
+              }}
+              className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
+            >
+              View Full Transaction List
+            </button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

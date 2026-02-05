@@ -2863,3 +2863,19 @@
 - [x] Test modal close buttons and overlay interactions
 - [x] Verify ForecastedDealsModal displays transaction list with probability scores
 - [x] Verify all three info icons (Confidence, Risk Level, Confidence Score) are clickable and functional
+
+## Phase 42: ForecastedDealsModal Table View Toggle
+- [ ] Add view toggle state (cards vs table) to ForecastedDealsModal
+- [ ] Create view toggle button in modal header (Cards/Table icons)
+- [ ] Create ForecastedDealsTable component with sortable columns
+- [ ] Add Loop Name, Agent, Probability, Price, Commission columns
+- [ ] Implement column sorting (click header to sort ascending/descending)
+- [ ] Add probability badge color coding (green/amber/red)
+- [ ] Add search/filter input for Loop Name and Agent
+- [ ] Add probability filter slider (0-100%)
+- [ ] Add price range filter (min/max)
+- [ ] Implement sticky table header for scrolling
+- [ ] Add row hover effects and visual feedback
+- [ ] Test table view with demo data (verify sorting and filtering work)
+- [ ] Test cards view still works (no regression)
+- [ ] Verify view preference persists (localStorage)

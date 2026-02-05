@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { X, TrendingUp, Download, FileText } from 'lucide-react';
+import { X, TrendingUp, Download, FileText, Grid3x3, List } from 'lucide-react';
 import { ForecastedDeal } from '@/lib/projectionUtils';
 import { formatCurrency, formatPercentage } from '@/lib/formatUtils';
 import { exportForecastAsPDF, exportForecastAsCSV } from '@/lib/exportUtils';
@@ -23,8 +23,18 @@ export default function ForecastedDealsModal({
   totalDealsInPipeline,
 }: ForecastedDealsModalProps) {
   const [sortBy, setSortBy] = useState<'probability' | 'price' | 'commission'>('probability');
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [probabilityFilter, setProbabilityFilter] = useState<[number, number]>([0, 100]);
 
-  const sortedDeals = [...deals].sort((a, b) => {
+  const filteredDeals = deals.filter((deal) => {
+    const matchesSearch = deal.loopName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          deal.agent.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesProbability = deal.probability >= probabilityFilter[0] && deal.probability <= probabilityFilter[1];
+    return matchesSearch && matchesProbability;
+  });
+
+  const sortedDeals = [...filteredDeals].sort((a, b) => {
     switch (sortBy) {
       case 'price':
         return b.price - a.price;
@@ -64,13 +74,38 @@ export default function ForecastedDealsModal({
               Forecasted Deals - {timeframe} Days
             </h2>
             <p className="text-sm text-slate-400 mt-1">
-              {deals.length} of {totalDealsInPipeline} deals projected to close
+              {filteredDeals.length} of {totalDealsInPipeline} deals projected to close
             </p>
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setViewMode('cards')}
+              className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-sm ${
+                viewMode === 'cards'
+                  ? 'bg-emerald-600 text-white'
+                  : 'hover:bg-slate-800 text-slate-400 hover:text-white'
+              }`}
+              aria-label="Card view"
+              title="Card view"
+            >
+              <Grid3x3 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-sm ${
+                viewMode === 'table'
+                  ? 'bg-emerald-600 text-white'
+                  : 'hover:bg-slate-800 text-slate-400 hover:text-white'
+              }`}
+              aria-label="Table view"
+              title="Table view"
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <div className="w-px h-6 bg-slate-700" />
+            <button
               onClick={() => exportForecastAsPDF(timeframe, sortedDeals, {
-                totalDeals: deals.length,
+                totalDeals: filteredDeals.length,
                 avgProbability: avgProbability / 100,
                 projectedCommission: totalProjectedCommission,
                 pipelineCount: totalDealsInPipeline,
@@ -83,7 +118,7 @@ export default function ForecastedDealsModal({
             </button>
             <button
               onClick={() => exportForecastAsCSV(timeframe, sortedDeals, {
-                totalDeals: deals.length,
+                totalDeals: filteredDeals.length,
                 avgProbability: avgProbability / 100,
                 projectedCommission: totalProjectedCommission,
                 pipelineCount: totalDealsInPipeline,
@@ -110,9 +145,9 @@ export default function ForecastedDealsModal({
           <div className="grid grid-cols-3 gap-4 mb-6">
             <Card className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20">
               <p className="text-sm text-slate-400 mb-1">Projected Deals</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{deals.length}</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{filteredDeals.length}</p>
               <p className="text-xs text-slate-500 mt-1">
-                {Math.round((deals.length / totalDealsInPipeline) * 100)}% of pipeline
+                {Math.round((filteredDeals.length / totalDealsInPipeline) * 100)}% of pipeline
               </p>
             </Card>
             <Card className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
@@ -128,6 +163,51 @@ export default function ForecastedDealsModal({
               <p className="text-xs text-slate-500 mt-1">Total GCI</p>
             </Card>
           </div>
+
+          {/* Filter Controls - Only show in table view */}
+          {viewMode === 'table' && (
+            <div className="mb-4 space-y-3 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+              <div>
+                <label className="text-sm text-slate-300 mb-2 block">Search by Loop Name or Agent</label>
+                <input
+                  type="text"
+                  placeholder="Type to search..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-slate-300 mb-2 block">
+                  Probability Range: {probabilityFilter[0]}% - {probabilityFilter[1]}%
+                </label>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={probabilityFilter[0]}
+                      onChange={(e) => setProbabilityFilter([parseInt(e.target.value), probabilityFilter[1]])}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">Min: {probabilityFilter[0]}%</p>
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={probabilityFilter[1]}
+                      onChange={(e) => setProbabilityFilter([probabilityFilter[0], parseInt(e.target.value)])}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">Max: {probabilityFilter[1]}%</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Sort Controls */}
           <div className="flex gap-2 mb-4 flex-wrap items-center">
@@ -157,80 +237,123 @@ export default function ForecastedDealsModal({
             </Button>
           </div>
 
-          {/* Deals List */}
-          <div className="space-y-3">
-            {sortedDeals.length === 0 ? (
-              <Card className="p-8 text-center bg-slate-800/50 border-slate-700">
-                <p className="text-slate-400">No deals projected to close in this timeframe</p>
-              </Card>
-            ) : (
-              sortedDeals.map((deal) => (
-                <Card
-                  key={deal.id}
-                  className="p-4 hover:shadow-md transition-shadow border-l-4 bg-slate-800/50 border-slate-700"
-                  style={{
-                    borderLeftColor:
-                      deal.status === 'high'
-                        ? '#10b981'
-                        : deal.status === 'medium'
-                          ? '#f59e0b'
-                          : '#ef4444',
-                  }}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-white">{deal.loopName}</h3>
-                      <p className="text-sm text-slate-400">Agent: {deal.agent}</p>
-                    </div>
-                    <Badge className={`${getProbabilityColor(deal.probability)} border-0`}>
-                      {deal.probability}% • {getProbabilityLabel(deal.probability)}
-                    </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <p className="text-slate-400">List Price</p>
-                      <p className="font-semibold text-white">{formatCurrency(deal.price)}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400">Commission</p>
-                      <p className="font-semibold text-white">{formatCurrency(deal.commission)}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400">Days in Contract</p>
-                      <p className="font-semibold text-white">{deal.daysInContract} days</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400">Expected Close</p>
-                      <p className="font-semibold text-white">
-                        {deal.expectedCloseDate.toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Probability Indicator */}
-                  <div className="mt-3 flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full transition-all ${
-                          deal.status === 'high'
-                            ? 'bg-green-500'
-                            : deal.status === 'medium'
-                              ? 'bg-amber-500'
-                              : 'bg-red-500'
-                        }`}
-                        style={{ width: `${deal.probability}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-slate-500 w-8 text-right">{deal.probability}%</span>
-                  </div>
+          {/* Deals View */}
+          {viewMode === 'table' ? (
+            // Table View
+            <div className="border border-slate-700 rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-800 border-b border-slate-700">
+                      <th className="px-4 py-3 text-left text-slate-300 font-semibold">Loop Name</th>
+                      <th className="px-4 py-3 text-left text-slate-300 font-semibold">Agent</th>
+                      <th className="px-4 py-3 text-right text-slate-300 font-semibold cursor-pointer hover:text-white transition-colors" onClick={() => setSortBy('probability')} title="Click to sort">Probability</th>
+                      <th className="px-4 py-3 text-right text-slate-300 font-semibold cursor-pointer hover:text-white transition-colors" onClick={() => setSortBy('price')} title="Click to sort">Price</th>
+                      <th className="px-4 py-3 text-right text-slate-300 font-semibold cursor-pointer hover:text-white transition-colors" onClick={() => setSortBy('commission')} title="Click to sort">Commission</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedDeals.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
+                          No deals match your filters
+                        </td>
+                      </tr>
+                    ) : (
+                      sortedDeals.map((deal) => (
+                        <tr key={deal.id} className="border-b border-slate-700 hover:bg-slate-800/50 transition-colors">
+                          <td className="px-4 py-3 text-white">{deal.loopName}</td>
+                          <td className="px-4 py-3 text-slate-300">{deal.agent}</td>
+                          <td className="px-4 py-3 text-right">
+                            <Badge className={`${getProbabilityColor(deal.probability)} border-0`}>
+                              {deal.probability}%
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-right text-white">{formatCurrency(deal.price)}</td>
+                          <td className="px-4 py-3 text-right text-emerald-400 font-semibold">{formatCurrency(deal.commission)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            // Card View
+            <div className="space-y-3">
+              {sortedDeals.length === 0 ? (
+                <Card className="p-8 text-center bg-slate-800/50 border-slate-700">
+                  <p className="text-slate-400">No deals projected to close in this timeframe</p>
                 </Card>
-              ))
-            )}
-          </div>
+              ) : (
+                sortedDeals.map((deal) => (
+                  <Card
+                    key={deal.id}
+                    className="p-4 hover:shadow-md transition-shadow border-l-4 bg-slate-800/50 border-slate-700"
+                    style={{
+                      borderLeftColor:
+                        deal.status === 'high'
+                          ? '#10b981'
+                          : deal.status === 'medium'
+                            ? '#f59e0b'
+                            : '#ef4444',
+                    }}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-white">{deal.loopName}</h3>
+                        <p className="text-sm text-slate-400">Agent: {deal.agent}</p>
+                      </div>
+                      <Badge className={`${getProbabilityColor(deal.probability)} border-0`}>
+                        {deal.probability}% • {getProbabilityLabel(deal.probability)}
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-slate-400">List Price</p>
+                        <p className="font-semibold text-white">{formatCurrency(deal.price)}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-400">Commission</p>
+                        <p className="font-semibold text-white">{formatCurrency(deal.commission)}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-400">Days in Contract</p>
+                        <p className="font-semibold text-white">{deal.daysInContract} days</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-400">Expected Close</p>
+                        <p className="font-semibold text-white">
+                          {deal.expectedCloseDate.toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Probability Indicator */}
+                    <div className="mt-3 flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all ${
+                            deal.status === 'high'
+                              ? 'bg-green-500'
+                              : deal.status === 'medium'
+                                ? 'bg-amber-500'
+                                : 'bg-red-500'
+                          }`}
+                          style={{ width: `${deal.probability}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-slate-500 w-8 text-right">{deal.probability}%</span>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          )}
 
           {/* Footer Info */}
           <div className="mt-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">

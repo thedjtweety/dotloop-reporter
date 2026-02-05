@@ -48,7 +48,11 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
   // Debug logging
   const handleMetricClick = (metric: 'deals' | 'revenue' | 'rate') => {
     console.log('[ProjectedToCloseCard] Metric clicked:', metric);
-    setShowMetricDrill(metric);
+    if (metric === 'deals') {
+      setShowDealsModal(true);
+    } else {
+      setShowMetricDrill(metric);
+    }
   };
 
   const handleLogicClick = (type: 'confidence' | 'risk' | 'score') => {
