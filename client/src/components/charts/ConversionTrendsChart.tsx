@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -11,7 +13,7 @@ import {
 } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { DotloopRecord } from '@/lib/csvParser';
-import { formatPercentage } from '@/lib/formatUtils';
+import { TrendingUp } from 'lucide-react';
 
 interface ConversionTrendsChartProps {
   data: DotloopRecord[];
@@ -19,28 +21,34 @@ interface ConversionTrendsChartProps {
 
 interface MonthlyConversionData {
   month: string;
-  activeToContract: number;
-  contractToClosed: number;
-  closedRate: number;
+  monthKey: string;
+  activeCount: number;
+  contractCount: number;
+  closedCount: number;
+  activeToContractRate: number;
+  contractToClosedRate: number;
+  overallClosedRate: number;
 }
 
 export default function ConversionTrendsChart({ data }: ConversionTrendsChartProps) {
+  const [chartType, setChartType] = useState<'line' | 'area'>('line');
+
   const chartData = useMemo(() => {
     if (data.length === 0) return [];
 
-    // Group transactions by month
+    // Group transactions by their listing month (when they entered the pipeline)
     const monthlyData: { [key: string]: DotloopRecord[] } = {};
 
     data.forEach(record => {
       let date: Date | null = null;
 
-      // Try to parse closing date first, then listing date
-      if (record.closingDate) {
-        date = new Date(record.closingDate);
-      } else if (record.listingDate) {
+      // Use listing date as the start of the pipeline
+      if (record.listingDate) {
         date = new Date(record.listingDate);
       } else if (record.contractDate) {
         date = new Date(record.contractDate);
+      } else if (record.closingDate) {
+        date = new Date(record.closingDate);
       }
 
       if (date && !isNaN(date.getTime())) {
@@ -54,29 +62,38 @@ export default function ConversionTrendsChart({ data }: ConversionTrendsChartPro
 
     // Calculate conversion rates for each month
     const sortedMonths = Object.keys(monthlyData).sort();
-    const conversionData: MonthlyConversionData[] = sortedMonths.map(month => {
-      const monthTransactions = monthlyData[month];
+    const conversionData: MonthlyConversionData[] = sortedMonths.map(monthKey => {
+      const monthTransactions = monthlyData[monthKey];
 
-      // Count transactions by status
-      const activeListing = monthTransactions.filter(
+      // Count transactions by their CURRENT status
+      // These are deals that STARTED in this month
+      const activeCount = monthTransactions.filter(
         t => t.loopStatus?.toLowerCase().includes('active')
       ).length;
 
-      const underContract = monthTransactions.filter(
+      const contractCount = monthTransactions.filter(
         t => t.loopStatus?.toLowerCase().includes('contract') || t.loopStatus?.toLowerCase().includes('pending')
       ).length;
 
-      const closed = monthTransactions.filter(
+      const closedCount = monthTransactions.filter(
         t => t.loopStatus?.toLowerCase().includes('closed') || t.loopStatus?.toLowerCase().includes('sold')
       ).length;
 
+      const totalDeals = monthTransactions.length;
+
       // Calculate conversion rates
-      const activeToContractRate = activeListing > 0 ? (underContract / activeListing) * 100 : 0;
-      const contractToClosedRate = underContract > 0 ? (closed / underContract) * 100 : 0;
-      const closedRate = monthTransactions.length > 0 ? (closed / monthTransactions.length) * 100 : 0;
+      // Active → Contract: of all deals that started, how many are now in contract or closed?
+      const activeToContractRate = totalDeals > 0 ? ((contractCount + closedCount) / totalDeals) * 100 : 0;
+
+      // Contract → Closed: of all deals that reached contract, how many closed?
+      const contractedDeals = contractCount + closedCount;
+      const contractToClosedRate = contractedDeals > 0 ? (closedCount / contractedDeals) * 100 : 0;
+
+      // Overall Closed Rate: of all deals that started, how many closed?
+      const overallClosedRate = totalDeals > 0 ? (closedCount / totalDeals) * 100 : 0;
 
       // Format month for display
-      const [year, monthNum] = month.split('-');
+      const [year, monthNum] = monthKey.split('-');
       const monthName = new Date(parseInt(year), parseInt(monthNum) - 1).toLocaleString('default', {
         month: 'short',
         year: '2-digit',
@@ -84,9 +101,13 @@ export default function ConversionTrendsChart({ data }: ConversionTrendsChartPro
 
       return {
         month: monthName,
-        activeToContract: Math.round(activeToContractRate * 100) / 100,
-        contractToClosed: Math.round(contractToClosedRate * 100) / 100,
-        closedRate: Math.round(closedRate * 100) / 100,
+        monthKey,
+        activeCount,
+        contractCount,
+        closedCount,
+        activeToContractRate: Math.round(activeToContractRate * 100) / 100,
+        contractToClosedRate: Math.round(contractToClosedRate * 100) / 100,
+        overallClosedRate: Math.round(overallClosedRate * 100) / 100,
       };
     });
 
@@ -104,130 +125,244 @@ export default function ConversionTrendsChart({ data }: ConversionTrendsChartPro
     );
   }
 
+  const avgActiveToContract = chartData.length > 0
+    ? (chartData.reduce((sum, d) => sum + d.activeToContractRate, 0) / chartData.length).toFixed(1)
+    : '0';
+
+  const avgContractToClosed = chartData.length > 0
+    ? (chartData.reduce((sum, d) => sum + d.contractToClosedRate, 0) / chartData.length).toFixed(1)
+    : '0';
+
+  const avgOverallClosed = chartData.length > 0
+    ? (chartData.reduce((sum, d) => sum + d.overallClosedRate, 0) / chartData.length).toFixed(1)
+    : '0';
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+          <p className="font-semibold text-foreground text-sm mb-2">{data.month}</p>
+          <p className="text-xs text-blue-400 mb-1">
+            Active → Contract: <span className="font-bold">{data.activeToContractRate.toFixed(1)}%</span>
+          </p>
+          <p className="text-xs text-green-400 mb-1">
+            Contract → Closed: <span className="font-bold">{data.contractToClosedRate.toFixed(1)}%</span>
+          </p>
+          <p className="text-xs text-amber-400">
+            Overall Closed: <span className="font-bold">{data.overallClosedRate.toFixed(1)}%</span>
+          </p>
+          <div className="mt-2 pt-2 border-t border-border text-xs text-foreground/70">
+            <p>Active: {data.activeCount} | Contract: {data.contractCount} | Closed: {data.closedCount}</p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-4">Conversion Trends Over Time</h3>
-      <p className="text-sm text-muted-foreground mb-4">
-        Monthly conversion rates showing pipeline progression from Active Listings → Under Contract → Closed
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-semibold">Conversion Trends Over Time</h3>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setChartType('line')}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              chartType === 'line'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+          >
+            Line
+          </button>
+          <button
+            onClick={() => setChartType('area')}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              chartType === 'area'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+          >
+            Area
+          </button>
+        </div>
+      </div>
+
+      <p className="text-sm text-foreground/70 mb-6">
+        Monthly pipeline progression showing how deals move from Active Listings → Under Contract → Closed
       </p>
 
       <ResponsiveContainer width="100%" height={400}>
-        <LineChart
-          data={chartData}
-          margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-          <XAxis
-            dataKey="month"
-            stroke="var(--color-muted-foreground)"
-            style={{ fontSize: '12px' }}
-          />
-          <YAxis
-            stroke="var(--color-muted-foreground)"
-            label={{ value: 'Conversion Rate (%)', angle: -90, position: 'insideLeft' }}
-            style={{ fontSize: '12px' }}
-            domain={[0, 100]}
-          />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: 'var(--color-background)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '8px',
-            }}
-            formatter={(value: number) => `${value.toFixed(1)}%`}
-            labelStyle={{ color: 'var(--color-foreground)' }}
-          />
-          <Legend
-            wrapperStyle={{ paddingTop: '20px' }}
-            iconType="line"
-          />
+        {chartType === 'line' ? (
+          <LineChart
+            data={chartData}
+            margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.3} />
+            <XAxis
+              dataKey="month"
+              stroke="var(--color-muted-foreground)"
+              style={{ fontSize: '12px' }}
+            />
+            <YAxis
+              stroke="var(--color-muted-foreground)"
+              label={{ value: 'Conversion Rate (%)', angle: -90, position: 'insideLeft' }}
+              style={{ fontSize: '12px' }}
+              domain={[0, 100]}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend
+              wrapperStyle={{ paddingTop: '20px' }}
+              iconType="line"
+            />
 
-          {/* Active → Contract Conversion */}
-          <Line
-            type="monotone"
-            dataKey="activeToContract"
-            stroke="#3b82f6"
-            strokeWidth={2}
-            dot={{ fill: '#3b82f6', r: 4 }}
-            activeDot={{ r: 6 }}
-            name="Active → Contract"
-            isAnimationActive={true}
-          />
+            {/* Active → Contract Conversion */}
+            <Line
+              type="monotone"
+              dataKey="activeToContractRate"
+              stroke="#3b82f6"
+              strokeWidth={3}
+              dot={{ fill: '#3b82f6', r: 5 }}
+              activeDot={{ r: 7, fill: '#3b82f6' }}
+              name="Active → Contract"
+              isAnimationActive={true}
+            />
 
-          {/* Contract → Closed Conversion */}
-          <Line
-            type="monotone"
-            dataKey="contractToClosed"
-            stroke="#10b981"
-            strokeWidth={2}
-            dot={{ fill: '#10b981', r: 4 }}
-            activeDot={{ r: 6 }}
-            name="Contract → Closed"
-            isAnimationActive={true}
-          />
+            {/* Contract → Closed Conversion */}
+            <Line
+              type="monotone"
+              dataKey="contractToClosedRate"
+              stroke="#10b981"
+              strokeWidth={3}
+              dot={{ fill: '#10b981', r: 5 }}
+              activeDot={{ r: 7, fill: '#10b981' }}
+              name="Contract → Closed"
+              isAnimationActive={true}
+            />
 
-          {/* Overall Closed Rate */}
-          <Line
-            type="monotone"
-            dataKey="closedRate"
-            stroke="#f59e0b"
-            strokeWidth={2}
-            dot={{ fill: '#f59e0b', r: 4 }}
-            activeDot={{ r: 6 }}
-            name="Overall Closed Rate"
-            isAnimationActive={true}
-          />
-        </LineChart>
+            {/* Overall Closed Rate */}
+            <Line
+              type="monotone"
+              dataKey="overallClosedRate"
+              stroke="#f59e0b"
+              strokeWidth={3}
+              dot={{ fill: '#f59e0b', r: 5 }}
+              activeDot={{ r: 7, fill: '#f59e0b' }}
+              name="Overall Closed Rate"
+              isAnimationActive={true}
+            />
+          </LineChart>
+        ) : (
+          <AreaChart
+            data={chartData}
+            margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+          >
+            <defs>
+              <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="colorContract" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="colorClosed" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.3} />
+            <XAxis
+              dataKey="month"
+              stroke="var(--color-muted-foreground)"
+              style={{ fontSize: '12px' }}
+            />
+            <YAxis
+              stroke="var(--color-muted-foreground)"
+              label={{ value: 'Conversion Rate (%)', angle: -90, position: 'insideLeft' }}
+              style={{ fontSize: '12px' }}
+              domain={[0, 100]}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend wrapperStyle={{ paddingTop: '20px' }} />
+
+            <Area
+              type="monotone"
+              dataKey="activeToContractRate"
+              stroke="#3b82f6"
+              strokeWidth={2}
+              fillOpacity={1}
+              fill="url(#colorActive)"
+              name="Active → Contract"
+            />
+            <Area
+              type="monotone"
+              dataKey="contractToClosedRate"
+              stroke="#10b981"
+              strokeWidth={2}
+              fillOpacity={1}
+              fill="url(#colorContract)"
+              name="Contract → Closed"
+            />
+            <Area
+              type="monotone"
+              dataKey="overallClosedRate"
+              stroke="#f59e0b"
+              strokeWidth={2}
+              fillOpacity={1}
+              fill="url(#colorClosed)"
+              name="Overall Closed Rate"
+            />
+          </AreaChart>
+        )}
       </ResponsiveContainer>
 
       {/* Summary Statistics */}
-      <div className="mt-6 grid grid-cols-3 gap-4">
+      <div className="mt-8 grid grid-cols-3 gap-4">
         <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
-          <p className="text-xs text-muted-foreground mb-1">Avg Active → Contract</p>
-          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            {chartData.length > 0
-              ? (chartData.reduce((sum, d) => sum + d.activeToContract, 0) / chartData.length).toFixed(1)
-              : '0'}
-            %
+          <p className="text-xs text-foreground/70 mb-2 font-medium">Avg Active → Contract</p>
+          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+            {avgActiveToContract}%
           </p>
+          <p className="text-xs text-foreground/60 mt-2">Of deals that start active, move to contract</p>
         </div>
 
         <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20">
-          <p className="text-xs text-muted-foreground mb-1">Avg Contract → Closed</p>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-            {chartData.length > 0
-              ? (chartData.reduce((sum, d) => sum + d.contractToClosed, 0) / chartData.length).toFixed(1)
-              : '0'}
-            %
+          <p className="text-xs text-foreground/70 mb-2 font-medium">Avg Contract → Closed</p>
+          <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+            {avgContractToClosed}%
           </p>
+          <p className="text-xs text-foreground/60 mt-2">Of contracted deals that actually close</p>
         </div>
 
         <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
-          <p className="text-xs text-muted-foreground mb-1">Avg Closed Rate</p>
-          <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-            {chartData.length > 0
-              ? (chartData.reduce((sum, d) => sum + d.closedRate, 0) / chartData.length).toFixed(1)
-              : '0'}
-            %
+          <p className="text-xs text-foreground/70 mb-2 font-medium">Avg Overall Closed</p>
+          <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">
+            {avgOverallClosed}%
           </p>
+          <p className="text-xs text-foreground/60 mt-2">Of all deals that ultimately close</p>
         </div>
       </div>
 
       {/* Insights */}
       <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
-        <h4 className="font-semibold text-sm mb-2">Insights</h4>
-        <ul className="text-sm text-muted-foreground space-y-1">
+        <h4 className="font-semibold text-sm mb-3">How to Read This Chart</h4>
+        <ul className="text-sm text-foreground/80 space-y-2">
           <li>
-            • <strong>Active → Contract:</strong> Shows what percentage of active listings move to under contract each month
+            <strong className="text-blue-400">Active → Contract:</strong> Percentage of deals that move from active listings to under contract status
           </li>
           <li>
-            • <strong>Contract → Closed:</strong> Shows what percentage of under contract deals actually close
+            <strong className="text-green-400">Contract → Closed:</strong> Percentage of deals that successfully close from under contract status
           </li>
           <li>
-            • <strong>Overall Closed Rate:</strong> Shows the percentage of all transactions that close each month
+            <strong className="text-amber-400">Overall Closed:</strong> Percentage of all deals (regardless of current status) that have closed
           </li>
-          <li>
-            • <strong>Trend Analysis:</strong> Use these trends to identify seasonal patterns and optimize your pipeline strategy
+          <li className="mt-2 text-foreground/60">
+            💡 <strong>Tip:</strong> Use these trends to identify seasonal patterns and optimize your pipeline strategy. Higher contract-to-closed rates indicate strong closing ability.
           </li>
         </ul>
       </div>
