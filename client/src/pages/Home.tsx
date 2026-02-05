@@ -64,6 +64,7 @@ import { OnboardingChecklist } from '@/components/OnboardingChecklist';
 import { CSVValidationReportModal } from '@/components/CSVValidationReportModal';
 import MetricCard from '@/components/MetricCard';
 import ProjectedToCloseCard from '@/components/ProjectedToCloseCard';
+import EnhancedProjectedToClose from '@/components/EnhancedProjectedToClose';
 import ColumnMapping from '@/components/ColumnMapping';
 import FieldMapper, { ColumnMapping as FieldMapping } from '@/components/FieldMapper';
 import { DatePickerWithRange } from '@/components/DateRangePicker';
@@ -955,10 +956,16 @@ function HomeContent() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Projected to Close Card */}
-        {filteredRecords.length > 0 && (
-          <div className="mb-8">
-            <ProjectedToCloseCard records={filteredRecords} />
+        {/* Enhanced Projected to Close Card */}
+        {filteredRecords.length > 0 && metrics && (
+          <div className="mb-8 bg-slate-900/50 rounded-lg p-6 border border-slate-800">
+            <EnhancedProjectedToClose
+              metrics={metrics}
+              selectedPeriod="30"
+              onPeriodChange={() => {}}
+              onExportPDF={() => {}}
+              onExportCSV={() => {}}
+            />
           </div>
         )}
 
