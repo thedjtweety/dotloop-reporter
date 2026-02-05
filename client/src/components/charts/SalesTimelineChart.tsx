@@ -24,11 +24,12 @@ import { Input } from '@/components/ui/input';
 interface SalesTimelineChartProps {
   data: ChartData[];
   allRecords?: DotloopRecord[];
+  onDataPointClick?: (month: string, records: DotloopRecord[]) => void;
 }
 
 type ViewMode = 'chart' | 'heatmap' | 'summary';
 
-export default function SalesTimelineChart({ data, allRecords = [] }: SalesTimelineChartProps) {
+export default function SalesTimelineChart({ data, allRecords = [], onDataPointClick }: SalesTimelineChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('chart');
   const [selectedPeriod, setSelectedPeriod] = useState<ChartData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,6 +61,17 @@ export default function SalesTimelineChart({ data, allRecords = [] }: SalesTimel
   const handlePeriodClick = (period: ChartData) => {
     setSelectedPeriod(period);
     setIsModalOpen(true);
+    
+    if (onDataPointClick) {
+      const periodRecords = allRecords.filter(r => {
+        const dateToUse = r.listingDate || r.closingDate;
+        if (!dateToUse) return false;
+        const date = new Date(dateToUse);
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        return key === period.label;
+      });
+      onDataPointClick(period.label, periodRecords);
+    }
   };
 
   // Export as CSV

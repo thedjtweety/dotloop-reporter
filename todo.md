@@ -2985,3 +2985,30 @@
 - [x] Test drill-down with demo data
 - [x] Test agent filtering with demo data (David Davis filter tested successfully)
 - [x] Verify agent conversion rates match leaderboard performance data (David Davis showing 100% conversion rates)
+
+
+## Phase 57: Analytics Charts Audit & Global Drill-Down Implementation
+- [x] Audit Sales Volume Over Time chart formulas and data (only closed deals, wrong date grouping)
+- [x] Fix Sales Volume Over Time chart formula (include all deals, group by listing date)
+- [x] Audit Buy vs Sell Trends chart formulas and calculations (calculates commissions not volumes)
+- [x] Fix Buy vs Sell Trends chart formula (count transactions or deal values)
+- [x] Add drill-down capability to Sales Volume Over Time chart (onDataPointClick handler)
+- [x] Add drill-down capability to Buy vs Sell Trends chart (onDataPointClick handler)
+- [x] Add analytics drill-down state and handler to Home.tsx
+- [x] Add analytics drill-down modal rendering to Home.tsx
+- [x] Create comprehensive test suite for formula fixes (7 tests covering all scenarios)
+- [x] Verify getSalesOverTime includes ALL deals (Active, Contract, Closed)
+- [x] Verify getSalesOverTime groups by listing date, not closing date
+- [x] Verify Buy vs Sell Trends calculates deal values, not commissions
+- [ ] Audit Timeline chart formulas and calculations
+- [ ] Audit Lead Source chart formulas and calculations
+- [ ] Audit Property Type chart formulas and calculations
+- [ ] Audit Geographic chart formulas and calculations
+- [ ] Audit Financial chart formulas and calculations
+- [ ] Audit Insights section calculations
+- [ ] Audit Data Health Check calculations
+- [ ] Implement drill-down for all other chart visualizations
+- [ ] Add bulk actions to all drill-down views (Export CSV, Export Excel, Open in Dotloop, Tag)
+- [ ] Test all charts with demo data
+- [ ] Verify all formulas are calculating correctly
+- [ ] Verify all visualizations display accurately

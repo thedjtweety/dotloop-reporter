@@ -158,6 +158,11 @@ function HomeContent() {
   const [chartDrillDownTitle, setChartDrillDownTitle] = useState('');
   const [chartFullDetailsOpen, setChartFullDetailsOpen] = useState(false);
   
+  // Analytics charts drill-down state
+  const [analyticsDrillDownOpen, setAnalyticsDrillDownOpen] = useState(false);
+  const [analyticsDrillDownTitle, setAnalyticsDrillDownTitle] = useState('');
+  const [analyticsDrillDownTransactions, setAnalyticsDrillDownTransactions] = useState<DotloopRecord[]>([]);
+  
   // Helper function to open chart drill-down
   const openChartDrillDown = (type: 'leadSource' | 'propertyType' | 'geographic' | 'commission', value: string, title: string) => {
     setChartDrillDownType(type);
@@ -170,6 +175,13 @@ function HomeContent() {
   const openChartFullDetails = () => {
     setChartDrillDownOpen(false);
     setChartFullDetailsOpen(true);
+  };
+  
+  // Helper function to open analytics chart drill-down
+  const openAnalyticsDrillDown = (title: string, transactions: DotloopRecord[]) => {
+    setAnalyticsDrillDownTitle(title);
+    setAnalyticsDrillDownTransactions(transactions);
+    setAnalyticsDrillDownOpen(true);
   };
 
   // Import Wizard State
@@ -1106,13 +1118,22 @@ function HomeContent() {
                   <SalesTimelineChart 
                     data={getSalesOverTime(filteredRecords)}
                     allRecords={filteredRecords}
+                    onDataPointClick={(month, records) => {
+                      openAnalyticsDrillDown(`Sales Volume: ${month}`, records);
+                    }}
                   />
                 </Card>
                 <Card className="p-6 bg-card border border-border">
                   <h2 className="text-xl font-display font-bold text-foreground mb-4">
                     Buy vs Sell Trends
                   </h2>
-                  <BuySellTrendChart data={filteredRecords} />
+                  <BuySellTrendChart 
+                    data={filteredRecords}
+                    onDataPointClick={(month, buySideDeals, sellSideDeals) => {
+                      const allDeals = [...buySideDeals, ...sellSideDeals];
+                      openAnalyticsDrillDown(`Buy vs Sell: ${month}`, allDeals);
+                    }}
+                  />
                 </Card>
               </div>
             </TabsContent>
@@ -1383,6 +1404,16 @@ function HomeContent() {
           onClose={() => setChartFullDetailsOpen(false)}
           title={chartDrillDownTitle}
           transactions={filteredRecords}
+        />
+      )}
+      
+      {/* Analytics Charts Drill-Down Modal */}
+      {analyticsDrillDownOpen && (
+        <DrillDownModal
+          isOpen={analyticsDrillDownOpen}
+          onClose={() => setAnalyticsDrillDownOpen(false)}
+          title={analyticsDrillDownTitle}
+          transactions={analyticsDrillDownTransactions}
         />
       )}
 

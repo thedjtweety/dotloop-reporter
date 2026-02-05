@@ -597,10 +597,14 @@ export function getSalesOverTime(records: DotloopRecord[]): ChartData[] {
   const monthlyVolume: Record<string, number> = {};
   
   records.forEach(r => {
-    if ((r.loopStatus === 'Closed' || r.loopStatus === 'Sold') && r.closingDate) {
-      const date = new Date(r.closingDate);
+    // Include ALL deals (Active, Contract, Closed) grouped by listing date
+    // This shows pipeline activity, not just closed deals
+    const dateToUse = r.listingDate || r.closingDate;
+    if (dateToUse) {
+      const date = new Date(dateToUse);
       if (!isNaN(date.getTime())) {
         const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        // Sum total deal value (sale price or listing price)
         monthlyVolume[key] = (monthlyVolume[key] || 0) + (r.salePrice || r.price || 0);
       }
     }

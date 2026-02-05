@@ -6,26 +6,69 @@ import { DotloopRecord } from '@/lib/csvParser';
 
 interface BuySellTrendChartProps {
   data: DotloopRecord[];
+  onDataPointClick?: (month: string, buySideDeals: DotloopRecord[], sellSideDeals: DotloopRecord[]) => void;
 }
 
-export default function BuySellTrendChart({ data }: BuySellTrendChartProps) {
-  // Aggregate data by month
+export default function BuySellTrendChart({ data, onDataPointClick }: BuySellTrendChartProps) {
+  // Aggregate data by month - track buy-side vs sell-side transaction volume
   const monthlyData = React.useMemo(() => {
-    const grouped = new Map<string, { buySide: number; sellSide: number; date: Date }>();
+    const grouped = new Map<string, { 
+      buySide: number; 
+      sellSide: number; 
+      date: Date;
+      buySideDeals: DotloopRecord[];
+      sellSideDeals: DotloopRecord[];
+    }>();
 
     data.forEach(record => {
-      if (!record.closingDate) return;
+      // Use listing date to capture all deals (not just closed ones)
+      const dateToUse = record.listingDate || record.closingDate;
+      if (!dateToUse) return;
       
-      const date = new Date(record.closingDate);
+      const date = new Date(dateToUse);
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       
       if (!grouped.has(key)) {
-        grouped.set(key, { buySide: 0, sellSide: 0, date });
+        grouped.set(key, { 
+          buySide: 0, 
+          sellSide: 0, 
+          date,
+          buySideDeals: [],
+          sellSideDeals: []
+        });
       }
       
       const entry = grouped.get(key)!;
-      entry.buySide += record.buySideCommission || 0;
-      entry.sellSide += record.sellSideCommission || 0;
+      // Calculate deal value
+      const dealValue = record.salePrice || record.price || 0;
+      
+      // Determine side based on transaction type
+      // Buy-side: buyer's agent, Sell-side: seller's agent
+      if (record.transactionType === 'Buy' || record.transactionType?.toLowerCase().includes('buy')) {
+        entry.buySide += dealValue;
+        entry.buySideDeals.push(record);
+      } else if (record.transactionType === 'Sell' || record.transactionType?.toLowerCase().includes('sell')) {
+        entry.sellSide += dealValue;
+        entry.sellSideDeals.push(record);
+      } else {
+        // If no clear side, use commission ratio to determine side
+        const buySideComm = record.buySideCommission || 0;
+        const sellSideComm = record.sellSideCommission || 0;
+        
+        if (buySideComm > sellSideComm) {
+          entry.buySide += dealValue;
+          entry.buySideDeals.push(record);
+        } else if (sellSideComm > buySideComm) {
+          entry.sellSide += dealValue;
+          entry.sellSideDeals.push(record);
+        } else {
+          // Split equally if no clear indicator
+          entry.buySide += dealValue / 2;
+          entry.sellSide += dealValue / 2;
+          entry.buySideDeals.push(record);
+          entry.sellSideDeals.push(record);
+        }
+      }
     });
 
     return Array.from(grouped.entries())
@@ -34,7 +77,9 @@ export default function BuySellTrendChart({ data }: BuySellTrendChartProps) {
         displayDate: value.date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
         buySide: value.buySide,
         sellSide: value.sellSide,
-        timestamp: value.date.getTime()
+        timestamp: value.date.getTime(),
+        buySideDeals: value.buySideDeals,
+        sellSideDeals: value.sellSideDeals
       }))
       .sort((a, b) => a.timestamp - b.timestamp);
   }, [data]);
@@ -49,10 +94,17 @@ export default function BuySellTrendChart({ data }: BuySellTrendChartProps) {
               {entry.name}: {formatCurrency(entry.value)}
             </p>
           ))}
+          <p className="text-xs text-muted-foreground mt-1">Click to view deals →</p>
         </div>
       );
     }
     return null;
+  };
+
+  const handleClick = (data: any) => {
+    if (onDataPointClick) {
+      onDataPointClick(data.displayDate, data.buySideDeals, data.sellSideDeals);
+    }
   };
 
   if (monthlyData.length === 0) {
@@ -72,9 +124,12 @@ export default function BuySellTrendChart({ data }: BuySellTrendChartProps) {
     <Card className="h-full">
       <CardHeader>
         <CardTitle className="text-lg font-medium">Buy vs Sell Trend</CardTitle>
+        <p className="text-xs text-muted-foreground mt-2">
+          Monthly transaction volume by side. Click data points to view deals.
+        </p>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
+        <div className="h-[300px] w-full cursor-pointer">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -84,7 +139,7 @@ export default function BuySellTrendChart({ data }: BuySellTrendChartProps) {
                 tick={{ fill: 'currentColor' }}
               />
               <YAxis 
-                tickFormatter={(value) => `$${value / 1000}k`}
+                tickFormatter={(value) => `$${value / 1000000}M`}
                 className="text-xs"
                 tick={{ fill: 'currentColor' }}
               />
@@ -96,8 +151,9 @@ export default function BuySellTrendChart({ data }: BuySellTrendChartProps) {
                 name="Buy Side" 
                 stroke="#3b82f6" 
                 strokeWidth={2}
-                dot={{ r: 4 }}
+                dot={{ r: 4, cursor: 'pointer' }}
                 activeDot={{ r: 6 }}
+                onClick={(data) => handleClick(data)}
               />
               <Line 
                 type="monotone" 
@@ -105,8 +161,9 @@ export default function BuySellTrendChart({ data }: BuySellTrendChartProps) {
                 name="Sell Side" 
                 stroke="#10b981" 
                 strokeWidth={2}
-                dot={{ r: 4 }}
+                dot={{ r: 4, cursor: 'pointer' }}
                 activeDot={{ r: 6 }}
+                onClick={(data) => handleClick(data)}
               />
             </LineChart>
           </ResponsiveContainer>
