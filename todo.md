@@ -3035,3 +3035,18 @@
 - [x] Add selection props to ExpandableTransactionRow component
 - [x] Connect selection state between TransactionTable and DrillDownModal
 - [x] Create comprehensive tests for bulk selection (bulkSelection.test.tsx with 15 tests)
+
+
+## Phase 60: Seamless Extension-to-Dashboard Integration
+- [x] Update extension popup.js to save extracted data to localStorage
+- [x] Add automatic window.open to dotloopreport.com after extraction
+- [x] Update Home.tsx to detect extension source parameter
+- [x] Implement localStorage data reading in Home.tsx
+- [x] Auto-populate dashboard with extension data
+- [x] Add success notification when data loads from extension
+- [x] Clean up localStorage after successful import
+- [x] Add error handling for localStorage failures
+- [x] Add host permissions for dotloopreport.com domains
+- [x] Convert submodule to regular directory in main repo
+- [ ] Test end-to-end flow (extract → open → display)
+- [ ] Update extension documentation for new seamless flow

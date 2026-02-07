@@ -245,6 +245,70 @@ function HomeContent() {
     }
   }, []);
 
+  // Check for extension data on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const source = urlParams.get('source');
+
+    if (source === 'extension') {
+      console.log('[Dashboard] Extension source detected, checking for data...');
+      
+      // Check localStorage for extension data
+      const extensionDataStr = localStorage.getItem('dotloop_extension_data');
+      
+      if (extensionDataStr) {
+        try {
+          const extensionData = JSON.parse(extensionDataStr);
+          console.log('[Dashboard] Extension data found:', extensionData);
+          
+          if (extensionData.transactions && extensionData.transactions.length > 0) {
+            // Process the transactions
+            const records = extensionData.transactions.map((t: any) => normalizeRecord(t)).filter((r: any) => r !== null) as DotloopRecord[];
+            
+            console.log(`[Dashboard] Loaded ${records.length} transactions from extension`);
+            
+            // Set the data
+            setAllRecords(records);
+            setFilteredRecords(records);
+            setMetrics(calculateMetrics(records));
+            const metrics = calculateAgentMetrics(records);
+            setAgentMetrics(applyPlansToAllAgents(metrics, records));
+            
+            // Show success toast
+            toast.success(`✅ Loaded ${records.length} transactions from Dotloop Extension!`, {
+              duration: 5000,
+              position: 'top-center',
+            });
+            
+            // Clean up localStorage
+            localStorage.removeItem('dotloop_extension_data');
+            
+            // Remove source parameter from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } else {
+            console.warn('[Dashboard] Extension data found but no transactions');
+            toast.error('No transactions found in extension data', {
+              duration: 4000,
+              position: 'top-center',
+            });
+          }
+        } catch (error) {
+          console.error('[Dashboard] Error parsing extension data:', error);
+          toast.error('Error loading data from extension. Please try again.', {
+            duration: 4000,
+            position: 'top-center',
+          });
+        }
+      } else {
+        console.warn('[Dashboard] Extension source detected but no data in localStorage');
+        toast.error('No data received from extension. Please try extracting again.', {
+          duration: 4000,
+          position: 'top-center',
+        });
+      }
+    }
+  }, []);
+
 
 
   const handleSaveRecent = async (name: string, records: DotloopRecord[]) => {

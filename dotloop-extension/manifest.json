@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Dotloop Reporting Tool",
+  "version": "1.0.0",
+  "description": "Extract all your Dotloop transactions and analyze them with our reporting dashboard",
+  "permissions": ["storage", "tabs", "scripting"],
+  "host_permissions": [
+    "https://www.dotloop.com/*",
+    "https://dotloop-reporter.manus.space/*",
+    "https://dotloopreport.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.dotloop.com/*"],
+      "js": ["src/content/content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "Dotloop Reporting Tool"
+  }
+}

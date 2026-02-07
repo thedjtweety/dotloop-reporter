@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dotloop Reporting Tool</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Dotloop Reporter</h1>
+      <p class="subtitle">Extract & Analyze Your Transactions</p>
+    </div>
+
+    <div class="content">
+      <div id="status-message" class="status-message" style="display: none;"></div>
+
+      <div id="idle-state" class="state">
+        <div class="icon">📊</div>
+        <h2>Ready to Extract</h2>
+        <p>Click the button below to extract all your Dotloop transactions</p>
+        <button id="extract-btn" class="btn btn-primary">
+          Extract All Transactions
+        </button>
+      </div>
+
+      <div id="loading-state" class="state" style="display: none;">
+        <div class="spinner"></div>
+        <h2>Extracting Transactions...</h2>
+        <p id="loading-message">Fetching your data from Dotloop</p>
+        <div class="progress-bar">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        <p id="progress-text" class="progress-text">0%</p>
+      </div>
+
+      <div id="success-state" class="state" style="display: none;">
+        <div class="icon">✅</div>
+        <h2>Extraction Complete!</h2>
+        <div class="results">
+          <div class="result-item">
+            <span class="label">Transactions:</span>
+            <span id="transaction-count" class="value">0</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Total Value:</span>
+            <span id="total-value" class="value">$0</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Extracted:</span>
+            <span id="extracted-time" class="value">Just now</span>
+          </div>
+        </div>
+        <div class="button-group">
+          <button id="download-btn" class="btn btn-primary">
+            Download CSV
+          </button>
+          <button id="send-btn" class="btn btn-secondary">
+            Send to Dashboard
+          </button>
+        </div>
+        <button id="reset-btn" class="btn btn-text">
+          Extract Again
+        </button>
+      </div>
+
+      <div id="error-state" class="state" style="display: none;">
+        <div class="icon">❌</div>
+        <h2>Extraction Failed</h2>
+        <p id="error-message" class="error-text"></p>
+        <button id="retry-btn" class="btn btn-primary">
+          Try Again
+        </button>
+        <button id="error-reset-btn" class="btn btn-text">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <a href="https://github.com/thedjtweety/dotloop-reporter" target="_blank" class="footer-link">
+        View on GitHub
+      </a>
+      <span class="version">v1.0.0</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
