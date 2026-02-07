@@ -253,12 +253,17 @@ function HomeContent() {
     if (source === 'extension') {
       console.log('[Dashboard] Extension source detected, checking for data...');
       
-      // Check localStorage for extension data
-      const extensionDataStr = localStorage.getItem('dotloop_extension_data');
+      // Check URL hash for base64-encoded data
+      const hash = window.location.hash;
+      const dataMatch = hash.match(/data=([^&]+)/);
       
-      if (extensionDataStr) {
+      if (dataMatch && dataMatch[1]) {
         try {
-          const extensionData = JSON.parse(extensionDataStr);
+          // Decode base64 data
+          const base64Data = dataMatch[1];
+          const jsonString = decodeURIComponent(escape(atob(base64Data)));
+          const extensionData = JSON.parse(jsonString);
+          
           console.log('[Dashboard] Extension data found:', extensionData);
           
           if (extensionData.transactions && extensionData.transactions.length > 0) {
@@ -280,10 +285,7 @@ function HomeContent() {
               position: 'top-center',
             });
             
-            // Clean up localStorage
-            localStorage.removeItem('dotloop_extension_data');
-            
-            // Remove source parameter from URL
+            // Clean up URL (remove hash and source parameter)
             window.history.replaceState({}, document.title, window.location.pathname);
           } else {
             console.warn('[Dashboard] Extension data found but no transactions');
@@ -300,7 +302,7 @@ function HomeContent() {
           });
         }
       } else {
-        console.warn('[Dashboard] Extension source detected but no data in localStorage');
+        console.warn('[Dashboard] Extension source detected but no data in URL hash');
         toast.error('No data received from extension. Please try extracting again.', {
           duration: 4000,
           position: 'top-center',

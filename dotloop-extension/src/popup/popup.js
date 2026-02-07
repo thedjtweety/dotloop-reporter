@@ -215,36 +215,23 @@ function sendToDashboard() {
   }
 
   try {
-    // Store data in localStorage (accessible across tabs in same domain)
-    const dataToStore = {
+    // Prepare data payload
+    const dataToSend = {
       transactions: extractedData,
       extractedAt: new Date().toISOString(),
       source: 'extension'
     };
 
-    // Open dashboard in new tab with extension source parameter
-    chrome.tabs.create({
-      url: 'https://dotloop-reporter.manus.space?source=extension'
-    }, (tab) => {
-      // Wait for tab to load, then inject localStorage data
-      chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-        if (tabId === tab.id && info.status === 'complete') {
-          chrome.tabs.onUpdated.removeListener(listener);
-          
-          // Inject data into the new tab's localStorage
-          chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: (data) => {
-              localStorage.setItem('dotloop_extension_data', JSON.stringify(data));
-              console.log('[Extension] Data injected into localStorage');
-            },
-            args: [dataToStore]
-          });
-        }
-      });
-    });
+    // Convert to base64 for URL transmission
+    const jsonString = JSON.stringify(dataToSend);
+    const base64Data = btoa(unescape(encodeURIComponent(jsonString)));
 
-    console.log('[Dotloop Extension] Opening dashboard with data...');
+    // Open dashboard with data in URL hash (hash is not sent to server)
+    const dashboardUrl = `https://dotloop-reporter.manus.space?source=extension#data=${base64Data}`;
+    
+    chrome.tabs.create({ url: dashboardUrl });
+
+    console.log('[Dotloop Extension] Opening dashboard with', extractedData.length, 'transactions');
   } catch (error) {
     console.error('[Dotloop Extension] Error sending data:', error);
     alert('Error sending data to dashboard. Please try downloading CSV instead.');
