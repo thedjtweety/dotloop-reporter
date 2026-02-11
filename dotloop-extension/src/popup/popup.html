@@ -14,27 +14,43 @@
     </div>
 
     <div class="content">
-      <div id="status-message" class="status-message" style="display: none;"></div>
+      <!-- Idle State: Not Connected -->
+      <div id="idle-state" class="state" style="display: none;">
+        <div class="icon">🔐</div>
+        <h2>Connect to Dotloop</h2>
+        <p>Authorize access to your Dotloop account to extract all transactions</p>
+        <button id="connect-btn" class="btn btn-primary">
+          Connect to Dotloop
+        </button>
+        <p class="help-text">We'll fetch all your loops and transaction data securely via Dotloop's API</p>
+      </div>
 
-      <div id="idle-state" class="state">
-        <div class="icon">📊</div>
-        <h2>Ready to Extract</h2>
-        <p>Click the button below to extract all your Dotloop transactions</p>
+      <!-- Connected State: Ready to Extract -->
+      <div id="connected-state" class="state" style="display: none;">
+        <div class="icon">✓</div>
+        <h2>Connected to Dotloop</h2>
+        <p id="connection-status" class="connection-status">✓ Connected to Dotloop</p>
+        <p>Click below to fetch all your transactions from Dotloop</p>
         <button id="extract-btn" class="btn btn-primary">
           Extract All Transactions
         </button>
+        <button id="disconnect-btn" class="btn btn-secondary">
+          Disconnect
+        </button>
       </div>
 
+      <!-- Loading State -->
       <div id="loading-state" class="state" style="display: none;">
         <div class="spinner"></div>
-        <h2>Extracting Transactions...</h2>
-        <p id="loading-message">Fetching your data from Dotloop</p>
+        <h2>Fetching Transactions...</h2>
+        <p id="loading-message">Retrieving your data from Dotloop API</p>
         <div class="progress-bar">
           <div id="progress-fill" class="progress-fill"></div>
         </div>
         <p id="progress-text" class="progress-text">0%</p>
       </div>
 
+      <!-- Success State -->
       <div id="success-state" class="state" style="display: none;">
         <div class="icon">✅</div>
         <h2>Extraction Complete!</h2>
@@ -53,39 +69,35 @@
           </div>
         </div>
         <div class="button-group">
-          <button id="download-btn" class="btn btn-primary">
+          <button id="download-btn" class="btn btn-secondary">
             Download CSV
           </button>
-          <button id="send-btn" class="btn btn-secondary">
+          <button id="send-btn" class="btn btn-primary">
             Send to Dashboard
           </button>
         </div>
-        <button id="reset-btn" class="btn btn-text">
+        <button id="reset-btn" class="btn btn-outline">
           Extract Again
         </button>
       </div>
 
+      <!-- Error State -->
       <div id="error-state" class="state" style="display: none;">
         <div class="icon">❌</div>
         <h2>Extraction Failed</h2>
-        <p id="error-message" class="error-text"></p>
-        <button id="retry-btn" class="btn btn-primary">
+        <p id="error-message" class="error-message">An error occurred during extraction.</p>
+        <button id="error-reset-btn" class="btn btn-primary">
           Try Again
-        </button>
-        <button id="error-reset-btn" class="btn btn-text">
-          Cancel
         </button>
       </div>
     </div>
 
     <div class="footer">
-      <a href="https://github.com/thedjtweety/dotloop-reporter" target="_blank" class="footer-link">
-        View on GitHub
-      </a>
+      <a href="https://github.com/thedjtweety/dotloop-reporter" target="_blank">View on GitHub</a>
       <span class="version">v1.0.0</span>
     </div>
   </div>
 
-  <script src="popup.js"></script>
+  <script type="module" src="popup.js"></script>
 </body>
 </html>

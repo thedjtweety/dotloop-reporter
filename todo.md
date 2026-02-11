@@ -3050,3 +3050,27 @@
 - [x] Convert submodule to regular directory in main repo
 - [ ] Test end-to-end flow (extract → open → display)
 - [ ] Update extension documentation for new seamless flow
+- [x] Fix manifest.json to support my.dotloop.com subdomain (where users are actually signed in)
+- [x] Fix extension popup.js to use correct production URL (dotloopreport.com)
+
+## Phase 60: Seamless Extension-to-Dashboard Integration (COMPLETED)
+- [x] Update extension popup.js to save extracted data to localStorage
+- [x] Add automatic window.open to dotloopreport.com after extraction
+- [x] Update Home.tsx to detect extension source parameter
+- [x] Implement localStorage data reading in Home.tsx
+- [x] Auto-populate dashboard with extension data
+- [x] Add success notification when data loads from extension
+- [x] Clean up localStorage after successful import
+- [x] Add error handling for localStorage failures
+- [x] Add host permissions for dotloopreport.com domains
+- [x] Convert submodule to regular directory in main repo
+- [x] Fix manifest.json to support my.dotloop.com subdomain (where users are actually signed in)
+- [x] Fix extension popup.js to use correct production URL (dotloopreport.com)
+- [x] Implement OAuth 2.0 flow in extension with token storage
+- [x] Create Dotloop API client module for fetching loops and transactions
+- [x] Add OAuth callback handler page
+- [x] Update popup UI with OAuth connection state
+- [x] Create oauth-handler.js module for token management
+- [x] Create dotloop-api.js module for API calls
+- [x] Update manifest.json with OAuth and API permissions
+- [x] Rewrite popup.js to use OAuth and API instead of DOM scraping

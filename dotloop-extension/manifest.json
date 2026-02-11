@@ -3,9 +3,12 @@
   "name": "Dotloop Reporting Tool",
   "version": "1.0.0",
   "description": "Extract all your Dotloop transactions and analyze them with our reporting dashboard",
-  "permissions": ["storage", "tabs", "scripting"],
+  "permissions": ["storage", "tabs", "scripting", "webRequest"],
   "host_permissions": [
     "https://www.dotloop.com/*",
+    "https://my.dotloop.com/*",
+    "https://api.dotloop.com/*",
+    "https://auth.dotloop.com/*",
     "https://dotloop-reporter.manus.space/*",
     "https://dotloopreport.com/*"
   ],
@@ -14,7 +17,10 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.dotloop.com/*"],
+      "matches": [
+        "https://www.dotloop.com/*",
+        "https://my.dotloop.com/*"
+      ],
       "js": ["src/content/content.js"]
     }
   ],

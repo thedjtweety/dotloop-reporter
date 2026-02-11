@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Dotloop OAuth Callback</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      max-width: 400px;
+    }
+    h1 {
+      color: #333;
+      margin: 0 0 20px;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .message {
+      color: #666;
+      font-size: 14px;
+      margin: 20px 0;
+    }
+    .error {
+      color: #d32f2f;
+      background: #ffebee;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+      display: none;
+    }
+    .success {
+      color: #388e3c;
+      background: #e8f5e9;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Connecting to Dotloop...</h1>
+    <div class="spinner"></div>
+    <div class="message" id="message">Please wait while we complete your authorization.</div>
+    <div class="error" id="error"></div>
+    <div class="success" id="success">Authorization successful! You can close this window.</div>
+  </div>
+
+  <script>
+    // Get authorization code from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
+
+    if (error) {
+      // Handle error
+      document.getElementById('message').style.display = 'none';
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+      document.getElementById('error').textContent = `Error: ${errorDescription || error}`;
+
+      // Send error to extension
+      if (window.opener) {
+        window.opener.postMessage(
+          { type: 'OAUTH_ERROR', error: errorDescription || error },
+          '*'
+        );
+      }
+    } else if (code) {
+      // Send code to extension popup
+      if (window.opener) {
+        window.opener.postMessage(
+          { type: 'OAUTH_CODE', code: code, state: state },
+          '*'
+        );
+
+        // Show success message
+        setTimeout(() => {
+          document.getElementById('message').style.display = 'none';
+          document.getElementById('spinner').style.display = 'none';
+          document.getElementById('success').style.display = 'block';
+
+          // Close window after 2 seconds
+          setTimeout(() => {
+            window.close();
+          }, 2000);
+        }, 500);
+      }
+    } else {
+      // No code or error
+      document.getElementById('message').textContent = 'Invalid authorization response.';
+    }
+  </script>
+</body>
+</html>

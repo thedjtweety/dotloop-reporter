@@ -1,23 +1,29 @@
 /**
  * Dotloop Reporting Tool - Popup Script
- * Handles UI interactions and data management
+ * Handles UI interactions and OAuth authentication
  */
 
 console.log('[Dotloop Extension] Popup script loaded');
 
+// Import OAuth and API modules
+import { startOAuthFlow, isConnected, revokeToken, getValidAccessToken } from '../oauth/oauth-handler.js';
+import { fetchAllTransactions } from '../api/dotloop-api.js';
+
 // DOM Elements
+const connectBtn = document.getElementById('connect-btn');
 const extractBtn = document.getElementById('extract-btn');
 const downloadBtn = document.getElementById('download-btn');
 const sendBtn = document.getElementById('send-btn');
 const resetBtn = document.getElementById('reset-btn');
+const disconnectBtn = document.getElementById('disconnect-btn');
 const retryBtn = document.getElementById('retry-btn');
 const errorResetBtn = document.getElementById('error-reset-btn');
 
 const idleState = document.getElementById('idle-state');
+const connectedState = document.getElementById('connected-state');
 const loadingState = document.getElementById('loading-state');
 const successState = document.getElementById('success-state');
 const errorState = document.getElementById('error-state');
-const statusMessage = document.getElementById('status-message');
 
 const transactionCount = document.getElementById('transaction-count');
 const totalValue = document.getElementById('total-value');
@@ -26,19 +32,101 @@ const progressFill = document.getElementById('progress-fill');
 const progressText = document.getElementById('progress-text');
 const loadingMessage = document.getElementById('loading-message');
 const errorMessage = document.getElementById('error-message');
+const connectionStatus = document.getElementById('connection-status');
 
 let extractedData = [];
 
 // Event Listeners
-extractBtn.addEventListener('click', startExtraction);
-downloadBtn.addEventListener('click', downloadCSV);
-sendBtn.addEventListener('click', sendToDashboard);
-resetBtn.addEventListener('click', resetUI);
-retryBtn.addEventListener('click', startExtraction);
-errorResetBtn.addEventListener('click', resetUI);
+if (connectBtn) connectBtn.addEventListener('click', handleConnect);
+if (extractBtn) extractBtn.addEventListener('click', startExtraction);
+if (downloadBtn) downloadBtn.addEventListener('click', downloadCSV);
+if (sendBtn) sendBtn.addEventListener('click', sendToDashboard);
+if (resetBtn) resetBtn.addEventListener('click', resetUI);
+if (disconnectBtn) disconnectBtn.addEventListener('click', handleDisconnect);
+if (retryBtn) retryBtn.addEventListener('click', startExtraction);
+if (errorResetBtn) errorResetBtn.addEventListener('click', resetUI);
 
-// Load saved data on popup open
-loadSavedData();
+// Initialize on popup open
+initializePopup();
+
+/**
+ * Initialize popup state
+ */
+async function initializePopup() {
+  console.log('[Dotloop Extension] Initializing popup...');
+
+  // Check connection status
+  const connected = await isConnected();
+  console.log('[Dotloop Extension] Connected:', connected);
+
+  if (connected) {
+    // Load saved data if available
+    loadSavedData();
+    showConnectedState();
+  } else {
+    showIdleState();
+  }
+}
+
+/**
+ * Show idle state (not connected)
+ */
+function showIdleState() {
+  idleState.style.display = 'flex';
+  connectedState.style.display = 'none';
+  loadingState.style.display = 'none';
+  successState.style.display = 'none';
+  errorState.style.display = 'none';
+}
+
+/**
+ * Show connected state
+ */
+function showConnectedState() {
+  idleState.style.display = 'none';
+  connectedState.style.display = 'flex';
+  loadingState.style.display = 'none';
+  successState.style.display = 'none';
+  errorState.style.display = 'none';
+
+  if (connectionStatus) {
+    connectionStatus.textContent = '✓ Connected to Dotloop';
+  }
+}
+
+/**
+ * Handle OAuth connection
+ */
+async function handleConnect() {
+  console.log('[Dotloop Extension] Starting OAuth connection...');
+  showLoadingState('Connecting to Dotloop...');
+
+  try {
+    const token = await startOAuthFlow();
+    console.log('[Dotloop Extension] OAuth successful');
+    showConnectedState();
+  } catch (error) {
+    console.error('[Dotloop Extension] OAuth error:', error);
+    showErrorState(error.message || 'Failed to connect to Dotloop');
+  }
+}
+
+/**
+ * Handle disconnection
+ */
+async function handleDisconnect() {
+  console.log('[Dotloop Extension] Disconnecting...');
+
+  try {
+    await revokeToken();
+    extractedData = [];
+    await chrome.storage.local.remove('extractedData');
+    showIdleState();
+  } catch (error) {
+    console.error('[Dotloop Extension] Disconnect error:', error);
+    showErrorState('Failed to disconnect');
+  }
+}
 
 /**
  * Load previously extracted data
@@ -53,66 +141,46 @@ function loadSavedData() {
 }
 
 /**
- * Start extraction process
+ * Start extraction from Dotloop API
  */
 async function startExtraction() {
-  console.log('[Dotloop Extension] Starting extraction...');
-  showLoadingState();
+  console.log('[Dotloop Extension] Starting API extraction...');
+  showLoadingState('Fetching transactions from Dotloop...');
 
   try {
-    // Get current tab
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const accessToken = await getValidAccessToken();
+    const transactions = await fetchAllTransactions(accessToken);
 
-    // Check if on Dotloop
-    if (!tab.url.includes('dotloop.com')) {
-      throw new Error('Please navigate to Dotloop.com first');
-    }
+    extractedData = transactions;
+    console.log(`[Dotloop Extension] Extraction successful: ${extractedData.length} transactions`);
 
-    // Send message to content script
-    chrome.tabs.sendMessage(tab.id, { action: 'extractTransactions' }, (response) => {
-      if (chrome.runtime.lastError) {
-        const errorMsg = chrome.runtime.lastError?.message || 'Unknown error';
-        console.error('[Dotloop Extension] Error:', errorMsg);
-        showErrorState('Could not connect to Dotloop. Please refresh the page and try again.');
-        return;
-      }
-
-      if (!response) {
-        console.error('[Dotloop Extension] No response from content script');
-        showErrorState('No response from page. Please refresh and try again.');
-        return;
-      }
-
-      if (response.success) {
-        extractedData = response.data.filter(t => t !== null);
-        console.log(`[Dotloop Extension] Extraction successful: ${extractedData.length} transactions`);
-
-        // Save to storage
-        chrome.storage.local.set({
-          extractedData: extractedData,
-          extractedAt: new Date().toISOString()
-        });
-
-        showSuccessState();
-      } else {
-        console.error('[Dotloop Extension] Extraction failed:', response.error);
-        showErrorState(response.error || 'Extraction failed. Please try again.');
-      }
+    // Save to storage
+    chrome.storage.local.set({
+      extractedData: extractedData,
+      extractedAt: new Date().toISOString()
     });
+
+    showSuccessState();
   } catch (error) {
-    console.error('[Dotloop Extension] Error:', error);
-    showErrorState(error.message);
+    console.error('[Dotloop Extension] Extraction error:', error);
+    showErrorState(error.message || 'Extraction failed. Please try again.');
   }
 }
 
 /**
  * Show loading state
  */
-function showLoadingState() {
+function showLoadingState(message = 'Loading...') {
   idleState.style.display = 'none';
+  connectedState.style.display = 'none';
   successState.style.display = 'none';
   errorState.style.display = 'none';
   loadingState.style.display = 'flex';
+
+  if (loadingMessage) {
+    loadingMessage.textContent = message;
+  }
+
   progressFill.style.width = '0%';
   progressText.textContent = '0%';
 
@@ -133,6 +201,7 @@ function showLoadingState() {
  */
 function showSuccessState(extractedAt) {
   idleState.style.display = 'none';
+  connectedState.style.display = 'none';
   loadingState.style.display = 'none';
   errorState.style.display = 'none';
   successState.style.display = 'flex';
@@ -162,26 +231,22 @@ function showSuccessState(extractedAt) {
  */
 function showErrorState(error) {
   idleState.style.display = 'none';
+  connectedState.style.display = 'none';
   loadingState.style.display = 'none';
   successState.style.display = 'none';
   errorState.style.display = 'flex';
-  errorMessage.textContent = error || 'An error occurred during extraction.';
+  errorMessage.textContent = error || 'An error occurred.';
 }
 
 /**
- * Reset UI to idle state
+ * Reset UI to connected state
  */
 function resetUI() {
-  idleState.style.display = 'flex';
-  loadingState.style.display = 'none';
-  successState.style.display = 'none';
-  errorState.style.display = 'none';
-  extractedData = [];
-  chrome.storage.local.remove(['extractedData', 'extractedAt']);
+  loadSavedData();
 }
 
 /**
- * Download extracted data as CSV
+ * Download CSV file
  */
 function downloadCSV() {
   if (extractedData.length === 0) {
@@ -189,8 +254,22 @@ function downloadCSV() {
     return;
   }
 
-  const csv = convertToCSV(extractedData);
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  // Convert to CSV
+  const headers = Object.keys(extractedData[0]);
+  const csvContent = [
+    headers.join(','),
+    ...extractedData.map(row =>
+      headers.map(header => {
+        const value = row[header];
+        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+          return `"${value.replace(/"/g, '""')}"`;
+        }
+        return value;
+      }).join(',')
+    )
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
 
@@ -227,100 +306,13 @@ function sendToDashboard() {
     const base64Data = btoa(unescape(encodeURIComponent(jsonString)));
 
     // Open dashboard with data in URL hash (hash is not sent to server)
-    const dashboardUrl = `https://dotloop-reporter.manus.space?source=extension#data=${base64Data}`;
-    
+    const dashboardUrl = `https://dotloopreport.com?source=extension#data=${base64Data}`;
+
     chrome.tabs.create({ url: dashboardUrl });
 
     console.log('[Dotloop Extension] Opening dashboard with', extractedData.length, 'transactions');
   } catch (error) {
-    console.error('[Dotloop Extension] Error sending data:', error);
-    alert('Error sending data to dashboard. Please try downloading CSV instead.');
+    console.error('[Dotloop Extension] Error sending to dashboard:', error);
+    showErrorState('Failed to open dashboard: ' + error.message);
   }
 }
-
-/**
- * Convert transaction data to CSV format
- */
-function convertToCSV(data) {
-  if (data.length === 0) return '';
-
-  // Define headers
-  const headers = [
-    'Loop ID',
-    'Loop Name',
-    'Loop Status',
-    'Transaction Type',
-    'Price',
-    'Sale Price',
-    'Closing Date',
-    'Listing Date',
-    'Address',
-    'City',
-    'State',
-    'Zip Code',
-    'Lead Source',
-    'Sale Commission Rate',
-    'Sale Commission Total',
-    'Buy Commission Rate',
-    'Buy Commission Total',
-    'Property Type',
-    'Bedrooms',
-    'Bathrooms',
-    'Square Footage',
-    'Year Built',
-    'Agent',
-    'Created Date',
-    'Updated Date'
-  ];
-
-  // Convert data to CSV rows
-  const rows = data.map(t => [
-    t.loopId || '',
-    escapeCSV(t.loopName || ''),
-    t.loopStatus || '',
-    t.transactionType || '',
-    t.price || '',
-    t.salePrice || '',
-    t.closingDate || '',
-    t.listingDate || '',
-    escapeCSV(t.address || ''),
-    t.city || '',
-    t.state || '',
-    t.zip || '',
-    t.leadSource || '',
-    t.saleCommissionRate || '',
-    t.saleCommissionTotal || '',
-    t.buyCommissionRate || '',
-    t.buyCommissionTotal || '',
-    t.propertyType || '',
-    t.bedrooms || '',
-    t.bathrooms || '',
-    t.squareFootage || '',
-    t.yearBuilt || '',
-    escapeCSV(t.agent || ''),
-    t.createdDate || '',
-    t.updatedDate || ''
-  ]);
-
-  // Combine headers and rows
-  const csv = [
-    headers.join(','),
-    ...rows.map(row => row.join(','))
-  ].join('\n');
-
-  return csv;
-}
-
-/**
- * Escape CSV values
- */
-function escapeCSV(value) {
-  if (!value) return '';
-  value = value.toString();
-  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-}
-
-console.log('[Dotloop Extension] Popup script ready');
