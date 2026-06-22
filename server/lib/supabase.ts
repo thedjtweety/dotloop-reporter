@@ -1,15 +1,12 @@
 /**
- * Supabase Client
+ * Supabase Client - DEPRECATED
  *
- * Two clients:
- *  - supabasePublic  — anon key, used for auth operations (sign-in, sign-up, session verify)
- *  - supabaseAdmin   — service_role key, bypasses RLS for server-side data operations
- *
- * Row Level Security is enforced at the DB level on every table (tenant_id isolation).
- * The admin client is used only in trusted server code, never exposed to the client.
+ * This project uses TiDB (MySQL) for the database, not Supabase.
+ * This file is kept for backward compatibility only.
+ * All functions throw errors to prevent accidental usage.
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+type SupabaseClient = any;
 
 function requireEnv(name: string): string {
   const val = process.env[name];
@@ -31,32 +28,14 @@ let _admin: SupabaseClient | null = null;
 
 export function getSupabasePublic(): SupabaseClient {
   if (!_public) {
-    _public = createClient(
-      requireEnv('SUPABASE_URL'),
-      requireEnv('SUPABASE_ANON_KEY'),
-      {
-        auth: {
-          persistSession: false,  // server-side — no browser storage
-          autoRefreshToken: false,
-        },
-      }
-    );
+    throw new Error('Supabase is not configured for this project. This project uses TiDB instead.');
   }
   return _public;
 }
 
 export function getSupabaseAdmin(): SupabaseClient {
   if (!_admin) {
-    _admin = createClient(
-      requireEnv('SUPABASE_URL'),
-      requireEnv('SUPABASE_SERVICE_KEY'),
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-        },
-      }
-    );
+    throw new Error('Supabase is not configured for this project. This project uses TiDB instead.');
   }
   return _admin;
 }
@@ -64,12 +43,12 @@ export function getSupabaseAdmin(): SupabaseClient {
 // Named exports that create on demand — mirrors the spec's import style
 export const supabasePublic = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
-    return (getSupabasePublic() as any)[prop];
+    throw new Error('Supabase is not configured for this project. This project uses TiDB instead.');
   },
 });
 
 export const supabaseAdmin = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
-    return (getSupabaseAdmin() as any)[prop];
+    throw new Error('Supabase is not configured for this project. This project uses TiDB instead.');
   },
 });
