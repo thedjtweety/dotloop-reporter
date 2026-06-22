@@ -18,12 +18,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import NetCommissionReport from '@/components/NetCommissionReport';
-import { TxDrillModal, DrillTarget } from '@/components/TxDrillModal';
 import { DateRange } from 'react-day-picker';
 import { useTransactionData } from '@/contexts/TransactionDataContext';
 import { calculateAgentMetrics } from '@/lib/csvParser';
-import { AgentDetailModal } from '@/components/AgentDetailModal';
-import { useAgentDetail } from '@/hooks/useAgentDetail';
 
 interface AgentCommissionSummary {
   agentName: string;
@@ -39,20 +36,12 @@ interface AgentCommissionSummary {
 export default function NetCommissionReportPage() {
   const [, setLocation] = useLocation();
   const { allRecords, agentMetrics, commissionPlans, agentAssignments, hasData } = useTransactionData();
-  const { agentTarget, openAgent, closeAgent } = useAgentDetail();
   
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [agents, setAgents] = useState<AgentCommissionSummary[]>([]);
   const [filteredAgents, setFilteredAgents] = useState<AgentCommissionSummary[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(false);
-  const [drillTarget, setDrillTarget] = useState<DrillTarget | null>(null);
-
-  // Records matching the agents currently shown in the report
-  const reportRecords = allRecords.filter(r => {
-    if (selectedAgent === 'all') return true;
-    return (r.agents || '').toLowerCase().includes(selectedAgent.toLowerCase());
-  });
 
   // Generate report when data is available
   useEffect(() => {
@@ -323,23 +312,23 @@ export default function NetCommissionReportPage() {
           <div className="space-y-6">
             {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="p-4 cursor-pointer hover:bg-secondary/60 transition-colors" onClick={() => setDrillTarget({ title: 'Report Agents — Transactions', records: reportRecords })}>
+              <Card className="p-4">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Total Agents</p>
                 <p className="text-2xl font-bold text-foreground mt-2">{filteredAgents.length}</p>
               </Card>
-              <Card className="p-4 cursor-pointer hover:bg-secondary/60 transition-colors" onClick={() => setDrillTarget({ title: 'Total Transactions', records: reportRecords })}>
+              <Card className="p-4">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Total Transactions</p>
                 <p className="text-2xl font-bold text-foreground mt-2">
                   {filteredAgents.reduce((sum, a) => sum + a.totalTransactions, 0)}
                 </p>
               </Card>
-              <Card className="p-4 cursor-pointer hover:bg-secondary/60 transition-colors" onClick={() => setDrillTarget({ title: 'Gross Commission', records: reportRecords.filter(r => (r.commissionTotal || 0) > 0) })}>
+              <Card className="p-4">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Total Gross Commission</p>
                 <p className="text-2xl font-bold text-foreground mt-2">
                   ${filteredAgents.reduce((sum, a) => sum + a.totalGrossCommission, 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
                 </p>
               </Card>
-              <Card className="p-4 cursor-pointer hover:bg-secondary/60 transition-colors" onClick={() => setDrillTarget({ title: 'Net Commission', records: reportRecords.filter(r => r.loopStatus === 'Closed' || r.loopStatus === 'Sold') })}>
+              <Card className="p-4">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Total Net Commission</p>
                 <p className="text-2xl font-bold text-primary mt-2">
                   ${filteredAgents.reduce((sum, a) => sum + a.totalNetCommission, 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
@@ -348,11 +337,10 @@ export default function NetCommissionReportPage() {
             </div>
 
             {/* Report Table */}
-            <NetCommissionReport agents={filteredAgents} onAgentClick={(name) => openAgent(name, allRecords, agentMetrics)} />
+            <NetCommissionReport agents={filteredAgents} />
           </div>
         )}
       </main>
-      <AgentDetailModal target={agentTarget} onClose={closeAgent} />
     </div>
   );
 }

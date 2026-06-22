@@ -1,0 +1,48 @@
+{
+  "build_command": "pnpm run build",
+  "capabilities": [
+    "db",
+    "server",
+    "user"
+  ],
+  "dev_command": "pnpm run dev",
+  "env_vars": {
+    "DATABASE_URL": "mysql://24ruGQuiASWpGv5.root:a4Pzfooxk5oPsX9W97i4@gateway03.us-east-1.prod.aws.tidbcloud.com:4000/gtMbYvvduSqhsHRvj39YWw?ssl={\"rejectUnauthorized\":true}"
+  },
+  "experiments": null,
+  "git_remote": {
+    "repo_url": "s3://vida-prod-gitrepo/webdev-git/310519663283621115/gtMbYvvduSqhsHRvj39YWw",
+    "access_key_id": "ASIAZV3A2ECZBUO2BBYS",
+    "secret_access_key": "p+osJLFOJB+Pv453Kw9jEmXTHn00rQgSmEmLUV2g",
+    "session_token": "IQoJb3JpZ2luX2VjED8aCXVzLWVhc3QtMSJHMEUCIDuuX2nMPJzbOpv/IlKbHvSJznkdBoPymC4nS5G4tgxtAiEAzGPmOdBc7DbG9k4vIfpJeLYc0BCFj1VHKBbi+OpRRHAq9gMICBAEGgw2NjUzODYwOTg4NjYiDICzQiSoqPG9kg1+DCrTA48vGCd2RnVdQ6FN9hFlCBxv/B6aJAxe/vf2B/NzTyD2u6UPTgekSSgRhIDu/H3p4zpXUyNPHe7gNjpRba0+FRxF4oNPmLSv+clmEdlYa6Bq5UqzL4b4KLtoLGwmwmXlye5tcRd3H1rMksHmJYWYjCaNDA5oDk5xv3eQMxrcTCz/3ebJGCffI6B0v0Uku5DYjhwA8INazRoyGVZIgwpvk5Frqm4UZvCke5Mj0lnuNijAJpvQ0DNUddDPrsLZLKYczC8nHW2S/J5ThUMEqFWv1ox8IZZjHBZfClVdglwTyfFOZ779Lweva+yceO0mEFOYJhgaWv2fEp3h5y+EByTetAzJCYYe2C0EZDne4rri0hF2/4GjcpT7vgHmyGBqyV+KQgOVM3FkNoGaiW9pBhbS5+W3cIbdWCMiYtHNxfYzA9Ve3xMMQCKpl+Fv4dF1sKZoJUGxoAE0Cckomf5ZBaboLZyz/uadN9Jukc8FhUqTv+cns7DdU6wzR8sRl5LI9KJeJqe4KkYpR3lf6m5qtFIMGT7Ctbo4LI+Uc4AakLBhBzwYr3IfnuDKUaGGkS7kv5yB85reZLwzFhc1smUOAm/909vFIZ7N1O1Gf/bnIuz8FAkoYz2LMPic5dEGOp0BU2LQeMAd8s0zRcpS3HCbmkV8wPvdKms7nKnS0eswia55KPrKu/uo025s/caDi07EPOLHB4HBOsHPeRPRC5TDJQFjXdoLYVaTS/+Ht5ePzn3QMOBmAsMIuRtuywZiozPOmUADA2ncDGVVerf51PqswjiJv4MMR0toCIN/31FzYVxc7Mk1jPc2gYeLtGQTaL8sZ7I6RKKp05JZJleOMw==",
+    "expiration": "2026-06-23T03:02:16.000Z",
+    "backend": "GIT_BACKEND_S3"
+  },
+  "name": "dotloop-reporter",
+  "path": "/home/ubuntu/dotloop-reporter",
+  "port": 3000,
+  "secrets": {
+    "BUILT_IN_FORGE_API_KEY": "AHkjkqkzELsaRqYLKcd9X8",
+    "BUILT_IN_FORGE_API_URL": "https://forge.manus.ai",
+    "DOTLOOP_CLIENT_ID": "fb051fb6-07e4-4dbb-8d8a-1b5a858e74c3",
+    "DOTLOOP_CLIENT_SECRET": "05db2ac3-4b65-4a48-9370-a66c28c048ce",
+    "DOTLOOP_REDIRECT_URI": "https://dotloopreport.com/api/dotloop-oauth/callback",
+    "JWT_SECRET": "kZQWL8SPt2Afo6XtXeK5RJ",
+    "OAUTH_SERVER_URL": "https://api.manus.im",
+    "OWNER_NAME": "Drew Bryant",
+    "OWNER_OPEN_ID": "XYwDpyWEooWxm9vH2dxqYW",
+    "TOKEN_ENCRYPTION_KEY": "527c8bb00133f8e7c0d87c5b1ccff333c7d97a8a2d9ea56088e3c22d86b7246f",
+    "VITE_ANALYTICS_ENDPOINT": "https://manus-analytics.com",
+    "VITE_ANALYTICS_WEBSITE_ID": "7678213a-96e6-4dcd-996f-5fa3b187a526",
+    "VITE_APP_ID": "gtMbYvvduSqhsHRvj39YWw",
+    "VITE_APP_LOGO": "https://files.manuscdn.com/user_upload_by_module/web_dev_logo/310519663283621115/wyOONUnNlYRZngsU.png",
+    "VITE_APP_TITLE": "Dotloop Reporting Tool",
+    "VITE_DOTLOOP_CLIENT_ID": "fb051fb6-07e4-4dbb-8d8a-1b5a858e74c3",
+    "VITE_DOTLOOP_REDIRECT_URI": "https://dotloopreport.com/api/dotloop/callback",
+    "VITE_FRONTEND_FORGE_API_KEY": "9t4ZmzG7SespypEzpZkYKk",
+    "VITE_FRONTEND_FORGE_API_URL": "https://forge.manus.ai",
+    "VITE_OAUTH_PORTAL_URL": "https://manus.im"
+  },
+  "template_id": "web-db-user",
+  "test_command": "pnpm test"
+}

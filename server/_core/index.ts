@@ -1,15 +1,10 @@
 import "dotenv/config";
 // Commission system fixed: v2.0 - All ghost template errors removed, public procedures enabled
 import express from "express";
-import cookieParser from "cookie-parser";
 import { createServer } from "http";
+import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { dotloopOAuthCallbackRouter } from "../routes/dotloop-oauth-callback";
-import dotloopAuthRoutes from "../routes/dotloop-auth";
-import dotloopSyncRoutes from "../routes/dotloop-sync";
-import dotloopWebhookRoutes from "../routes/dotloop-webhook";
-import authRoutes from "../routes/auth";
-import loopsRoutes from "../routes/loops";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import cdaRoutes from "../routes/cda";
@@ -19,14 +14,29 @@ import { uploadLimiter, apiLimiter, authLimiter } from "../middleware/rate-limit
 import { corsMiddleware } from "../middleware/security-headers";
 import { healthCheck, livenessProbe, readinessProbe } from "../health";
 
+function isPortAvailable(port: number): Promise<boolean> {
+  return new Promise(resolve => {
+    const server = net.createServer();
+    server.listen(port, () => {
+      server.close(() => resolve(true));
+    });
+    server.on("error", () => resolve(false));
+  });
+}
+
+async function findAvailablePort(startPort: number = 3000): Promise<number> {
+  for (let port = startPort; port < startPort + 20; port++) {
+    if (await isPortAvailable(port)) {
+      return port;
+    }
+  }
+  throw new Error(`No available port found starting from ${startPort}`);
+}
 
 async function startServer() {
   const app = express();
   const server = createServer(app);
   
-  // Cookie parser — must be before any route that reads req.cookies
-  app.use(cookieParser());
-
   // Security middleware - apply early
   app.use(corsMiddleware);
   app.use(securityHeaders);
@@ -49,19 +59,9 @@ async function startServer() {
   app.get("/health/live", livenessProbe);
   app.get("/health/ready", readinessProbe);
   
-  // Dotloop OAuth callback (legacy route kept for backwards compat)
+  // Dotloop OAuth callback
   app.use('/api/dotloop-oauth', dotloopOAuthCallbackRouter);
-
-  // Phase 2B: Auth routes
-  app.use('/api/auth', authRoutes);
-  app.use('/api/loops', loopsRoutes);
-
-  // Phase 2A: Dotloop OAuth, sync, and webhook routes
-  app.use('/api/dotloop', dotloopAuthRoutes);
-  app.use('/api/dotloop', dotloopSyncRoutes);
-  // Webhook needs raw body for signature verification — mount before json middleware override
-  app.use('/api/dotloop/webhook', dotloopWebhookRoutes);
-
+  
   // CDA routes
   app.use("/api/cda", cdaRoutes);
   
@@ -82,23 +82,16 @@ async function startServer() {
     serveStatic(app);
   }
 
-  const port = parseInt(process.env.PORT || "3001");
+  const preferredPort = parseInt(process.env.PORT || "3000");
+  const port = await findAvailablePort(preferredPort);
+
+  if (port !== preferredPort) {
+    console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
+  }
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
     console.log(`Security middleware: Enabled (CSRF, rate limiting, headers, brute force protection)`);
-  });
-
-  server.on("error", (err: NodeJS.ErrnoException) => {
-    if (err.code === "EADDRINUSE") {
-      console.error(`\nERROR: Port ${port} is already in use.`);
-      console.error(`Stop the process using port ${port} and try again.`);
-      console.error(`  lsof -ti:${port} | xargs kill -9\n`);
-      process.exit(1);
-    } else {
-      console.error("Server error:", err);
-      process.exit(1);
-    }
   });
 }
 

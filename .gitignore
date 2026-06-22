@@ -108,8 +108,3 @@ temp/
 
 # Database backups
 backups/
-<<<<<<< Updated upstream
-.claude/worktrees/
-=======
-.project-config.json
->>>>>>> Stashed changes

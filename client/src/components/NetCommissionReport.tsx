@@ -50,14 +50,12 @@ interface NetCommissionReportProps {
   agents: AgentCommissionSummary[];
   dateRange?: DateRange;
   onDateRangeChange?: (range: DateRange | undefined) => void;
-  onAgentClick?: (agentName: string) => void;
 }
 
 export default function NetCommissionReport({
   agents,
   dateRange,
   onDateRangeChange,
-  onAgentClick,
 }: NetCommissionReportProps) {
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -441,16 +439,7 @@ export default function NetCommissionReport({
               >
                 <div className="text-left">
                   <h3 className="text-lg font-bold text-foreground">
-                    {onAgentClick ? (
-                      <span
-                        onClick={(e) => { e.stopPropagation(); onAgentClick(agent.agentName); }}
-                        className="text-blue-500 hover:text-blue-400 hover:underline cursor-pointer"
-                      >
-                        {agent.agentName}
-                      </span>
-                    ) : (
-                      agent.agentName
-                    )}
+                    {agent.agentName}
                   </h3>
                   <p className="text-sm text-foreground">
                     Plan: {agent.planName} • {agent.totalTransactions} transactions

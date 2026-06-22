@@ -11,7 +11,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo, ReactNode } from 'react';
 import { DotloopRecord, DashboardMetrics, AgentMetrics, calculateMetrics, calculateAgentMetrics } from '@/lib/csvParser';
 import { generateSampleData } from '@/lib/sampleData';
-import supabase from '@/lib/supabase';
 
 export interface CommissionPlan {
   id: string;
@@ -155,39 +154,6 @@ export function TransactionDataProvider({ children }: { children: ReactNode }) {
   // When true, skip auto-recalculation so commission-plan-applied metrics are preserved
   const externalMetricsRef = useRef(false);
 
-  // Auto-load loops from Supabase when user is authenticated
-  useEffect(() => {
-    let cancelled = false;
-    async function loadFromSupabase() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.access_token) return; // Not authenticated — CSV/demo mode only
-
-        const res = await fetch('/api/loops', {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        if (!res.ok || cancelled) return;
-
-        const body = await res.json() as { records?: DotloopRecord[] };
-        const records = body.records ?? [];
-        if (records.length === 0 || cancelled) return;
-
-        // Only load if no data is already loaded (don't overwrite CSV or demo)
-        // User can always load CSV on top of this
-        externalMetricsRef.current = false;
-        setAllRecords(records);
-        setMetrics(calculateMetrics(records));
-        setAgentMetrics(calculateAgentMetrics(records));
-        setIsDemoMode(false);
-        setActiveDataSetName('Live Dotloop Data');
-      } catch {
-        // Silently ignore — app works without Supabase
-      }
-    }
-    void loadFromSupabase();
-    return () => { cancelled = true; };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   const filteredRecords = useMemo(
     () => applyFilters(allRecords, dateFilter, teamFilter),
     [allRecords, dateFilter, teamFilter]
@@ -225,8 +191,8 @@ export function TransactionDataProvider({ children }: { children: ReactNode }) {
     }
     return {
       transactionCount: comparisonDataSet.filteredRecords.length,
-      totalGCI: comparisonDataSet.metrics?.totalCommission ?? 0,
-      closeRate: comparisonDataSet.metrics?.closingRate ?? 0,
+      totalGCI: comparisonDataSet.metrics?.totalGCI ?? 0,
+      closeRate: comparisonDataSet.metrics?.closeRate ?? 0,
     };
   }, [comparisonDataSet]);
 
@@ -287,8 +253,8 @@ export function TransactionDataProvider({ children }: { children: ReactNode }) {
     teams,
     dataStatistics: {
       transactionCount: filteredRecords.length,
-      totalGCI: metrics?.totalCommission ?? 0,
-      closeRate: metrics?.closingRate ?? 0,
+      totalGCI: metrics?.totalGCI ?? 0,
+      closeRate: metrics?.closeRate ?? 0,
     },
 
     // Comparison mode

@@ -4,10 +4,6 @@ import { formatCurrency } from '@/lib/formatUtils';
 import { BarChart3, TrendingUp, TrendingDown, ChevronDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine } from 'recharts';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { DotloopRecord } from '@/lib/csvParser';
-import { TxDrillModal, DrillTarget } from '@/components/TxDrillModal';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -16,8 +12,6 @@ export default function ForecastingPage() {
   const [scenario, setScenario] = useState<'conservative' | 'moderate' | 'optimistic'>('moderate');
   const [period, setPeriod] = useState('Q4');
   const [activeTab, setActiveTab] = useState<'pipeline' | 'revenue' | 'agent' | 'market'>('pipeline');
-  const [drillAgent, setDrillAgent] = useState<{ name: string; records: DotloopRecord[] } | null>(null);
-  const [drillTarget, setDrillTarget] = useState<DrillTarget | null>(null);
 
   const currentMonth = new Date().getMonth();
 
@@ -54,25 +48,25 @@ export default function ForecastingPage() {
 
   // Pipeline stages from records
   const pipelineStages = [
-    { stage: 'Active', records: allRecords.filter(r => r.loopStatus?.toLowerCase().includes('active')), color: '#10b981' },
-    { stage: 'Under Contract', records: allRecords.filter(r => r.loopStatus?.toLowerCase().includes('contract') || r.loopStatus?.toLowerCase().includes('pending')), color: '#3b82f6' },
-    { stage: 'Closing Soon', records: allRecords.filter(r => {
+    { stage: 'Active', count: allRecords.filter(r => r.loopStatus?.toLowerCase().includes('active')).length, color: '#10b981' },
+    { stage: 'Under Contract', count: allRecords.filter(r => r.loopStatus?.toLowerCase().includes('contract') || r.loopStatus?.toLowerCase().includes('pending')).length, color: '#3b82f6' },
+    { stage: 'Closing Soon', count: allRecords.filter(r => {
       const d = r.closingDate ? new Date(r.closingDate) : null;
       if (!d) return false;
       const diff = (d.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
       return diff >= 0 && diff <= 30;
-    }), color: '#f59e0b' },
-    { stage: 'Closed', records: allRecords.filter(r => r.loopStatus?.toLowerCase().includes('closed') || r.loopStatus?.toLowerCase().includes('sold')), color: '#8b5cf6' },
-  ].map(s => ({ ...s, count: s.records.length }));
+    }).length, color: '#f59e0b' },
+    { stage: 'Closed', count: allRecords.filter(r => r.loopStatus?.toLowerCase().includes('closed') || r.loopStatus?.toLowerCase().includes('sold')).length, color: '#8b5cf6' },
+  ];
 
   if (!hasData) {
     return (
-      <div className="p-6 flex flex-col items-center justify-center min-h-screen bg-background">
-        <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mb-4">
-          <BarChart3 className="w-8 h-8 text-muted-foreground" />
+      <div className="p-6 flex flex-col items-center justify-center min-h-screen bg-[#0d1117]">
+        <div className="w-16 h-16 rounded-full bg-[#1a2332] flex items-center justify-center mb-4">
+          <BarChart3 className="w-8 h-8 text-gray-500" />
         </div>
-        <h3 className="text-foreground text-lg font-semibold mb-2">No Data for Forecasting</h3>
-        <p className="text-muted-foreground text-sm max-w-sm text-center mb-6">
+        <h3 className="text-white text-lg font-semibold mb-2">No Data for Forecasting</h3>
+        <p className="text-gray-400 text-sm max-w-sm text-center mb-6">
           Upload a CSV file from the Dashboard to generate revenue forecasts, or try the demo mode.
         </p>
         <Button onClick={activateDemoMode} className="bg-emerald-500 hover:bg-emerald-600 text-white">
@@ -83,27 +77,27 @@ export default function ForecastingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6">
+    <div className="min-h-screen bg-[#0d1117] text-white p-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-emerald-400" />
             Pipeline Forecasting
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">AI-powered revenue and deal projections</p>
+          <p className="text-gray-400 text-sm mt-1">AI-powered revenue and deal projections</p>
         </div>
         <div className="flex items-center gap-2">
           <select
             value={scenario}
             onChange={e => setScenario(e.target.value as any)}
-            className="bg-secondary border border-border rounded-md px-3 py-1.5 text-sm text-foreground focus:outline-none"
+            className="bg-[#1a2332] border border-[#1e2d3d] rounded-md px-3 py-1.5 text-sm text-gray-200 focus:outline-none"
           >
             <option value="conservative">Conservative (-15%)</option>
             <option value="moderate">Moderate (Baseline)</option>
             <option value="optimistic">Optimistic (+20%)</option>
           </select>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-foreground text-sm hover:bg-secondary">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[#1e2d3d] text-gray-300 text-sm hover:bg-[#1a2332]">
             {period} <ChevronDown className="w-3 h-3" />
           </button>
         </div>
@@ -112,26 +106,24 @@ export default function ForecastingPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Projected Annual GCI', value: formatCurrency(projectedAnnualGCI), sub: `${scenario} scenario`, icon: '📈', color: 'text-emerald-400', records: allRecords.filter(r => r.loopStatus === 'Closed' || r.loopStatus === 'Sold') },
-          { label: 'GCI Earned YTD', value: formatCurrency(earnedGCI), sub: `${currentMonth + 1} months`, icon: '$', color: 'text-blue-400', records: allRecords.filter(r => r.loopStatus === 'Closed' || r.loopStatus === 'Sold' && r.closingDate && new Date(r.closingDate).getFullYear() === new Date().getFullYear()) },
-          { label: 'Remaining Months', value: remainingMonths.toString(), sub: 'to year end', icon: '📅', color: 'text-purple-400', records: allRecords },
-          { label: 'Active Pipeline', value: pipelineStages[0].count + pipelineStages[1].count, sub: 'deals in progress', icon: '◎', color: 'text-orange-400', records: allRecords.filter(r => { const s = r.loopStatus?.toLowerCase() || ''; return s.includes('active') || s.includes('contract') || s.includes('pending'); }) },
+          { label: 'Projected Annual GCI', value: formatCurrency(projectedAnnualGCI), sub: `${scenario} scenario`, icon: '📈', color: 'text-emerald-400' },
+          { label: 'GCI Earned YTD', value: formatCurrency(earnedGCI), sub: `${currentMonth + 1} months`, icon: '$', color: 'text-blue-400' },
+          { label: 'Remaining Months', value: remainingMonths.toString(), sub: 'to year end', icon: '📅', color: 'text-purple-400' },
+          { label: 'Active Pipeline', value: pipelineStages[0].count + pipelineStages[1].count, sub: 'deals in progress', icon: '◎', color: 'text-orange-400' },
         ].map(card => (
-          <div key={card.label}
-            onClick={() => setDrillTarget({ title: card.label, records: card.records })}
-            className="bg-secondary border border-border rounded-xl p-4 cursor-pointer hover:bg-secondary/60 transition-colors">
+          <div key={card.label} className="bg-[#0f1923] border border-[#1e2d3d] rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">{card.icon}</span>
-              <span className="text-muted-foreground text-sm">{card.label}</span>
+              <span className="text-gray-400 text-sm">{card.label}</span>
             </div>
             <div className={`text-2xl font-bold ${card.color}`}>{card.value}</div>
-            <div className="text-muted-foreground text-xs mt-1">{card.sub}</div>
+            <div className="text-gray-500 text-xs mt-1">{card.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 mb-4 border-b border-border">
+      <div className="flex items-center gap-1 mb-4 border-b border-[#1e2d3d]">
         {[
           { key: 'pipeline', label: 'Pipeline Forecast' },
           { key: 'revenue', label: 'Revenue Forecast' },
@@ -142,7 +134,7 @@ export default function ForecastingPage() {
             key={tab.key}
             onClick={() => setActiveTab(tab.key as any)}
             className={`px-4 py-2 text-sm transition-colors border-b-2 -mb-px ${
-              activeTab === tab.key ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-muted-foreground hover:text-foreground'
+              activeTab === tab.key ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-gray-400 hover:text-gray-200'
             }`}
           >{tab.label}</button>
         ))}
@@ -151,29 +143,27 @@ export default function ForecastingPage() {
       {/* Pipeline stages */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {pipelineStages.map(stage => (
-          <div key={stage.stage}
-            onClick={() => setDrillTarget({ title: `${stage.stage} — Transactions`, records: stage.records })}
-            className="bg-secondary border border-border rounded-xl p-4 cursor-pointer hover:bg-secondary/60 transition-colors">
+          <div key={stage.stage} className="bg-[#0f1923] border border-[#1e2d3d] rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-3 h-3 rounded-full" style={{ background: stage.color }} />
-              <span className="text-muted-foreground text-sm">{stage.stage}</span>
+              <span className="text-gray-400 text-sm">{stage.stage}</span>
             </div>
-            <div className="text-2xl font-bold text-foreground">{stage.count}</div>
-            <div className="text-muted-foreground text-xs mt-1">transactions</div>
+            <div className="text-2xl font-bold text-white">{stage.count}</div>
+            <div className="text-gray-500 text-xs mt-1">transactions</div>
           </div>
         ))}
       </div>
 
       {/* Agent Projections Tab */}
       {activeTab === 'agent' && (
-        <div className="bg-secondary border border-border rounded-xl overflow-hidden mb-6">
-          <div className="px-6 py-4 border-b border-border">
-            <h2 className="text-foreground font-semibold">Agent GCI Projections ({scenario})</h2>
+        <div className="bg-[#0f1923] border border-[#1e2d3d] rounded-xl overflow-hidden mb-6">
+          <div className="px-6 py-4 border-b border-[#1e2d3d]">
+            <h2 className="text-white font-semibold">Agent GCI Projections ({scenario})</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border text-muted-foreground text-xs bg-secondary">
+                <tr className="border-b border-[#1e2d3d] text-gray-400 text-xs bg-[#0a0f16]">
                   <th className="px-4 py-3 text-left">Agent</th>
                   <th className="px-4 py-3 text-right">YTD GCI</th>
                   <th className="px-4 py-3 text-right">Projected Annual</th>
@@ -187,18 +177,11 @@ export default function ForecastingPage() {
                   const projGCI = a.totalCommission * (12 / Math.max(1, new Date().getMonth() + 1)) * multipliers[scenario];
                   const projDeals = Math.round(a.closedDeals * (12 / Math.max(1, new Date().getMonth() + 1)) * multipliers[scenario]);
                   return (
-                    <tr
-                      key={a.agentName}
-                      className="border-b border-border hover:bg-secondary/50 cursor-pointer"
-                      onClick={() => {
-                        const recs = allRecords.filter(r => (r.agents || '').toLowerCase().includes(a.agentName.toLowerCase()));
-                        setDrillAgent({ name: a.agentName, records: recs });
-                      }}
-                    >
-                      <td className="px-4 py-3 text-foreground">{a.agentName}</td>
+                    <tr key={a.agentName} className="border-b border-[#1a2332] hover:bg-[#1a2332]/30">
+                      <td className="px-4 py-3 text-gray-200">{a.agentName}</td>
                       <td className="px-4 py-3 text-right text-emerald-400">{formatCurrency(a.totalCommission)}</td>
-                      <td className="px-4 py-3 text-right text-foreground font-medium">{formatCurrency(projGCI)}</td>
-                      <td className="px-4 py-3 text-right text-foreground">{a.closedDeals}</td>
+                      <td className="px-4 py-3 text-right text-white font-medium">{formatCurrency(projGCI)}</td>
+                      <td className="px-4 py-3 text-right text-gray-300">{a.closedDeals}</td>
                       <td className="px-4 py-3 text-right text-blue-400">{projDeals}</td>
                       <td className="px-4 py-3 text-right">
                         {scenario === 'optimistic' ? (
@@ -206,7 +189,7 @@ export default function ForecastingPage() {
                         ) : scenario === 'conservative' ? (
                           <TrendingDown className="w-4 h-4 text-red-400 ml-auto" />
                         ) : (
-                          <span className="text-muted-foreground text-xs">—</span>
+                          <span className="text-gray-400 text-xs">—</span>
                         )}
                       </td>
                     </tr>
@@ -219,12 +202,12 @@ export default function ForecastingPage() {
       )}
 
       {/* Forecast chart */}
-      <div className="bg-secondary border border-border rounded-xl p-5">
+      <div className="bg-[#0f1923] border border-[#1e2d3d] rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-foreground font-semibold">
+          <h2 className="text-white font-semibold">
             {activeTab === 'pipeline' ? 'Monthly GCI Forecast' : activeTab === 'revenue' ? 'Revenue Forecast' : 'Projections'}
           </h2>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-4 text-xs text-gray-400">
             <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-emerald-500 inline-block" /> Actual</span>
             <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-blue-500 inline-block border-dashed border-t border-blue-500" /> Forecast</span>
           </div>
@@ -240,67 +223,11 @@ export default function ForecastingPage() {
               formatter={(v: any) => [formatCurrency(v), '']}
             />
             <ReferenceLine x={MONTHS[currentMonth]} stroke="#4b5563" strokeDasharray="4 4" label={{ value: 'Today', fill: '#9ca3af', fontSize: 11 }} />
-            <Bar dataKey="actual" fill="#10b981" radius={[4, 4, 0, 0]} name="Actual" cursor="pointer"
-              onClick={(data: any) => {
-                const month = data?.month as string;
-                const mi = MONTHS.indexOf(month);
-                if (mi < 0) return;
-                const recs = allRecords.filter(r => {
-                  const d = r.closingDate ? new Date(r.closingDate) : null;
-                  return d && d.getMonth() === mi && d.getFullYear() === new Date().getFullYear();
-                });
-                setDrillTarget({ title: `${month} ${new Date().getFullYear()} — Transactions`, records: recs });
-              }} />
+            <Bar dataKey="actual" fill="#10b981" radius={[4, 4, 0, 0]} name="Actual" />
             <Bar dataKey="forecast" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Forecast" opacity={0.7} />
           </BarChart>
         </ResponsiveContainer>
       </div>
-
-      {/* Agent drill-down modal */}
-      <Dialog open={!!drillAgent} onOpenChange={() => setDrillAgent(null)}>
-        <DialogContent className="max-w-3xl bg-background border border-border">
-          <DialogHeader>
-            <DialogTitle className="text-foreground">{drillAgent?.name} — All Transactions</DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="max-h-[60vh]">
-            {(drillAgent?.records.length ?? 0) === 0 ? (
-              <p className="text-muted-foreground py-8 text-center text-sm">No transactions found.</p>
-            ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-muted-foreground text-xs">
-                    <th className="text-left py-2 pr-4 font-medium">Address</th>
-                    <th className="text-left py-2 pr-4 font-medium">Status</th>
-                    <th className="text-right py-2 pr-4 font-medium">Sale Price</th>
-                    <th className="text-right py-2 font-medium">GCI</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {drillAgent!.records.slice(0, 50).map((r, i) => (
-                    <tr key={i} className="border-b border-border/40 hover:bg-secondary/30">
-                      <td className="py-2 pr-4 text-foreground">{r.address || r.loopName || '—'}</td>
-                      <td className="py-2 pr-4">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          r.loopStatus === 'Closed' || r.loopStatus === 'Sold' ? 'bg-emerald-500/20 text-emerald-400'
-                          : r.loopStatus === 'Under Contract' ? 'bg-blue-500/20 text-blue-400'
-                          : 'bg-secondary text-muted-foreground'
-                        }`}>{r.loopStatus || '—'}</span>
-                      </td>
-                      <td className="py-2 pr-4 text-right text-muted-foreground text-xs">{r.salePrice ? formatCurrency(r.salePrice) : '—'}</td>
-                      <td className="py-2 text-right text-emerald-400 text-xs">{r.commissionTotal ? formatCurrency(r.commissionTotal) : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-            {(drillAgent?.records.length ?? 0) > 50 && (
-              <p className="text-muted-foreground text-xs mt-2">Showing 50 of {drillAgent!.records.length} records.</p>
-            )}
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
-
-      <TxDrillModal target={drillTarget} onClose={() => setDrillTarget(null)} />
     </div>
   );
 }

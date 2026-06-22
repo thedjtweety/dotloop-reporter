@@ -91,7 +91,7 @@ import PropertyTypeChart from '@/components/charts/PropertyTypeChart';
 import GeographicChart from '@/components/charts/GeographicChart';
 import SalesTimelineChart from '@/components/charts/SalesTimelineChart';
 import AgentLeaderboardWithExport from '@/components/AgentLeaderboardWithExport';
-import DrillDownModal from '@/components/LegacyTransactionDrillModal';
+import DrillDownModal from '@/components/DrillDownModal';
 import DataHealthCheck from '@/components/DataHealthCheck';
 import CommissionPlansManager from '@/components/CommissionPlansManager';
 import TeamManager from '@/components/TeamManager';
@@ -125,7 +125,6 @@ import CSVPreparationGuide from '@/components/CSVPreparationGuide';
 import { useMetricsOrder } from '@/hooks/useMetricsOrder';
 import { DraggableMetricsContainer } from '@/components/DraggableMetricsContainer';
 import { renderMetricCard } from '@/lib/metricRenderHelper';
-import { useSettings } from '@/hooks/useSettings';
 
 function HomeContent() {
   // The userAuth hooks provides authentication state
@@ -133,7 +132,6 @@ function HomeContent() {
   let { user, loading, error, isAuthenticated, logout } = useAuth();
   const { filters, addFilter } = useFilters();
   const { setTransactionData, setComparisonDataSet, comparisonMode, toggleComparisonMode, metrics: contextMetrics, allRecords: contextAllRecords } = useTransactionData();
-  const { settings: appSettings } = useSettings();
 
   const [location, setLocation] = useLocation();
   const { metricsOrder, isEditMode, isLoaded, reorderMetrics, resetToDefault, toggleEditMode } = useMetricsOrder();
@@ -638,15 +636,8 @@ function HomeContent() {
   // Client-side only - no database persistence needed
 
   const handleFileUpload = async (file: File) => {
-    // Enforce configured file size limit
-    const maxSizeBytes = appSettings.uploadLimits.maxFileSizeMB * 1024 * 1024;
-    if (file.size > maxSizeBytes) {
-      toast.error(`File exceeds the ${appSettings.uploadLimits.maxFileSizeMB}MB limit. Change this in Settings → Upload & Push Limits.`);
-      return;
-    }
-
     setIsLoading(true);
-
+    
     // Show progress dialog for files > 1MB
     const shouldShowProgress = file.size > 1024 * 1024; // 1MB
     if (shouldShowProgress) {
@@ -1321,7 +1312,7 @@ function HomeContent() {
                 </p>
               </div>
               <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                <HomeIcon className="w-6 h-6 text-muted-foreground dark:text-foreground" />
+                <HomeIcon className="w-6 h-6 text-gray-700 dark:text-gray-300" />
               </div>
             </div>
           </Card>

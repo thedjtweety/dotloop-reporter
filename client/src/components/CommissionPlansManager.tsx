@@ -19,28 +19,19 @@ export default function CommissionPlansManager() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Load plans from localStorage
-  useEffect(() => {
-    const savedPlans = localStorage.getItem('commission_plans');
-    if (savedPlans) {
-      try {
-        setPlans(JSON.parse(savedPlans));
-      } catch (e) {
-        console.error('Failed to parse saved plans', e);
-      }
-    }
-  }, []);
+  // Fetch plans from database
+  const { data: dbPlans, refetch, error: plansError } = trpc.commission.getPlans.useQuery(undefined, {
+    retry: false,
+  });
+  const savePlanMutation = trpc.commission.savePlan.useMutation();
+  const deletePlanMutation = trpc.commission.deletePlan.useMutation();
 
-  const refetch = () => {
-    const savedPlans = localStorage.getItem('commission_plans');
-    if (savedPlans) {
-      try {
-        setPlans(JSON.parse(savedPlans));
-      } catch (e) {
-        console.error('Failed to parse saved plans', e);
-      }
+  useEffect(() => {
+    // Use database plans
+    if (dbPlans) {
+      setPlans(dbPlans);
     }
-  };
+  }, [dbPlans]);
 
   const handleSavePlan = async () => {
     if (!currentPlan.name || currentPlan.splitPercentage === undefined) return;
@@ -60,11 +51,15 @@ export default function CommissionPlansManager() {
         tiers: currentPlan.tiers || [],
       };
 
-      // Save to localStorage
-      const updatedPlans = currentPlan.id 
-        ? plans.map(p => p.id === currentPlan.id ? newPlan : p)
-        : [...plans, newPlan];
-      localStorage.setItem('commission_plans', JSON.stringify(updatedPlans));
+      // Save to database via tRPC
+      await savePlanMutation.mutateAsync(newPlan);
+
+      let updatedPlans;
+      if (currentPlan.id) {
+        updatedPlans = plans.map(p => p.id === currentPlan.id ? newPlan : p);
+      } else {
+        updatedPlans = [...plans, newPlan];
+      }
 
       setPlans(updatedPlans);
       await refetch();
@@ -82,7 +77,7 @@ export default function CommissionPlansManager() {
     if (confirm('Are you sure you want to delete this plan?')) {
       try {
         setIsSaving(true);
-        // Delete from localStorage
+        // Delete from database via tRPC
         await deletePlanMutation.mutateAsync(id);
         
         const updatedPlans = plans.filter(p => p.id !== id);

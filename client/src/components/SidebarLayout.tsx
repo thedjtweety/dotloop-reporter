@@ -1,23 +1,40 @@
+// @ts-nocheck
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import {
-  LayoutDashboard, Upload, Users, DollarSign, FileText, Building2,
-  GitCompare, UsersRound, Target, TrendingUp, Trophy, BarChart3,
-  UserPlus, MapPin, Clock, ClipboardList, Settings, ChevronLeft,
-  ChevronRight, Sun, Moon, ChevronDown, Calendar, X, History,
-  Trash2, Gauge, Heart, Receipt, Calculator, Copy, ListTodo,
-  ShieldCheck, ShieldAlert, Percent, Eye, Monitor, LogIn, UserCircle, LogOut,
+  LayoutDashboard,
+  Users,
+  DollarSign,
+  FileText,
+  Building2,
+  GitCompare,
+  UsersRound,
+  Target,
+  TrendingUp,
+  Trophy,
+  BarChart3,
+  UserPlus,
+  MapPin,
+  Clock,
+  ClipboardList,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Sun,
+  Moon,
+  ChevronDown,
+  Calendar,
+  X,
+  FlaskConical,
+  History,
+  Trash2,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTransactionData, DateRangeFilter } from '../contexts/TransactionDataContext';
 import { useCDAPanel } from '../contexts/CDAContext';
-import { useSettings } from '@/hooks/useSettings';
-import { useAuth } from '../contexts/AuthContext';
-import supabase from '@/lib/supabase';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-
-// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface NavItem {
   label: string;
@@ -26,125 +43,79 @@ interface NavItem {
   badge?: string;
 }
 
-interface NavGroup {
-  title: string;
-  items: NavItem[];
-}
-
-// ─── Navigation ──────────────────────────────────────────────────────────────
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    title: 'Overview',
-    items: [
-      { label: 'Dashboard',   icon: LayoutDashboard, path: '/' },
-      { label: 'Upload Data', icon: Upload,           path: '/upload' },
-    ],
-  },
-  {
-    title: 'Deals & Pipeline',
-    items: [
-      { label: 'Agents',       icon: Users,     path: '/agents' },
-      { label: 'Commission',   icon: DollarSign, path: '/commission' },
-      { label: 'Net Report',   icon: FileText,  path: '/net-commission-report' },
-      { label: 'CDA Builder',  icon: Building2, path: '/cda-builder' },
-      { label: 'CDA History',  icon: History,   path: '/cda-history' },
-      { label: 'Stuck Deals',  icon: Clock,     path: '/stuck-deals' },
-      { label: 'Tasks',        icon: ListTodo,  path: '/tasks' },
-    ],
-  },
-  {
-    title: 'Analytics',
-    items: [
-      { label: 'Trends',      icon: TrendingUp, path: '/trends' },
-      { label: 'Forecasting', icon: BarChart3,  path: '/forecasting' },
-      { label: 'Goals',       icon: Target,     path: '/goals' },
-      { label: 'Timeline',    icon: Calendar,   path: '/timeline' },
-      { label: 'Velocity',    icon: Gauge,      path: '/velocity' },
-      { label: 'Compare',     icon: GitCompare, path: '/compare' },
-      { label: 'Market',      icon: MapPin,     path: '/market' },
-    ],
-  },
-  {
-    title: 'Team & Growth',
-    items: [
-      { label: 'Teams',      icon: UsersRound, path: '/teams' },
-      { label: 'Contests',   icon: Trophy,     path: '/contests' },
-      { label: 'Recruiting', icon: UserPlus,   path: '/recruiting' },
-      { label: 'Retention',  icon: Heart,      path: '/retention' },
-      { label: 'Lead ROI',   icon: Percent,    path: '/lead-roi' },
-    ],
-  },
-  {
-    title: 'Finance & Ops',
-    items: [
-      { label: 'Agent Billing', icon: Receipt,    path: '/agent-billing' },
-      { label: 'QuickBooks',    icon: Calculator, path: '/quickbooks' },
-      { label: 'Templates',     icon: Copy,       path: '/templates' },
-    ],
-  },
-  {
-    title: 'Reports & Admin',
-    items: [
-      { label: 'Reports',      icon: BarChart3,   path: '/reporting' },
-      { label: 'Data Quality', icon: ShieldCheck, path: '/data-quality' },
-      { label: 'Audit Log',    icon: ClipboardList, path: '/audit-log' },
-      { label: 'Admin',        icon: ShieldAlert, path: '/admin' },
-    ],
-  },
+// ALL NAVIGATION ITEMS - All visible in sidebar
+const navItems: NavItem[] = [
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+  { label: 'Agents', icon: Users, path: '/agents' },
+  { label: 'Commission', icon: DollarSign, path: '/commission' },
+  { label: 'Net Report', icon: FileText, path: '/net-commission-report' },
+  { label: 'CDA Builder', icon: Building2, path: '/cda-builder' },
+  { label: 'CDA History', icon: History, path: '/cda-history' },
+  { label: 'Compare', icon: GitCompare, path: '/compare' },
+  { label: 'Teams', icon: UsersRound, path: '/teams' },
+  { label: 'Goals', icon: Target, path: '/goals' },
+  { label: 'Trends', icon: TrendingUp, path: '/trends' },
+  { label: 'Contests', icon: Trophy, path: '/contests' },
+  { label: 'Forecasting', icon: BarChart3, path: '/forecasting' },
+  { label: 'Recruiting', icon: UserPlus, path: '/recruiting' },
+  { label: 'Market', icon: MapPin, path: '/market' },
+  { label: 'Timeline', icon: Clock, path: '/timeline' },
+  { label: 'Audit Log', icon: ClipboardList, path: '/audit-log' },
 ];
 
+const bottomItems: NavItem[] = [
+  { label: 'Preview as Agent', icon: Eye, path: '/preview-agent' },
+  { label: 'Settings', icon: Settings, path: '/settings' },
+];
+
+// Quick date presets
 const DATE_PRESETS = [
   {
     label: 'Last 30 Days',
-    getRange: (): DateRangeFilter => {
-      const to = new Date(); const from = new Date();
+    getRange: () => {
+      const to = new Date();
+      const from = new Date();
       from.setDate(from.getDate() - 30);
       return { from, to, label: 'Last 30 Days' };
     },
   },
   {
     label: 'Last 90 Days',
-    getRange: (): DateRangeFilter => {
-      const to = new Date(); const from = new Date();
+    getRange: () => {
+      const to = new Date();
+      const from = new Date();
       from.setDate(from.getDate() - 90);
       return { from, to, label: 'Last 90 Days' };
     },
   },
   {
     label: 'This Year',
-    getRange: (): DateRangeFilter => {
-      const to = new Date(); const from = new Date(to.getFullYear(), 0, 1);
+    getRange: () => {
+      const to = new Date();
+      const from = new Date(to.getFullYear(), 0, 1);
       return { from, to, label: 'This Year' };
     },
   },
   {
     label: 'Last Year',
-    getRange: (): DateRangeFilter => {
+    getRange: () => {
       const year = new Date().getFullYear() - 1;
-      return { from: new Date(year, 0, 1), to: new Date(year, 11, 31), label: 'Last Year' };
+      const from = new Date(year, 0, 1);
+      const to = new Date(year, 11, 31);
+      return { from, to, label: 'Last Year' };
     },
   },
 ];
 
-// ─── Theme helpers ────────────────────────────────────────────────────────────
-
-const THEME_CONFIG = {
-  dark:     { icon: Moon,    label: 'Dark',          next: 'Switch to Light' },
-  light:    { icon: Sun,     label: 'Light',         next: 'Switch to Contrast' },
-  contrast: { icon: Eye,     label: 'High Contrast', next: 'Switch to Dark' },
-  system:   { icon: Monitor, label: 'System',        next: 'Switch to Light' },
-} as const;
-
-// ─── Component ───────────────────────────────────────────────────────────────
-
 export default function SidebarLayout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
-  const { settings: appSettings } = useSettings();
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('sidebar_collapsed') === 'true';
+    }
+    return false;
+  });
 
-  const [collapsed, setCollapsed] = useState<boolean>(() =>
-    typeof window !== 'undefined' && localStorage.getItem('sidebar_collapsed') === 'true'
-  );
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTeamDropdown, setShowTeamDropdown] = useState(false);
   const [calendarRange, setCalendarRange] = useState<{ from?: Date; to?: Date }>({});
@@ -152,61 +123,28 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
   const datePickerRef = useRef<HTMLDivElement>(null);
   const teamDropdownRef = useRef<HTMLDivElement>(null);
 
-  const {
-    dateFilter, setDateFilter,
-    teamFilter, setTeamFilter,
-    hasData, activeDataSetName, dataStatistics,
-    clearTransactionData, teams, isDemoMode,
-  } = useTransactionData();
-
+  const { dateFilter, setDateFilter, teamFilter, setTeamFilter } = useTransactionData();
+  const { transactionData, dataStatistics, clearTransactionData } = useTransactionData();
   const { openCDAHistory } = useCDAPanel();
   const { theme, toggleTheme } = useTheme();
-  const { user, isAuthenticated, signOut } = useAuth();
 
-  // Dotloop sync status (live badge)
-  const [syncStatus, setSyncStatus] = useState<{
-    connected: boolean;
-    lastSynced?: string;
-    syncStatus?: string;
-  } | null>(null);
+  const hasData = transactionData && transactionData.length > 0;
+  const activeDataSetName = transactionData?.[0]?.loopName || '';
+  const teams = ['All Teams', 'Team A', 'Team B', 'Team C'];
 
+  // Close dropdowns when clicking outside
   useEffect(() => {
-    let cancelled = false;
-    async function fetchSyncStatus() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-        const res = await fetch('/api/dotloop/status', { credentials: 'include' });
-        if (!res.ok || cancelled) return;
-        const data = await res.json() as typeof syncStatus;
-        if (!cancelled) setSyncStatus(data);
-      } catch { /* ignore */ }
-    }
-    void fetchSyncStatus();
-    const interval = setInterval(() => { void fetchSyncStatus(); }, 30_000);
-    return () => { cancelled = true; clearInterval(interval); };
-  }, []);
-
-  async function handleManualSync() {
-    try {
-      await fetch('/api/dotloop/sync', { method: 'POST', credentials: 'include' });
-      setSyncStatus(prev => prev ? { ...prev, syncStatus: 'running' } : prev);
-    } catch { /* ignore */ }
-  }
-
-  // Build team list: "All Teams" + unique agents from context
-  const teamOptions = ['All Teams', ...teams.slice(0, 20)];
-
-  const themeConf = THEME_CONFIG[theme] ?? THEME_CONFIG.dark;
-  const ThemeIcon = themeConf.icon;
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (datePickerRef.current && !datePickerRef.current.contains(e.target as Node)) setShowDatePicker(false);
-      if (teamDropdownRef.current && !teamDropdownRef.current.contains(e.target as Node)) setShowTeamDropdown(false);
+    const handleClickOutside = (e: MouseEvent) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(e.target as Node)) {
+        setShowDatePicker(false);
+      }
+      if (teamDropdownRef.current && !teamDropdownRef.current.contains(e.target as Node)) {
+        setShowTeamDropdown(false);
+      }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleCollapse = () => {
@@ -215,8 +153,10 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
     localStorage.setItem('sidebar_collapsed', String(next));
   };
 
-  const isActive = (path: string) =>
-    path === '/' ? location === '/' : location.startsWith(path);
+  const isActive = (path: string) => {
+    if (path === '/') return location === '/';
+    return location.startsWith(path);
+  };
 
   const applyCalendarRange = () => {
     if (calendarRange.from && calendarRange.to) {
@@ -231,44 +171,38 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
 
   const clearDateFilter = () => {
     setDateFilter({ from: undefined, to: undefined, label: 'All Data' });
-    setCalendarRange({});
+    setCalendarRange({ from: undefined, to: undefined });
     setShowDatePicker(false);
   };
 
-  const isFiltered = !!(dateFilter.from || dateFilter.to || teamFilter.teamId !== 'all');
+  const isFiltered = dateFilter.from || dateFilter.to || teamFilter.teamId !== 'all';
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-
-      {/* ── Sidebar ── */}
+    <div className="flex h-screen bg-[#0d1117] overflow-hidden">
+      {/* Sidebar */}
       <aside
-        className={`flex flex-col bg-background border-r border-border transition-all duration-300 shrink-0 z-20 relative ${
+        className={`flex flex-col bg-[#0d1117] border-r border-[#1e2d3d] transition-all duration-300 ${
           collapsed ? 'w-[56px]' : 'w-[220px]'
-        }`}
+        } shrink-0 z-20 relative`}
       >
         {/* Logo */}
-        <div className={`flex items-center gap-2 px-3 py-4 border-b border-border ${collapsed ? 'justify-center' : ''}`}>
-          {appSettings.branding.logoBase64 ? (
-            <img src={appSettings.branding.logoBase64} alt="logo" className="w-7 h-7 rounded-md object-contain shrink-0" />
-          ) : (
-            <div className="w-7 h-7 rounded-md bg-emerald-500 flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-sm">D</span>
-            </div>
-          )}
+        <div className={`flex items-center gap-2 px-3 py-4 border-b border-[#1e2d3d] ${collapsed ? 'justify-center' : ''}`}>
+          <div className="w-7 h-7 rounded-md bg-emerald-500 flex items-center justify-center shrink-0">
+            <span className="text-white font-bold text-sm">D</span>
+          </div>
           {!collapsed && (
             <div className="min-w-0">
-              <div className="text-foreground font-bold text-sm leading-tight truncate">{appSettings.brokerage.name || 'Dotloop Reporter'}</div>
-              <div className="text-muted-foreground text-[10px] truncate">
+              <div className="text-white font-bold text-sm leading-tight truncate">Dotloop Reporter</div>
+              <div className="text-gray-500 text-[10px] truncate">
                 {activeDataSetName ? `📊 ${activeDataSetName}` : 'Real Estate Analytics'}
               </div>
             </div>
           )}
         </div>
 
-        {/* Filter Bar */}
+        {/* Filter Bar - Compact at top */}
         {!collapsed && (
-          <div className="px-2 py-2 border-b border-border space-y-1.5">
-
+          <div className="px-2 py-2 border-b border-[#1e2d3d] space-y-1.5 bg-[#0a0e13]">
             {/* Date filter */}
             <div ref={datePickerRef} className="relative">
               <button
@@ -276,49 +210,62 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                 className={`w-full flex items-center justify-between px-2 py-1.5 rounded text-xs transition-colors ${
                   dateFilter.from || dateFilter.to
                     ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                    : 'bg-secondary text-foreground hover:bg-secondary/80'
+                    : 'bg-[#1a2332] text-gray-300 hover:bg-[#1e2d3d]'
                 }`}
               >
                 <div className="flex items-center gap-1.5 min-w-0">
                   <Calendar className="w-3 h-3 shrink-0" />
                   <span className="truncate text-[11px]">{dateFilter.label}</span>
                 </div>
-                {dateFilter.from
-                  ? <X className="w-3 h-3 shrink-0 ml-1 hover:text-destructive" onClick={e => { e.stopPropagation(); clearDateFilter(); }} />
-                  : <ChevronDown className="w-3 h-3 shrink-0 ml-1" />
-                }
+                {dateFilter.from ? (
+                  <X
+                    className="w-3 h-3 shrink-0 ml-1 hover:text-red-400"
+                    onClick={(e) => { e.stopPropagation(); clearDateFilter(); }}
+                  />
+                ) : (
+                  <ChevronDown className="w-3 h-3 shrink-0 ml-1" />
+                )}
               </button>
 
               {showDatePicker && (
-                <div className="absolute left-0 top-full mt-1 z-50 bg-background border border-border rounded-lg shadow-2xl p-3 w-[280px]">
+                <div className="absolute left-0 top-full mt-1 z-50 bg-[#0d1117] border border-[#1e2d3d] rounded-lg shadow-2xl p-3 w-[280px]">
+                  {/* Quick presets */}
                   <div className="grid grid-cols-2 gap-1 mb-3">
-                    {DATE_PRESETS.map(p => (
+                    {DATE_PRESETS.map((p) => (
                       <button
                         key={p.label}
-                        onClick={() => { setDateFilter(p.getRange()); setCalendarRange({}); setShowDatePicker(false); }}
+                        onClick={() => {
+                          const range = p.getRange();
+                          setDateFilter(range as DateRangeFilter);
+                          setCalendarRange({ from: range.from, to: range.to });
+                          setShowDatePicker(false);
+                        }}
                         className={`text-[11px] px-2 py-1 rounded transition-colors text-left ${
                           dateFilter.label === p.label
                             ? 'bg-emerald-500/20 text-emerald-400'
-                            : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                            : 'text-gray-400 hover:bg-[#1a2332] hover:text-gray-200'
                         }`}
                       >
                         {p.label}
                       </button>
                     ))}
                   </div>
-                  <div className="border-t border-border pt-2 mb-2">
-                    <div className="text-[10px] text-muted-foreground mb-1">Custom Range</div>
+                  <div className="border-t border-[#1e2d3d] pt-2 mb-2">
+                    <div className="text-[10px] text-gray-500 mb-1">Custom Range</div>
                     <DayPicker
                       mode="range"
-                      selected={calendarRange as { from?: Date; to?: Date } & { from: Date | undefined }}
-                      onSelect={(range) => setCalendarRange(range ?? {})}
+                      selected={calendarRange as any}
+                      onSelect={(range: any) => setCalendarRange(range || {})}
                       numberOfMonths={1}
-                      className="!text-xs"
-                      style={{ '--rdp-accent-color': '#10b981' } as React.CSSProperties}
+                      className="!text-xs rdp-custom"
+                      style={{ '--rdp-accent-color': '#10b981' } as any}
                     />
                   </div>
                   <div className="flex gap-1">
-                    <button onClick={clearDateFilter} className="flex-1 text-[11px] py-1 rounded border border-border text-muted-foreground hover:text-foreground">
+                    <button
+                      onClick={clearDateFilter}
+                      className="flex-1 text-[11px] py-1 rounded border border-[#1e2d3d] text-gray-400 hover:text-gray-200"
+                    >
                       Clear
                     </button>
                     <button
@@ -340,27 +287,36 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                 className={`w-full flex items-center justify-between px-2 py-1.5 rounded text-xs transition-colors ${
                   teamFilter.teamId !== 'all'
                     ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                    : 'bg-secondary text-foreground hover:bg-secondary/80'
+                    : 'bg-[#1a2332] text-gray-300 hover:bg-[#1e2d3d]'
                 }`}
               >
                 <div className="flex items-center gap-1.5 min-w-0">
                   <UsersRound className="w-3 h-3 shrink-0" />
                   <span className="truncate text-[11px]">{teamFilter.teamName}</span>
                 </div>
-                {teamFilter.teamId !== 'all'
-                  ? <X className="w-3 h-3 shrink-0 ml-1 hover:text-destructive" onClick={e => { e.stopPropagation(); setTeamFilter({ teamId: 'all', teamName: 'All Teams' }); }} />
-                  : <ChevronDown className="w-3 h-3 shrink-0 ml-1" />
-                }
+                {teamFilter.teamId !== 'all' ? (
+                  <X
+                    className="w-3 h-3 shrink-0 ml-1 hover:text-red-400"
+                    onClick={(e) => { e.stopPropagation(); setTeamFilter({ teamId: 'all', teamName: 'All Teams' }); }}
+                  />
+                ) : (
+                  <ChevronDown className="w-3 h-3 shrink-0 ml-1" />
+                )}
               </button>
 
               {showTeamDropdown && (
-                <div className="absolute left-0 top-full mt-1 z-50 bg-background border border-border rounded-lg shadow-2xl p-2 w-full max-h-48 overflow-y-auto">
-                  {teamOptions.map(t => (
+                <div className="absolute left-0 top-full mt-1 z-50 bg-[#0d1117] border border-[#1e2d3d] rounded-lg shadow-2xl p-2 w-full">
+                  {teams.map((t) => (
                     <button
                       key={t}
-                      onClick={() => { setTeamFilter({ teamId: t === 'All Teams' ? 'all' : t, teamName: t }); setShowTeamDropdown(false); }}
+                      onClick={() => {
+                        setTeamFilter({ teamId: t === 'All Teams' ? 'all' : t, teamName: t });
+                        setShowTeamDropdown(false);
+                      }}
                       className={`w-full text-left text-xs px-2 py-1.5 rounded transition-colors ${
-                        teamFilter.teamName === t ? 'bg-emerald-500/20 text-emerald-400' : 'text-foreground hover:bg-secondary'
+                        teamFilter.teamName === t
+                          ? 'bg-emerald-500/20 text-emerald-400'
+                          : 'text-gray-300 hover:bg-[#1a2332]'
                       }`}
                     >
                       {t}
@@ -370,10 +326,17 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
               )}
             </div>
 
+            {/* Active filter indicator */}
             {isFiltered && (
               <div className="flex items-center justify-between px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20">
                 <span className="text-[10px] text-amber-400">Filters active</span>
-                <button onClick={() => { clearDateFilter(); setTeamFilter({ teamId: 'all', teamName: 'All Teams' }); }} className="text-[10px] text-amber-400 hover:text-amber-300 underline">
+                <button
+                  onClick={() => {
+                    clearDateFilter();
+                    setTeamFilter({ teamId: 'all', teamName: 'All Teams' });
+                  }}
+                  className="text-[10px] text-amber-400 hover:text-amber-300 underline"
+                >
                   Clear all
                 </button>
               </div>
@@ -381,213 +344,123 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           </div>
         )}
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-2 px-1.5 space-y-0.5">
-          {NAV_GROUPS.map((group, gi) => (
-            <div key={gi} className={gi > 0 ? 'pt-2' : ''}>
-              {!collapsed && (
-                <div className="px-2 pb-1 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
-                  {group.title}
-                </div>
-              )}
-              {group.items.map(item => {
-                const Icon = item.icon;
-                const active = isActive(item.path);
-                return (
-                  <button
-                    key={item.path}
-                    onClick={() => setLocation(item.path)}
-                    title={collapsed ? item.label : undefined}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      active
-                        ? 'bg-emerald-500/20 text-emerald-400 shadow-sm'
-                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                    } ${collapsed ? 'justify-center' : ''}`}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    {!collapsed && (
-                      <span className="truncate text-[13px]">{item.label}</span>
-                    )}
-                    {!collapsed && item.badge && (
-                      <span className="ml-auto text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full font-semibold">
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+        {/* PRIMARY NAV - All tabs visible */}
+        <nav className="flex-1 overflow-y-auto py-2 space-y-0.5 px-1.5 scrollbar-thin">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <button
+                key={item.path}
+                onClick={() => setLocation(item.path)}
+                title={collapsed ? item.label : undefined}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  active
+                    ? 'bg-emerald-500/25 text-emerald-300 shadow-lg shadow-emerald-500/20'
+                    : 'text-gray-400 hover:bg-[#1a2332] hover:text-gray-200'
+                } ${collapsed ? 'justify-center' : ''}`}
+              >
+                <Icon className={`shrink-0 ${collapsed ? 'w-5 h-5' : 'w-5 h-5'}`} />
+                {!collapsed && <span className="truncate">{item.label}</span>}
+              </button>
+            );
+          })}
         </nav>
 
-        {/* Dotloop Live Sync Status */}
-        {!collapsed && syncStatus?.connected && (
-          <div className="px-2 py-1.5 border-t border-border">
-            <div className="flex items-center justify-between px-2 py-1.5 rounded-lg bg-emerald-500/5 border border-emerald-500/15">
-              <div className="flex items-center gap-1.5">
-                <div className={`w-1.5 h-1.5 rounded-full flex-none ${syncStatus.syncStatus === 'running' ? 'bg-blue-400 animate-pulse' : 'bg-emerald-400'}`} />
-                <span className="text-[10px] text-emerald-400 font-medium">
-                  {syncStatus.syncStatus === 'running' ? 'Syncing…' : 'Live'}
-                </span>
-                {syncStatus.lastSynced && syncStatus.syncStatus !== 'running' && (
-                  <span className="text-[9px] text-muted-foreground">
-                    · {new Date(syncStatus.lastSynced).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                )}
-              </div>
-              <button
-                onClick={() => { void handleManualSync(); }}
-                disabled={syncStatus.syncStatus === 'running'}
-                className="text-[9px] text-blue-400 hover:text-blue-300 disabled:opacity-50 transition-colors"
-                title="Sync now"
-              >
-                ↻
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Data Summary */}
+        {/* DATA SUMMARY - Sticky Card */}
         {hasData && !collapsed && (
-          <div className="px-2 pt-1 pb-2 border-t border-border">
-            <div className="px-2 py-2 rounded-lg bg-emerald-500/5 border border-emerald-500/15">
-              <div className="text-[9px] text-muted-foreground mb-1.5 font-semibold uppercase tracking-wide">
-                {isDemoMode ? 'Demo Data' : 'Loaded Data'}
-              </div>
-              <div className="space-y-1">
-                {[
-                  { label: 'Transactions', value: dataStatistics.transactionCount.toString() },
-                  { label: 'Total GCI', value: `$${(dataStatistics.totalGCI / 1_000_000).toFixed(1)}M` },
-                  { label: 'Close Rate', value: `${dataStatistics.closeRate.toFixed(1)}%` },
-                ].map(s => (
-                  <div key={s.label} className="flex justify-between text-[10px]">
-                    <span className="text-muted-foreground">{s.label}</span>
-                    <span className="text-emerald-400 font-semibold">{s.value}</span>
-                  </div>
-                ))}
+          <div className="px-2 py-3 border-t border-[#1e2d3d] bg-emerald-500/5">
+            <div className="px-2 py-2 rounded bg-emerald-500/10 border border-emerald-500/20">
+              <div className="text-[10px] text-gray-400 mb-2 font-semibold">Data Summary</div>
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-gray-500">Transactions:</span>
+                  <span className="text-emerald-400 font-semibold">{dataStatistics.transactionCount}</span>
+                </div>
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-gray-500">Total GCI:</span>
+                  <span className="text-emerald-400 font-semibold">${(dataStatistics.totalGCI / 1000000).toFixed(1)}M</span>
+                </div>
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-gray-500">Close Rate:</span>
+                  <span className="text-emerald-400 font-semibold">{(dataStatistics.closeRate * 100).toFixed(1)}%</span>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Bottom bar */}
-        <div className={`border-t border-border py-1.5 px-1.5 space-y-0.5 ${collapsed ? '' : ''}`}>
-
-          {/* CDA History shortcut */}
-          {!collapsed && (
-            <button
-              onClick={openCDAHistory}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-            >
-              <History className="w-4 h-4 shrink-0" />
-              <span className="truncate">CDA History</span>
-            </button>
-          )}
-
-          {/* Clear Data */}
-          {hasData && (
+        {/* BOTTOM ACTIONS */}
+        <div className="border-t border-[#1e2d3d] py-2 px-1.5 space-y-0.5 bg-[#0a0e13]">
+          {/* Clear Data button */}
+          {hasData && !collapsed && (
             <button
               onClick={() => {
-                if (confirm('Clear all data and return to dashboard?')) {
+                if (confirm('Clear all data and return to home? This will reset all filters and loaded data.')) {
                   clearTransactionData();
                   setLocation('/');
                 }
               }}
-              title={collapsed ? 'Clear Data' : undefined}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors ${collapsed ? 'justify-center' : ''}`}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
             >
               <Trash2 className="w-4 h-4 shrink-0" />
-              {!collapsed && <span className="truncate">Clear Data</span>}
+              <span className="truncate">Clear Data</span>
             </button>
           )}
 
-          {/* Settings */}
-          <button
-            onClick={() => setLocation('/settings')}
-            title={collapsed ? 'Settings' : undefined}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-              isActive('/settings') ? 'bg-emerald-500/20 text-emerald-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-            } ${collapsed ? 'justify-center' : ''}`}
-          >
-            <Settings className="w-4 h-4 shrink-0" />
-            {!collapsed && <span className="truncate">Settings</span>}
-          </button>
+          {/* Demo mode button */}
+          {!collapsed && (
+            <div className="px-2 py-1.5 rounded bg-purple-500/10 border border-purple-500/20 text-[10px] text-purple-400 text-center">
+              Demo mode active
+            </div>
+          )}
 
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            title={collapsed ? themeConf.next : undefined}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors ${collapsed ? 'justify-center' : ''}`}
+            title={collapsed ? `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode` : undefined}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-gray-400 hover:bg-[#1a2332] hover:text-gray-200 transition-colors ${collapsed ? 'justify-center' : ''}`}
           >
-            <ThemeIcon className="w-4 h-4 shrink-0" />
-            {!collapsed && (
-              <div className="min-w-0">
-                <span className="text-[11px]">{themeConf.label}</span>
-              </div>
-            )}
+            {theme === 'dark' ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />}
+            {!collapsed && <span className="truncate">{theme === 'dark' ? 'Light' : 'Dark'} mode</span>}
           </button>
 
-          {/* Collapse toggle */}
+          {/* Bottom nav items */}
+          {bottomItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <button
+                key={item.path}
+                onClick={() => setLocation(item.path)}
+                title={collapsed ? item.label : undefined}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  active
+                    ? 'bg-emerald-500/20 text-emerald-400'
+                    : 'text-gray-400 hover:bg-[#1a2332] hover:text-gray-200'
+                } ${collapsed ? 'justify-center' : ''}`}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                {!collapsed && <span className="truncate">{item.label}</span>}
+              </button>
+            );
+          })}
+
+          {/* Collapse button */}
           <button
             onClick={handleCollapse}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors`}
+            title={collapsed ? 'Expand' : 'Collapse'}
+            className="w-full flex items-center justify-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-400 hover:bg-[#1a2332] hover:text-gray-200 transition-colors"
           >
-            {collapsed ? <ChevronRight className="w-4 h-4" /> : <><ChevronLeft className="w-4 h-4" /><span className="truncate">Collapse</span></>}
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            {!collapsed && <span className="truncate">Collapse</span>}
           </button>
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 flex flex-col overflow-y-auto bg-background">
-
-        {/* ── Topbar ── */}
-        <div className="sticky top-0 z-10 flex items-center justify-end gap-2 px-6 py-2 border-b border-border bg-background/90 backdrop-blur-sm shrink-0">
-          {isAuthenticated && user ? (
-            // Authenticated — show user info + sign out
-            <div className="flex items-center gap-2">
-              {user.brokerageName && (
-                <span className="text-xs text-muted-foreground hidden sm:block">{user.brokerageName}</span>
-              )}
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary border border-border">
-                <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
-                  <span className="text-white text-[9px] font-bold">{user.email.charAt(0).toUpperCase()}</span>
-                </div>
-                <span className="text-xs text-foreground hidden sm:block max-w-[140px] truncate">{user.email}</span>
-              </div>
-              <button
-                onClick={() => { void signOut(); setLocation('/login'); }}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary border border-border transition-colors"
-                title="Sign out"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:block">Sign out</span>
-              </button>
-            </div>
-          ) : (
-            // Not authenticated — show sign in / sign up buttons
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setLocation('/login')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary border border-border transition-colors"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                Sign in
-              </button>
-              <button
-                onClick={() => setLocation('/signup')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500 hover:bg-emerald-600 text-white transition-colors"
-              >
-                <UserCircle className="w-3.5 h-3.5" />
-                Create account
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="flex-1 p-6">
-          {children}
-        </div>
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col overflow-y-auto">
+        {children}
       </main>
     </div>
   );

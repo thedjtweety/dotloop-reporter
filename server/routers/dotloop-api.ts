@@ -110,7 +110,7 @@ export const dotloopApiRouter = router({
         for (const loop of loops) {
           const participants = await client.getLoopParticipants(
             input.profileId,
-            loop.loopId ?? String(loop.id)
+            loop.loopId
           );
           records.push(transformDotloopToRecord(loop, participants));
         }
@@ -239,7 +239,7 @@ export const dotloopApiRouter = router({
           try {
             const participants = await client.getLoopParticipants(
               input.profileId,
-              loop.loopId ?? String(loop.id)
+              loop.loopId
             );
             transactions.push(transformDotloopToRecord(loop, participants));
           } catch (error) {
