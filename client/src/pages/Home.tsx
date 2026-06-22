@@ -91,7 +91,7 @@ import PropertyTypeChart from '@/components/charts/PropertyTypeChart';
 import GeographicChart from '@/components/charts/GeographicChart';
 import SalesTimelineChart from '@/components/charts/SalesTimelineChart';
 import AgentLeaderboardWithExport from '@/components/AgentLeaderboardWithExport';
-import DrillDownModal from '@/components/DrillDownModal';
+import { DrillDownModal } from '@/components/DrillDownModal';
 import DataHealthCheck from '@/components/DataHealthCheck';
 import CommissionPlansManager from '@/components/CommissionPlansManager';
 import TeamManager from '@/components/TeamManager';
@@ -844,46 +844,18 @@ function HomeContent() {
                 Transform Your Data into <span className="text-primary">Actionable Insights</span>
               </h2>
               <p className="text-lg text-foreground max-w-3xl mx-auto">
-                Upload your Dotloop export or connect directly to Dotloop to instantly generate professional commission reports, agent leaderboards, and financial analytics.
+                Upload your Dotloop export CSV to instantly generate professional commission reports, agent leaderboards, and financial analytics.
               </p>
             </div>
 
             {/* Onboarding Checklist */}
             <OnboardingChecklist />
 
-            {/* Dual-column layout: CSV Upload (left) and Dotloop OAuth (right) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[500px]" style={{gridAutoRows: '1fr'}}>
-              {/* Left Column: CSV Upload */}
-              <div className="flex flex-col">
-                <div className="text-center lg:text-left mb-4">
-                  <h3 className="text-xl font-semibold mb-2">📄 Upload CSV File</h3>
-                  <p className="text-sm text-foreground/70">
-                    Upload a Dotloop export CSV file to analyze your data
-                  </p>
-                </div>
-                <Card className="flex-1 p-8 border-dashed border-2 border-border bg-card/50 hover:bg-card/80 transition-colors flex flex-col" data-tour="upload-zone">
-                  <div className="flex-1 flex flex-col">
-                    <UploadZone onFileUpload={handleFileUpload} isLoading={isLoading} />
-                  </div>
-                </Card>
-              </div>
-
-              {/* Right Column: Dotloop OAuth Login - Placeholder */}
-              <div className="flex flex-col">
-                <div className="text-center lg:text-left mb-4">
-                  <h3 className="text-xl font-semibold mb-2">🔗 Connect to Dotloop</h3>
-                  <p className="text-sm text-foreground/70">
-                    Login to your Dotloop workspace for real-time data sync
-                  </p>
-                </div>
-                <Card className="flex-1 p-8 flex items-center justify-center bg-card/50 border-dashed border-2 border-border">
-                  <div className="text-center">
-                    <div className="text-4xl mb-4">🔄</div>
-                    <p className="text-foreground/60 mb-4">Coming Soon</p>
-                    <p className="text-sm text-foreground/50">Direct Dotloop integration will be available soon. For now, use CSV uploads to import your data.</p>
-                  </div>
-                </Card>
-              </div>
+            {/* CSV Upload - full width */}
+            <div className="max-w-2xl mx-auto w-full" data-tour="upload-zone">
+              <Card className="p-8 border-dashed border-2 border-border bg-card/50 hover:bg-card/80 transition-colors">
+                <UploadZone onFileUpload={handleFileUpload} isLoading={isLoading} />
+              </Card>
             </div>
 
             {/* Comparison Mode Section */}
@@ -1616,10 +1588,8 @@ function HomeContent() {
 
       {/* Drill Down Modal */}
       <DrillDownModal
-        isOpen={drillDownOpen}
+        target={drillDownOpen ? { title: drillDownTitle, records: drillDownTransactions } : null}
         onClose={() => setDrillDownOpen(false)}
-        title={drillDownTitle}
-        transactions={drillDownTransactions}
       />
 
       {/* Field Mapper Dialog - Wrapped in Dialog to match props */}
@@ -1659,14 +1629,10 @@ function HomeContent() {
       />
       
       {/* Pipeline Full Details Modal */}
-      {pipelineFullDetailsOpen && (
-        <DrillDownModal
-          isOpen={pipelineFullDetailsOpen}
-          onClose={() => setPipelineFullDetailsOpen(false)}
-          title={`Pipeline: ${pipelineDrillDownStatus}`}
-          transactions={filteredRecords}
-        />
-      )}
+      <DrillDownModal
+        target={pipelineFullDetailsOpen ? { title: `Pipeline: ${pipelineDrillDownStatus}`, records: filteredRecords } : null}
+        onClose={() => setPipelineFullDetailsOpen(false)}
+      />
       
       {/* Generic Chart Drill-Down Modal */}
       <ChartDrillDown
@@ -1680,24 +1646,16 @@ function HomeContent() {
       />
       
       {/* Chart Full Details Modal */}
-      {chartFullDetailsOpen && (
-        <DrillDownModal
-          isOpen={chartFullDetailsOpen}
-          onClose={() => setChartFullDetailsOpen(false)}
-          title={chartDrillDownTitle}
-          transactions={filteredRecords}
-        />
-      )}
+      <DrillDownModal
+        target={chartFullDetailsOpen ? { title: chartDrillDownTitle, records: filteredRecords } : null}
+        onClose={() => setChartFullDetailsOpen(false)}
+      />
       
       {/* Analytics Charts Drill-Down Modal */}
-      {analyticsDrillDownOpen && (
-        <DrillDownModal
-          isOpen={analyticsDrillDownOpen}
-          onClose={() => setAnalyticsDrillDownOpen(false)}
-          title={analyticsDrillDownTitle}
-          transactions={analyticsDrillDownTransactions}
-        />
-      )}
+      <DrillDownModal
+        target={analyticsDrillDownOpen ? { title: analyticsDrillDownTitle, records: analyticsDrillDownTransactions } : null}
+        onClose={() => setAnalyticsDrillDownOpen(false)}
+      />
     </div>
   );
 }

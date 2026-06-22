@@ -112,7 +112,7 @@ export const commissionRouter = router({
    * - ytdSummaries: Year-to-date summary per agent
    * - timestamp: When calculation was performed
    */
-  calculate: protectedProcedure
+  calculate: publicProcedure
     .input(
       z.object({
         transactions: z.array(TransactionInputSchema),
@@ -128,13 +128,12 @@ export const commissionRouter = router({
           throw new Error("Database connection not available");
         }
         
-        // Fetch commission plans from database
+        // Fetch commission plans from database (no tenant filtering - single user tool)
         let plans: CommissionPlan[] = [];
         if (input.planIds && input.planIds.length > 0) {
           const dbPlans = await db
             .select()
-            .from(commissionPlans)
-            .where(eq(commissionPlans.tenantId, ctx.user.tenantId));
+            .from(commissionPlans);
           
           plans = dbPlans
             .filter((p: any) => input.planIds!.includes(p.id))
@@ -152,13 +151,12 @@ export const commissionRouter = router({
             } as CommissionPlan));
         }
 
-        // Fetch teams from database
+        // Fetch teams from database (no tenant filtering - single user tool)
         let teamsList: Team[] = [];
         if (input.teamIds && input.teamIds.length > 0) {
           const dbTeams = await db
             .select()
-            .from(teams)
-            .where(eq(teams.tenantId, ctx.user.tenantId));
+            .from(teams);
           
           teamsList = dbTeams
             .filter((t: any) => input.teamIds!.includes(t.id))

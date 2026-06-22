@@ -264,7 +264,7 @@ export const appRouter = router({
   auditLogs: auditLogRouter,
   upload: uploadRouter,
   dashboard: dashboardRouter,
-  commission: commissionManagementRouter,
+  commission: commissionRouter,
   reporting: reportingRouter,
   team: teamManagementRouter,
   dotloopIntegration: dotloopApiIntegrationRouter,
