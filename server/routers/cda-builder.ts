@@ -1,16 +1,16 @@
 import { z } from 'zod';
-import { protectedProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { getDb } from '../db';
 import { cdaDocuments } from '../../drizzle/schema';
 import { storagePut } from '../storage';
 import { TRPCError } from '@trpc/server';
 import { generateCdaPdf } from '../services/cda-pdf-generator';
 import { eq, desc } from 'drizzle-orm';
-import { getTenantIdFromUser } from '../lib/tenant-utils';
+import { getTenantIdFromUser, PUBLIC_TENANT_ID } from '../lib/public-tenant';
 
 export const cdaBuilderRouter = router({
   // Generate and save CDA PDF
-  generatePdf: protectedProcedure
+  generatePdf: publicProcedure
     .input(
       z.object({
         formData: z.object({
@@ -89,11 +89,11 @@ export const cdaBuilderRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        // public procedure - no auth check
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         
-        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        const tenantId = PUBLIC_TENANT_ID;
 
         // Generate PDF
         const pdfBuffer = await generateCdaPdf(input.formData, input.agents, input.waterfall, input.branding);
@@ -107,7 +107,7 @@ export const cdaBuilderRouter = router({
         );
 
         // Save CDA document record
-        const cdaId = `cda-${ctx.user.id}-${Date.now()}`;
+        const cdaId = `cda-${null}-${Date.now()}`;
         await db.insert(cdaDocuments).values({
           id: cdaId,
           tenantId: tenantId,
@@ -142,13 +142,13 @@ export const cdaBuilderRouter = router({
     }),
 
   // Get CDA documents
-  getCDADocuments: protectedProcedure.query(async ({ ctx }) => {
+  getCDADocuments: publicProcedure.query(async ({ ctx }) => {
     try {
-      if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
+      // public procedure - no auth check
       const db = await getDb();
       if (!db) throw new Error('Database not available');
       
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      const tenantId = PUBLIC_TENANT_ID;
       
       const documents = await db.select().from(cdaDocuments).where(eq(cdaDocuments.tenantId, tenantId)).orderBy((t) => t.createdAt).limit(100);
       return documents;
@@ -159,15 +159,15 @@ export const cdaBuilderRouter = router({
   }),
 
   // Delete CDA document
-  deleteCDADocument: protectedProcedure
+  deleteCDADocument: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        // public procedure - no auth check
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         
-        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        const tenantId = PUBLIC_TENANT_ID;
 
         const docs = await db.select().from(cdaDocuments).where(eq(cdaDocuments.id, input.id)).limit(1);
         const doc = docs.find(d => d.tenantId === tenantId);
@@ -182,15 +182,15 @@ export const cdaBuilderRouter = router({
     }),
 
   // Download CDA document
-  downloadCDADocument: protectedProcedure
+  downloadCDADocument: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
-        if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        // public procedure - no auth check
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         
-        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        const tenantId = PUBLIC_TENANT_ID;
 
         const docs = await db.select().from(cdaDocuments).where(eq(cdaDocuments.id, input.id)).limit(1);
         const doc = docs.find(d => d.tenantId === tenantId);

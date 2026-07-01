@@ -5,18 +5,18 @@
  */
 
 import { z } from 'zod';
-import { protectedProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { getDb } from '../db';
 import { auditLogs, oauthTokens } from '../../drizzle/schema';
 import { eq, desc, and } from 'drizzle-orm';
-import { getTenantIdFromUser } from '../lib/tenant-context';
+import { getTenantIdFromUser, PUBLIC_TENANT_ID } from '../lib/public-tenant';
 import { dotloopSyncService, type SyncResult } from '../services/dotloopSyncService';
 
 export const syncHistoryRouter = router({
   /**
    * Get sync history logs from database
    */
-  getLogs: protectedProcedure
+  getLogs: publicProcedure
     .input(
       z.object({
         limit: z.number().default(50),
@@ -28,7 +28,7 @@ export const syncHistoryRouter = router({
         const db = await getDb();
         if (!db) throw new Error('Database connection failed');
 
-        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        const tenantId = PUBLIC_TENANT_ID;
         const limit = input?.limit || 50;
         const offset = input?.offset || 0;
 
@@ -74,12 +74,12 @@ export const syncHistoryRouter = router({
   /**
    * Get sync statistics from all logs
    */
-  getStats: protectedProcedure.query(async ({ ctx }) => {
+  getStats: publicProcedure.query(async ({ ctx }) => {
     try {
       const db = await getDb();
       if (!db) throw new Error('Database connection failed');
 
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      const tenantId = PUBLIC_TENANT_ID;
 
       // Get all sync logs for this tenant
       const logs = await db
@@ -160,13 +160,13 @@ export const syncHistoryRouter = router({
   /**
    * Trigger manual sync from real Dotloop API
    */
-  triggerManualSync: protectedProcedure.mutation(async ({ ctx }) => {
+  triggerManualSync: publicProcedure.mutation(async ({ ctx }) => {
     const startTime = Date.now();
     try {
       const db = await getDb();
       if (!db) throw new Error('Database connection failed');
 
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      const tenantId = PUBLIC_TENANT_ID;
 
       // Verify user has valid Dotloop OAuth token
       const token = await db
@@ -174,7 +174,7 @@ export const syncHistoryRouter = router({
         .from(oauthTokens)
         .where(
           and(
-            eq(oauthTokens.userId, ctx.user.id),
+            eq(oauthTokens.userId, PUBLIC_TENANT_ID),
             eq(oauthTokens.provider, 'dotloop')
           )
         )
@@ -185,16 +185,16 @@ export const syncHistoryRouter = router({
       }
 
       // Call real Dotloop sync service
-      const result: SyncResult = await dotloopSyncService.manualSync(ctx.user.id, tenantId);
+      const result: SyncResult = await dotloopSyncService.manualSync(PUBLIC_TENANT_ID, tenantId);
 
       const durationMs = Date.now() - startTime;
 
       // Log the sync operation with real results
       await db.insert(auditLogs).values({
         tenantId,
-        adminId: ctx.user.id,
-        adminName: ctx.user.email || 'System',
-        adminEmail: ctx.user.email,
+        adminId: PUBLIC_TENANT_ID,
+        adminName: 'System',
+        adminEmail: '',
         action: 'settings_changed',
         targetType: 'system',
         details: JSON.stringify({
@@ -230,12 +230,12 @@ export const syncHistoryRouter = router({
       try {
         const db = await getDb();
         if (db) {
-          const tenantId = await getTenantIdFromUser(ctx.user.id);
+          const tenantId = PUBLIC_TENANT_ID;
           await db.insert(auditLogs).values({
             tenantId,
-            adminId: ctx.user.id,
-            adminName: ctx.user.email || 'System',
-            adminEmail: ctx.user.email,
+            adminId: PUBLIC_TENANT_ID,
+            adminName: 'System',
+            adminEmail: '',
             action: 'settings_changed',
             targetType: 'system',
             details: JSON.stringify({
@@ -268,14 +268,14 @@ export const syncHistoryRouter = router({
   /**
    * Get detailed log information
    */
-  getLogDetails: protectedProcedure
+  getLogDetails: publicProcedure
     .input(z.object({ logId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
         const db = await getDb();
         if (!db) throw new Error('Database connection failed');
 
-        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        const tenantId = PUBLIC_TENANT_ID;
 
         const log = await db
           .select()
@@ -316,12 +316,12 @@ export const syncHistoryRouter = router({
   /**
    * Get current sync status for real-time monitoring
    */
-  getSyncStatus: protectedProcedure.query(async ({ ctx }) => {
+  getSyncStatus: publicProcedure.query(async ({ ctx }) => {
     try {
       const db = await getDb();
       if (!db) throw new Error('Database connection failed');
 
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      const tenantId = PUBLIC_TENANT_ID;
 
       // Check if user has valid Dotloop token
       const token = await db
@@ -329,7 +329,7 @@ export const syncHistoryRouter = router({
         .from(oauthTokens)
         .where(
           and(
-            eq(oauthTokens.userId, ctx.user.id),
+            eq(oauthTokens.userId, PUBLIC_TENANT_ID),
             eq(oauthTokens.provider, 'dotloop')
           )
         )

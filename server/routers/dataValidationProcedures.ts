@@ -6,10 +6,10 @@
  */
 
 import { z } from 'zod';
-import { protectedProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { getDb } from '../db';
 import { auditLogs } from '../../drizzle/schema';
-import { getTenantIdFromUser } from '../lib/tenant-context';
+import { getTenantIdFromUser, PUBLIC_TENANT_ID } from '../lib/public-tenant';
 import { eq, and } from 'drizzle-orm';
 
 // Validation rule types
@@ -33,12 +33,12 @@ export const dataValidationRouter = router({
   /**
    * Get all active validation rules for tenant
    */
-  getRules: protectedProcedure.query(async ({ ctx }) => {
+  getRules: publicProcedure.query(async ({ ctx }) => {
     try {
       const db = await getDb();
       if (!db) throw new Error('Database connection failed');
 
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      const tenantId = PUBLIC_TENANT_ID;
 
       // Check in-memory store first
       if (rulesStore.has(tenantId)) {
@@ -76,7 +76,7 @@ export const dataValidationRouter = router({
   /**
    * Save a validation rule (create or update)
    */
-  saveRule: protectedProcedure
+  saveRule: publicProcedure
     .input(
       z.object({
         id: z.string().optional(),
@@ -92,7 +92,7 @@ export const dataValidationRouter = router({
         const db = await getDb();
         if (!db) throw new Error('Database connection failed');
 
-        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        const tenantId = PUBLIC_TENANT_ID;
 
         const ruleId = input.id || `rule-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -110,9 +110,9 @@ export const dataValidationRouter = router({
         // Log the action
         await db.insert(auditLogs).values({
           tenantId,
-          adminId: ctx.user.id,
-          adminName: ctx.user.email || 'System',
-          adminEmail: ctx.user.email,
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'System',
+          adminEmail: '',
           action: 'settings_changed',
           targetType: 'system',
           details: JSON.stringify({
@@ -150,21 +150,21 @@ export const dataValidationRouter = router({
   /**
    * Delete a validation rule
    */
-  deleteRule: protectedProcedure
+  deleteRule: publicProcedure
     .input(z.object({ ruleId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
         const db = await getDb();
         if (!db) throw new Error('Database connection failed');
 
-        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        const tenantId = PUBLIC_TENANT_ID;
 
         // Log the action
         await db.insert(auditLogs).values({
           tenantId,
-          adminId: ctx.user.id,
-          adminName: ctx.user.email || 'System',
-          adminEmail: ctx.user.email,
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'System',
+          adminEmail: '',
           action: 'settings_changed',
           targetType: 'system',
           details: JSON.stringify({
@@ -196,12 +196,12 @@ export const dataValidationRouter = router({
   /**
    * Get validation statistics
    */
-  getStats: protectedProcedure.query(async ({ ctx }) => {
+  getStats: publicProcedure.query(async ({ ctx }) => {
     try {
       const db = await getDb();
       if (!db) throw new Error('Database connection failed');
 
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      const tenantId = PUBLIC_TENANT_ID;
 
       const rules = rulesStore.get(tenantId) || [];
       const activeRules = rules.filter(r => r.isActive);
@@ -243,7 +243,7 @@ export const dataValidationRouter = router({
    * Validate data against active rules
    * Returns validation errors if any rules are violated
    */
-  validateData: protectedProcedure
+  validateData: publicProcedure
     .input(
       z.object({
         data: z.record(z.string(), z.any()),
@@ -251,7 +251,7 @@ export const dataValidationRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        const tenantId = PUBLIC_TENANT_ID;
 
         const rules = rulesStore.get(tenantId) || [];
         const activeRules = rules.filter(r => r.isActive);
@@ -359,7 +359,7 @@ export const dataValidationRouter = router({
   /**
    * Apply validation rules during sync - blocks invalid transactions
    */
-  applyValidationDuringSyncSync: protectedProcedure
+  applyValidationDuringSyncSync: publicProcedure
     .input(
       z.object({
         transactions: z.array(z.record(z.string(), z.any())),
@@ -367,7 +367,7 @@ export const dataValidationRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        const tenantId = PUBLIC_TENANT_ID;
 
         const rules = rulesStore.get(tenantId) || [];
         const activeRules = rules.filter(r => r.isActive);

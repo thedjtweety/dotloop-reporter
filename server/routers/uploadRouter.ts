@@ -1,10 +1,11 @@
+import { PUBLIC_TENANT_ID } from '../lib/public-tenant';
 /**
  * Upload Router - Priority 2.1: CSV Upload & Validation
  * Handles file uploads, validation, and data quality checks
  */
 
 import { z } from 'zod';
-import { protectedProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { TRPCError } from '@trpc/server';
 import { uploads } from '../../drizzle/schema';
 import { getDb } from '../db';
@@ -30,7 +31,7 @@ export const uploadRouter = router({
   /**
    * Validate uploaded CSV file
    */
-  validateCSV: protectedProcedure
+  validateCSV: publicProcedure
     .input(
       z.object({
         filename: z.string().min(1).max(255),
@@ -41,13 +42,7 @@ export const uploadRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         // Validate file type
         if (!ALLOWED_MIME_TYPES.includes(input.mimeType)) {
@@ -115,8 +110,8 @@ export const uploadRouter = router({
         // Log validation
         await logAuditEvent({
           tenantId: tenantId,
-          adminId: ctx.user.id as number,
-          adminName: ctx.user.email || 'Unknown',
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'Unknown',
           action: 'upload_viewed',
           targetType: 'upload',
           targetName: input.filename,
@@ -137,7 +132,7 @@ export const uploadRouter = router({
   /**
    * Store validated upload metadata
    */
-  storeUpload: protectedProcedure
+  storeUpload: publicProcedure
     .input(
       z.object({
         filename: z.string(),
@@ -149,13 +144,7 @@ export const uploadRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         const db = await getDb();
         if (!db) {
@@ -168,7 +157,7 @@ export const uploadRouter = router({
         // Store upload metadata
         await db.insert(uploads).values({
           tenantId: tenantId,
-          userId: ctx.user.id as number,
+          userId: PUBLIC_TENANT_ID,
           fileName: input.filename,
           fileSize: input.fileSize,
           recordCount: input.recordCount,
@@ -178,8 +167,8 @@ export const uploadRouter = router({
         // Log audit event
         await logAuditEvent({
           tenantId: tenantId,
-          adminId: ctx.user.id as number,
-          adminName: ctx.user.email || 'Unknown',
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'Unknown',
           action: 'upload_viewed',
           targetType: 'upload',
           targetName: input.filename,
@@ -202,7 +191,7 @@ export const uploadRouter = router({
   /**
    * Get upload history for tenant
    */
-  getUploadHistory: protectedProcedure
+  getUploadHistory: publicProcedure
     .input(
       z.object({
         limit: z.number().default(20),
@@ -211,13 +200,7 @@ export const uploadRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         const db = await getDb();
         if (!db) {
@@ -249,17 +232,11 @@ export const uploadRouter = router({
   /**
    * Delete upload
    */
-  deleteUpload: protectedProcedure
+  deleteUpload: publicProcedure
     .input(z.object({ uploadId: z.number() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         const db = await getDb();
         if (!db) {
@@ -288,8 +265,8 @@ export const uploadRouter = router({
         // Log audit event
         await logAuditEvent({
           tenantId: tenantId,
-          adminId: ctx.user.id as number,
-          adminName: ctx.user.email || 'Unknown',
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'Unknown',
           action: 'upload_deleted',
           targetType: 'upload',
           targetId: input.uploadId,

@@ -1,4 +1,5 @@
-import { router, protectedProcedure } from "../_core/trpc";
+import { PUBLIC_TENANT_ID } from "../lib/public-tenant";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getUserCDAHistory, getCDARecord, deleteCDARecord } from "../lib/cdaHistory";
 
@@ -6,7 +7,7 @@ export const cdaHistoryRouter = router({
   /**
    * Get user's CDA history (paginated)
    */
-  getHistory: protectedProcedure
+  getHistory: publicProcedure
     .input(
       z.object({
         limit: z.number().int().min(1).max(100).default(10),
@@ -14,11 +15,11 @@ export const cdaHistoryRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (!ctx.user?.id) throw new Error("Unauthorized");
+      // public procedure - no auth check needed
 
       const result = await getUserCDAHistory(
-        ctx.user.tenantId || 1,
-        ctx.user.id,
+        1,
+        1,
         input.limit,
         input.offset
       );
@@ -33,12 +34,12 @@ export const cdaHistoryRouter = router({
   /**
    * Get a single CDA record
    */
-  getRecord: protectedProcedure
+  getRecord: publicProcedure
     .input(z.object({ cdaId: z.string() }))
     .query(async ({ ctx, input }) => {
-      if (!ctx.user?.id) throw new Error("Unauthorized");
+      // public procedure - no auth check needed
 
-      const record = await getCDARecord(input.cdaId, ctx.user.tenantId || 1);
+      const record = await getCDARecord(input.cdaId, 1);
 
       if (!record) {
         throw new Error("CDA record not found");
@@ -55,12 +56,12 @@ export const cdaHistoryRouter = router({
   /**
    * Delete a CDA record
    */
-  delete: protectedProcedure
+  delete: publicProcedure
     .input(z.object({ cdaId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.user?.id) throw new Error("Unauthorized");
+      // public procedure - no auth check needed
 
-      const success = await deleteCDARecord(input.cdaId, ctx.user.tenantId || 1);
+      const success = await deleteCDARecord(input.cdaId, 1);
 
       if (!success) {
         throw new Error("Failed to delete CDA record");

@@ -1,10 +1,11 @@
+import { PUBLIC_TENANT_ID } from '../lib/public-tenant';
 /**
  * Commission Management Router - Phase 3: Commission Management (3.1-3.4)
  * Handles commission plans, agent assignments, calculations, and audit trails
  */
 
 import { z } from 'zod';
-import { protectedProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { TRPCError } from '@trpc/server';
 import { commissionPlans, agentAssignments, transactions } from '../../drizzle/schema';
 import { getDb } from '../db';
@@ -63,7 +64,7 @@ export const commissionManagementRouter = router({
   /**
    * Priority 3.1: Create commission plan
    */
-  createPlan: protectedProcedure
+  createPlan: publicProcedure
     .input(
       z.object({
         name: z.string().min(1),
@@ -92,7 +93,7 @@ export const commissionManagementRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
+        const tenantId = PUBLIC_TENANT_ID;
         if (!tenantId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -121,8 +122,8 @@ export const commissionManagementRouter = router({
         // Log audit event
         await logAuditEvent({
           tenantId,
-          adminId: ctx.user.id as number,
-          adminName: ctx.user.email || 'Unknown',
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'Unknown',
           action: 'user_created',
           targetType: 'system',
           targetName: `Commission Plan: ${input.name}`,
@@ -143,9 +144,9 @@ export const commissionManagementRouter = router({
   /**
    * Priority 3.1: Get all commission plans
    */
-  getPlans: protectedProcedure.query(async ({ ctx }) => {
+  getPlans: publicProcedure.query(async ({ ctx }) => {
     try {
-      const tenantId = ctx.user.id as number;
+      const tenantId = PUBLIC_TENANT_ID;
       if (!tenantId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -183,7 +184,7 @@ export const commissionManagementRouter = router({
   /**
    * Priority 3.2: Assign agent to commission plan
    */
-  assignAgent: protectedProcedure
+  assignAgent: publicProcedure
     .input(
       z.object({
         agentId: z.number(),
@@ -196,7 +197,7 @@ export const commissionManagementRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
+        const tenantId = PUBLIC_TENANT_ID;
         if (!tenantId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -244,8 +245,8 @@ export const commissionManagementRouter = router({
         // Log audit event
         await logAuditEvent({
           tenantId,
-          adminId: ctx.user.id as number,
-          adminName: ctx.user.email || 'Unknown',
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'Unknown',
           action: 'user_role_changed',
           targetType: 'user',
           targetName: input.agentName,
@@ -266,7 +267,7 @@ export const commissionManagementRouter = router({
   /**
    * Priority 3.3: Calculate commission for transaction
    */
-  calculateCommission: protectedProcedure
+  calculateCommission: publicProcedure
     .input(
       z.object({
         transactionId: z.number(),
@@ -277,7 +278,7 @@ export const commissionManagementRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
+        const tenantId = PUBLIC_TENANT_ID;
         if (!tenantId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -366,7 +367,7 @@ export const commissionManagementRouter = router({
   /**
    * Priority 3.4: Get commission audit trail
    */
-  getCommissionAudit: protectedProcedure
+  getCommissionAudit: publicProcedure
     .input(
       z.object({
         startDate: z.string().optional(),
@@ -376,7 +377,7 @@ export const commissionManagementRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
+        const tenantId = PUBLIC_TENANT_ID;
         if (!tenantId) {
           throw new TRPCError({
             code: 'FORBIDDEN',

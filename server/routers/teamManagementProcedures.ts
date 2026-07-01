@@ -1,4 +1,5 @@
-import { router, protectedProcedure } from "../_core/trpc";
+import { PUBLIC_TENANT_ID } from '../lib/public-tenant';
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import { teams, userTeamMembers, transactions } from "../../drizzle/schema";
@@ -9,7 +10,7 @@ export const teamManagementProceduresRouter = router({
   /**
    * Create team
    */
-  createTeam: protectedProcedure
+  createTeam: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -42,7 +43,7 @@ export const teamManagementProceduresRouter = router({
   /**
    * Add team member
    */
-  addTeamMember: protectedProcedure
+  addTeamMember: publicProcedure
     .input(
       z.object({
         teamId: z.number(),
@@ -59,7 +60,7 @@ export const teamManagementProceduresRouter = router({
         userId: input.userId,
         role: input.role,
         addedAt: new Date().toISOString(),
-        addedBy: ctx.user.id,
+        addedBy: PUBLIC_TENANT_ID,
       });
 
       return { success: true, memberId: (result as any).insertId };
@@ -68,7 +69,7 @@ export const teamManagementProceduresRouter = router({
   /**
    * Get team performance
    */
-  getTeamPerformance: protectedProcedure
+  getTeamPerformance: publicProcedure
     .input(
       z.object({
         teamId: z.number(),
@@ -155,7 +156,7 @@ export const teamManagementProceduresRouter = router({
   /**
    * List all teams
    */
-  listTeams: protectedProcedure
+  listTeams: publicProcedure
     .input(z.object({ tenantId: z.number() }))
     .query(async ({ input }) => {
       const db = await getDb();
@@ -167,7 +168,7 @@ export const teamManagementProceduresRouter = router({
   /**
    * Update team
    */
-  updateTeam: protectedProcedure
+  updateTeam: publicProcedure
     .input(
       z.object({
         teamId: z.number(),
@@ -196,7 +197,7 @@ export const teamManagementProceduresRouter = router({
   /**
    * Remove team member
    */
-  removeTeamMember: protectedProcedure
+  removeTeamMember: publicProcedure
     .input(
       z.object({
         memberId: z.number(),
@@ -214,7 +215,7 @@ export const teamManagementProceduresRouter = router({
   /**
    * Delete team
    */
-  deleteTeam: protectedProcedure
+  deleteTeam: publicProcedure
     .input(z.object({ teamId: z.number() }))
     .mutation(async ({ input }) => {
       const db = await getDb();

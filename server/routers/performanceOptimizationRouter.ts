@@ -1,10 +1,11 @@
+import { PUBLIC_TENANT_ID } from '../lib/public-tenant';
 /**
  * Performance Optimization Router - Phase 7: Performance & Optimization (7.1-7.4)
  * Handles caching, query optimization, and database indexing
  */
 
 import { z } from 'zod';
-import { protectedProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { TRPCError } from '@trpc/server';
 import { transactions, commissionPlans, agentAssignments } from '../../drizzle/schema';
 import { getDb } from '../db';
@@ -18,7 +19,7 @@ export const performanceOptimizationRouter = router({
   /**
    * Priority 7.1: Get cached dashboard metrics
    */
-  getCachedDashboardMetrics: protectedProcedure
+  getCachedDashboardMetrics: publicProcedure
     .input(
       z.object({
         forceRefresh: z.boolean().default(false),
@@ -26,7 +27,7 @@ export const performanceOptimizationRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
+        const tenantId = PUBLIC_TENANT_ID;
         if (!tenantId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -89,7 +90,7 @@ export const performanceOptimizationRouter = router({
   /**
    * Priority 7.2: Get optimized agent leaderboard
    */
-  getOptimizedAgentLeaderboard: protectedProcedure
+  getOptimizedAgentLeaderboard: publicProcedure
     .input(
       z.object({
         limit: z.number().default(50),
@@ -98,7 +99,7 @@ export const performanceOptimizationRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
+        const tenantId = PUBLIC_TENANT_ID;
         if (!tenantId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -169,9 +170,9 @@ export const performanceOptimizationRouter = router({
   /**
    * Get performance statistics
    */
-  getStats: protectedProcedure.query(async ({ ctx }) => {
+  getStats: publicProcedure.query(async ({ ctx }) => {
     try {
-      const tenantId = ctx.user.id as number;
+      const tenantId = PUBLIC_TENANT_ID;
       if (!tenantId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -210,7 +211,7 @@ export const performanceOptimizationRouter = router({
   /**
    * Get file size distribution
    */
-  getFileSizeDistribution: protectedProcedure.query(async ({ ctx }) => {
+  getFileSizeDistribution: publicProcedure.query(async ({ ctx }) => {
     return {
       distribution: [
         { size: '< 1MB', count: 45 },
@@ -224,7 +225,7 @@ export const performanceOptimizationRouter = router({
   /**
    * Get time trends
    */
-  getTimeTrends: protectedProcedure
+  getTimeTrends: publicProcedure
     .input(z.object({ days: z.number() }))
     .query(async ({ input }) => {
       return {
@@ -239,7 +240,7 @@ export const performanceOptimizationRouter = router({
   /**
    * Get bottlenecks
    */
-  getBottlenecks: protectedProcedure.query(async () => {
+  getBottlenecks: publicProcedure.query(async () => {
     return {
       bottlenecks: [
         { issue: 'Database query optimization', severity: 'HIGH', impact: '15% slowdown' },
@@ -251,7 +252,7 @@ export const performanceOptimizationRouter = router({
   /**
    * Get success rates
    */
-  getSuccessRates: protectedProcedure
+  getSuccessRates: publicProcedure
     .input(z.object({ days: z.number() }))
     .query(async ({ input }) => {
       return {
@@ -265,7 +266,7 @@ export const performanceOptimizationRouter = router({
   /**
    * Get record distribution
    */
-  getRecordDistribution: protectedProcedure.query(async () => {
+  getRecordDistribution: publicProcedure.query(async () => {
     return {
       distribution: [
         { type: 'Transactions', count: 1250 },
@@ -278,7 +279,7 @@ export const performanceOptimizationRouter = router({
   /**
    * Get user performance
    */
-  getUserPerformance: protectedProcedure.query(async () => {
+  getUserPerformance: publicProcedure.query(async () => {
     return {
       users: [
         { name: 'User A', uploads: 125, avgTime: 240 },
@@ -291,9 +292,9 @@ export const performanceOptimizationRouter = router({
   /**
    * Priority 7.3: Clear cache
    */
-  clearCache: protectedProcedure.mutation(async ({ ctx }) => {
+  clearCache: publicProcedure.mutation(async ({ ctx }) => {
     try {
-      const tenantId = ctx.user.id as number;
+      const tenantId = PUBLIC_TENANT_ID;
       if (!tenantId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -306,8 +307,8 @@ export const performanceOptimizationRouter = router({
 
       await logAuditEvent({
         tenantId,
-        adminId: ctx.user.id as number,
-        adminName: ctx.user.email || 'Unknown',
+        adminId: PUBLIC_TENANT_ID,
+        adminName: 'Unknown',
         action: 'user_created',
         targetType: 'system',
         targetName: 'Cache',
@@ -328,9 +329,9 @@ export const performanceOptimizationRouter = router({
   /**
    * Priority 7.4: Get database statistics
    */
-  getDatabaseStatistics: protectedProcedure.query(async ({ ctx }) => {
+  getDatabaseStatistics: publicProcedure.query(async ({ ctx }) => {
     try {
-      const tenantId = ctx.user.id as number;
+      const tenantId = PUBLIC_TENANT_ID;
       if (!tenantId) {
         throw new TRPCError({
           code: 'FORBIDDEN',

@@ -1,4 +1,5 @@
-import { router, protectedProcedure } from "../_core/trpc";
+import { PUBLIC_TENANT_ID } from '../lib/public-tenant';
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { transactions, oauthTokens } from "../../drizzle/schema";
@@ -11,8 +12,8 @@ const DOTLOOP_API_BASE = "https://api-gateway.dotloop.com/public/v2";
 /**
  * Get user's active Dotloop token
  */
-async function getUserDotloopToken(db: any, tenantId: number, userId: number) {
-  const tokens = await db.select().from(oauthTokens).where(eq(oauthTokens.userId, userId));
+async function getUserDotloopToken(db: any, tenantId: number, userId: number | null | undefined) {
+  const tokens = await db.select().from(oauthTokens).where(eq(oauthTokens.userId, userId ?? 1));
 
   return tokens.find(
     (t: any) => t.tenantId === tenantId && t.provider === "dotloop" && t.isActive === 1
@@ -97,7 +98,7 @@ export const dotloopDataSyncProceduresRouter = router({
   /**
    * Sync transactions from Dotloop
    */
-  syncTransactionsFromDotloop: protectedProcedure
+  syncTransactionsFromDotloop: publicProcedure
     .input(
       z.object({
         profileId: z.string().optional(),
@@ -108,11 +109,11 @@ export const dotloopDataSyncProceduresRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      const tenantId = PUBLIC_TENANT_ID;
 
       try {
         // Get user's Dotloop token
-        const tokenRecord = await getUserDotloopToken(db, tenantId, ctx.user.id);
+        const tokenRecord = await getUserDotloopToken(db, tenantId, null);
 
         if (!tokenRecord) {
           throw new Error("No Dotloop connection found. Please connect your Dotloop account first.");
@@ -207,14 +208,14 @@ export const dotloopDataSyncProceduresRouter = router({
   /**
    * Get sync status
    */
-  getSyncStatus: protectedProcedure.query(async ({ ctx }) => {
+  getSyncStatus: publicProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
 
-    const tenantId = await getTenantIdFromUser(ctx.user.id);
+    const tenantId = PUBLIC_TENANT_ID;
 
     try {
-      const tokenRecord = await getUserDotloopToken(db, tenantId, ctx.user.id);
+      const tokenRecord = await getUserDotloopToken(db, tenantId, null);
 
       if (!tokenRecord) {
         return {
@@ -246,14 +247,14 @@ export const dotloopDataSyncProceduresRouter = router({
   /**
    * Get available profiles
    */
-  getAvailableProfiles: protectedProcedure.query(async ({ ctx }) => {
+  getAvailableProfiles: publicProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
 
-    const tenantId = await getTenantIdFromUser(ctx.user.id);
+    const tenantId = PUBLIC_TENANT_ID;
 
     try {
-      const tokenRecord = await getUserDotloopToken(db, tenantId, ctx.user.id);
+      const tokenRecord = await getUserDotloopToken(db, tenantId, null);
 
       if (!tokenRecord) {
         throw new Error("No Dotloop connection found");
@@ -294,7 +295,7 @@ export const dotloopDataSyncProceduresRouter = router({
   /**
    * Get sync history
    */
-  getSyncHistory: protectedProcedure
+  getSyncHistory: publicProcedure
     .input(
       z.object({
         limit: z.number().default(20),
@@ -304,7 +305,7 @@ export const dotloopDataSyncProceduresRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      const tenantId = PUBLIC_TENANT_ID;
 
       try {
         // Get transactions synced from Dotloop, ordered by sync date
@@ -341,14 +342,14 @@ export const dotloopDataSyncProceduresRouter = router({
   /**
    * Manually trigger sync
    */
-  triggerManualSync: protectedProcedure.mutation(async ({ ctx }) => {
+  triggerManualSync: publicProcedure.mutation(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
 
-    const tenantId = await getTenantIdFromUser(ctx.user.id);
+    const tenantId = PUBLIC_TENANT_ID;
 
     try {
-      const tokenRecord = await getUserDotloopToken(db, tenantId, ctx.user.id);
+      const tokenRecord = await getUserDotloopToken(db, tenantId, null);
 
       if (!tokenRecord) {
         throw new Error("No Dotloop connection found");
@@ -376,11 +377,11 @@ export const dotloopDataSyncProceduresRouter = router({
   /**
    * Get sync statistics
    */
-  getSyncStatistics: protectedProcedure.query(async ({ ctx }) => {
+  getSyncStatistics: publicProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
 
-    const tenantId = await getTenantIdFromUser(ctx.user.id);
+    const tenantId = PUBLIC_TENANT_ID;
 
     try {
       const txns = await db.select().from(transactions).where(eq(transactions.tenantId, tenantId));

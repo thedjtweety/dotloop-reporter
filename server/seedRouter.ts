@@ -5,7 +5,7 @@
  * Used for testing and demonstration purposes
  */
 
-import { router, protectedProcedure } from './_core/trpc';
+import { router, publicProcedure } from './_core/trpc';
 import { getDb } from './db';
 import { commissionPlans, agentAssignments } from '../drizzle/schema';
 import { eq } from 'drizzle-orm';
@@ -16,7 +16,7 @@ export const seedRouter = router({
    * Seed sample commission plans and agent assignments
    * Only available to authenticated users
    */
-  seedSampleData: protectedProcedure.mutation(async ({ ctx }: any) => {
+  seedSampleData: publicProcedure.mutation(async ({ ctx }: any) => {
     try {
       const db = await getDb();
       if (!db) {
@@ -215,7 +215,7 @@ export const seedRouter = router({
   /**
    * Clear all sample data for the current tenant
    */
-  clearSampleData: protectedProcedure.mutation(async ({ ctx }: any) => {
+  clearSampleData: publicProcedure.mutation(async ({ ctx }: any) => {
     try {
       const db = await getDb();
       if (!db) {

@@ -1,10 +1,11 @@
+import { PUBLIC_TENANT_ID } from '../lib/public-tenant';
 /**
  * Team Management Router - Phase 5: Team & Admin Features (5.1-5.4)
  * Handles team member management, role assignment, permissions, and admin dashboard
  */
 
 import { z } from 'zod';
-import { protectedProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { TRPCError } from '@trpc/server';
 import { tenantMembers, users, auditLogs } from '../../drizzle/schema';
 import { getDb } from '../db';
@@ -42,15 +43,9 @@ export const teamManagementRouter = router({
   /**
    * Priority 5.1: Get team members
    */
-  getTeamMembers: protectedProcedure.query(async ({ ctx }) => {
+  getTeamMembers: publicProcedure.query(async ({ ctx }) => {
     try {
-      const tenantId = ctx.user.id as number;
-      if (!tenantId) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'No tenant context',
-        });
-      }
+      const tenantId = PUBLIC_TENANT_ID;
 
       const db = await getDb();
       if (!db) {
@@ -87,7 +82,7 @@ export const teamManagementRouter = router({
   /**
    * Priority 5.1: Invite team member
    */
-  inviteTeamMember: protectedProcedure
+  inviteTeamMember: publicProcedure
     .input(
       z.object({
         userId: z.number(),
@@ -96,13 +91,7 @@ export const teamManagementRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         const db = await getDb();
         if (!db) {
@@ -136,15 +125,15 @@ export const teamManagementRouter = router({
           userId: input.userId,
           role: input.role,
           status: 'invited',
-          invitedBy: typeof ctx.user.id === 'string' ? parseInt(ctx.user.id) : (ctx.user.id as any),
+          invitedBy: PUBLIC_TENANT_ID,
           invitedAt: new Date().toISOString(),
         } as any);
 
         // Log audit event
         await logAuditEvent({
           tenantId,
-          adminId: ctx.user.id as number,
-          adminName: ctx.user.email || 'Unknown',
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'Unknown',
           action: 'user_role_changed',
           targetType: 'user',
           targetName: `User ${input.userId}`,
@@ -169,7 +158,7 @@ export const teamManagementRouter = router({
   /**
    * Priority 5.2: Update team member role
    */
-  updateMemberRole: protectedProcedure
+  updateMemberRole: publicProcedure
     .input(
       z.object({
         memberId: z.number(),
@@ -178,13 +167,7 @@ export const teamManagementRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         const db = await getDb();
         if (!db) {
@@ -221,8 +204,8 @@ export const teamManagementRouter = router({
         // Log audit event
         await logAuditEvent({
           tenantId,
-          adminId: ctx.user.id as number,
-          adminName: ctx.user.email || 'Unknown',
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'Unknown',
           action: 'user_role_changed',
           targetType: 'user',
           targetName: `User ${member[0].userId}`,
@@ -243,17 +226,11 @@ export const teamManagementRouter = router({
   /**
    * Priority 5.2: Remove team member
    */
-  removeTeamMember: protectedProcedure
+  removeTeamMember: publicProcedure
     .input(z.object({ memberId: z.number() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         const db = await getDb();
         if (!db) {
@@ -289,8 +266,8 @@ export const teamManagementRouter = router({
         // Log audit event
         await logAuditEvent({
           tenantId,
-          adminId: ctx.user.id as number,
-          adminName: ctx.user.email || 'Unknown',
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'Unknown',
           action: 'user_role_changed',
           targetType: 'user',
           targetName: `User ${member[0].userId}`,
@@ -311,15 +288,9 @@ export const teamManagementRouter = router({
   /**
    * Priority 5.3: Get admin dashboard stats
    */
-  getAdminDashboardStats: protectedProcedure.query(async ({ ctx }) => {
+  getAdminDashboardStats: publicProcedure.query(async ({ ctx }) => {
     try {
-      const tenantId = ctx.user.id as number;
-      if (!tenantId) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'No tenant context',
-        });
-      }
+      const tenantId = PUBLIC_TENANT_ID;
 
       const db = await getDb();
       if (!db) {
@@ -380,7 +351,7 @@ export const teamManagementRouter = router({
   /**
    * Priority 5.4: Get role permissions
    */
-  getRolePermissions: protectedProcedure.query(async () => {
+  getRolePermissions: publicProcedure.query(async () => {
     return ROLE_PERMISSIONS;
   }),
 });

@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { eq, and, gte, lte } from "drizzle-orm";
 import { transactions } from "../../drizzle/schema";
@@ -8,7 +8,7 @@ export const analyticsProceduresRouter = router({
   /**
    * Get year-over-year comparison
    */
-  getYearOverYearComparison: protectedProcedure
+  getYearOverYearComparison: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -79,7 +79,7 @@ export const analyticsProceduresRouter = router({
   /**
    * Get agent leaderboard
    */
-  getAgentLeaderboard: protectedProcedure
+  getAgentLeaderboard: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -162,7 +162,7 @@ export const analyticsProceduresRouter = router({
   /**
    * Get geographic analysis
    */
-  getGeographicAnalysis: protectedProcedure
+  getGeographicAnalysis: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -223,7 +223,7 @@ export const analyticsProceduresRouter = router({
   /**
    * Get market insights
    */
-  getMarketInsights: protectedProcedure
+  getMarketInsights: publicProcedure
     .input(z.object({ tenantId: z.number() }))
     .query(async ({ input }) => {
       const db = await getDb();
@@ -265,7 +265,7 @@ export const analyticsProceduresRouter = router({
   /**
    * Get trend data
    */
-  getTrendData: protectedProcedure
+  getTrendData: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),

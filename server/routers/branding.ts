@@ -1,21 +1,21 @@
 import { z } from 'zod';
-import { protectedProcedure, publicProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { getDb } from '../db';
 import { brokerageBranding } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { storagePut } from '../storage';
 import { TRPCError } from '@trpc/server';
-import { getTenantIdFromUser } from '../lib/tenant-utils';
+import { getTenantIdFromUser, PUBLIC_TENANT_ID } from '../lib/public-tenant';
 
 export const brandingRouter = router({
   // Get branding for current tenant
-  getBranding: protectedProcedure.query(async ({ ctx }) => {
+  getBranding: publicProcedure.query(async ({ ctx }) => {
     try {
       const db = await getDb();
       if (!db) throw new Error('Database not available');
 
-      if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      // public procedure - no auth check
+      const tenantId = PUBLIC_TENANT_ID;
       
       const brandingResults = await db.select().from(brokerageBranding).where(eq(brokerageBranding.tenantId, tenantId)).limit(1);
       const branding = brandingResults[0] || null;
@@ -28,7 +28,7 @@ export const brandingRouter = router({
   }),
 
   // Update branding settings
-  updateBranding: protectedProcedure
+  updateBranding: publicProcedure
     .input(
       z.object({
         brokerageName: z.string().min(1, 'Brokerage name is required'),
@@ -46,8 +46,8 @@ export const brandingRouter = router({
         const db = await getDb();
         if (!db) throw new Error('Database not available');
 
-        if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
-        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        // public procedure - no auth check
+        const tenantId = PUBLIC_TENANT_ID;
         
         // Check if branding exists for this tenant
         const existingResults = await db.select().from(brokerageBranding).where(eq(brokerageBranding.tenantId, tenantId)).limit(1);
@@ -78,7 +78,7 @@ export const brandingRouter = router({
     }),
 
   // Upload logo
-  uploadLogo: protectedProcedure
+  uploadLogo: publicProcedure
     .input(
       z.object({
         file: z.instanceof(File),
@@ -86,11 +86,11 @@ export const brandingRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        // public procedure - no auth check
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         
-        const tenantId = await getTenantIdFromUser(ctx.user.id);
+        const tenantId = PUBLIC_TENANT_ID;
 
         const buffer = await input.file.arrayBuffer();
         const fileName = `branding-logo-${tenantId}-${Date.now()}.${input.file.name.split('.').pop()}`;

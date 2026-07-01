@@ -1,10 +1,11 @@
+import { PUBLIC_TENANT_ID } from '../lib/public-tenant';
 /**
  * Dotloop API Integration Router - Phase 6: API Integration (6.1-6.4)
  * Handles real-time transaction sync, webhook processing, and API error handling
  */
 
 import { z } from 'zod';
-import { protectedProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { TRPCError } from '@trpc/server';
 import { transactions, oauthTokens } from '../../drizzle/schema';
 import { getDb } from '../db';
@@ -28,9 +29,9 @@ export const dotloopApiIntegrationRouter = router({
   /**
    * Priority 6.1: Sync transactions from Dotloop API
    */
-  syncTransactionsFromDotloop: protectedProcedure.mutation(async ({ ctx }) => {
+  syncTransactionsFromDotloop: publicProcedure.mutation(async ({ ctx }) => {
     try {
-      const tenantId = ctx.user.id as number;
+      const tenantId = PUBLIC_TENANT_ID;
       if (!tenantId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -126,8 +127,8 @@ export const dotloopApiIntegrationRouter = router({
       // Log audit event
       await logAuditEvent({
         tenantId,
-        adminId: ctx.user.id as number,
-        adminName: ctx.user.email || 'Unknown',
+        adminId: PUBLIC_TENANT_ID,
+        adminName: 'Unknown',
         action: 'user_created',
         targetType: 'system',
         targetName: 'Dotloop Sync',
@@ -152,7 +153,7 @@ export const dotloopApiIntegrationRouter = router({
   /**
    * Priority 6.2: Handle Dotloop webhooks (mock implementation)
    */
-  handleDotloopWebhook: protectedProcedure
+  handleDotloopWebhook: publicProcedure
     .input(
       z.object({
         event: z.string(),
@@ -162,7 +163,7 @@ export const dotloopApiIntegrationRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
+        const tenantId = PUBLIC_TENANT_ID;
         if (!tenantId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -221,9 +222,9 @@ export const dotloopApiIntegrationRouter = router({
   /**
    * Priority 6.3: Get Dotloop connection status
    */
-  getDotloopConnectionStatus: protectedProcedure.query(async ({ ctx }) => {
+  getDotloopConnectionStatus: publicProcedure.query(async ({ ctx }) => {
     try {
-      const tenantId = ctx.user.id as number;
+      const tenantId = PUBLIC_TENANT_ID;
       if (!tenantId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -265,7 +266,7 @@ export const dotloopApiIntegrationRouter = router({
   /**
    * Priority 6.4: Get sync history
    */
-  getSyncHistory: protectedProcedure
+  getSyncHistory: publicProcedure
     .input(
       z.object({
         limit: z.number().default(50),
@@ -273,7 +274,7 @@ export const dotloopApiIntegrationRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
+        const tenantId = PUBLIC_TENANT_ID;
         if (!tenantId) {
           throw new TRPCError({
             code: 'FORBIDDEN',

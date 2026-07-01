@@ -1,10 +1,11 @@
+import { PUBLIC_TENANT_ID } from '../lib/public-tenant';
 /**
  * Dashboard Router - Priority 2.3: Dashboard & Core Analytics
  * Provides all dashboard metrics and analytics data
  */
 
 import { z } from 'zod';
-import { protectedProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { TRPCError } from '@trpc/server';
 import { transactions } from '../../drizzle/schema';
 import { getDb } from '../db';
@@ -48,7 +49,7 @@ export const dashboardRouter = router({
   /**
    * Get main dashboard metrics
    */
-  getMetrics: protectedProcedure
+  getMetrics: publicProcedure
     .input(
       z.object({
         startDate: z.string().optional(),
@@ -57,13 +58,7 @@ export const dashboardRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         const db = await getDb();
         if (!db) {
@@ -137,8 +132,8 @@ export const dashboardRouter = router({
         // Log audit event
         await logAuditEvent({
           tenantId: tenantId,
-          adminId: ctx.user.id as number,
-          adminName: ctx.user.email || 'Unknown',
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'Unknown',
           action: 'upload_viewed',
           targetType: 'system',
           targetName: 'Main Dashboard',
@@ -159,7 +154,7 @@ export const dashboardRouter = router({
   /**
    * Get pipeline breakdown
    */
-  getPipelineBreakdown: protectedProcedure
+  getPipelineBreakdown: publicProcedure
     .input(
       z.object({
         startDate: z.string().optional(),
@@ -168,13 +163,7 @@ export const dashboardRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         const db = await getDb();
         if (!db) {
@@ -231,7 +220,7 @@ export const dashboardRouter = router({
   /**
    * Get agent metrics
    */
-  getAgentMetrics: protectedProcedure
+  getAgentMetrics: publicProcedure
     .input(
       z.object({
         startDate: z.string().optional(),
@@ -240,13 +229,7 @@ export const dashboardRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         const db = await getDb();
         if (!db) {
@@ -326,7 +309,7 @@ export const dashboardRouter = router({
   /**
    * Get financial summary
    */
-  getFinancialSummary: protectedProcedure
+  getFinancialSummary: publicProcedure
     .input(
       z.object({
         startDate: z.string().optional(),
@@ -335,13 +318,7 @@ export const dashboardRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         const db = await getDb();
         if (!db) {

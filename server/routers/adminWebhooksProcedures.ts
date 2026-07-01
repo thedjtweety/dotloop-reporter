@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { auditLogs, platformAdminLogs } from "../../drizzle/schema";
@@ -9,7 +9,7 @@ export const adminWebhooksProceduresRouter = router({
   /**
    * Get audit logs
    */
-  getAuditLogs: protectedProcedure
+  getAuditLogs: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -52,7 +52,7 @@ export const adminWebhooksProceduresRouter = router({
   /**
    * Log admin action
    */
-  logAdminAction: protectedProcedure
+  logAdminAction: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -91,7 +91,7 @@ export const adminWebhooksProceduresRouter = router({
   /**
    * Get platform admin logs
    */
-  getPlatformAdminLogs: protectedProcedure
+  getPlatformAdminLogs: publicProcedure
     .input(
       z.object({
         limit: z.number().default(50),
@@ -110,7 +110,7 @@ export const adminWebhooksProceduresRouter = router({
   /**
    * Create webhook
    */
-  createWebhook: protectedProcedure
+  createWebhook: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -132,7 +132,7 @@ export const adminWebhooksProceduresRouter = router({
   /**
    * List webhooks
    */
-  listWebhooks: protectedProcedure
+  listWebhooks: publicProcedure
     .input(z.object({ tenantId: z.number() }))
     .query(async ({ input }) => {
       // TODO: Implement webhook retrieval when table is created
@@ -142,7 +142,7 @@ export const adminWebhooksProceduresRouter = router({
   /**
    * Update webhook
    */
-  updateWebhook: protectedProcedure
+  updateWebhook: publicProcedure
     .input(
       z.object({
         webhookId: z.string(),
@@ -159,7 +159,7 @@ export const adminWebhooksProceduresRouter = router({
   /**
    * Delete webhook
    */
-  deleteWebhook: protectedProcedure
+  deleteWebhook: publicProcedure
     .input(z.object({ webhookId: z.string() }))
     .mutation(async ({ input }) => {
       // TODO: Implement webhook deletion when table is created
@@ -169,7 +169,7 @@ export const adminWebhooksProceduresRouter = router({
   /**
    * Get webhook deliveries
    */
-  getWebhookDeliveries: protectedProcedure
+  getWebhookDeliveries: publicProcedure
     .input(
       z.object({
         webhookId: z.string(),
@@ -184,7 +184,7 @@ export const adminWebhooksProceduresRouter = router({
   /**
    * Retry webhook delivery
    */
-  retryWebhookDelivery: protectedProcedure
+  retryWebhookDelivery: publicProcedure
     .input(z.object({ deliveryId: z.string() }))
     .mutation(async ({ input }) => {
       // TODO: Implement webhook delivery retry when table is created
@@ -194,7 +194,7 @@ export const adminWebhooksProceduresRouter = router({
   /**
    * Get system stats
    */
-  getSystemStats: protectedProcedure
+  getSystemStats: publicProcedure
     .input(z.object({ tenantId: z.number() }))
     .query(async ({ input }) => {
       const db = await getDb();
@@ -218,7 +218,7 @@ export const adminWebhooksProceduresRouter = router({
   /**
    * Export audit logs
    */
-  exportAuditLogs: protectedProcedure
+  exportAuditLogs: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),

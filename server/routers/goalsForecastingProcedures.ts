@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { eq, and, gte, lte } from "drizzle-orm";
 import { transactions } from "../../drizzle/schema";
@@ -8,7 +8,7 @@ export const goalsForecastingProceduresRouter = router({
   /**
    * Set agent goal
    */
-  setAgentGoal: protectedProcedure
+  setAgentGoal: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -32,7 +32,7 @@ export const goalsForecastingProceduresRouter = router({
   /**
    * Get agent progress towards goal
    */
-  getGoalProgress: protectedProcedure
+  getGoalProgress: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -92,7 +92,7 @@ export const goalsForecastingProceduresRouter = router({
   /**
    * Forecast future performance
    */
-  forecastPerformance: protectedProcedure
+  forecastPerformance: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -180,7 +180,7 @@ export const goalsForecastingProceduresRouter = router({
   /**
    * Create contest
    */
-  createContest: protectedProcedure
+  createContest: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -210,7 +210,7 @@ export const goalsForecastingProceduresRouter = router({
   /**
    * Get contest leaderboard
    */
-  getContestLeaderboard: protectedProcedure
+  getContestLeaderboard: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -287,7 +287,7 @@ export const goalsForecastingProceduresRouter = router({
   /**
    * Get forecast insights
    */
-  getForecastInsights: protectedProcedure
+  getForecastInsights: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),

@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { getDb } from "../db";
@@ -14,7 +14,7 @@ export const reportingProceduresRouter = router({
   /**
    * Generate commission report
    */
-  generateCommissionReport: protectedProcedure
+  generateCommissionReport: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -43,7 +43,7 @@ export const reportingProceduresRouter = router({
   /**
    * Generate performance report
    */
-  generatePerformanceReport: protectedProcedure
+  generatePerformanceReport: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -64,7 +64,7 @@ export const reportingProceduresRouter = router({
   /**
    * Generate financial report
    */
-  generateFinancialReport: protectedProcedure
+  generateFinancialReport: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -85,7 +85,7 @@ export const reportingProceduresRouter = router({
   /**
    * Generate PDF from report
    */
-  generatePDF: protectedProcedure
+  generatePDF: publicProcedure
     .input(
       z.object({
         reportData: z.any(),
@@ -106,7 +106,7 @@ export const reportingProceduresRouter = router({
   /**
    * Schedule report delivery
    */
-  scheduleReport: protectedProcedure
+  scheduleReport: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -132,7 +132,7 @@ export const reportingProceduresRouter = router({
   /**
    * Get report templates
    */
-  getTemplates: protectedProcedure.query(async () => {
+  getTemplates: publicProcedure.query(async () => {
     return [
       {
         id: "commission",
@@ -164,7 +164,7 @@ export const reportingProceduresRouter = router({
   /**
    * Export report to CSV
    */
-  exportToCSV: protectedProcedure
+  exportToCSV: publicProcedure
     .input(
       z.object({
         reportData: z.any(),

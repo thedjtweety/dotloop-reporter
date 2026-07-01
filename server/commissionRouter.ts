@@ -8,7 +8,7 @@
  * - Agent assignments
  */
 
-import { protectedProcedure, protectedProcedureWithErrorHandling, publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import {
@@ -290,7 +290,7 @@ export const commissionRouter = router({
    * Calculate commission for a single transaction
    * Useful for quick calculations or testing
    */
-  calculateSingle: protectedProcedure
+  calculateSingle: publicProcedure
     .input(
       z.object({
         transaction: TransactionInputSchema,
@@ -327,7 +327,7 @@ export const commissionRouter = router({
    * Validate commission data before calculation
    * Returns any errors or warnings
    */
-  validate: protectedProcedure
+  validate: publicProcedure
     .input(
       z.object({
         transactions: z.array(TransactionInputSchema),
@@ -856,7 +856,7 @@ export const commissionRouter = router({
   /**
    * Email Net Commission Report to specified recipient
    */
-  emailNetCommissionReport: protectedProcedure
+  emailNetCommissionReport: publicProcedure
     .input(z.object({
       email: z.string().email(),
       agents: z.array(z.any()),

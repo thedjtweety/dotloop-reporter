@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import { commissionPlans, agentAssignments, transactions } from "../../drizzle/schema";
@@ -14,7 +14,7 @@ export const commissionProceduresRouter = router({
   /**
    * Create commission plan from template
    */
-  createFromTemplate: protectedProcedure
+  createFromTemplate: publicProcedure
     .input(
       z.object({
         templateKey: z.enum([
@@ -60,7 +60,7 @@ export const commissionProceduresRouter = router({
   /**
    * Bulk assign agents to commission plan
    */
-  bulkAssignAgents: protectedProcedure
+  bulkAssignAgents: publicProcedure
     .input(
       z.object({
         planId: z.string(),
@@ -106,7 +106,7 @@ export const commissionProceduresRouter = router({
   /**
    * Calculate commission for agent
    */
-  calculateAgentCommission: protectedProcedure
+  calculateAgentCommission: publicProcedure
     .input(
       z.object({
         agentName: z.string(),
@@ -169,7 +169,7 @@ export const commissionProceduresRouter = router({
   /**
    * Get all commission plans for tenant
    */
-  listPlans: protectedProcedure
+  listPlans: publicProcedure
     .input(z.object({ tenantId: z.number() }))
     .query(async ({ input }) => {
       const db = await getDb();
@@ -184,7 +184,7 @@ export const commissionProceduresRouter = router({
   /**
    * Get commission templates
    */
-  getTemplates: protectedProcedure.query(async () => {
+  getTemplates: publicProcedure.query(async () => {
     return Object.entries(COMMISSION_TEMPLATES).map(([key, template]) => ({
       key,
       ...template,
@@ -194,7 +194,7 @@ export const commissionProceduresRouter = router({
   /**
    * Update commission plan
    */
-  updatePlan: protectedProcedure
+  updatePlan: publicProcedure
     .input(
       z.object({
         planId: z.string(),
@@ -229,7 +229,7 @@ export const commissionProceduresRouter = router({
   /**
    * Delete commission plan
    */
-  deletePlan: protectedProcedure
+  deletePlan: publicProcedure
     .input(z.object({ planId: z.string() }))
     .mutation(async ({ input }) => {
       const db = await getDb();

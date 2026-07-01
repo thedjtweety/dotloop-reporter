@@ -5,17 +5,17 @@
  */
 
 import { z } from 'zod';
-import { protectedProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { getDb } from '../db';
 import { oauthTokens } from '../../drizzle/schema';
-import { getTenantIdFromUser } from '../lib/tenant-context';
+import { getTenantIdFromUser, PUBLIC_TENANT_ID } from '../lib/public-tenant';
 import { eq, and } from 'drizzle-orm';
 
 export const connectionStatusRouter = router({
   /**
    * Get current connection status
    */
-  getStatus: protectedProcedure.query(async ({ ctx }) => {
+  getStatus: publicProcedure.query(async ({ ctx }) => {
     try {
       const db = await getDb();
       if (!db) throw new Error('Database connection failed');
@@ -24,7 +24,7 @@ export const connectionStatusRouter = router({
       const token = await db
         .select()
         .from(oauthTokens)
-        .where(eq(oauthTokens.userId, ctx.user.id))
+        .where(eq(oauthTokens.userId, PUBLIC_TENANT_ID))
         .limit(1);
 
       if (!token || token.length === 0) {
@@ -61,7 +61,7 @@ export const connectionStatusRouter = router({
   /**
    * Disconnect Dotloop account
    */
-  disconnect: protectedProcedure.mutation(async ({ ctx }) => {
+  disconnect: publicProcedure.mutation(async ({ ctx }) => {
     try {
       const db = await getDb();
       if (!db) throw new Error('Database connection failed');
@@ -69,7 +69,7 @@ export const connectionStatusRouter = router({
       // Delete the OAuth token
       const result = await db
         .delete(oauthTokens)
-        .where(eq(oauthTokens.userId, ctx.user.id));
+        .where(eq(oauthTokens.userId, PUBLIC_TENANT_ID));
 
       return {
         success: true,
@@ -88,7 +88,7 @@ export const connectionStatusRouter = router({
   /**
    * Get reconnection URL (same as initial authorization)
    */
-  getReconnectUrl: protectedProcedure.query(async ({ ctx }) => {
+  getReconnectUrl: publicProcedure.query(async ({ ctx }) => {
     try {
       const clientId = process.env.DOTLOOP_CLIENT_ID;
       const redirectUri = process.env.DOTLOOP_REDIRECT_URI;
@@ -98,7 +98,7 @@ export const connectionStatusRouter = router({
       }
 
       const state = Buffer.from(JSON.stringify({
-        userId: ctx.user.id,
+        userId: PUBLIC_TENANT_ID,
         timestamp: Date.now(),
         action: 'reconnect',
       })).toString('base64');

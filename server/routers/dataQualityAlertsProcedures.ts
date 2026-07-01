@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { transactions } from "../../drizzle/schema";
@@ -8,7 +8,7 @@ export const dataQualityAlertsProceduresRouter = router({
   /**
    * Run data quality check
    */
-  runDataQualityCheck: protectedProcedure
+  runDataQualityCheck: publicProcedure
     .input(z.object({ tenantId: z.number() }))
     .query(async ({ input }) => {
       const db = await getDb();
@@ -76,7 +76,7 @@ export const dataQualityAlertsProceduresRouter = router({
   /**
    * Get data validation report
    */
-  getDataValidationReport: protectedProcedure
+  getDataValidationReport: publicProcedure
     .input(z.object({ tenantId: z.number() }))
     .query(async ({ input }) => {
       const db = await getDb();
@@ -132,7 +132,7 @@ export const dataQualityAlertsProceduresRouter = router({
   /**
    * Create alert rule
    */
-  createAlertRule: protectedProcedure
+  createAlertRule: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -155,7 +155,7 @@ export const dataQualityAlertsProceduresRouter = router({
   /**
    * List alert rules
    */
-  listAlertRules: protectedProcedure
+  listAlertRules: publicProcedure
     .input(z.object({ tenantId: z.number() }))
     .query(async ({ input }) => {
       // TODO: Implement alert rule retrieval when table is created
@@ -165,7 +165,7 @@ export const dataQualityAlertsProceduresRouter = router({
   /**
    * Update alert rule
    */
-  updateAlertRule: protectedProcedure
+  updateAlertRule: publicProcedure
     .input(
       z.object({
         ruleId: z.string(),
@@ -183,7 +183,7 @@ export const dataQualityAlertsProceduresRouter = router({
   /**
    * Delete alert rule
    */
-  deleteAlertRule: protectedProcedure
+  deleteAlertRule: publicProcedure
     .input(z.object({ ruleId: z.string() }))
     .mutation(async ({ input }) => {
       // TODO: Implement alert rule deletion when table is created
@@ -193,7 +193,7 @@ export const dataQualityAlertsProceduresRouter = router({
   /**
    * Get recent alerts
    */
-  getRecentAlerts: protectedProcedure
+  getRecentAlerts: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),
@@ -208,7 +208,7 @@ export const dataQualityAlertsProceduresRouter = router({
   /**
    * Check data consistency
    */
-  checkDataConsistency: protectedProcedure
+  checkDataConsistency: publicProcedure
     .input(z.object({ tenantId: z.number() }))
     .query(async ({ input }) => {
       const db = await getDb();
@@ -263,7 +263,7 @@ export const dataQualityAlertsProceduresRouter = router({
   /**
    * Export data quality report
    */
-  exportDataQualityReport: protectedProcedure
+  exportDataQualityReport: publicProcedure
     .input(
       z.object({
         tenantId: z.number(),

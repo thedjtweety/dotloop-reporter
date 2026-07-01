@@ -1,10 +1,11 @@
+import { PUBLIC_TENANT_ID } from '../lib/public-tenant';
 /**
  * Security Hardening Router - Phase 8: Security & Compliance (8.1-8.4)
  * Handles data encryption, compliance audits, and security monitoring
  */
 
 import { z } from 'zod';
-import { protectedProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { TRPCError } from '@trpc/server';
 import { auditLogs, oauthTokens, users } from '../../drizzle/schema';
 import { getDb } from '../db';
@@ -18,7 +19,7 @@ export const securityHardeningRouter = router({
   /**
    * Priority 8.1: Get security audit log
    */
-  getSecurityAuditLog: protectedProcedure
+  getSecurityAuditLog: publicProcedure
     .input(
       z.object({
         days: z.number().default(30),
@@ -27,7 +28,7 @@ export const securityHardeningRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
+        const tenantId = PUBLIC_TENANT_ID;
         if (!tenantId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -77,9 +78,9 @@ export const securityHardeningRouter = router({
   /**
    * Priority 8.2: Check for suspicious activity
    */
-  checkSuspiciousActivity: protectedProcedure.query(async ({ ctx }) => {
+  checkSuspiciousActivity: publicProcedure.query(async ({ ctx }) => {
     try {
-      const tenantId = ctx.user.id as number;
+      const tenantId = PUBLIC_TENANT_ID;
       if (!tenantId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -152,9 +153,9 @@ export const securityHardeningRouter = router({
   /**
    * Priority 8.3: Verify data encryption
    */
-  verifyDataEncryption: protectedProcedure.query(async ({ ctx }) => {
+  verifyDataEncryption: publicProcedure.query(async ({ ctx }) => {
     try {
-      const tenantId = ctx.user.id as number;
+      const tenantId = PUBLIC_TENANT_ID;
       if (!tenantId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -199,7 +200,7 @@ export const securityHardeningRouter = router({
   /**
    * Priority 8.4: Get compliance report
    */
-  getComplianceReport: protectedProcedure
+  getComplianceReport: publicProcedure
     .input(
       z.object({
         reportType: z.enum(['GDPR', 'HIPAA', 'SOC2', 'GENERAL']).default('GENERAL'),
@@ -207,7 +208,7 @@ export const securityHardeningRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
+        const tenantId = PUBLIC_TENANT_ID;
         if (!tenantId) {
           throw new TRPCError({
             code: 'FORBIDDEN',

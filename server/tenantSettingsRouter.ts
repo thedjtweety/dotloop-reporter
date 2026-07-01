@@ -1,3 +1,4 @@
+import { PUBLIC_TENANT_ID } from './lib/public-tenant';
 /**
  * Tenant Settings Router
  * 
@@ -9,7 +10,7 @@
  */
 
 import { z } from 'zod';
-import { protectedProcedure, adminProcedure, router } from './_core/trpc';
+import { publicProcedure, adminProcedure, router } from './_core/trpc';
 import { getDb } from './db';
 import { tenants } from '../drizzle/schema';
 import { getTenantIdFromUser, getCurrentTenant } from './lib/tenant-context';
@@ -19,9 +20,9 @@ export const tenantSettingsRouter = router({
   /**
    * Get current tenant information
    */
-  getTenant: protectedProcedure
+  getTenant: publicProcedure
     .query(async ({ ctx }) => {
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      const tenantId = PUBLIC_TENANT_ID;
       const tenant = await getCurrentTenant(tenantId);
       
       if (!tenant) {
@@ -55,7 +56,7 @@ export const tenantSettingsRouter = router({
       const db = await getDb();
       if (!db) throw new Error('Database not available');
 
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      const tenantId = PUBLIC_TENANT_ID;
 
       // Check if subdomain is already taken (if changing)
       if (input.subdomain) {
@@ -108,7 +109,7 @@ export const tenantSettingsRouter = router({
       const db = await getDb();
       if (!db) throw new Error('Database not available');
 
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      const tenantId = PUBLIC_TENANT_ID;
 
       await db
         .update(tenants)
@@ -123,9 +124,9 @@ export const tenantSettingsRouter = router({
   /**
    * Get subscription information
    */
-  getSubscription: protectedProcedure
+  getSubscription: publicProcedure
     .query(async ({ ctx }) => {
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      const tenantId = PUBLIC_TENANT_ID;
       const tenant = await getCurrentTenant(tenantId);
       
       if (!tenant) {
@@ -201,12 +202,12 @@ export const tenantSettingsRouter = router({
   /**
    * Get tenant statistics
    */
-  getStats: protectedProcedure
+  getStats: publicProcedure
     .query(async ({ ctx }) => {
       const db = await getDb();
       if (!db) throw new Error('Database not available');
 
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      const tenantId = PUBLIC_TENANT_ID;
 
       // Get user count
       const userCountResult = await db.execute(

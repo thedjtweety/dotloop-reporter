@@ -1,5 +1,6 @@
+import { PUBLIC_TENANT_ID } from '../lib/public-tenant';
 import { z } from 'zod';
-import { protectedProcedure, publicProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { getDb } from '../db';
 import { recruitingProspects, recruitingPipelineActivity, recruitingRetentionRisk, recruitingImportHistory } from '../../drizzle/schema';
 import { eq, and, desc } from 'drizzle-orm';
@@ -95,7 +96,7 @@ export const recruitingRouter = router({
           importType: 'market_view_broker',
           recordsImported,
           recordsSkipped,
-          importedBy: ctx.user?.id || 0,
+          importedBy: PUBLIC_TENANT_ID,
           status: recordsSkipped === 0 ? 'success' : 'partial',
         } as any);
 
@@ -193,7 +194,7 @@ export const recruitingRouter = router({
         previousStatus: previousStatus as any,
         newStatus: input.newStatus,
         details: input.notes || null,
-        createdBy: ctx.user?.id || 0,
+        createdBy: PUBLIC_TENANT_ID,
       } as any);
 
       return { success: true };
@@ -266,7 +267,7 @@ export const recruitingRouter = router({
   /**
    * Calculate retention risk for agents
    */
-  calculateRetentionRisk: protectedProcedure
+  calculateRetentionRisk: publicProcedure
     .input(
       z.object({
         agents: z.array(
@@ -356,7 +357,7 @@ export const recruitingRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const tenantId = ctx.user?.tenantId;
-      const userId = ctx.user?.id;
+      const userId = null;
       if (!tenantId || !userId) throw new Error('No tenant or user context');
 
       const db = await getDbInstance();
@@ -481,11 +482,11 @@ export const recruitingRouter = router({
   /**
    * Acknowledge retention alert
    */
-  acknowledgeRetentionAlert: protectedProcedure
+  acknowledgeRetentionAlert: publicProcedure
     .input(z.object({ alertId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const tenantId = ctx.user?.tenantId;
-      const userId = ctx.user?.id;
+      const userId = null;
       if (!tenantId || !userId) throw new Error('No tenant or user context');
 
       const db = await getDbInstance();

@@ -1,10 +1,11 @@
+import { PUBLIC_TENANT_ID } from '../lib/public-tenant';
 /**
  * Reporting & Exports Router - Phase 4: Reporting & Exports (4.1-4.4)
  * Handles PDF generation, Excel export, report customization, and scheduled reports
  */
 
 import { z } from 'zod';
-import { protectedProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { TRPCError } from '@trpc/server';
 import { transactions, users } from '../../drizzle/schema';
 import { getDb } from '../db';
@@ -47,7 +48,7 @@ export const reportingRouter = router({
   /**
    * Priority 4.1: Generate PDF Report
    */
-  generatePdfReport: protectedProcedure
+  generatePdfReport: publicProcedure
     .input(
       z.object({
         title: z.string(),
@@ -66,13 +67,7 @@ export const reportingRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         const db = await getDb();
         if (!db) {
@@ -133,8 +128,8 @@ export const reportingRouter = router({
         // Log audit event
         await logAuditEvent({
           tenantId,
-          adminId: ctx.user.id as number,
-          adminName: ctx.user.email || 'Unknown',
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'Unknown',
           action: 'user_created',
           targetType: 'system',
           targetName: `PDF Report: ${input.title}`,
@@ -160,7 +155,7 @@ export const reportingRouter = router({
   /**
    * Priority 4.2: Generate Excel Export
    */
-  generateExcelExport: protectedProcedure
+  generateExcelExport: publicProcedure
     .input(
       z.object({
         title: z.string(),
@@ -174,13 +169,7 @@ export const reportingRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         const db = await getDb();
         if (!db) {
@@ -242,8 +231,8 @@ export const reportingRouter = router({
         // Log audit event
         await logAuditEvent({
           tenantId,
-          adminId: ctx.user.id as number,
-          adminName: ctx.user.email || 'Unknown',
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'Unknown',
           action: 'user_created',
           targetType: 'system',
           targetName: `Excel Export: ${input.title}`,
@@ -269,7 +258,7 @@ export const reportingRouter = router({
   /**
    * Priority 4.3: Get Report Templates
    */
-  getReportTemplates: protectedProcedure.query(async ({ ctx }) => {
+  getReportTemplates: publicProcedure.query(async ({ ctx }) => {
     try {
       const templates = [
         {
@@ -311,7 +300,7 @@ export const reportingRouter = router({
   /**
    * Priority 4.4: Schedule Recurring Report
    */
-  scheduleReport: protectedProcedure
+  scheduleReport: publicProcedure
     .input(
       z.object({
         name: z.string(),
@@ -328,13 +317,7 @@ export const reportingRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const tenantId = ctx.user.id as number;
-        if (!tenantId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'No tenant context',
-          });
-        }
+        const tenantId = PUBLIC_TENANT_ID;
 
         // In production, this would save to a scheduled_reports table
         const scheduledReport = {
@@ -353,8 +336,8 @@ export const reportingRouter = router({
         // Log audit event
         await logAuditEvent({
           tenantId,
-          adminId: ctx.user.id as number,
-          adminName: ctx.user.email || 'Unknown',
+          adminId: PUBLIC_TENANT_ID,
+          adminName: 'Unknown',
           action: 'user_created',
           targetType: 'system',
           targetName: `Scheduled Report: ${input.name}`,

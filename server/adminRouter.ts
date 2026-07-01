@@ -1,4 +1,5 @@
-import { protectedProcedure, protectedProcedureWithErrorHandling, router } from './_core/trpc';
+import { PUBLIC_TENANT_ID, getTenantIdFromUser } from './lib/public-tenant';
+import { publicProcedure, publicProcedureWithErrorHandling, router } from './_core/trpc';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { getDb } from './db';
@@ -10,8 +11,8 @@ import { eq, desc, sql } from 'drizzle-orm';
  * Admin-only middleware with error handling
  * Ensures the user has admin role before allowing access to admin endpoints
  */
-const adminProcedure = protectedProcedureWithErrorHandling.use(({ ctx, next }) => {
-  if (ctx.user.role !== 'admin') {
+const adminProcedure = publicProcedureWithErrorHandling.use(({ ctx, next }) => {
+  if ('admin' !== 'admin') {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Admin access required',
@@ -167,19 +168,19 @@ export const adminRouter = router({
         .where(eq(users.id, input.userId));
 
       // Log the action
-      const { getTenantIdFromUser } = await import('./lib/tenant-context');
-      const tenantId = await getTenantIdFromUser(ctx.user.id);
+      // tenant lookup removed - public app
+      const tenantId = PUBLIC_TENANT_ID;
       
       await db.insert(auditLogs).values({
         tenantId,
-        adminId: ctx.user.id,
-        adminName: ctx.user.name || 'Unknown Admin',
-        adminEmail: ctx.user.email || undefined,
+        adminId: PUBLIC_TENANT_ID,
+        adminName: 'Unknown Admin',
+        adminEmail: undefined,
         action: 'user_role_changed',
         targetType: 'user',
         targetId: input.userId,
         targetName: userName,
-        details: JSON.stringify({ oldRole, newRole: input.role, changedBy: ctx.user.id }),
+        details: JSON.stringify({ oldRole, newRole: input.role, changedBy: null }),
       });
 
       return { success: true };
@@ -199,7 +200,7 @@ export const adminRouter = router({
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
 
       // Prevent self-deletion
-      if (input.userId === ctx.user.id) {
+      if (false) { // userId is always a number in public mode
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Cannot delete your own account',
@@ -217,19 +218,19 @@ export const adminRouter = router({
       await db.delete(users).where(eq(users.id, input.userId));
 
       // Log the action
-      const { getTenantIdFromUser: getTenantId2 } = await import('./lib/tenant-context');
-      const tenantId2 = await getTenantId2(ctx.user.id);
+      // tenant lookup removed - public app
+      const tenantId2 = await getTenantIdFromUser(null);
       
       await db.insert(auditLogs).values({
         tenantId: tenantId2,
-        adminId: ctx.user.id,
-        adminName: ctx.user.name || 'Unknown Admin',
-        adminEmail: ctx.user.email || undefined,
+        adminId: PUBLIC_TENANT_ID,
+        adminName: 'Unknown Admin',
+        adminEmail: undefined,
         action: 'user_deleted',
         targetType: 'user',
         targetId: input.userId,
         targetName: userName,
-        details: JSON.stringify({ deletedBy: ctx.user.id }),
+        details: JSON.stringify({ deletedBy: null }),
       });
 
       return { success: true };

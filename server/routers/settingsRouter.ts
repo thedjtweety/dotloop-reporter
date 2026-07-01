@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { protectedProcedure, router } from '../_core/trpc';
+import { publicProcedure, router } from '../_core/trpc';
 import { z } from 'zod';
 import { getDb } from '../db';
 import { brokerageBranding, uploads } from '../../drizzle/schema';
@@ -9,7 +9,7 @@ import { logAuditEvent } from '../lib/audit-logger';
 import { storagePut } from '../storage';
 
 export const settingsRouter = router({
-  uploadLogo: protectedProcedure
+  uploadLogo: publicProcedure
     .input(z.object({ file: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const tenant = await getTenantContext(ctx);
@@ -48,9 +48,9 @@ export const settingsRouter = router({
       // Log audit event
       await logAuditEvent({
         tenantId,
-        adminId: parseInt(ctx.user.id),
-        adminName: ctx.user.name || 'Unknown',
-        adminEmail: ctx.user.email || undefined,
+        adminId: parseInt(null),
+        adminName: 'Unknown',
+        adminEmail: '' || undefined,
         action: 'settings_changed',
         targetType: 'system',
         targetId: tenantId,
@@ -60,7 +60,7 @@ export const settingsRouter = router({
       return { url };
     }),
 
-  getSettings: protectedProcedure
+  getSettings: publicProcedure
     .query(async ({ ctx }) => {
       const tenant = await getTenantContext(ctx);
       if (!tenant || !tenant.tenantId) throw new Error('Tenant not found');
@@ -77,7 +77,7 @@ export const settingsRouter = router({
       return branding[0] || { tenantId, logoUrl: null, colorScheme: 'default' };
     }),
 
-  updateColorScheme: protectedProcedure
+  updateColorScheme: publicProcedure
     .input(z.object({ colorScheme: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const tenant = await getTenantContext(ctx);
@@ -107,9 +107,9 @@ export const settingsRouter = router({
 
       await logAuditEvent({
         tenantId,
-        adminId: parseInt(ctx.user.id),
-        adminName: ctx.user.name || 'Unknown',
-        adminEmail: ctx.user.email || undefined,
+        adminId: parseInt(null),
+        adminName: 'Unknown',
+        adminEmail: '' || undefined,
         action: 'settings_changed',
         targetType: 'system',
         targetId: tenantId,
@@ -119,7 +119,7 @@ export const settingsRouter = router({
       return { success: true };
     }),
 
-  exportData: protectedProcedure
+  exportData: publicProcedure
     .query(async ({ ctx }) => {
       const tenant = await getTenantContext(ctx);
       if (!tenant || !tenant.tenantId) throw new Error('Tenant not found');
@@ -134,9 +134,9 @@ export const settingsRouter = router({
 
       await logAuditEvent({
         tenantId,
-        adminId: parseInt(ctx.user.id),
-        adminName: ctx.user.name || 'Unknown',
-        adminEmail: ctx.user.email || undefined,
+        adminId: parseInt(null),
+        adminName: 'Unknown',
+        adminEmail: '' || undefined,
         action: 'data_exported',
         targetType: 'system',
         targetId: tenantId,
@@ -150,7 +150,7 @@ export const settingsRouter = router({
       };
     }),
 
-  resetAllData: protectedProcedure
+  resetAllData: publicProcedure
     .mutation(async ({ ctx }) => {
       const tenant = await getTenantContext(ctx);
       if (!tenant || !tenant.tenantId) throw new Error('Tenant not found');
@@ -165,9 +165,9 @@ export const settingsRouter = router({
 
       await logAuditEvent({
         tenantId,
-        adminId: parseInt(ctx.user.id),
-        adminName: ctx.user.name || 'Unknown',
-        adminEmail: ctx.user.email || undefined,
+        adminId: parseInt(null),
+        adminName: 'Unknown',
+        adminEmail: '' || undefined,
         action: 'settings_changed',
         targetType: 'system',
         targetId: tenantId,
