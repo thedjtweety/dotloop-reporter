@@ -4613,3 +4613,14 @@
 - [ ] Test upload flow - CSV upload should immediately show dashboard page
 - [ ] Test demo mode - clicking Try Demo should immediately show dashboard page
 - [ ] Ensure Home page still shows upload zone and recent files
+
+## New Feature Requests (Jul 2026)
+- [ ] CSV upload progress status bar showing parsing/loading stages
+- [ ] Clear data button to reset uploaded CSV data and return to upload screen
+- [ ] CDA waterfall preview modal before generating PDF in CDA Builder
+
+## Phase N+1: Three New Features (Manus Version)
+- [x] CSV Upload Status Bar — UploadStatusBar component created and wired into Home.tsx below upload zone
+- [x] Clear Data button — added to ModernHeader with onClearData/hasData props, wired in Home.tsx using clearTransactionData from context
+- [x] CDA Waterfall Preview Modal — Dialog modal intercepts "Generate CDA PDF" button, shows full commission breakdown with "Back to Edit" and "Confirm & Generate PDF" buttons
+- [x] All three features verified working in browser (zero TypeScript errors)

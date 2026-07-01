@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "1970eade-f32f-4a5b-9509-8c79a1bd24c3",
-  "prevId": "bace9d96-73af-4e5a-a8d7-19763d3f0438",
+  "id": "f7c0ac45-ae5d-425b-a417-f80286888d32",
+  "prevId": "e67cdfc8-7856-4b6f-8d04-ed03ac3ed9fe",
   "tables": {
     "agent_assignments": {
       "name": "agent_assignments",
@@ -70,7 +70,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -225,7 +225,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP(3)'"
+          "default": "(now())"
         }
       },
       "indexes": {
@@ -376,7 +376,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -594,7 +594,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -713,7 +713,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -854,7 +854,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "approvedBy": {
           "name": "approvedBy",
@@ -1035,7 +1035,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -1161,7 +1161,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         }
       },
       "indexes": {
@@ -1281,7 +1281,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -1424,7 +1424,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -1647,7 +1647,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         }
       },
       "indexes": {
@@ -1691,6 +1691,168 @@
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "prospect_activity": {
+      "name": "prospect_activity",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tenantId": {
+          "name": "tenantId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "prospectId": {
+          "name": "prospectId",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "activityType": {
+          "name": "activityType",
+          "type": "enum('note','call','email','meeting','offer','status_change')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "contactMethod": {
+          "name": "contactMethod",
+          "type": "enum('phone','email','in_person','video_call')",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "contactDate": {
+          "name": "contactDate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "duration": {
+          "name": "duration",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "offerAmount": {
+          "name": "offerAmount",
+          "type": "decimal(12,2)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "offerStatus": {
+          "name": "offerStatus",
+          "type": "enum('pending','accepted','rejected','negotiating')",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdBy": {
+          "name": "createdBy",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "onUpdate": true,
+          "default": "(now())"
+        }
+      },
+      "indexes": {
+        "activity_tenant_idx": {
+          "name": "activity_tenant_idx",
+          "columns": [
+            "tenantId"
+          ],
+          "isUnique": false
+        },
+        "activity_prospect_idx": {
+          "name": "activity_prospect_idx",
+          "columns": [
+            "prospectId"
+          ],
+          "isUnique": false
+        },
+        "activity_type_idx": {
+          "name": "activity_type_idx",
+          "columns": [
+            "activityType"
+          ],
+          "isUnique": false
+        },
+        "activity_created_at_idx": {
+          "name": "activity_created_at_idx",
+          "columns": [
+            "createdAt"
+          ],
+          "isUnique": false
+        },
+        "activity_tenant_prospect_idx": {
+          "name": "activity_tenant_prospect_idx",
+          "columns": [
+            "tenantId",
+            "prospectId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "prospect_activity_id": {
+          "name": "prospect_activity_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -1746,7 +1908,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "importedBy": {
           "name": "importedBy",
@@ -1871,7 +2033,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         }
       },
       "indexes": {
@@ -2060,7 +2222,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "lastUpdated": {
           "name": "lastUpdated",
@@ -2221,7 +2383,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         }
       },
       "indexes": {
@@ -2259,6 +2421,184 @@
       "compositePrimaryKeys": {
         "recruiting_retention_risk_id": {
           "name": "recruiting_retention_risk_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "retention_alerts": {
+      "name": "retention_alerts",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tenantId": {
+          "name": "tenantId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "agentName": {
+          "name": "agentName",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "riskLevel": {
+          "name": "riskLevel",
+          "type": "enum('low','medium','high')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "dealChangePercent": {
+          "name": "dealChangePercent",
+          "type": "decimal(6,2)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "volumeChangePercent": {
+          "name": "volumeChangePercent",
+          "type": "decimal(6,2)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "alertStatus": {
+          "name": "alertStatus",
+          "type": "enum('active','acknowledged','resolved','dismissed')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'active'"
+        },
+        "acknowledgedBy": {
+          "name": "acknowledgedBy",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "acknowledgedAt": {
+          "name": "acknowledgedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "emailSent": {
+          "name": "emailSent",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "emailSentAt": {
+          "name": "emailSentAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "emailRecipients": {
+          "name": "emailRecipients",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "retentionAction": {
+          "name": "retentionAction",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "actionTaken": {
+          "name": "actionTaken",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "onUpdate": true,
+          "default": "(now())"
+        }
+      },
+      "indexes": {
+        "alert_tenant_idx": {
+          "name": "alert_tenant_idx",
+          "columns": [
+            "tenantId"
+          ],
+          "isUnique": false
+        },
+        "alert_agent_idx": {
+          "name": "alert_agent_idx",
+          "columns": [
+            "agentName"
+          ],
+          "isUnique": false
+        },
+        "alert_risk_level_idx": {
+          "name": "alert_risk_level_idx",
+          "columns": [
+            "riskLevel"
+          ],
+          "isUnique": false
+        },
+        "alert_status_idx": {
+          "name": "alert_status_idx",
+          "columns": [
+            "alertStatus"
+          ],
+          "isUnique": false
+        },
+        "alert_tenant_status_idx": {
+          "name": "alert_tenant_status_idx",
+          "columns": [
+            "tenantId",
+            "alertStatus"
+          ],
+          "isUnique": false
+        },
+        "alert_created_at_idx": {
+          "name": "alert_created_at_idx",
+          "columns": [
+            "createdAt"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "retention_alerts_id": {
+          "name": "retention_alerts_id",
           "columns": [
             "id"
           ]
@@ -2326,7 +2666,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -2396,7 +2736,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "invitedBy": {
           "name": "invitedBy",
@@ -2433,7 +2773,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -2548,7 +2888,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -2695,7 +3035,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         }
       },
       "indexes": {
@@ -2827,7 +3167,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         }
       },
       "indexes": {
@@ -3144,7 +3484,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         }
       },
       "indexes": {
@@ -3258,7 +3598,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         }
       },
       "indexes": {
@@ -3326,7 +3666,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "sharedBy": {
           "name": "sharedBy",
@@ -3514,7 +3854,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         }
       },
       "indexes": {
@@ -3597,7 +3937,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "fileSize": {
           "name": "fileSize",
@@ -3835,7 +4175,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "addedBy": {
           "name": "addedBy",
@@ -3918,7 +4258,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -4033,7 +4373,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -4050,7 +4390,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
+          "default": "(now())"
         }
       },
       "indexes": {

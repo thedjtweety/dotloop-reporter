@@ -15,6 +15,13 @@
       "when": 1776977768999,
       "tag": "0018_add_recruiting_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1782921522354,
+      "tag": "0002_stiff_avengers",
+      "breakpoints": true
     }
   ]
 }

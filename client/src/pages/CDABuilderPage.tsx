@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertCircle, Download, Plus, Trash2, Info } from 'lucide-react';
+import { AlertCircle, Download, Plus, Trash2, Info, Eye, CheckCircle } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 interface Agent {
   role: 'listing_agent' | 'listing_broker' | 'buying_agent' | 'buying_broker';
@@ -244,7 +245,14 @@ export default function CDABuilderPage() {
     );
   };
 
+  const [showPreview, setShowPreview] = useState(false);
+
+  const handlePreviewClick = () => {
+    setShowPreview(true);
+  };
+
   const handleGeneratePdf = async () => {
+    setShowPreview(false);
     try {
       await generatePdfMutation.mutateAsync({
         formData,
@@ -900,17 +908,162 @@ export default function CDABuilderPage() {
               </div>
 
               <Button
-                onClick={handleGeneratePdf}
+                onClick={handlePreviewClick}
                 disabled={generatePdfMutation.isPending}
                 className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700"
               >
-                <Download className="w-4 h-4 mr-2" />
-                {generatePdfMutation.isPending ? 'Generating...' : 'Generate CDA PDF'}
+                <Eye className="w-4 h-4 mr-2" />
+                {generatePdfMutation.isPending ? 'Generating...' : 'Preview & Generate CDA PDF'}
               </Button>
             </Card>
           </div>
         </div>
       </div>
+
+      {/* CDA Waterfall Preview Modal */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-emerald-500" />
+              Commission Disbursement Preview
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* Property Info */}
+            <div className="bg-muted/30 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Property</h3>
+              <p className="font-medium text-foreground">{formData.propertyAddress || 'No address entered'}</p>
+              <p className="text-sm text-muted-foreground">
+                Sale Price: <span className="font-semibold text-foreground">${formData.salePrice.toLocaleString()}</span>
+                {' · '} Total Commission: <span className="font-semibold text-foreground">{formData.totalCommissionRate}%</span>
+              </p>
+            </div>
+
+            {/* Waterfall Breakdown */}
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Commission Waterfall</h3>
+
+              <div className="bg-card border border-border rounded-lg overflow-hidden">
+                {/* GCI */}
+                <div className="flex justify-between items-center px-4 py-3 bg-blue-500/10 border-b border-border">
+                  <span className="font-semibold text-foreground">Gross Commission Income (GCI)</span>
+                  <span className="font-bold text-blue-400 text-lg">${waterfall.gci.toFixed(2)}</span>
+                </div>
+
+                {/* Listing Side */}
+                <div className="px-4 py-3 border-b border-border">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-muted-foreground">Listing Side ({formData.listingSide}%)</span>
+                    <span className="text-foreground">${waterfall.listingSide.toFixed(2)}</span>
+                  </div>
+                  <div className="pl-4 space-y-1">
+                    {waterfall.referralAmount > 0 && (
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>− Referral Fee ({formData.referralFee}%)</span>
+                        <span className="text-red-400">-${waterfall.referralAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {waterfall.franchiseAmount > 0 && (
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>− Franchise Fee ({formData.franchiseFee}%)</span>
+                        <span className="text-red-400">-${waterfall.franchiseAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm font-medium">
+                      <span className="text-emerald-400">Listing Agent ({formData.listingAgentSplit}%)</span>
+                      <span className="text-emerald-400">${waterfall.listingAgentGross.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Listing Broker</span>
+                      <span>${waterfall.listingBrokerGross.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Buying Side */}
+                <div className="px-4 py-3 border-b border-border">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-muted-foreground">Buying Side ({formData.buyingSide}%)</span>
+                    <span className="text-foreground">${waterfall.buyingSide.toFixed(2)}</span>
+                  </div>
+                  <div className="pl-4 space-y-1">
+                    {waterfall.franchiseAmount > 0 && (
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>− Franchise Fee ({formData.franchiseFee}%)</span>
+                        <span className="text-red-400">-${waterfall.franchiseAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm font-medium">
+                      <span className="text-emerald-400">Buying Agent ({formData.buyingAgentSplit}%)</span>
+                      <span className="text-emerald-400">${waterfall.buyingAgentGross.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Buying Broker</span>
+                      <span>${waterfall.buyingBrokerGross.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Deductions */}
+                {deductions.length > 0 && (
+                  <div className="px-4 py-3 border-b border-border">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Deductions</p>
+                    {deductions.map(d => (
+                      <div key={d.id} className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">{d.description || 'Unnamed deduction'}</span>
+                        <span className="text-red-400">-${d.amount.toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Net Payouts */}
+                <div className="px-4 py-3 bg-emerald-500/10">
+                  <div className="flex justify-between font-bold text-emerald-400">
+                    <span>Listing Agent Net</span>
+                    <span>${waterfall.listingAgentNet.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-emerald-400 mt-1">
+                    <span>Buying Agent Net</span>
+                    <span>${waterfall.buyingAgentNet.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Agents */}
+            {agents.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Agents</h3>
+                <div className="space-y-2">
+                  {agents.map((agent, i) => (
+                    <div key={i} className="flex justify-between items-center bg-muted/30 rounded px-3 py-2 text-sm">
+                      <span className="font-medium">{agent.name || 'Unnamed Agent'}</span>
+                      <span className="text-muted-foreground capitalize">{agent.role.replace('_', ' ')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowPreview(false)}>
+              Back to Edit
+            </Button>
+            <Button
+              onClick={handleGeneratePdf}
+              disabled={generatePdfMutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {generatePdfMutation.isPending ? 'Generating PDF...' : 'Confirm & Generate PDF'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

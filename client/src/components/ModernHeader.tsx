@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { ModeToggle } from '@/components/ModeToggle';
 import { Button } from '@/components/ui/button';
-import { Calendar, LogOut, Settings, Menu, X, Zap, FileText, History } from 'lucide-react';
+import { Calendar, LogOut, Settings, Menu, X, Zap, FileText, History, Trash2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { DatePickerWithRange } from '@/components/DateRangePicker';
 import { DateRange } from 'react-day-picker';
@@ -13,9 +13,11 @@ interface ModernHeaderProps {
   title?: string;
   onDemoClick?: () => void;
   isDemoLoading?: boolean;
+  onClearData?: () => void;
+  hasData?: boolean;
 }
 
-export default function ModernHeader({ dateRange, setDateRange, title = 'Dotloop Reporter', onDemoClick, isDemoLoading }: ModernHeaderProps) {
+export default function ModernHeader({ dateRange, setDateRange, title = 'Dotloop Reporter', onDemoClick, isDemoLoading, onClearData, hasData }: ModernHeaderProps) {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [, setLocation] = useLocation();
@@ -66,6 +68,19 @@ export default function ModernHeader({ dateRange, setDateRange, title = 'Dotloop
               CDA Builder
             </Button>
             
+            {/* Clear Data Button - only shown when data is loaded */}
+            {hasData && onClearData && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClearData}
+                className="hidden sm:flex items-center gap-2 text-destructive/80 hover:text-destructive border-destructive/30 hover:border-destructive/60 hover:bg-destructive/10"
+              >
+                <Trash2 className="w-4 h-4" />
+                Clear Data
+              </Button>
+            )}
+
             {/* Demo Button */}
             {onDemoClick && (
               <Button

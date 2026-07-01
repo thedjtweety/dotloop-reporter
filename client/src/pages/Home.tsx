@@ -51,6 +51,7 @@ import { KPICard } from '@/components/KPICard';
 import { PipelineDrillDownModal } from '@/components/PipelineDrillDownModal';
 import { ValidationErrorDisplay } from '@/components/ValidationErrorDisplay';
 import { UploadProgress, useUploadProgress } from '@/components/UploadProgress';
+import { UploadStatusBar } from '@/components/UploadStatusBar';
 import { filterRecordsByDate, getPreviousPeriod } from '@/lib/dateUtils';
 import { generateDashboardSparklineTrends } from '@/lib/sparklineTrendGenerator';
 import { cleanDate, cleanNumber, cleanPercentage, cleanText } from '@/lib/dataCleaning';
@@ -131,7 +132,7 @@ function HomeContent() {
   // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
   let { user, loading, error, isAuthenticated, logout } = useAuth();
   const { filters, addFilter } = useFilters();
-  const { setTransactionData, setComparisonDataSet, comparisonMode, toggleComparisonMode, metrics: contextMetrics, allRecords: contextAllRecords } = useTransactionData();
+  const { setTransactionData, clearTransactionData, setComparisonDataSet, comparisonMode, toggleComparisonMode, metrics: contextMetrics, allRecords: contextAllRecords } = useTransactionData();
 
   const [location, setLocation] = useLocation();
   const { metricsOrder, isEditMode, isLoaded, reorderMetrics, resetToDefault, toggleEditMode } = useMetricsOrder();
@@ -852,10 +853,20 @@ function HomeContent() {
             <OnboardingChecklist />
 
             {/* CSV Upload - full width */}
-            <div className="max-w-2xl mx-auto w-full" data-tour="upload-zone">
+            <div className="max-w-2xl mx-auto w-full space-y-3" data-tour="upload-zone">
               <Card className="p-8 border-dashed border-2 border-border bg-card/50 hover:bg-card/80 transition-colors">
                 <UploadZone onFileUpload={handleFileUpload} isLoading={isLoading} />
               </Card>
+              {/* Inline upload status bar */}
+              <UploadStatusBar
+                stages={uploadProgress.stages}
+                fileName={uploadFileName}
+                visible={showProgress}
+                onCancel={() => {
+                  setShowProgress(false);
+                  setIsLoading(false);
+                }}
+              />
             </div>
 
             {/* Comparison Mode Section */}
@@ -944,20 +955,7 @@ function HomeContent() {
           </div>
         </main>
 
-        {/* Upload Progress Dialog */}
-        <Dialog open={showProgress} onOpenChange={setShowProgress}>
-          <DialogContent className="max-w-2xl">
-            <UploadProgress
-              stages={uploadProgress.stages}
-              fileName={uploadFileName}
-              fileSize={uploadFileSize}
-              onCancel={() => {
-                setShowProgress(false);
-                setIsLoading(false);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+        {/* Upload Progress - now shown inline below upload zone via UploadStatusBar */}
 
         {/* CSV Validation Report Dialog */}
         <Dialog open={showValidationReport} onOpenChange={setShowValidationReport}>
@@ -1070,7 +1068,24 @@ function HomeContent() {
       />
       {/* <SectionNav /> - Removed floating navigation */}
       <BackToTop />
-      <ModernHeader dateRange={dateRange} setDateRange={setDateRange} title="Dotloop Reporter" onDemoClick={handleDemoMode} isDemoLoading={isLoading} />
+      <ModernHeader
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+        title="Dotloop Reporter"
+        onDemoClick={handleDemoMode}
+        isDemoLoading={isLoading}
+        hasData={allRecords.length > 0}
+        onClearData={() => {
+          setMetrics(null);
+          setAllRecords([]);
+          setFilteredRecords([]);
+          setAgentMetrics([]);
+          setDateRange(undefined);
+          setSparklineTrends(null);
+          clearTransactionData();
+          toast.success('Data cleared successfully');
+        }}
+      />
 
       {/* Main Dashboard */}
       <main id="dashboard-section" className="flex-1 overflow-y-auto container py-6 sm:py-8 md:py-10 px-4 sm:px-6 md:px-8">

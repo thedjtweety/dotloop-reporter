@@ -10,7 +10,7 @@ export const agentAssignments = mysqlTable("agent_assignments", {
 	anniversaryDate: varchar({ length: 5 }),
 	startDate: varchar({ length: 10 }),
 	isActive: int().default(1).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -35,7 +35,7 @@ export const auditLogs = mysqlTable("audit_logs", {
 	details: text(),
 	ipAddress: varchar({ length: 45 }),
 	userAgent: text(),
-	createdAt: timestamp({ fsp: 3, mode: 'string' }).default('CURRENT_TIMESTAMP(3)').notNull(),
+	createdAt: timestamp({ fsp: 3, mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("tenant_idx").on(table.tenantId),
@@ -53,7 +53,7 @@ export const cdaFieldMappings = mysqlTable("cda_field_mappings", {
 	cdaField: varchar({ length: 255 }).notNull(),
 	transformFunction: varchar({ length: 100 }),
 	defaultValue: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -76,7 +76,7 @@ export const cdaGenerated = mysqlTable("cda_generated", {
 	pdfFileName: varchar({ length: 255 }),
 	status: mysqlEnum(['draft','pending_approval','approved','sent','completed']).default('draft').notNull(),
 	generatedBy: int().notNull(),
-	generatedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	generatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	approvedBy: int(),
 	approvedAt: timestamp({ mode: 'string' }),
 	sentAt: timestamp({ mode: 'string' }),
@@ -105,7 +105,7 @@ export const cdaTemplates = mysqlTable("cda_templates", {
 	defaultSettings: text(),
 	isActive: int().default(1).notNull(),
 	createdBy: int().notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -126,7 +126,7 @@ export const commissionCalculations = mysqlTable("commission_calculations", {
 	totalCompanyDollar: int().notNull(),
 	totalGrossCommission: int().notNull(),
 	createdBy: int().notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("commission_calculations_tenant_idx").on(table.tenantId),
@@ -146,7 +146,7 @@ export const commissionPlans = mysqlTable("commission_plans", {
 	royaltyCap: int(),
 	description: text(),
 	isActive: int().default(1).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	useSliding: int().default(0).notNull(),
 	tiers: text(),
@@ -169,7 +169,7 @@ export const oauthTokens = mysqlTable("oauth_tokens", {
 	ipAddress: varchar({ length: 45 }),
 	userAgent: text(),
 	deviceFingerprint: varchar({ length: 255 }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	lastUsedAt: timestamp({ mode: 'string' }),
 	lastRefreshedAt: timestamp({ mode: 'string' }),
@@ -203,7 +203,7 @@ export const platformAdminLogs = mysqlTable("platform_admin_logs", {
 	details: text(),
 	ipAddress: varchar({ length: 45 }).notNull(),
 	userAgent: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("admin_idx").on(table.adminUserId),
@@ -221,7 +221,7 @@ export const teams = mysqlTable("teams", {
 	teamSplitPercentage: int().notNull(),
 	description: text(),
 	isActive: int().default(1).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -234,12 +234,12 @@ export const tenantMembers = mysqlTable("tenant_members", {
 	tenantId: int().notNull(),
 	userId: int().notNull(),
 	role: mysqlEnum(['admin','broker','member','agent']).notNull(),
-	joinedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	joinedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	invitedBy: int(),
 	invitedAt: timestamp({ mode: 'string' }),
 	status: mysqlEnum(['active','invited','inactive']).default('active').notNull(),
 	permissions: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -258,7 +258,7 @@ export const tenants = mysqlTable("tenants", {
 	status: mysqlEnum(['active','suspended','deleted']).default('active').notNull(),
 	subscriptionTier: mysqlEnum(['free','basic','professional','enterprise']).default('free').notNull(),
 	settings: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -282,7 +282,7 @@ export const tierHistory = mysqlTable("tier_history", {
 	ytdAmount: int().notNull(),
 	transactionId: varchar({ length: 255 }),
 	transactionDate: varchar({ length: 50 }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("tier_history_tenant_idx").on(table.tenantId),
@@ -304,7 +304,7 @@ export const tokenAuditLogs = mysqlTable("token_audit_logs", {
 	userAgent: text(),
 	requestId: varchar({ length: 255 }),
 	metadata: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("tenant_time_idx").on(table.tenantId, table.createdAt),
@@ -352,7 +352,7 @@ export const transactions = mysqlTable("transactions", {
 	yearBuilt: int(),
 	lotSize: int(),
 	subdivision: varchar({ length: 255 }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("loopId_tenant_unique").on(table.loopId, table.tenantId),
@@ -371,7 +371,7 @@ export const uploadActivityLog = mysqlTable("upload_activity_log", {
 	userId: int().notNull(),
 	action: mysqlEnum(['shared','viewed','downloaded','deleted']).notNull(),
 	details: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("upload_idx").on(table.uploadId),
@@ -384,7 +384,7 @@ export const uploadSharing = mysqlTable("upload_sharing", {
 	id: int().autoincrement().notNull(),
 	uploadId: int().notNull(),
 	userTeamId: int().notNull(),
-	sharedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	sharedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	sharedBy: int().notNull(),
 },
 (table) => [
@@ -414,7 +414,7 @@ export const uploadSnapshots = mysqlTable("upload_snapshots", {
 	buySideCommission: int().notNull(),
 	sellSideCommission: int().notNull(),
 	metricsJson: text().notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("upload_snapshots_tenant_idx").on(table.tenantId),
@@ -429,7 +429,7 @@ export const uploads = mysqlTable("uploads", {
 	userId: int().notNull(),
 	fileName: varchar({ length: 255 }).notNull(),
 	recordCount: int().notNull(),
-	uploadedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	uploadedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	fileSize: int(),
 	validationTimeMs: int(),
 	parsingTimeMs: int(),
@@ -468,7 +468,7 @@ export const userTeamMembers = mysqlTable("user_team_members", {
 	userTeamId: int().notNull(),
 	userId: int().notNull(),
 	role: mysqlEnum(['owner','editor','viewer']).default('viewer').notNull(),
-	addedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	addedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	addedBy: int().notNull(),
 },
 (table) => [
@@ -483,7 +483,7 @@ export const userTeams = mysqlTable("user_teams", {
 	ownerId: int().notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	description: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -502,9 +502,9 @@ export const users = mysqlTable("users", {
 	loginMethod: varchar({ length: 64 }),
 	role: mysqlEnum(['admin','broker','agent','viewer']).default('viewer').notNull(),
 	status: mysqlEnum(['active','inactive','suspended']).default('active').notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	lastSignedIn: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	lastSignedIn: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("openId_tenant_unique").on(table.openId, table.tenantId),
@@ -526,7 +526,7 @@ export const brokerageBranding = mysqlTable("brokerage_branding", {
 	accentColor: varchar({ length: 7 }).default('#8b5cf6').notNull(),
 	logoUrl: text(),
 	logoFileName: varchar({ length: 255 }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -559,7 +559,7 @@ export const cdaDocuments = mysqlTable("cda_documents", {
 	pdfFileName: varchar({ length: 255 }),
 	status: mysqlEnum(['draft','generated','approved','archived']).default('draft').notNull(),
 	createdBy: int().notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	approvedBy: int(),
 	approvedAt: timestamp({ mode: 'string' }),
@@ -603,7 +603,7 @@ export const recruitingProspects = mysqlTable("recruiting_prospects", {
 	
 	// Tracking
 	sourceType: mysqlEnum(['market_view_broker', 'manual_entry']).default('market_view_broker').notNull(),
-	importedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	importedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	lastUpdated: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	notes: text(),
 	isActive: int().default(1).notNull(),
@@ -625,7 +625,7 @@ export const recruitingPipelineActivity = mysqlTable("recruiting_pipeline_activi
 	newStatus: mysqlEnum(['lead', 'contacted', 'interviewing', 'offer_extended', 'onboarding', 'hired', 'declined']),
 	details: text(),
 	createdBy: int().notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("recruiting_activity_tenant_idx").on(table.tenantId),
@@ -653,7 +653,7 @@ export const recruitingRetentionRisk = mysqlTable("recruiting_retention_risk", {
 	riskLevel: mysqlEnum(['low', 'medium', 'high']).default('low').notNull(),
 	
 	// Tracking
-	lastCalculated: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	lastCalculated: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("retention_risk_tenant_idx").on(table.tenantId),
@@ -669,7 +669,7 @@ export const recruitingImportHistory = mysqlTable("recruiting_import_history", {
 	importType: mysqlEnum(['market_view_broker', 'retention_data']).notNull(),
 	recordsImported: int().notNull(),
 	recordsSkipped: int().default(0).notNull(),
-	importedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	importedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	importedBy: int().notNull(),
 	status: mysqlEnum(['success', 'partial', 'failed']).default('success').notNull(),
 	errorDetails: text(),
@@ -700,7 +700,7 @@ export const prospectActivity = mysqlTable("prospect_activity", {
 	
 	// Status tracking
 	createdBy: int().notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -734,7 +734,7 @@ export const retentionAlerts = mysqlTable("retention_alerts", {
 	actionTaken: text(), // What was actually done
 	
 	// Tracking
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
