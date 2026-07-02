@@ -117,6 +117,7 @@ import { FilterProvider, useFilters } from '@/contexts/FilterContext';
 import FilterBadge from '@/components/FilterBadge';
 import { validateCSVData, ValidationReport } from '@/lib/csvValidation';
 import CSVValidationReport from '@/components/CSVValidationReport';
+import { analyzeFieldCompleteness, getDegradedFeatures } from '@/lib/fieldCompletenessAnalysis';
 import DataQualityGuide from '@/components/DataQualityGuide';
 import toast, { Toaster } from 'react-hot-toast';
 // import SectionNav from '@/components/SectionNav'; // Removed floating navigation
@@ -723,10 +724,14 @@ function HomeContent() {
       
       performanceMetrics.totalTimeMs = Date.now() - overallStartTime;
       
-      // Generate validation report (store but don't show - let dashboard load first)
+      // Generate validation report and show it after upload
       const report = validateCSVData(file.name, records);
       setValidationReport(report);
-      // setShowValidationReport(true); // Commented out - show dashboard first, user can view data health tab
+      // Only show the validation modal if there are issues to surface (quality < 90 or any issues)
+      if (report.overallQuality < 90 || report.issues.length > 0) {
+        // Delay slightly so the dashboard renders first
+        setTimeout(() => setShowValidationReport(true), 1500);
+      }
       
       // Process the records for immediate display
       const calculatedMetrics = calculateMetrics(records);
@@ -1091,6 +1096,36 @@ function HomeContent() {
       <main id="dashboard-section" className="flex-1 overflow-y-auto container py-6 sm:py-8 md:py-10 px-4 sm:px-6 md:px-8">
         {/* Filter Badge */}
         <FilterBadge />
+
+        {/* Data Quality Banner — shown when overall completeness is below 70% */}
+        {contextAllRecords.length > 0 && (() => {
+          const completeness = analyzeFieldCompleteness(contextAllRecords);
+          if (completeness.overallCompleteness >= 70) return null;
+          const criticalFields = completeness.fields.filter(f => f.status === 'critical' || f.status === 'warning');
+          return (
+            <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/5 px-4 py-3">
+              <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                  Data Quality: {completeness.overallCompleteness}% complete
+                  {criticalFields.length > 0 && ` — ${criticalFields.length} field${criticalFields.length > 1 ? 's' : ''} need attention`}
+                </p>
+                <p className="text-xs text-amber-600/80 dark:text-amber-500/80 mt-0.5">
+                  Some charts and metrics may show partial data.
+                  {criticalFields.length > 0 && (
+                    <> Missing: {criticalFields.map(f => f.displayName).join(', ')}.</>
+                  )}
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveTab('health')}
+                className="shrink-0 text-xs font-medium text-amber-600 dark:text-amber-400 underline hover:no-underline"
+              >
+                View fix guide
+              </button>
+            </div>
+          );
+        })()}
         
         {/* Pipeline Pulse Dashboard */}
         {contextMetrics && contextAllRecords.length > 0 && (
@@ -1120,6 +1155,11 @@ function HomeContent() {
                 }}
                 status="active"
                 onClick={() => handleMetricClick('volume')}
+                warning={(() => {
+                  const filled = contextAllRecords.filter(r => (r.salePrice || r.price || 0) > 0).length;
+                  const pct = contextAllRecords.length > 0 ? Math.round((filled / contextAllRecords.length) * 100) : 100;
+                  return pct < 70 ? `${pct}% of records have price data` : undefined;
+                })()}
               />
               <MetricCardModern
                 icon={<CheckCircle className="w-5 h-5 text-accent" />}
@@ -1132,6 +1172,11 @@ function HomeContent() {
                 }}
                 status="active"
                 onClick={() => handleMetricClick('closing')}
+                warning={(() => {
+                  const filled = contextAllRecords.filter(r => r.loopStatus && r.loopStatus.trim()).length;
+                  const pct = contextAllRecords.length > 0 ? Math.round((filled / contextAllRecords.length) * 100) : 100;
+                  return pct < 70 ? `${pct}% of records have status data` : undefined;
+                })()}
               />
               <MetricCardModern
                 icon={<Calendar className="w-5 h-5 text-accent" />}
@@ -1315,9 +1360,12 @@ function HomeContent() {
               <TabsTrigger value="leadsource">Lead Source</TabsTrigger>
               <TabsTrigger value="property">Property Type</TabsTrigger>
               <TabsTrigger value="geographic">Geographic</TabsTrigger>
-              {contextMetrics?.hasFinancialData && (
-                <TabsTrigger value="financial">Financial</TabsTrigger>
-              )}
+              <TabsTrigger value="financial" className="relative">
+                Financial
+                {!contextMetrics?.hasFinancialData && (
+                  <span className="ml-1 text-amber-500" title="Commission data missing">⚠</span>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="insights">Insights</TabsTrigger>
               <TabsTrigger value="health">Data Health</TabsTrigger>
               <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold flex gap-1 items-center">
@@ -1384,18 +1432,33 @@ function HomeContent() {
 
             <TabAnimation isVisible={activeTab === 'leadsource'} duration={400}>
             <TabsContent value="leadsource" className="space-y-4">
-              <Card className="p-6 bg-card border border-border">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-display font-bold text-foreground">
-                    Lead Source Performance
-                  </h2>
-                  <PerformanceBadge lastUpdated={new Date()} processingTimeMs={156} />
-                </div>
-                <LeadSourceChart 
-                  data={getLeadSourceData(contextAllRecords)} 
-                  onSliceClick={(label) => openChartDrillDown('leadSource', label, `Lead Source: ${label}`)}
-                />
-              </Card>
+              {(() => {
+                const leadSourceFilled = contextAllRecords.filter(r => r.leadSource && r.leadSource.trim()).length;
+                const pct = contextAllRecords.length > 0 ? Math.round((leadSourceFilled / contextAllRecords.length) * 100) : 100;
+                return (
+                  <>
+                    {pct < 70 && (
+                      <div className="flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
+                        Only {pct}% of records have a Lead Source. Chart shows partial data.
+                        <button onClick={() => setActiveTab('health')} className="ml-auto underline text-xs">Fix guide</button>
+                      </div>
+                    )}
+                    <Card className="p-6 bg-card border border-border">
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-display font-bold text-foreground">
+                          Lead Source Performance
+                        </h2>
+                        <PerformanceBadge lastUpdated={new Date()} processingTimeMs={156} />
+                      </div>
+                      <LeadSourceChart 
+                        data={getLeadSourceData(contextAllRecords)} 
+                        onSliceClick={(label) => openChartDrillDown('leadSource', label, `Lead Source: ${label}`)}
+                      />
+                    </Card>
+                  </>
+                );
+              })()}
             </TabsContent>
             </TabAnimation>
 
@@ -1418,26 +1481,69 @@ function HomeContent() {
 
             <TabAnimation isVisible={activeTab === 'geographic'} duration={400}>
             <TabsContent value="geographic" className="space-y-4">
-              <Card className="p-6 bg-card border border-border">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-display font-bold text-foreground">
-                    Geographic Distribution
-                  </h2>
-                  <PerformanceBadge lastUpdated={new Date()} processingTimeMs={267} />
-                </div>
-                <GeographicChart 
-                  data={getGeographicData(contextAllRecords)} 
-                  onBarClick={(label) => openChartDrillDown('geographic', label, `Location: ${label}`)}
-                  transactions={contextAllRecords}
-                />
-              </Card>
+              {(() => {
+                const stateFilled = contextAllRecords.filter(r => r.state && r.state.trim()).length;
+                const pct = contextAllRecords.length > 0 ? Math.round((stateFilled / contextAllRecords.length) * 100) : 100;
+                return (
+                  <>
+                    {pct < 70 && (
+                      <div className="flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
+                        Only {pct}% of records have State data. Geographic chart shows partial data.
+                        <button onClick={() => setActiveTab('health')} className="ml-auto underline text-xs">Fix guide</button>
+                      </div>
+                    )}
+                    <Card className="p-6 bg-card border border-border">
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-display font-bold text-foreground">
+                          Geographic Distribution
+                        </h2>
+                        <PerformanceBadge lastUpdated={new Date()} processingTimeMs={267} />
+                      </div>
+                      <GeographicChart 
+                        data={getGeographicData(contextAllRecords)} 
+                        onBarClick={(label) => openChartDrillDown('geographic', label, `Location: ${label}`)}
+                        transactions={contextAllRecords}
+                      />
+                    </Card>
+                  </>
+                );
+              })()}
             </TabsContent>
             </TabAnimation>
 
-            {contextMetrics?.hasFinancialData && (
-              <>
-                <TabAnimation isVisible={activeTab === 'financial'} duration={400}>
-                <TabsContent value="financial" className="space-y-4">
+            <TabAnimation isVisible={activeTab === 'financial'} duration={400}>
+            <TabsContent value="financial" className="space-y-4">
+              {!contextMetrics?.hasFinancialData ? (
+                /* No commission data — show partial data + hygiene guidance */
+                <Card className="p-8 bg-card border border-amber-500/30">
+                  <div className="flex flex-col items-center text-center gap-4 max-w-lg mx-auto">
+                    <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center">
+                      <DollarSign className="w-8 h-8 text-amber-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-foreground mb-2">Commission Data Not Found</h3>
+                      <p className="text-foreground/70 text-sm">
+                        Your CSV doesn't include commission or financial fields. The Financial tab shows Revenue Overview,
+                        Commission Breakdown, and Revenue Distribution — all of which require commission data from Dotloop.
+                      </p>
+                    </div>
+                    <div className="w-full text-left bg-muted/40 rounded-lg p-4 border border-border">
+                      <p className="text-sm font-semibold text-foreground mb-2">How to add commission data to your export:</p>
+                      <ol className="text-sm text-foreground/80 space-y-1 list-decimal list-inside">
+                        <li>In Dotloop, go to <strong>Reports → Export</strong></li>
+                        <li>Under <strong>Financials</strong>, enable: <em>Sale Commission Total</em>, <em>Sale Commission Rate</em>, <em>Sale Commission Split $ - Buy Side</em>, <em>Sale Commission Split $ - Sell Side</em></li>
+                        <li>Re-export and upload the new CSV</li>
+                      </ol>
+                    </div>
+                    <Button variant="outline" onClick={() => setActiveTab('health')} className="gap-2">
+                      <AlertCircle className="w-4 h-4" /> View Full Data Health Report
+                    </Button>
+                  </div>
+                </Card>
+              ) : (
+                /* Has financial data — show all charts */
+                <>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card className="p-6 bg-card border border-border">
                       <div className="flex items-center justify-between mb-4">
@@ -1476,10 +1582,10 @@ function HomeContent() {
                       <AgentMixChart agents={agentMetrics} />
                     </Card>
                   </div>
-                </TabsContent>
-                </TabAnimation>
-              </>
-            )}
+                </>
+              )}
+            </TabsContent>
+            </TabAnimation>
 
             <TabAnimation isVisible={activeTab === 'insights'} duration={400}>
             <TabsContent value="insights" className="space-y-4">

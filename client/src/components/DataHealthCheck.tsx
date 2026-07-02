@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { DotloopRecord } from '@/lib/csvParser';
 import { analyzeDataHealth, HealthIssue } from '@/lib/dataHealth';
-import { analyzeFieldCompleteness } from '@/lib/fieldCompletenessAnalysis';
+import { analyzeFieldCompleteness, FieldCompleteness } from '@/lib/fieldCompletenessAnalysis';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { AlertTriangle, CheckCircle, XCircle, AlertCircle, ArrowRight } from 'lucide-react';
@@ -129,8 +129,13 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
                 return 'text-red-500';
               };
 
+              const [expanded, setExpanded] = useState(false);
+              const needsAttention = field.status === 'warning' || field.status === 'critical';
+
               return (
-                <div key={field.fieldName} className="p-4 rounded-lg border border-border bg-muted/30">
+                <div key={field.fieldName} className={`p-4 rounded-lg border bg-muted/30 transition-colors ${
+                  needsAttention ? 'border-amber-500/40 hover:border-amber-500/60' : 'border-border'
+                }`}>
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium text-foreground text-sm">{field.displayName}</h4>
                     <span className={`text-lg font-bold ${getFieldTextColor(field.status)}`}>
@@ -145,6 +150,26 @@ export default function DataHealthCheck({ records }: DataHealthCheckProps) {
                   <p className="text-xs text-foreground mt-2">
                     {field.completedRecords} of {field.totalRecords} records
                   </p>
+                  {/* Impact summary — always visible */}
+                  {field.impact && (
+                    <p className="text-xs text-foreground/70 mt-2 italic">{field.impact}</p>
+                  )}
+                  {/* How-to-fix — shown for warning/critical fields */}
+                  {needsAttention && field.howToFix && (
+                    <div className="mt-3">
+                      <button
+                        onClick={() => setExpanded(e => !e)}
+                        className="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400 hover:underline"
+                      >
+                        {expanded ? '▲ Hide fix steps' : '▼ How to fix in Dotloop'}
+                      </button>
+                      {expanded && (
+                        <p className="mt-2 text-xs text-foreground/80 bg-amber-500/5 border border-amber-500/20 rounded p-2">
+                          {field.howToFix}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

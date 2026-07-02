@@ -4633,3 +4633,13 @@
 - [x] Verify NetCommissionReportPage already reads commissionPlans/agentAssignments from context (confirmed it does — just needs the context to be populated)
 - [x] Verify CommissionAuditReport uses filteredRecords from context (confirmed it does)
 - [x] Test end-to-end: upload CSV → assign plan to agent → verify Net Report and Audit tab reflect new plan
+
+## Phase N+3: Sparse Data Failsafes & Data Hygiene System
+- [x] Wire CSVValidationReportModal to auto-show after every CSV upload (currently commented out in Home.tsx)
+- [x] Enhance csvValidation.ts with specific dotloop field hygiene recommendations (closing date, commission rate, agent names, lead source, sale price)
+- [x] Add "data missing" inline banners to metric cards when a specific field is sparse (e.g. "Commission data missing — add commission rate to your export")
+- [x] Make Financial tab visible even when hasFinancialData is false — show partial data + a "How to add commission data" prompt instead of hiding the tab
+- [x] Add graceful empty states to all charts: show partial data with clear "X% of records missing this field" label + fix suggestion
+- [x] Add a persistent "Data Quality" banner at top of dashboard when overall score < 70%, linking to Data Health tab
+- [x] Show field-level completeness scores in the Data Health tab with specific dotloop export steps to fix each gap
+- [x] Write vitest tests for the new hygiene recommendation logic

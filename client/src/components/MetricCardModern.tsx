@@ -15,6 +15,8 @@ interface MetricCardModernProps {
   onClick?: () => void;
   className?: string;
   variant?: 'default' | 'highlight';
+  /** Optional warning shown below the value when data is sparse */
+  warning?: string;
 }
 
 export default function MetricCardModern({
@@ -26,6 +28,7 @@ export default function MetricCardModern({
   onClick,
   className,
   variant = 'default',
+  warning,
 }: MetricCardModernProps) {
   const statusStyles = {
     active: 'bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30',
@@ -98,6 +101,14 @@ export default function MetricCardModern({
           {trend.label && (
             <span className="text-foreground/60 ml-1">{trend.label}</span>
           )}
+        </div>
+      )}
+
+      {/* Sparse-data warning */}
+      {warning && (
+        <div className="mt-2 flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+          <span>⚠</span>
+          <span>{warning}</span>
         </div>
       )}
 
