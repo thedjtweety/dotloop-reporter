@@ -99,8 +99,11 @@ export default function BulkPlanAssignment({
 
       console.log('[BulkPlanAssignment] Assignments saved successfully');
 
-      // Update parent component state
+      // Update parent component state (which also syncs to global context via AgentAssignment)
       onAssignmentComplete(newAssignments);
+
+      // Notify other components (leaderboard, etc.) of the change
+      window.dispatchEvent(new CustomEvent('commission-assignment-updated'));
 
       toast.success(`Successfully assigned ${selectedAgents.size} agent(s) to plan`);
       

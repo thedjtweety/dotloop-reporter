@@ -9,10 +9,12 @@ import { Plus, Trash2, Save, Edit2, X, Settings, Loader2 } from 'lucide-react';
 import { Deduction } from '@/lib/commission';
 import { SlidingScaleTierManager } from '@/components/SlidingScaleTierManager';
 import { trpc } from '@/lib/trpc';
+import { useTransactionData } from '@/contexts/TransactionDataContext';
 import toast from 'react-hot-toast';
 import FullScreenModal from '@/components/FullScreenModal';
 
 export default function CommissionPlansManager() {
+  const { setCommissionData, agentAssignments } = useTransactionData();
   const [plans, setPlans] = useState<CommissionPlan[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<Partial<CommissionPlan>>({});
@@ -63,6 +65,8 @@ export default function CommissionPlansManager() {
 
       setPlans(updatedPlans);
       await refetch();
+      // Sync updated plans to global context so all pages see the change immediately
+      setCommissionData({ plans: updatedPlans, assignments: agentAssignments });
       setIsDialogOpen(false);
       setCurrentPlan({});
       toast.success('Commission plan saved successfully');
@@ -82,7 +86,8 @@ export default function CommissionPlansManager() {
         
         const updatedPlans = plans.filter(p => p.id !== id);
         setPlans(updatedPlans);
-        saveCommissionPlans(updatedPlans);
+        // Sync updated plans to global context
+        setCommissionData({ plans: updatedPlans, assignments: agentAssignments });
         await refetch();
         toast.success('Commission plan deleted successfully');
       } catch (error) {

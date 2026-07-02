@@ -28,6 +28,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useTransactionData } from '@/contexts/TransactionDataContext';
 
 interface AgentAssignmentProps {
   records: DotloopRecord[]; // Used to extract unique agent names
@@ -36,6 +37,8 @@ interface AgentAssignmentProps {
 }
 
 export default function AgentAssignment({ records, highlightAgent, onAssignmentChange }: AgentAssignmentProps) {
+  const { setCommissionData, commissionPlans: contextPlans, agentAssignments: contextAssignments } = useTransactionData();
+
   const [plans, setPlans] = useState<CommissionPlan[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [assignments, setAssignments] = useState<AgentPlanAssignment[]>([]);
@@ -43,40 +46,56 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
   const [searchTerm, setSearchTerm] = useState('');
   const [recalculatingAgent, setRecalculatingAgent] = useState<string | null>(null);
   
-  // Get the recalculation mutation
+  // tRPC mutations
   const recalculateMutation = trpc.commissionRecalculation.recalculateForAgent.useMutation();
+  const saveAssignmentMutation = trpc.commission.saveAssignment.useMutation();
   
-  // Fetch plans and teams from database
+  // Fetch plans, teams, and assignments from database
   const { data: dbPlans, isLoading: plansLoading, error: plansError } = trpc.commission.getPlans.useQuery(undefined, {
     retry: 1,
   });
   const { data: dbTeams, isLoading: teamsLoading, error: teamsError } = trpc.commission.getTeams.useQuery(undefined, {
     retry: 1,
   });
+  const { data: dbAssignments, refetch: refetchAssignments } = trpc.commission.getAssignments.useQuery(undefined, {
+    retry: 1,
+  });
   
   // Log errors for debugging
   useEffect(() => {
-    if (plansError) {
-      console.error('[AgentAssignment] Error fetching plans:', plansError);
-    }
-    if (teamsError) {
-      console.error('[AgentAssignment] Error fetching teams:', teamsError);
-    }
+    if (plansError) console.error('[AgentAssignment] Error fetching plans:', plansError);
+    if (teamsError) console.error('[AgentAssignment] Error fetching teams:', teamsError);
   }, [plansError, teamsError]);
 
+  // Sync DB plans into local state AND global context
   useEffect(() => {
-    // Use database plans
     if (dbPlans) {
       setPlans(dbPlans);
     }
   }, [dbPlans]);
 
+  // Sync DB teams into local state
   useEffect(() => {
-    // Use database teams
     if (dbTeams) {
       setTeams(dbTeams);
     }
   }, [dbTeams]);
+
+  // Sync DB assignments into local state AND global context
+  useEffect(() => {
+    if (dbAssignments) {
+      setAssignments(dbAssignments);
+      // Populate global context so NetCommissionReport, Audit, etc. see current assignments
+      setCommissionData({
+        plans: dbPlans || contextPlans,
+        assignments: dbAssignments.map(a => ({
+          agentName: a.agentName,
+          planId: a.planId,
+          planName: a.planName || '',
+        })),
+      });
+    }
+  }, [dbAssignments]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Extract unique agents from records
@@ -104,41 +123,72 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
     }
   }, [highlightAgent]);
 
+  /** Push updated assignments to global context */
+  const syncToContext = (newAssignments: AgentPlanAssignment[]) => {
+    const currentPlans = dbPlans || contextPlans;
+    setCommissionData({
+      plans: currentPlans,
+      assignments: newAssignments.map(a => {
+        const plan = currentPlans.find(p => p.id === a.planId);
+        return {
+          agentName: a.agentName,
+          planId: a.planId,
+          planName: plan?.name || a.planId,
+        };
+      }),
+    });
+  };
+
   const handleAssignPlan = async (agentName: string, planId: string) => {
     const existing = assignments.find(a => a.agentName === agentName);
     const newAssignments = assignments.filter(a => a.agentName !== agentName);
     
+    const assignmentId = existing?.id || Math.random().toString(36).substr(2, 9);
+
     if (planId !== 'none') {
       newAssignments.push({
-        id: existing?.id || Math.random().toString(36).substr(2, 9),
+        id: assignmentId,
         agentName,
         planId,
-        teamId: existing?.teamId, // Preserve team
-        startDate: existing?.startDate || new Date().toISOString().split('T')[0]
+        teamId: existing?.teamId,
+        startDate: existing?.startDate || new Date().toISOString().split('T')[0],
+        anniversaryDate: existing?.anniversaryDate,
       });
     } else if (existing?.teamId) {
-       // Keep assignment if team exists but plan removed? No, require plan for now.
-       // Actually, let's allow partial assignment.
-       newAssignments.push({
-         id: existing.id,
-         agentName,
-         planId: 'none',
-         teamId: existing.teamId
-       });
+      newAssignments.push({
+        id: assignmentId,
+        agentName,
+        planId: 'none',
+        teamId: existing.teamId,
+        anniversaryDate: existing?.anniversaryDate,
+      });
     }
+
+    // Optimistically update local state and global context
     setAssignments(newAssignments);
-    saveAgentAssignments(newAssignments);
+    syncToContext(newAssignments);
+
+    // Persist to DB via tRPC (replaces the deprecated saveAgentAssignments no-op)
+    try {
+      await saveAssignmentMutation.mutateAsync({
+        id: assignmentId,
+        agentName,
+        planId: planId === 'none' ? '' : planId,
+        teamId: existing?.teamId || null,
+        anniversaryDate: existing?.anniversaryDate || null,
+      });
+    } catch (err) {
+      console.error('[AgentAssignment] Failed to persist assignment:', err);
+      toast.error('Failed to save assignment to database');
+    }
     
     // Trigger real-time commission recalculation
     if (planId !== 'none') {
       setRecalculatingAgent(agentName);
       try {
-        const result = await recalculateMutation.mutateAsync({
-          agentName,
-        });
-        
+        const result = await recalculateMutation.mutateAsync({ agentName });
         if (result.success) {
-          toast.success(`✓ Commission recalculated for ${agentName}: ${result.transactionCount} transactions, $${(result.totalCommission / 100).toFixed(2)} total`);
+          toast.success(`✓ Plan assigned & commissions recalculated for ${agentName}`);
         } else {
           toast.error(result.error || 'Failed to recalculate commissions');
         }
@@ -150,56 +200,86 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
       }
     }
     
-    // Dispatch custom event to notify other components (like leaderboard) of the change
+    // Notify other components (leaderboard, etc.)
     window.dispatchEvent(new CustomEvent('commission-assignment-updated'));
     onAssignmentChange?.();
   };
 
-  const handleAssignTeam = (agentName: string, teamId: string) => {
+  const handleAssignTeam = async (agentName: string, teamId: string) => {
     const existing = assignments.find(a => a.agentName === agentName);
     const newAssignments = assignments.filter(a => a.agentName !== agentName);
     
     const newTeamId = teamId === 'none' ? undefined : teamId;
+    const assignmentId = existing?.id || Math.random().toString(36).substr(2, 9);
 
     if (existing) {
-      newAssignments.push({
-        ...existing,
-        teamId: newTeamId
-      });
+      newAssignments.push({ ...existing, teamId: newTeamId });
     } else if (newTeamId) {
       newAssignments.push({
-        id: Math.random().toString(36).substr(2, 9),
+        id: assignmentId,
         agentName,
-        planId: 'none', // Placeholder
+        planId: 'none',
         teamId: newTeamId,
-        startDate: new Date().toISOString().split('T')[0]
+        startDate: new Date().toISOString().split('T')[0],
       });
     }
-    setAssignments(newAssignments);      // Assignments are now saved to database via tRPC// Dispatch custom event to notify other components of the change
+
+    setAssignments(newAssignments);
+    syncToContext(newAssignments);
+
+    // Persist to DB
+    if (existing?.planId && existing.planId !== 'none') {
+      try {
+        await saveAssignmentMutation.mutateAsync({
+          id: existing.id || assignmentId,
+          agentName,
+          planId: existing.planId,
+          teamId: newTeamId || null,
+          anniversaryDate: existing.anniversaryDate || null,
+        });
+      } catch (err) {
+        console.error('[AgentAssignment] Failed to persist team assignment:', err);
+      }
+    }
+
     window.dispatchEvent(new CustomEvent('commission-assignment-updated'));
   };
 
-  const handleAnniversaryChange = (agentName: string, date: string) => {
+  const handleAnniversaryChange = async (agentName: string, date: string) => {
     const existing = assignments.find(a => a.agentName === agentName);
     const newAssignments = assignments.filter(a => a.agentName !== agentName);
+    const assignmentId = existing?.id || Math.random().toString(36).substr(2, 9);
     
     if (existing) {
-      newAssignments.push({
-        ...existing,
-        anniversaryDate: date
-      });
+      newAssignments.push({ ...existing, anniversaryDate: date });
     } else {
       newAssignments.push({
-        id: Math.random().toString(36).substr(2, 9),
+        id: assignmentId,
         agentName,
         planId: 'none',
         anniversaryDate: date,
-        startDate: new Date().toISOString().split('T')[0]
+        startDate: new Date().toISOString().split('T')[0],
       });
     }
+
     setAssignments(newAssignments);
-    saveAgentAssignments(newAssignments);
-    // Dispatch custom event to notify other components of the change
+    syncToContext(newAssignments);
+
+    // Persist to DB if agent has a plan
+    if (existing?.planId && existing.planId !== 'none') {
+      try {
+        await saveAssignmentMutation.mutateAsync({
+          id: existing.id || assignmentId,
+          agentName,
+          planId: existing.planId,
+          teamId: existing.teamId || null,
+          anniversaryDate: date || null,
+        });
+      } catch (err) {
+        console.error('[AgentAssignment] Failed to persist anniversary:', err);
+      }
+    }
+
     window.dispatchEvent(new CustomEvent('commission-assignment-updated'));
   };
 
@@ -230,18 +310,22 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
           <BulkPlanAssignment
             agents={agents}
             assignments={assignments}
-            onAssignmentComplete={setAssignments}
+            onAssignmentComplete={(newAssignments) => {
+              setAssignments(newAssignments);
+              syncToContext(newAssignments);
+              refetchAssignments();
+            }}
           />
-            <div className="relative w-64">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-foreground" />
-              <Input
-                placeholder="Search agents..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
+          <div className="relative w-64">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-foreground" />
+            <Input
+              placeholder="Search agents..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8"
+            />
           </div>
+        </div>
       </div>
 
       <div className="border rounded-md">
@@ -258,7 +342,7 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
           <TableBody>
             {filteredAgents.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-foreground">
+                <TableCell colSpan={5} className="text-center py-8 text-foreground">
                   No agents found. Upload a CSV to populate this list.
                 </TableCell>
               </TableRow>
@@ -268,14 +352,21 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
                 const currentTeamId = getAgentTeamId(agent);
                 const currentPlan = plans.find(p => p.id === currentPlanId);
                 const currentTeam = teams.find(t => t.id === currentTeamId);
+                const isRecalculating = recalculatingAgent === agent;
 
                 return (
                   <TableRow key={agent} data-agent-row={agent} className="transition-colors duration-300">
-                    <TableCell className="font-medium">{agent}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {agent}
+                        {isRecalculating && <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-500" />}
+                      </div>
+                    </TableCell>
                     <TableCell className="w-[250px]">
                       <Select
                         value={currentPlanId}
                         onValueChange={(val) => handleAssignPlan(agent, val)}
+                        disabled={isRecalculating}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select a plan" />

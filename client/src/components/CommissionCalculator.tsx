@@ -17,7 +17,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle, Loader2, Download, RefreshCw } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
-import { getRecentFiles } from '@/lib/storage';
+import { useTransactionData } from '@/contexts/TransactionDataContext';
 import ExportPDFButton from '@/components/ExportPDFButton';
 import AgentCommissionSummary from '@/components/AgentCommissionSummary';
 import CommissionVarianceReport from '@/components/CommissionVarianceReport';
@@ -35,12 +35,16 @@ interface CalculationResult {
 }
 
 export default function CommissionCalculator() {
+  // Use global transaction context — always reflects the most recently uploaded CSV
+  const { allRecords, hasData: contextHasData } = useTransactionData();
+
   const [loading, setLoading] = useState(false);
   const [calculating, setCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CalculationResult | null>(null);
-  const [transactions, setTransactions] = useState<DotloopRecord[]>([]);
-  const [hasData, setHasData] = useState(false);
+  // transactions is now derived from context; kept as local alias for backwards compat
+  const transactions = allRecords;
+  const hasData = contextHasData;
 
   // Fetch data from tRPC with staleTime: 0 to ensure fresh data
   const { data: plans, isLoading: plansLoading, error: plansError, refetch: refetchPlans } = trpc.commission.getPlans.useQuery(undefined, { staleTime: 0 });
@@ -63,52 +67,8 @@ export default function CommissionCalculator() {
     refetchAssignments();
   }, []);
 
-  // Load recent transaction data on mount
-  useEffect(() => {
-    const loadRecentData = async () => {
-      try {
-        setLoading(true);
-        
-        // First check for demo data in localStorage
-        const demoDataStr = localStorage.getItem('dotloop_demo_data');
-        if (demoDataStr) {
-          try {
-            const demoData = JSON.parse(demoDataStr);
-            if (demoData && demoData.length > 0) {
-              setTransactions(demoData);
-              setHasData(true);
-              setError(null);
-              setLoading(false);
-              return;
-            }
-          } catch (e) {
-            console.error('Failed to parse demo data:', e);
-          }
-        }
-        
-        // Fall back to recent files
-        const recentFiles = await getRecentFiles();
-        if (recentFiles.length > 0) {
-          const mostRecent = recentFiles[0];
-          if (mostRecent.data && mostRecent.data.length > 0) {
-            setTransactions(mostRecent.data);
-            setHasData(true);
-            setError(null);
-          } else {
-            setError('No transaction data found in recent uploads');
-          }
-        } else {
-          setError('No recent uploads found. Please upload a Dotloop export first.');
-        }
-      } catch (err) {
-        setError(`Failed to load transaction data: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadRecentData();
-  }, []);
+  // Transaction data now comes from TransactionDataContext (allRecords)
+  // No need to load from localStorage — context is always up to date after CSV upload
 
   const handleCalculate = async () => {
     try {

@@ -4624,3 +4624,12 @@
 - [x] Clear Data button — added to ModernHeader with onClearData/hasData props, wired in Home.tsx using clearTransactionData from context
 - [x] CDA Waterfall Preview Modal — Dialog modal intercepts "Generate CDA PDF" button, shows full commission breakdown with "Back to Edit" and "Confirm & Generate PDF" buttons
 - [x] All three features verified working in browser (zero TypeScript errors)
+
+## Phase N+2: Global Data Flow Fixes
+- [x] Fix CommissionCalculator to read from TransactionDataContext instead of localStorage/recentFiles
+- [x] Fix AgentAssignment to call setCommissionData() on context after saving assignments so global state updates
+- [x] Fix CommissionManagement Plans tab: local `plans` state must sync back to context via setCommissionData when plans are created/edited/deleted
+- [x] Add a "Apply to Dashboard" recalculation step: when agent plan assignments change, recalculate agentMetrics in context using the new plan splits
+- [x] Verify NetCommissionReportPage already reads commissionPlans/agentAssignments from context (confirmed it does — just needs the context to be populated)
+- [x] Verify CommissionAuditReport uses filteredRecords from context (confirmed it does)
+- [x] Test end-to-end: upload CSV → assign plan to agent → verify Net Report and Audit tab reflect new plan
