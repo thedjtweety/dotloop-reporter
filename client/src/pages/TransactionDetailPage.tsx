@@ -85,8 +85,21 @@ export default function TransactionDetailPage({ params }: TransactionDetailPageP
   const { allRecords } = useTransactionData();
   const { openCDA } = useCDAPanel();
 
-  const index = parseInt(params?.index ?? '', 10);
-  const record: DotloopRecord | undefined = allRecords[index];
+  // params.index is actually a loopId or composite key (URL-encoded)
+  const rawKey = decodeURIComponent(params?.index ?? '');
+
+  // First try to match by loopId
+  let record: DotloopRecord | undefined = allRecords.find(r => r.loopId && r.loopId === rawKey);
+
+  // Fall back to composite key match: loopName|closingDate|salePrice
+  if (!record && rawKey.includes('|')) {
+    const [loopName, closingDate, salePrice] = rawKey.split('|');
+    record = allRecords.find(r =>
+      (r.loopName || '') === loopName &&
+      (r.closingDate || '') === closingDate &&
+      String(r.salePrice || '') === salePrice
+    );
+  }
 
   if (!record) {
     return (

@@ -54,11 +54,12 @@ function AgentDrillDown({ agent, onClose, records }: { agent: EnrichedAgent; onC
     (r.agents || '').toLowerCase().includes(agent.agentName.toLowerCase())
   );
   const handleTransactionClick = (record: any) => {
-    const globalIndex = records.indexOf(record);
-    if (globalIndex >= 0) {
-      onClose();
-      navigate(`/transaction/${globalIndex}`);
-    }
+    // Use loopId as stable key; fall back to encoded loopName+closingDate composite
+    const key = record.loopId
+      ? encodeURIComponent(record.loopId)
+      : encodeURIComponent(`${record.loopName || ''}|${record.closingDate || ''}|${record.salePrice || ''}`);
+    onClose();
+    navigate(`/transaction/${key}`);
   };
 
   return (

@@ -99,38 +99,59 @@ describe('Transaction Detail Page - fmtPct helper', () => {
   });
 });
 
-describe('Transaction Detail Page - index-based navigation', () => {
+describe('Transaction Detail Page - loopId and composite-key navigation', () => {
   const records: DotloopRecord[] = [
     { loopId: '1', loopName: '123 Main St', loopStatus: 'Closed', address: '123 Main St, Austin, TX', salePrice: 450000, price: 450000, commissionTotal: 13500, commissionRate: 3, closingDate: '2026-01-15', agents: 'John Smith', tags: ['buyer'] },
     { loopId: '2', loopName: '456 Oak Ave', loopStatus: 'Active', address: '456 Oak Ave, Round Rock, TX', salePrice: 0, price: 320000, commissionTotal: 0, commissionRate: 0, closingDate: '', agents: 'Jane Doe', tags: [] },
     { loopId: '3', loopName: '789 Elm Dr', loopStatus: 'Under Contract', address: '789 Elm Dr, Cedar Park, TX', salePrice: 275000, price: 275000, commissionTotal: 8250, commissionRate: 3, closingDate: '2026-03-01', agents: 'John Smith, Jane Doe', tags: ['seller', 'referral'] },
   ];
 
-  it('retrieves correct record by index', () => {
-    expect(records[0].loopId).toBe('1');
-    expect(records[1].loopId).toBe('2');
-    expect(records[2].loopId).toBe('3');
+  it('finds record by loopId', () => {
+    const found = records.find(r => r.loopId && r.loopId === '1');
+    expect(found).toBeDefined();
+    expect(found?.loopName).toBe('123 Main St');
   });
 
-  it('returns undefined for out-of-bounds index', () => {
-    expect(records[99]).toBeUndefined();
-    expect(records[-1]).toBeUndefined();
+  it('returns undefined for non-existent loopId', () => {
+    const found = records.find(r => r.loopId && r.loopId === '999');
+    expect(found).toBeUndefined();
   });
 
-  it('finds correct global index for an agent record', () => {
-    const agentName = 'John Smith';
-    const agentRecords = records.filter(r =>
-      (r.agents || '').toLowerCase().includes(agentName.toLowerCase())
+  it('finds record by composite key when loopId is missing', () => {
+    const r = records[0];
+    const compositeKey = `${r.loopName || ''}|${r.closingDate || ''}|${r.salePrice || ''}`;
+    const [loopName, closingDate, salePrice] = compositeKey.split('|');
+    const found = records.find(rec =>
+      (rec.loopName || '') === loopName &&
+      (rec.closingDate || '') === closingDate &&
+      String(rec.salePrice || '') === salePrice
     );
-    expect(agentRecords).toHaveLength(2);
+    expect(found).toBeDefined();
+    expect(found?.loopId).toBe('1');
+  });
 
-    const firstRecord = agentRecords[0];
-    const globalIndex = records.indexOf(firstRecord);
-    expect(globalIndex).toBe(0);
+  it('composite key lookup returns undefined for non-matching data', () => {
+    const found = records.find(rec =>
+      (rec.loopName || '') === 'Nonexistent Address' &&
+      (rec.closingDate || '') === '2099-01-01'
+    );
+    expect(found).toBeUndefined();
+  });
 
-    const secondRecord = agentRecords[1];
-    const globalIndex2 = records.indexOf(secondRecord);
-    expect(globalIndex2).toBe(2);
+  it('encodes loopId correctly for URL navigation', () => {
+    const loopId = 'loop-123/abc';
+    const encoded = encodeURIComponent(loopId);
+    const decoded = decodeURIComponent(encoded);
+    expect(decoded).toBe(loopId);
+  });
+
+  it('encodes composite key correctly for URL navigation', () => {
+    const r = records[1];
+    const key = `${r.loopName || ''}|${r.closingDate || ''}|${r.salePrice || ''}`;
+    const encoded = encodeURIComponent(key);
+    const decoded = decodeURIComponent(encoded);
+    expect(decoded).toBe(key);
+    expect(decoded.includes('|')).toBe(true);
   });
 
   it('correctly formats a full record for display', () => {
