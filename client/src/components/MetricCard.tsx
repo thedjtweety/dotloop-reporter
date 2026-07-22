@@ -161,9 +161,9 @@ export default function MetricCard({
           ) : trend ? (
             <div className="flex items-center gap-2 mt-3">
               <div className={`flex items-center text-sm font-semibold px-2 py-1 rounded-full ${
-                trend.direction === 'up' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 
-                trend.direction === 'down' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 
-                'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+                trend.direction === 'up' ? 'bg-green-500/15 text-green-400' : 
+                trend.direction === 'down' ? 'bg-red-500/15 text-red-400' : 
+                'bg-muted text-foreground/60'
               }`}>
                 {trend.direction === 'up' && <ArrowUpRight className="w-4 h-4 mr-1" />}
                 {trend.direction === 'down' && <ArrowDownRight className="w-4 h-4 mr-1" />}

@@ -370,7 +370,7 @@ export default function NetCommissionReport({
 
       {/* Bulk Actions Toolbar */}
       {bulkActionMode && selectedTransactions.size > 0 && (
-        <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+        <Card className="p-4 bg-accent/10 border-accent/30">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium text-foreground">
@@ -435,7 +435,7 @@ export default function NetCommissionReport({
                     expandedAgent === agent.agentName ? null : agent.agentName
                   )
                 }
-                className="w-full p-6 flex items-center justify-between bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                className="w-full p-6 flex items-center justify-between bg-muted hover:bg-muted/80 transition-colors"
               >
                 <div className="text-left">
                   <h3 className="text-lg font-bold text-foreground">
@@ -493,7 +493,7 @@ export default function NetCommissionReport({
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-border bg-slate-50 dark:bg-slate-900/50">
+                        <tr className="border-b border-border bg-muted/40">
                           <th className="px-4 py-3 text-left font-semibold text-foreground w-8">
                             <input
                               type="checkbox"
@@ -537,8 +537,8 @@ export default function NetCommissionReport({
                           return (
                             <tr
                               key={idx}
-                              className={`border-b border-border hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors ${
-                                isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                              className={`border-b border-border hover:bg-muted/30 transition-colors ${
+                                isSelected ? 'bg-accent/10' : ''
                               }`}
                             >
                               <td className="px-4 py-3 text-foreground w-8">
@@ -636,7 +636,7 @@ export default function NetCommissionReport({
       {selectedTransaction && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 p-6 border-b border-border bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-between">
+            <div className="sticky top-0 p-6 border-b border-border bg-muted flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold text-foreground">
                   {selectedTransaction.transaction.loopName}
@@ -695,7 +695,7 @@ export default function NetCommissionReport({
                       {formatCurrency(selectedTransaction.transaction.deductions)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center justify-between bg-accent/10 p-3 rounded border border-accent/30">
                     <span className="font-semibold text-foreground">Net Commission</span>
                     <span className="font-bold text-lg text-primary">
                       {formatCurrency(selectedTransaction.transaction.netCommission)}

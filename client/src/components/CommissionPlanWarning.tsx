@@ -25,22 +25,22 @@ export default function CommissionPlanWarning({ agentName, compact = false, onNa
     if (planName) {
       // Show assigned plan in green
       return (
-        <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
+        <div className="flex items-center gap-2 text-sm text-emerald-500">
           <span className="text-lg">✓</span>
           <span className="font-medium">{planName}</span>
         </div>
       );
     }
-    
+
     return (
-      <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+      <div className="flex items-center gap-2 text-sm text-amber-500">
         <AlertCircle className="w-4 h-4 flex-shrink-0" />
         <span>No plan assigned</span>
         <Button
           onClick={handleNavigateToAssignments}
           variant="ghost"
           size="sm"
-          className="h-6 px-2 text-xs text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950"
+          className="h-6 px-2 text-xs text-amber-500 hover:bg-amber-500/10"
         >
           Assign Now
         </Button>
@@ -49,14 +49,14 @@ export default function CommissionPlanWarning({ agentName, compact = false, onNa
   }
 
   return (
-    <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+    <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
       <div className="flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+        <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-amber-900 dark:text-amber-100">
+          <h3 className="font-semibold text-foreground">
             🤔 Commission plan not assigned
           </h3>
-          <p className="text-sm text-amber-800 dark:text-amber-200 mt-1">
+          <p className="text-sm text-foreground/80 mt-1">
             {agentName} needs a commission plan assigned to show accurate numbers. Without a plan, commission calculations may not reflect your brokerage's actual structure.
           </p>
           <div className="mt-3">
@@ -64,7 +64,7 @@ export default function CommissionPlanWarning({ agentName, compact = false, onNa
               onClick={handleNavigateToAssignments}
               variant="outline"
               size="sm"
-              className="bg-white dark:bg-slate-900 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950"
+              className="bg-muted border-amber-500/40 text-amber-500 hover:bg-amber-500/10"
             >
               Go to Agent Assignments
             </Button>

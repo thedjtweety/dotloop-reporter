@@ -26,11 +26,11 @@ interface ExpandableTransactionRowProps {
 
 const getStatusColor = (status: string): string => {
   const lower = status?.toLowerCase() || '';
-  if (lower.includes('closed') || lower.includes('sold')) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-  if (lower.includes('active')) return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-  if (lower.includes('contract') || lower.includes('pending')) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-  if (lower.includes('archived')) return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-  return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+  if (lower.includes('closed') || lower.includes('sold')) return 'bg-green-500/15 text-green-400';
+  if (lower.includes('active')) return 'bg-blue-500/15 text-blue-400';
+  if (lower.includes('contract') || lower.includes('pending')) return 'bg-yellow-500/15 text-yellow-400';
+  if (lower.includes('archived')) return 'bg-muted text-foreground/60';
+  return 'bg-muted text-foreground/60';
 };
 
 const formatDate = (dateString: string): string => {
