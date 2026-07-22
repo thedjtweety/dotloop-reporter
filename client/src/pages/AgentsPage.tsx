@@ -2,6 +2,7 @@
  * AgentsPage - Full Agent Leaderboard with Podium, Sortable Table, Bar Chart, and Drill-Down
  */
 import { useState, useMemo } from 'react';
+import { useLocation } from 'wouter';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
@@ -48,9 +49,18 @@ type EnrichedAgent = AgentMetrics & { color: string; initials: string };
 
 function AgentDrillDown({ agent, onClose, records }: { agent: EnrichedAgent; onClose: () => void; records: any[] }) {
   const { openCDA } = useCDAPanel();
+  const [, navigate] = useLocation();
   const agentRecords = records.filter(r =>
     (r.agents || '').toLowerCase().includes(agent.agentName.toLowerCase())
   );
+  const handleTransactionClick = (record: any) => {
+    const globalIndex = records.indexOf(record);
+    if (globalIndex >= 0) {
+      onClose();
+      navigate(`/transaction/${globalIndex}`);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-[#0d1117] border border-[#1e2d3d] rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
@@ -93,15 +103,20 @@ function AgentDrillDown({ agent, onClose, records }: { agent: EnrichedAgent; onC
             </thead>
             <tbody>
               {agentRecords.slice(0, 50).map((r: any, i: number) => (
-                <tr key={i} className="border-b border-[#1a2332] hover:bg-[#1a2332]/50">
-                  <td className="py-2 text-gray-200 truncate max-w-[200px]">{r.loopName || r.address || '—'}</td>
+                <tr
+                  key={i}
+                  className="border-b border-[#1a2332] hover:bg-[#1a2332]/80 cursor-pointer transition-colors group"
+                  onClick={() => handleTransactionClick(r)}
+                  title="Click to view full transaction details"
+                >
+                  <td className="py-2 text-gray-200 truncate max-w-[200px] group-hover:text-white transition-colors">{r.loopName || r.address || '—'}</td>
                   <td className="py-2"><Badge variant="outline" className="text-[10px]">{r.loopStatus || '—'}</Badge></td>
                   <td className="py-2 text-right text-gray-300">{formatCurrency(r.salePrice || r.price || 0)}</td>
                   <td className="py-2 text-right text-gray-400">{r.closingDate || '—'}</td>
                   <td className="py-2 text-right text-emerald-400">{formatCurrency(r.commissionTotal || 0)}</td>
                   <td className="py-2 text-right">
                     <button
-                      onClick={() => openCDA(r, r.address || r.loopName || 'Transaction')}
+                      onClick={(e) => { e.stopPropagation(); openCDA(r, r.address || r.loopName || 'Transaction'); }}
                       className="text-blue-400 hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-400/10"
                       title="Open CDA Builder"
                     >
@@ -307,12 +322,16 @@ export default function AgentsPage() {
                   </td>
                   <td className="px-3 py-3 text-gray-500 text-xs">{idx + 1}</td>
                   <td className="px-3 py-3">
-                    <div className="flex items-center gap-2">
+                    <button
+                      className="flex items-center gap-2 hover:opacity-80 transition-opacity text-left"
+                      onClick={() => setDrillDown(agent)}
+                      title="View agent details"
+                    >
                       <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ background: agent.color + '33', color: agent.color }}>
                         {agent.initials}
                       </div>
-                      <span className="text-white font-medium">{agent.agentName}</span>
-                    </div>
+                      <span className="text-white font-medium hover:underline">{agent.agentName}</span>
+                    </button>
                   </td>
                   <td className="px-3 py-3 text-right text-gray-200">{agent.closedDeals}</td>
                   <td className="px-3 py-3 text-right">
@@ -326,7 +345,7 @@ export default function AgentsPage() {
                   <td className="px-3 py-3 text-right text-blue-400">{formatCurrency(agent.totalSalesVolume)}</td>
                   <td className="px-3 py-3 text-right">
                     <div className="flex items-center justify-end gap-2 text-gray-400">
-                      <button onClick={() => setDrillDown(agent)} className="hover:text-white transition-colors" title="View Details"><Eye className="w-4 h-4" /></button>
+                      <button onClick={() => setDrillDown(agent)} className="hover:text-white transition-colors flex items-center gap-1 text-xs" title="View Details"><Eye className="w-4 h-4" /> Details</button>
                       <button
                         className="hover:text-blue-400 transition-colors"
                         title="Open CDA Builder"

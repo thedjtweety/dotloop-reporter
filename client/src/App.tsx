@@ -40,6 +40,7 @@ import TeamManagementComplete from "./pages/TeamManagementComplete";
 import SettingsComplete from "./pages/SettingsComplete";
 import ReportingComplete from "./pages/ReportingComplete";
 import DotloopOAuthCallback from "./pages/DotloopOAuthCallback";
+import TransactionDetailPage from "./pages/TransactionDetailPage";
 import { CDAProvider } from "./contexts/CDAContext";
 import { useTransactionData } from "./contexts/TransactionDataContext";
 
@@ -47,6 +48,7 @@ import { useTransactionData } from "./contexts/TransactionDataContext";
 const SIDEBAR_ROUTES = [
   { path: "/", component: Home },
   { path: "/agents", component: AgentsPage },
+  { path: "/transaction/:index", component: TransactionDetailPage },
   { path: "/commission", component: CommissionManagement },
   { path: "/net-commission-report", component: NetCommissionReportPage },
   { path: "/cda-builder", component: CDABuilderPage },

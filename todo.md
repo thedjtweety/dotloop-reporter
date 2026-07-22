@@ -4643,3 +4643,11 @@
 - [x] Add a persistent "Data Quality" banner at top of dashboard when overall score < 70%, linking to Data Health tab
 - [x] Show field-level completeness scores in the Data Health tab with specific dotloop export steps to fix each gap
 - [x] Write vitest tests for the new hygiene recommendation logic
+
+## Phase N+4: Agent Tab Interactivity & Transaction Detail Page
+- [x] Wire agent name (text) and Details button in Agents tab to open agent detail modal
+- [x] Make each transaction row in the agent detail modal clickable
+- [x] Build /transaction/:id detail page showing all DotloopRecord fields
+- [x] Add back navigation from transaction detail page to agent modal
+- [x] Register /transaction/:id route in App.tsx
+- [x] Test full navigation flow: Agents tab → agent modal → transaction detail page
