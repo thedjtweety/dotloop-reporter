@@ -4122,7 +4122,7 @@
 - [x] Replace getCommissionPlans() with tRPC calls in CommissionCalculator.tsx
 - [x] Replace getCommissionPlans() with tRPC calls in CommissionPlansManager.tsx
 - [x] Replace getPlanForAgent() with tRPC calls in AgentCommissionBreakdown.tsx
-- [ ] Replace getPlanForAgent() with tRPC calls in CommissionComparisonReport.tsx
+- [x] Replace getPlanForAgent() with tRPC calls in CommissionComparisonReport.tsx
 - [x] Test Commission components after tRPC migration
 - [x] Verify no console warnings appear
 
