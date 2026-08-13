@@ -18,6 +18,8 @@ interface ExpandableTransactionRowProps {
   transaction: DotloopRecord;
   visibleColumns: string[];
   compact?: boolean;
+  /** Hides actions that require broker or Dotloop-account access in a shared agent portal. */
+  agentScopedReadOnly?: boolean;
   onTransactionClick?: (transaction: DotloopRecord) => void;
   isSelected?: boolean;
   onSelectionChange?: (selected: boolean) => void;
@@ -48,10 +50,15 @@ const formatDate = (dateString: string): string => {
   }
 };
 
+export function canShowExternalTransactionLink(agentScopedReadOnly: boolean, loopViewUrl?: string) {
+  return !agentScopedReadOnly && Boolean(loopViewUrl);
+}
+
 export default function ExpandableTransactionRow({
   transaction,
   visibleColumns,
   compact = false,
+  agentScopedReadOnly = false,
   onTransactionClick,
   isSelected = false,
   onSelectionChange,
@@ -383,7 +390,7 @@ export default function ExpandableTransactionRow({
             </div>
 
             {/* Dotloop Link */}
-            {transaction.loopViewUrl && (
+          {canShowExternalTransactionLink(agentScopedReadOnly, transaction.loopViewUrl) && (
               <div className="mt-4 pt-4 border-t border-border">
                 <Button
                   variant="outline"

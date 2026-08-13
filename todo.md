@@ -4658,3 +4658,4 @@
 - [x] Create an agent analytics portal that filters all transaction and performance data to the selected agent
 - [x] Add copyable agent-specific share links with clear privacy limitations and no-data states
 - [x] Test demo and uploaded-data preview flows, agent isolation, and invalid share-link handling
+- [x] Remove CDA, Dotloop, co-agent, and expanded-row external actions from token-scoped agent portals

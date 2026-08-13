@@ -78,6 +78,10 @@ export function createAdjustment(
     status: 'pending',
   };
 
+  const adjustments = getAdjustments();
+  adjustments.push(adjustment);
+  saveAdjustments(adjustments);
+
   // Log the creation
   logAuditEntry(adjustment.id, 'created', createdBy, `Created adjustment: ${reason}`, undefined, adjustedValue);
 

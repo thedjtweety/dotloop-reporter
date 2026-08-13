@@ -27,6 +27,13 @@ class MemoryStorage implements Storage {
   }
 }
 
+if (!globalThis.Storage) {
+  Object.defineProperty(globalThis, 'Storage', {
+    value: MemoryStorage,
+    configurable: true,
+  });
+}
+
 if (!globalThis.localStorage) {
   Object.defineProperty(globalThis, 'localStorage', {
     value: new MemoryStorage(),
@@ -34,3 +41,9 @@ if (!globalThis.localStorage) {
   });
 }
 
+if (!globalThis.window) {
+  Object.defineProperty(globalThis, 'window', {
+    value: { open: () => null },
+    configurable: true,
+  });
+}

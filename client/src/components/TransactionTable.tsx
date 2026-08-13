@@ -450,6 +450,7 @@ export default function TransactionTable({
                 transaction={transaction}
                 visibleColumns={visibleCols}
                 compact={compact}
+                agentScopedReadOnly={agentScopedReadOnly}
                 onTransactionClick={onTransactionClick}
                 isSelected={selectedRecords.has(idx)}
                 onSelectionChange={(selected) => {
