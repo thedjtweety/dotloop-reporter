@@ -33,6 +33,7 @@ import {
 } from "../drizzle/schema";
 import { getDb } from "./db";
 import { eq, and, inArray } from "drizzle-orm";
+import { PUBLIC_TENANT_ID } from "./lib/public-tenant";
 
 // Zod schemas for input validation
 const TransactionInputSchema = z.object({
@@ -82,8 +83,8 @@ const TeamSchema = z.object({
 
 const AgentAssignmentSchema = z.object({
   id: z.string(), // Required for database insert
-  agentName: z.string(),
-  planId: z.string(),
+  agentName: z.string().trim().min(1, "Agent name is required"),
+  planId: z.string().trim().min(1, "Select a commission plan before saving an assignment"),
   teamId: z.string().nullable().optional(),
   startDate: z.string().nullable().optional(),
   anniversaryDate: z.string().nullable().optional(),
@@ -203,7 +204,8 @@ export const commissionRouter = router({
       
       const plansData = await db
         .select()
-        .from(commissionPlans);
+        .from(commissionPlans)
+        .where(eq(commissionPlans.tenantId, PUBLIC_TENANT_ID));
 
       return plansData.map((p: any) => ({
         id: p.id,
@@ -269,7 +271,8 @@ export const commissionRouter = router({
           planName: commissionPlans.name,
         })
         .from(agentAssignments)
-        .leftJoin(commissionPlans, eq(agentAssignments.planId, commissionPlans.id));
+        .leftJoin(commissionPlans, eq(agentAssignments.planId, commissionPlans.id))
+        .where(eq(agentAssignments.tenantId, PUBLIC_TENANT_ID));
 
       return assignmentsList.map((a: any) => ({
         id: a.id,
@@ -410,7 +413,7 @@ export const commissionRouter = router({
         const existing = await db
           .select()
           .from(commissionPlans)
-          .where(eq(commissionPlans.id, input.id))
+          .where(and(eq(commissionPlans.id, input.id), eq(commissionPlans.tenantId, PUBLIC_TENANT_ID)))
           .limit(1);
 
         if (existing.length > 0) {
@@ -429,12 +432,12 @@ export const commissionRouter = router({
               useSliding: input.useSliding ? 1 : 0,
               tiers: input.tiers ? JSON.stringify(input.tiers) : null,
             })
-            .where(eq(commissionPlans.id, input.id));
+            .where(and(eq(commissionPlans.id, input.id), eq(commissionPlans.tenantId, PUBLIC_TENANT_ID)));
         } else {
           // Insert new plan
           await db.insert(commissionPlans).values({
             id: input.id,
-            tenantId: null,
+            tenantId: PUBLIC_TENANT_ID,
             name: input.name,
             splitPercentage: input.splitPercentage,
             capAmount: input.capAmount,
@@ -469,10 +472,15 @@ export const commissionRouter = router({
           throw new Error("Database connection not available");
         }
 
-        // Delete the plan
+        // Clear dependent assignments before deleting a plan. This prevents
+        // stale agent-plan links from surviving a broker plan deletion.
+        await db
+          .delete(agentAssignments)
+          .where(and(eq(agentAssignments.tenantId, PUBLIC_TENANT_ID), eq(agentAssignments.planId, planId)));
+
         await db
           .delete(commissionPlans)
-          .where(eq(commissionPlans.id, planId));
+          .where(and(eq(commissionPlans.id, planId), eq(commissionPlans.tenantId, PUBLIC_TENANT_ID)));
 
         return { success: true };
       } catch (error) {
@@ -495,15 +503,26 @@ export const commissionRouter = router({
           throw new Error("Database connection not available");
         }
         
-        // Ensure id is a string (not undefined)
-        const assignmentId = input.id || nanoid();
-        
-        // Check if assignment exists
+        const selectedPlan = await db
+          .select({ id: commissionPlans.id })
+          .from(commissionPlans)
+          .where(and(eq(commissionPlans.id, input.planId), eq(commissionPlans.tenantId, PUBLIC_TENANT_ID)))
+          .limit(1);
+        if (!selectedPlan.length) {
+          throw new Error("The selected commission plan no longer exists. Refresh plans and try again.");
+        }
+
+        // One agent has one active plan in the public broker workspace. Upsert
+        // by tenant + agent name rather than a transient client-generated id.
         const existing = await db
           .select()
           .from(agentAssignments)
-          .where(eq(agentAssignments.id, assignmentId))
+          .where(and(
+            eq(agentAssignments.tenantId, PUBLIC_TENANT_ID),
+            eq(agentAssignments.agentName, input.agentName),
+          ))
           .limit(1);
+        const assignmentId = existing[0]?.id ?? input.id ?? nanoid();
 
         if (existing.length > 0) {
           // Update existing assignment
@@ -512,23 +531,25 @@ export const commissionRouter = router({
             .set({
               agentName: input.agentName,
               planId: input.planId,
-              teamId: input.teamId,
-              anniversaryDate: input.anniversaryDate,
+              teamId: input.teamId ?? null,
+              startDate: input.startDate ?? null,
+              anniversaryDate: input.anniversaryDate ?? null,
             })
-            .where(eq(agentAssignments.id, assignmentId));
+            .where(and(eq(agentAssignments.id, assignmentId), eq(agentAssignments.tenantId, PUBLIC_TENANT_ID)));
         } else {
           // Insert new assignment
           await db.insert(agentAssignments).values({
             id: assignmentId,
-            tenantId: null,
+            tenantId: PUBLIC_TENANT_ID,
             agentName: input.agentName,
             planId: input.planId,
-            teamId: input.teamId,
-            anniversaryDate: input.anniversaryDate,
+            teamId: input.teamId ?? null,
+            startDate: input.startDate ?? null,
+            anniversaryDate: input.anniversaryDate ?? null,
           } as any);
         }
 
-        return { success: true, id: input.id };
+        return { success: true, id: assignmentId };
       } catch (error) {
         console.error("Save assignment error:", error);
         throw new Error(
@@ -552,7 +573,7 @@ export const commissionRouter = router({
         // Delete the assignment
         await db
           .delete(agentAssignments)
-          .where(eq(agentAssignments.id, assignmentId));
+          .where(and(eq(agentAssignments.id, assignmentId), eq(agentAssignments.tenantId, PUBLIC_TENANT_ID)));
 
         return { success: true };
       } catch (error) {
@@ -575,8 +596,7 @@ export const commissionRouter = router({
           throw new Error("Database connection not available");
         }
         
-        // Get tenantId from authenticated user, or use default for demo
-        const tenantId = ctx.user?.tenantId || 1; // Default to tenant 1 for demo/unauthenticated users
+        const tenantId = PUBLIC_TENANT_ID;
         
         const results: any[] = [];
         const assignments = input;

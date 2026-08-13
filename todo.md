@@ -4659,3 +4659,11 @@
 - [x] Add copyable agent-specific share links with clear privacy limitations and no-data states
 - [x] Test demo and uploaded-data preview flows, agent isolation, and invalid share-link handling
 - [x] Remove CDA, Dotloop, co-agent, and expanded-row external actions from token-scoped agent portals
+
+## Phase N+6: Critical Commission Workflow Repair
+- [x] Diagnose and fix the 500 error when saving agent assignments to the database
+- [x] Verify New, Edit, Copy, and Delete plan controls persist correctly and surface user-facing errors
+- [x] Ensure plan assignment can be applied individually and in bulk to uploaded CSV agents
+- [x] Recalculate agent commission metrics globally after each plan or assignment change
+- [x] Ensure private agent-sharing portals use the broker-approved plan-based commission data only
+- [x] Test the complete broker workflow with demo and CSV-derived transaction data

@@ -25,6 +25,7 @@ export default function AgentPortalPage() {
   );
 
   const records = (sharedData.data?.records ?? []) as DotloopRecord[];
+  const commissionSummary = sharedData.data?.commissionSummary;
   const metrics = useMemo(() => {
     if (!sharedData.data?.agentName) return null;
     return calculateAgentMetrics(records).find((metric) => metric.agentName === sharedData.data?.agentName) ?? null;
@@ -56,7 +57,11 @@ export default function AgentPortalPage() {
   const cards = [
     { label: 'My Transactions', value: records.length.toLocaleString(), color: 'text-foreground' },
     { label: 'Closed Deals', value: closedCount.toLocaleString(), color: 'text-emerald-500' },
-    { label: 'My GCI', value: formatCurrency(metrics?.totalCommission ?? 0), color: 'text-primary' },
+    {
+      label: commissionSummary ? 'My Net Commission' : 'My GCI',
+      value: formatCurrency(commissionSummary?.netCommission ?? metrics?.totalCommission ?? 0),
+      color: 'text-primary',
+    },
     { label: 'Sales Volume', value: formatCurrency(metrics?.totalSalesVolume ?? 0), color: 'text-blue-500' },
   ];
 
@@ -99,6 +104,21 @@ export default function AgentPortalPage() {
             </Card>
           ))}
         </section>
+
+        {commissionSummary && (
+          <Card className="border-emerald-500/20 bg-emerald-500/5 p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-emerald-500">Broker-approved commission plan: {commissionSummary.planName}</p>
+                <p className="mt-1 text-xs text-muted-foreground">Your net commission is recalculated from this plan whenever your broker updates your assignment or plan structure.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-right text-sm">
+                <div><p className="text-xs text-muted-foreground">Gross GCI</p><p className="font-semibold">{formatCurrency(commissionSummary.grossCommission)}</p></div>
+                <div><p className="text-xs text-muted-foreground">Brokerage share</p><p className="font-semibold">{formatCurrency(commissionSummary.companyDollar)}</p></div>
+              </div>
+            </div>
+          </Card>
+        )}
 
         <Card className="p-5">
           <div className="mb-4 flex items-center gap-2">

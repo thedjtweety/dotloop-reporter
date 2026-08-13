@@ -15,9 +15,13 @@ import {
   agentShareDatasets,
   agentShareLinks,
   agentShareRecords,
+  agentAssignments,
+  commissionPlans,
 } from '../../drizzle/schema';
 import { getDb } from '../db';
 import { publicProcedure, router } from '../_core/trpc';
+import { PUBLIC_TENANT_ID } from '../lib/public-tenant';
+import { calculateTransactionCommission, type CommissionPlan } from '../lib/commission-calculator';
 
 const MAX_RECORDS_PER_DATASET = 5_000;
 const MAX_RECORD_BYTES = 32_000;
@@ -59,6 +63,30 @@ export function isRecordForAgent(record: Record<string, unknown>, agentName: str
 
 export function hasAssignedAgents(records: Array<{ agents?: string | null }>) {
   return records.some((record) => agentNames(record.agents).length > 0);
+}
+
+function readNumber(value: unknown) {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value.replace(/[$,%\s,]/g, ''));
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
+export function getSharedTransactionCalculationInput(record: Record<string, unknown>, index: number, agentName: string) {
+  const salePrice = readNumber(record.salePrice ?? record.price);
+  const csvCommissionTotal = readNumber(record.commissionTotal);
+  const declaredRate = readNumber(record.commissionRate);
+  const commissionRate = declaredRate || (salePrice > 0 ? (csvCommissionTotal / salePrice) * 100 : 0);
+  return {
+    id: typeof record.loopId === 'string' && record.loopId ? record.loopId : `shared-${index}`,
+    loopName: typeof record.loopName === 'string' && record.loopName ? record.loopName : 'Shared transaction',
+    closingDate: typeof record.closingDate === 'string' && record.closingDate ? record.closingDate : new Date(0).toISOString(),
+    agents: typeof record.agents === 'string' && record.agents ? record.agents : agentName,
+    salePrice,
+    commissionRate,
+  };
 }
 
 async function requireOwnerDataset(datasetId: string, ownerSecret: string) {
@@ -289,6 +317,68 @@ export const agentSharingRouter = router({
         .filter((record): record is Record<string, unknown> => Boolean(record))
         .filter((record) => isRecordForAgent(record, link.agentName));
 
+      const [assignment] = await db
+        .select({ planId: agentAssignments.planId })
+        .from(agentAssignments)
+        .where(and(
+          eq(agentAssignments.tenantId, PUBLIC_TENANT_ID),
+          eq(agentAssignments.agentName, link.agentName),
+        ))
+        .limit(1);
+
+      let commissionSummary: {
+        planName: string;
+        planId: string;
+        netCommission: number;
+        companyDollar: number;
+        grossCommission: number;
+      } | null = null;
+
+      if (assignment) {
+        const [dbPlan] = await db
+          .select()
+          .from(commissionPlans)
+          .where(and(
+            eq(commissionPlans.id, assignment.planId),
+            eq(commissionPlans.tenantId, PUBLIC_TENANT_ID),
+          ))
+          .limit(1);
+
+        if (dbPlan) {
+          const plan: CommissionPlan = {
+            id: dbPlan.id,
+            name: dbPlan.name,
+            splitPercentage: dbPlan.splitPercentage,
+            capAmount: dbPlan.capAmount || 0,
+            postCapSplit: dbPlan.postCapSplit || 100,
+            royaltyPercentage: dbPlan.royaltyPercentage || undefined,
+            royaltyCap: dbPlan.royaltyCap || undefined,
+            useSliding: Boolean(dbPlan.useSliding),
+            tiers: dbPlan.tiers ? JSON.parse(dbPlan.tiers) : undefined,
+            deductions: dbPlan.deductions ? JSON.parse(dbPlan.deductions) : undefined,
+          };
+          let ytdCompanyDollar = 0;
+          let netCommission = 0;
+          let companyDollar = 0;
+          let grossCommission = 0;
+          const sortedRecords = [...records].sort((left, right) => {
+            const leftDate = String(left.closingDate || left.createdDate || '');
+            const rightDate = String(right.closingDate || right.createdDate || '');
+            return leftDate.localeCompare(rightDate);
+          });
+          sortedRecords.forEach((record, index) => {
+            const input = getSharedTransactionCalculationInput(record, index, link.agentName);
+            if (!input.salePrice || !input.commissionRate) return;
+            const breakdown = calculateTransactionCommission(input, link.agentName, plan, undefined, ytdCompanyDollar);
+            ytdCompanyDollar = breakdown.ytdAfterTransaction;
+            netCommission += breakdown.agentNetCommission;
+            companyDollar += breakdown.brokerageSplitAmount;
+            grossCommission += breakdown.grossCommissionIncome;
+          });
+          commissionSummary = { planName: plan.name, planId: plan.id, netCommission, companyDollar, grossCommission };
+        }
+      }
+
       await db
         .update(agentShareLinks)
         .set({ lastAccessedAt: toSqlTimestamp(new Date()) })
@@ -299,6 +389,7 @@ export const agentSharingRouter = router({
         datasetName: dataset.fileName,
         expiresAt: link.expiresAt,
         records,
+        commissionSummary,
       };
     }),
 });

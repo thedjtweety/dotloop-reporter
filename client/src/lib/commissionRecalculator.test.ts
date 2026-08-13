@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculatePlanBasedCommission, hasSignificantCommissionDifference } from './commissionRecalculator';
+import { calculatePlanBasedCommission, getAssignedPlan, hasSignificantCommissionDifference, recalculateAgentMetricsWithPlans } from './commissionRecalculator';
 import { CommissionPlan } from './commission';
 
 describe('Commission Recalculator', () => {
@@ -113,6 +113,23 @@ describe('Commission Recalculator', () => {
       const result = calculatePlanBasedCommission(mockTransactions, mockPlan);
       expect(result.agentCommission).toBe(0);
       expect(result.companyDollar).toBe(0);
+    });
+  });
+
+  describe('live plan assignment resolution', () => {
+    it('resolves the current plan from the supplied broker assignments', () => {
+      expect(getAssignedPlan('Agent A', [mockPlan], [{ agentName: 'Agent A', planId: 'plan-1' }])).toEqual(mockPlan);
+      expect(getAssignedPlan('Agent B', [mockPlan], [{ agentName: 'Agent A', planId: 'plan-1' }])).toBeUndefined();
+    });
+
+    it('recalculates agent totals when a broker applies a plan', () => {
+      const recalculated = recalculateAgentMetricsWithPlans(
+        [{ agentName: 'Agent A', totalCommission: 10000, companyDollar: 0 } as any],
+        [{ loopId: 'loop-1', loopName: 'Test', agents: 'Agent A', commissionTotal: 10000 } as any],
+        [mockPlan],
+        [{ agentName: 'Agent A', planId: 'plan-1' }],
+      );
+      expect(recalculated[0]).toMatchObject({ recalculatedCommission: 8000, recalculatedCompanyDollar: 2000, planName: 'Standard 80/20' });
     });
   });
 

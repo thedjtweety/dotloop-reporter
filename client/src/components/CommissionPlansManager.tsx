@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Save, Edit2, X, Settings, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Save, Edit2, X, Copy, Loader2 } from 'lucide-react';
 import { Deduction } from '@/lib/commission';
 import { SlidingScaleTierManager } from '@/components/SlidingScaleTierManager';
 import { trpc } from '@/lib/trpc';
@@ -99,8 +99,26 @@ export default function CommissionPlansManager() {
   };
 
   const openEditDialog = (plan: CommissionPlan) => {
-    setCurrentPlan(plan);
+    setCurrentPlan({ ...plan, deductions: [...(plan.deductions || [])], tiers: [...(plan.tiers || [])] });
     setIsEditing(true);
+    setIsDialogOpen(true);
+  };
+
+  const openCopyDialog = (plan: CommissionPlan) => {
+    setCurrentPlan({
+      ...plan,
+      id: undefined,
+      name: `${plan.name} Copy`,
+      deductions: (plan.deductions || []).map((deduction) => ({
+        ...deduction,
+        id: Math.random().toString(36).slice(2, 11),
+      })),
+      tiers: (plan.tiers || []).map((tier) => ({
+        ...tier,
+        id: Math.random().toString(36).slice(2, 11),
+      })),
+    });
+    setIsEditing(false);
     setIsDialogOpen(true);
   };
 
@@ -154,7 +172,7 @@ export default function CommissionPlansManager() {
           onClick={openNewDialog} 
           className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 font-bold px-6 py-2 border-2 border-primary-foreground/20"
         >
-          <Settings className="h-4 w-4" /> Commission Plan Settings
+          <Plus className="h-4 w-4" /> New Plan
         </Button>
       </div>
 
@@ -320,15 +338,18 @@ export default function CommissionPlansManager() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {plans.map((plan) => (
-          <Card key={plan.id} className="relative group hover:border-primary/50 transition-colors">
+          <Card key={plan.id} className="relative hover:border-primary/50 transition-colors">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex justify-between items-start">
                 {plan.name}
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(plan)}>
+                <div className="relative z-10 flex shrink-0 gap-1" aria-label={`${plan.name} actions`}>
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={(event) => { event.stopPropagation(); openEditDialog(plan); }} disabled={isSaving} title={`Edit ${plan.name}`} aria-label={`Edit ${plan.name}`}>
                     <Edit2 className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDeletePlan(plan.id)}>
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={(event) => { event.stopPropagation(); openCopyDialog(plan); }} disabled={isSaving} title={`Copy ${plan.name}`} aria-label={`Copy ${plan.name}`}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(event) => { event.stopPropagation(); handleDeletePlan(plan.id); }} disabled={isSaving} title={`Delete ${plan.name}`} aria-label={`Delete ${plan.name}`}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   agentNames,
+  getSharedTransactionCalculationInput,
   getRecordKey,
   hasAssignedAgents,
   hashSecret,
@@ -69,5 +70,29 @@ describe('agent sharing privacy helpers', () => {
 
   it('formats server timestamps in the MySQL timestamp format', () => {
     expect(toSqlTimestamp(new Date('2026-01-02T03:04:05.999Z'))).toBe('2026-01-02 03:04:05');
+  });
+
+  it('normalizes a shared record for the broker-approved commission calculator', () => {
+    expect(getSharedTransactionCalculationInput({
+      loopId: 'loop-22',
+      loopName: '22 Lake Street',
+      closingDate: '2026-02-03',
+      agents: 'Sarah Miller',
+      salePrice: '$400,000',
+      commissionTotal: '$12,000',
+    }, 0, 'Sarah Miller')).toMatchObject({
+      id: 'loop-22',
+      loopName: '22 Lake Street',
+      salePrice: 400000,
+      commissionRate: 3,
+    });
+  });
+
+  it('uses a declared commission rate when a shared transaction includes one', () => {
+    expect(getSharedTransactionCalculationInput({ salePrice: 500000, commissionRate: 2.5 }, 4, 'Sarah Miller')).toMatchObject({
+      id: 'shared-4',
+      salePrice: 500000,
+      commissionRate: 2.5,
+    });
   });
 });
