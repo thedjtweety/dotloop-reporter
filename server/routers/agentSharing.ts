@@ -1,0 +1,304 @@
+/**
+ * Agent sharing router
+ *
+ * A broker upload is persisted as a broker-owned dataset. The browser receives a
+ * high-entropy owner secret once and stores it locally; the server stores only its
+ * SHA-256 hash. Agent links contain a different high-entropy token and can return
+ * only records whose comma-separated agent list contains that named agent.
+ */
+
+import { TRPCError } from '@trpc/server';
+import { and, eq } from 'drizzle-orm';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { z } from 'zod';
+import {
+  agentShareDatasets,
+  agentShareLinks,
+  agentShareRecords,
+} from '../../drizzle/schema';
+import { getDb } from '../db';
+import { publicProcedure, router } from '../_core/trpc';
+
+const MAX_RECORDS_PER_DATASET = 5_000;
+const MAX_RECORD_BYTES = 32_000;
+const DEFAULT_LINK_EXPIRY_DAYS = 30;
+
+export function hashSecret(value: string) {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+export function makeSecret() {
+  return randomBytes(32).toString('base64url');
+}
+
+export function toSqlTimestamp(date: Date) {
+  return date.toISOString().slice(0, 19).replace('T', ' ');
+}
+
+export function getRecordKey(record: Record<string, unknown>, index: number) {
+  const loopId = typeof record.loopId === 'string' ? record.loopId.trim() : '';
+  if (loopId) return `loop:${loopId}`.slice(0, 255);
+
+  const loopName = typeof record.loopName === 'string' ? record.loopName : '';
+  const closingDate = typeof record.closingDate === 'string' ? record.closingDate : '';
+  const salePrice = record.salePrice ?? record.price ?? '';
+  return `record:${loopName}|${closingDate}|${String(salePrice)}|${index}`.slice(0, 255);
+}
+
+export function agentNames(value: string | null | undefined) {
+  return (value ?? '')
+    .split(',')
+    .map((name) => name.trim().toLocaleLowerCase())
+    .filter(Boolean);
+}
+
+export function isRecordForAgent(record: Record<string, unknown>, agentName: string) {
+  return agentNames(typeof record.agents === 'string' ? record.agents : '')
+    .includes(agentName.trim().toLocaleLowerCase());
+}
+
+export function hasAssignedAgents(records: Array<{ agents?: string | null }>) {
+  return records.some((record) => agentNames(record.agents).length > 0);
+}
+
+async function requireOwnerDataset(datasetId: string, ownerSecret: string) {
+  const db = await getDb();
+  if (!db) {
+    throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Data storage is temporarily unavailable.' });
+  }
+
+  const ownerSecretHash = hashSecret(ownerSecret);
+  const [dataset] = await db
+    .select()
+    .from(agentShareDatasets)
+    .where(and(
+      eq(agentShareDatasets.id, datasetId),
+      eq(agentShareDatasets.ownerSecretHash, ownerSecretHash),
+      eq(agentShareDatasets.isActive, 1),
+    ))
+    .limit(1);
+
+  if (!dataset) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'That broker dataset is unavailable.' });
+  }
+
+  return { db, dataset };
+}
+
+export const agentSharingRouter = router({
+  /** Persists the broker's currently loaded normalized CSV data and returns its owner secret once. */
+  publishDataset: publicProcedure
+    .input(z.object({
+      fileName: z.string().trim().min(1).max(255),
+      records: z.array(z.record(z.string(), z.unknown())).min(1).max(MAX_RECORDS_PER_DATASET),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Data storage is temporarily unavailable.' });
+      }
+
+      const serialized = input.records.map((record, index) => {
+        const recordJson = JSON.stringify(record);
+        if (Buffer.byteLength(recordJson, 'utf8') > MAX_RECORD_BYTES) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: `Transaction ${index + 1} is too large to share safely. Remove unneeded long text fields and try again.`,
+          });
+        }
+        return {
+          datasetId: '',
+          sourceKey: getRecordKey(record, index),
+          agents: typeof record.agents === 'string' ? record.agents : null,
+          recordJson,
+        };
+      });
+
+      if (!hasAssignedAgents(serialized)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Agent sharing requires at least one populated Agent field in the uploaded CSV.',
+        });
+      }
+
+      const datasetId = randomUUID();
+      const ownerSecret = makeSecret();
+      await db.transaction(async (tx) => {
+        await tx.insert(agentShareDatasets).values({
+          id: datasetId,
+          ownerSecretHash: hashSecret(ownerSecret),
+          fileName: input.fileName,
+          recordCount: serialized.length,
+          isActive: 1,
+        });
+
+        const batchSize = 100;
+        for (let start = 0; start < serialized.length; start += batchSize) {
+          await tx.insert(agentShareRecords).values(
+            serialized.slice(start, start + batchSize).map((record) => ({ ...record, datasetId })),
+          );
+        }
+      });
+
+      return { datasetId, ownerSecret, recordCount: serialized.length };
+    }),
+
+  /** Returns safe link metadata for the broker who still holds the local owner secret. */
+  listOwnerLinks: publicProcedure
+    .input(z.object({ datasetId: z.string().uuid(), ownerSecret: z.string().min(32) }))
+    .query(async ({ input }) => {
+      const { db, dataset } = await requireOwnerDataset(input.datasetId, input.ownerSecret);
+      const links = await db
+        .select({
+          id: agentShareLinks.id,
+          agentName: agentShareLinks.agentName,
+          expiresAt: agentShareLinks.expiresAt,
+          isRevoked: agentShareLinks.isRevoked,
+          createdAt: agentShareLinks.createdAt,
+          lastAccessedAt: agentShareLinks.lastAccessedAt,
+        })
+        .from(agentShareLinks)
+        .where(eq(agentShareLinks.datasetId, dataset.id));
+
+      return {
+        dataset: { id: dataset.id, fileName: dataset.fileName, recordCount: dataset.recordCount },
+        links,
+      };
+    }),
+
+  /** Generates a brand-new, agent-scoped, revocable link. Raw tokens are returned once only. */
+  createAgentLink: publicProcedure
+    .input(z.object({
+      datasetId: z.string().uuid(),
+      ownerSecret: z.string().min(32),
+      agentName: z.string().trim().min(1).max(255),
+      expiresInDays: z.number().int().min(1).max(365).optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const { db } = await requireOwnerDataset(input.datasetId, input.ownerSecret);
+      const assignedRows = await db
+        .select({ agents: agentShareRecords.agents })
+        .from(agentShareRecords)
+        .where(eq(agentShareRecords.datasetId, input.datasetId));
+      const agentIsPresent = assignedRows.some((row) =>
+        agentNames(row.agents).includes(input.agentName.toLocaleLowerCase()),
+      );
+      if (!agentIsPresent) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'This agent does not appear in the prepared dataset. Refresh the broker preview and select a listed agent.',
+        });
+      }
+
+      const token = makeSecret();
+      const expiryDays = input.expiresInDays ?? DEFAULT_LINK_EXPIRY_DAYS;
+      const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
+
+      await db.insert(agentShareLinks).values({
+        id: randomUUID(),
+        tokenHash: hashSecret(token),
+        datasetId: input.datasetId,
+        agentName: input.agentName,
+        expiresAt: toSqlTimestamp(expiresAt),
+        isRevoked: 0,
+      });
+
+      return {
+        token,
+        agentName: input.agentName,
+        expiresAt: expiresAt.toISOString(),
+      };
+    }),
+
+  /** Immediately revokes one agent's shared link without affecting other agents. */
+  revokeAgentLink: publicProcedure
+    .input(z.object({
+      datasetId: z.string().uuid(),
+      ownerSecret: z.string().min(32),
+      linkId: z.string().uuid(),
+    }))
+    .mutation(async ({ input }) => {
+      const { db } = await requireOwnerDataset(input.datasetId, input.ownerSecret);
+      await db
+        .update(agentShareLinks)
+        .set({ isRevoked: 1 })
+        .where(and(
+          eq(agentShareLinks.id, input.linkId),
+          eq(agentShareLinks.datasetId, input.datasetId),
+        ));
+      return { success: true };
+    }),
+
+  /** Emergency kill switch: disables every agent link for this broker dataset. */
+  revokeDataset: publicProcedure
+    .input(z.object({ datasetId: z.string().uuid(), ownerSecret: z.string().min(32) }))
+    .mutation(async ({ input }) => {
+      const { db } = await requireOwnerDataset(input.datasetId, input.ownerSecret);
+      await db
+        .update(agentShareDatasets)
+        .set({ isActive: 0 })
+        .where(eq(agentShareDatasets.id, input.datasetId));
+      return { success: true };
+    }),
+
+  /**
+   * Public agent portal data endpoint. The only accepted credential is a high-
+   * entropy link token. It returns records only for the agent encoded in that link.
+   */
+  getSharedAgentData: publicProcedure
+    .input(z.object({ token: z.string().min(32).max(128) }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Data storage is temporarily unavailable.' });
+      }
+
+      const [link] = await db
+        .select()
+        .from(agentShareLinks)
+        .where(eq(agentShareLinks.tokenHash, hashSecret(input.token)))
+        .limit(1);
+
+      const isExpired = link?.expiresAt && new Date(link.expiresAt).getTime() < Date.now();
+      if (!link || link.isRevoked === 1 || isExpired) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'This agent analytics link is invalid, expired, or has been revoked.' });
+      }
+
+      const [dataset] = await db
+        .select()
+        .from(agentShareDatasets)
+        .where(and(eq(agentShareDatasets.id, link.datasetId), eq(agentShareDatasets.isActive, 1)))
+        .limit(1);
+      if (!dataset) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'This shared dataset is no longer available.' });
+      }
+
+      const storedRecords = await db
+        .select({ recordJson: agentShareRecords.recordJson })
+        .from(agentShareRecords)
+        .where(eq(agentShareRecords.datasetId, dataset.id));
+
+      const records = storedRecords
+        .map((row) => {
+          try {
+            return JSON.parse(row.recordJson) as Record<string, unknown>;
+          } catch {
+            return null;
+          }
+        })
+        .filter((record): record is Record<string, unknown> => Boolean(record))
+        .filter((record) => isRecordForAgent(record, link.agentName));
+
+      await db
+        .update(agentShareLinks)
+        .set({ lastAccessedAt: toSqlTimestamp(new Date()) })
+        .where(eq(agentShareLinks.id, link.id));
+
+      return {
+        agentName: link.agentName,
+        datasetName: dataset.fileName,
+        expiresAt: link.expiresAt,
+        records,
+      };
+    }),
+});

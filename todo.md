@@ -4651,3 +4651,10 @@
 - [x] Add back navigation from transaction detail page to agent modal
 - [x] Register /transaction/:id route in App.tsx
 - [x] Test full navigation flow: Agents tab → agent modal → transaction detail page
+
+## Phase N+5: Broker-to-Agent Sharing & Agent Portal
+- [x] Repair the missing `/preview-agent` route invoked by the sidebar control
+- [x] Build a broker-facing agent selector for safely previewing one agent's scoped analytics
+- [x] Create an agent analytics portal that filters all transaction and performance data to the selected agent
+- [x] Add copyable agent-specific share links with clear privacy limitations and no-data states
+- [x] Test demo and uploaded-data preview flows, agent isolation, and invalid share-link handling

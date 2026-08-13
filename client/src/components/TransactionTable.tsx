@@ -35,6 +35,8 @@ interface TransactionTableProps {
   transactions: DotloopRecord[];
   limit?: number;
   compact?: boolean;
+  /** Hides CDA, Dotloop, and any other broker-context actions for agent share portals. */
+  agentScopedReadOnly?: boolean;
   onTransactionClick?: (transaction: DotloopRecord) => void;
   selectedRecords?: Set<number>;
   onSelectionChange?: (selected: Set<number>) => void;
@@ -43,6 +45,14 @@ interface TransactionTableProps {
 }
 
 type ColumnKey = 'status' | 'property' | 'agent' | 'price' | 'commission' | 'date' | 'actions';
+
+/**
+ * The public agent portal must never expose broker actions or co-agent names,
+ * even if local saved column preferences request those columns.
+ */
+export function isTransactionColumnAllowed(column: ColumnKey, agentScopedReadOnly: boolean) {
+  return !agentScopedReadOnly || (column !== 'actions' && column !== 'agent');
+}
 
 interface ColumnConfig {
   key: ColumnKey;
@@ -64,6 +74,7 @@ export default function TransactionTable({
   transactions, 
   limit, 
   compact = false, 
+  agentScopedReadOnly = false,
   onTransactionClick,
   selectedRecords = new Set(),
   onSelectionChange,
@@ -250,6 +261,10 @@ export default function TransactionTable({
   };
 
   const isColumnVisible = (key: ColumnKey) => {
+    // An agent share link must never surface broker-context actions or names of
+    // co-agents. This remains enforced even if a prior local column preference
+    // attempted to turn those columns back on.
+    if (!isTransactionColumnAllowed(key, agentScopedReadOnly)) return false;
     return columns.find(col => col.key === key)?.visible ?? true;
   };
 

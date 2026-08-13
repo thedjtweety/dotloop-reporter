@@ -22,6 +22,62 @@ export const agentAssignments = mysqlTable("agent_assignments", {
 	index("agent_assignments_active_idx").on(table.isActive),
 ]);
 
+/**
+ * A durable broker-uploaded dataset. The broker secret is stored only as a hash;
+ * the browser keeps the raw secret locally so only the uploading broker can issue
+ * or revoke individual agent links.
+ */
+export const agentShareDatasets = mysqlTable("agent_share_datasets", {
+	id: varchar({ length: 64 }).notNull().primaryKey(),
+	ownerSecretHash: varchar({ length: 64 }).notNull(),
+	fileName: varchar({ length: 255 }).notNull(),
+	recordCount: int().notNull(),
+	isActive: int().default(1).notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("agent_share_datasets_owner_hash_idx").on(table.ownerSecretHash),
+	index("agent_share_datasets_active_idx").on(table.isActive),
+]);
+
+/**
+ * Original normalized record payloads, kept one per row so larger uploads are not
+ * constrained by a single text column. These records are never returned without a
+ * valid dataset owner secret or an agent-specific share token.
+ */
+export const agentShareRecords = mysqlTable("agent_share_records", {
+	id: int().autoincrement().notNull().primaryKey(),
+	datasetId: varchar({ length: 64 }).notNull(),
+	sourceKey: varchar({ length: 255 }).notNull(),
+	agents: text(),
+	recordJson: text().notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+},
+(table) => [
+	index("agent_share_records_dataset_idx").on(table.datasetId),
+	index("agent_share_records_dataset_source_idx").on(table.datasetId, table.sourceKey),
+]);
+
+/**
+ * High-entropy, revocable, agent-scoped tokens. The raw token is never persisted:
+ * only its SHA-256 hash is stored. A token can return only its named agent's data.
+ */
+export const agentShareLinks = mysqlTable("agent_share_links", {
+	id: varchar({ length: 64 }).notNull().primaryKey(),
+	tokenHash: varchar({ length: 64 }).notNull().unique(),
+	datasetId: varchar({ length: 64 }).notNull(),
+	agentName: varchar({ length: 255 }).notNull(),
+	expiresAt: timestamp({ mode: 'string' }),
+	isRevoked: int().default(0).notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	lastAccessedAt: timestamp({ mode: 'string' }),
+},
+(table) => [
+	index("agent_share_links_dataset_agent_idx").on(table.datasetId, table.agentName),
+	index("agent_share_links_dataset_idx").on(table.datasetId),
+]);
+
 export const auditLogs = mysqlTable("audit_logs", {
 	id: int().autoincrement().notNull(),
 	tenantId: int().notNull(),
