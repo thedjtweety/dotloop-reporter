@@ -4672,3 +4672,8 @@
 - [x] Replace Commission Management’s local non-persistent plan cards with the live database-backed plan manager
 - [x] Make the page-level New Plan action open the live plan editor
 - [x] Verify live plan cards and New, Edit, and Copy actions render and open in the browser
+
+## Phase N+8: Plan Card Assignment Counts
+- [x] Display the current assigned-agent count on every active commission plan card
+- [x] Refresh plan-card counts after individual and bulk assignment changes
+- [x] Test the count display with persisted commission assignments

@@ -1,20 +1,21 @@
 // @ts-nocheck
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { CommissionPlan } from '@/lib/commission';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Save, Edit2, X, Copy, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Save, Edit2, X, Copy, Loader2, Users } from 'lucide-react';
 import { Deduction } from '@/lib/commission';
 import { SlidingScaleTierManager } from '@/components/SlidingScaleTierManager';
 import { trpc } from '@/lib/trpc';
 import { useTransactionData } from '@/contexts/TransactionDataContext';
 import toast from 'react-hot-toast';
 import FullScreenModal from '@/components/FullScreenModal';
+import { countAssignedAgentsByPlan } from '@/lib/planAssignmentCounts';
 
 export default function CommissionPlansManager({ createRequest = 0 }: { createRequest?: number }) {
-  const { setCommissionData, agentAssignments } = useTransactionData();
+  const { setCommissionData, agentAssignments, allRecords } = useTransactionData();
   const [plans, setPlans] = useState<CommissionPlan[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<Partial<CommissionPlan>>({});
@@ -23,6 +24,9 @@ export default function CommissionPlansManager({ createRequest = 0 }: { createRe
 
   // Fetch plans from database
   const { data: dbPlans, refetch, error: plansError } = trpc.commission.getPlans.useQuery(undefined, {
+    retry: false,
+  });
+  const { data: dbAssignments = [], refetch: refetchAssignments } = trpc.commission.getAssignments.useQuery(undefined, {
     retry: false,
   });
   const savePlanMutation = trpc.commission.savePlan.useMutation();
@@ -164,6 +168,28 @@ export default function CommissionPlansManager({ createRequest = 0 }: { createRe
   useEffect(() => {
     if (createRequest > 0) openNewDialog();
   }, [createRequest]);
+
+  useEffect(() => {
+    const refreshCounts = () => void refetchAssignments();
+    window.addEventListener('commission-assignment-updated', refreshCounts);
+    return () => window.removeEventListener('commission-assignment-updated', refreshCounts);
+  }, [refetchAssignments]);
+
+  const currentDataSetAgents = useMemo(() => {
+    const names = new Set<string>();
+    allRecords.forEach((record) => {
+      record.agents?.split(',').forEach((name) => {
+        const trimmedName = name.trim();
+        if (trimmedName) names.add(trimmedName);
+      });
+    });
+    return names;
+  }, [allRecords]);
+
+  const assignedAgentCounts = useMemo(
+    () => countAssignedAgentsByPlan(dbAssignments, currentDataSetAgents),
+    [dbAssignments, currentDataSetAgents],
+  );
 
   return (
     <div className="space-y-6">
@@ -373,6 +399,15 @@ export default function CommissionPlansManager({ createRequest = 0 }: { createRe
                 <div className="flex justify-between">
                   <span className="text-foreground">Post-Cap Split:</span>
                   <span className="font-medium">{plan.postCapSplit}%</span>
+                </div>
+                <div className="flex items-center justify-between rounded-md bg-primary/10 px-2.5 py-2 text-xs font-medium text-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5 text-primary" />
+                    Assigned agents
+                  </span>
+                  <span aria-label={`${assignedAgentCounts[plan.id] ?? 0} agents assigned to ${plan.name}`}>
+                    {assignedAgentCounts[plan.id] ?? 0}
+                  </span>
                 </div>
                 {plan.royaltyPercentage ? (
                   <div className="flex justify-between text-xs text-foreground pt-2 border-t">
