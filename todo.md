@@ -4667,3 +4667,8 @@
 - [x] Recalculate agent commission metrics globally after each plan or assignment change
 - [x] Ensure private agent-sharing portals use the broker-approved plan-based commission data only
 - [x] Test the complete broker workflow with demo and CSV-derived transaction data
+
+## Phase N+7: Production Plans Tab Repair
+- [x] Replace Commission Management’s local non-persistent plan cards with the live database-backed plan manager
+- [x] Make the page-level New Plan action open the live plan editor
+- [x] Verify live plan cards and New, Edit, and Copy actions render and open in the browser

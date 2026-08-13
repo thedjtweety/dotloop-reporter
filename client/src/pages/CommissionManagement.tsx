@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useLocation } from 'wouter';
 import { useTransactionData } from '@/contexts/TransactionDataContext';
 import AgentAssignment from '@/components/AgentAssignment';
+import CommissionPlansManager from '@/components/CommissionPlansManager';
 import CommissionAuditReport from '@/components/CommissionAuditReport';
 import CommissionCalculator from '@/components/CommissionCalculator';
 import { formatCurrency } from '@/lib/formatUtils';
@@ -266,6 +267,7 @@ export default function CommissionManagement() {
   const { agentTarget, openAgent, closeAgent } = useAgentDetail();
   const [plans, setPlans] = useState<CommissionPlan[]>(DEFAULT_PLANS);
   const [activeTab, setActiveTab] = useState('plans');
+  const [createPlanRequest, setCreatePlanRequest] = useState(0);
   const [drillTarget, setDrillTarget] = useState<DrillTarget | null>(null);
 
   const totalGCI = useMemo(() => filteredRecords.reduce((s, r) => s + (r.commissionTotal || 0), 0), [filteredRecords]);
@@ -288,7 +290,14 @@ export default function CommissionManagement() {
           <h1 className="text-2xl font-bold text-foreground">Commission Management</h1>
           <p className="text-muted-foreground text-sm mt-0.5">Plans, assignments, calculations, and audits in one place.</p>
         </div>
-        <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-white gap-1.5">
+        <Button
+          size="sm"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white gap-1.5"
+          onClick={() => {
+            setActiveTab('plans');
+            setCreatePlanRequest((request) => request + 1);
+          }}
+        >
           <Plus className="w-4 h-4" /> New Plan
         </Button>
       </div>
@@ -339,11 +348,7 @@ export default function CommissionManagement() {
 
         {/* Plans */}
         <TabsContent value="plans" className="mt-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            {plans.map(plan => (
-              <PlanCard key={plan.id} plan={plan} onEdit={handleEdit} onCopy={handleCopy} onDelete={handleDelete} />
-            ))}
-          </div>
+          <CommissionPlansManager createRequest={createPlanRequest} />
         </TabsContent>
 
         {/* Agents */}

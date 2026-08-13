@@ -13,7 +13,7 @@ import { useTransactionData } from '@/contexts/TransactionDataContext';
 import toast from 'react-hot-toast';
 import FullScreenModal from '@/components/FullScreenModal';
 
-export default function CommissionPlansManager() {
+export default function CommissionPlansManager({ createRequest = 0 }: { createRequest?: number }) {
   const { setCommissionData, agentAssignments } = useTransactionData();
   const [plans, setPlans] = useState<CommissionPlan[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -160,6 +160,10 @@ export default function CommissionPlansManager() {
     setIsEditing(false);
     setIsDialogOpen(true);
   };
+
+  useEffect(() => {
+    if (createRequest > 0) openNewDialog();
+  }, [createRequest]);
 
   return (
     <div className="space-y-6">
