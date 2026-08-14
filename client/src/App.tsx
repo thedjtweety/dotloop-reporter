@@ -43,6 +43,7 @@ import DotloopOAuthCallback from "./pages/DotloopOAuthCallback";
 import TransactionDetailPage from "./pages/TransactionDetailPage";
 import AgentPreviewPage from "./pages/AgentPreviewPage";
 import AgentPortalPage from "./pages/AgentPortalPage";
+import ImportCenterPage from "./pages/ImportCenterPage";
 import { CDAProvider } from "./contexts/CDAContext";
 import { useTransactionData } from "./contexts/TransactionDataContext";
 
@@ -69,6 +70,7 @@ const SIDEBAR_ROUTES = [
   { path: "/audit-log", component: AuditLog },
   { path: "/settings", component: SettingsComplete },
   { path: "/reporting", component: ReportingComplete },
+  { path: "/imports", component: ImportCenterPage },
 ];
 
 function Router() {

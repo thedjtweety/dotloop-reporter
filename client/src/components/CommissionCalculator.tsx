@@ -15,7 +15,7 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, CheckCircle, Loader2, Download, RefreshCw } from 'lucide-react';
+import { AlertCircle, CheckCircle, Loader2, Download, RefreshCw, ShieldCheck } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useTransactionData } from '@/contexts/TransactionDataContext';
 import ExportPDFButton from '@/components/ExportPDFButton';
@@ -51,6 +51,8 @@ export default function CommissionCalculator() {
   const { data: teams, isLoading: teamsLoading, error: teamsError, refetch: refetchTeams } = trpc.commission.getTeams.useQuery(undefined, { staleTime: 0 });
   const { data: assignments, isLoading: assignmentsLoading, error: assignmentsError, refetch: refetchAssignments } = trpc.commission.getAssignments.useQuery(undefined, { staleTime: 0 });
   const calculateMutation = trpc.commission.calculate.useMutation();
+  const { data: planVersions = [] } = trpc.brokerOperations.listPlanVersions.useQuery();
+  const saveSnapshotMutation = trpc.brokerOperations.createCalculationSnapshot.useMutation();
 
   // Log query status for debugging
   useEffect(() => {
@@ -116,6 +118,7 @@ export default function CommissionCalculator() {
         transactions: transactionInputs,
         planIds: currentPlans.map(p => p.id),
         teamIds: teams?.map(t => t.id) || [],
+        agentAssignments: currentAssignments,
       });
 
       if (response.success) {
@@ -124,8 +127,31 @@ export default function CommissionCalculator() {
           data: response.data,
           timestamp: new Date().toISOString(),
           transactionCount: transactions.length,
-          agentCount: new Set(transactions.map(t => t.agentName)).size,
+          agentCount: new Set(transactions.flatMap((transaction) => (transaction.agents || '').split(',').map((agent) => agent.trim()).filter(Boolean))).size,
         });
+        const latestVersionByPlan = response.data.ytdSummaries.reduce((versions: Record<string, any>, summary: any) => {
+          const matchingVersions = planVersions.filter((version: any) => version.planId === summary.planId);
+          versions[summary.planId] = matchingVersions.sort((left: any, right: any) => right.versionNumber - left.versionNumber)[0];
+          return versions;
+        }, {});
+        const importRunId = typeof window !== 'undefined' ? localStorage.getItem('dotloop_active_import_run_id') : null;
+        const reportingPeriodLabel = importRunId ? 'Active Import Period' : 'Current Calculation';
+        const snapshotResults = await Promise.allSettled(response.data.ytdSummaries.map((summary: any) =>
+          saveSnapshotMutation.mutateAsync({
+            importRunId,
+            planVersionId: latestVersionByPlan[summary.planId]?.id ?? null,
+            agentName: summary.agentName,
+            reportingPeriodLabel,
+            transactionCount: summary.transactionCount,
+            grossCommission: summary.ytdGrossCommission,
+            netCommission: summary.ytdNetCommission,
+            companyDollar: summary.ytdCompanyDollar,
+            calculationData: { planName: summary.planName, planId: summary.planId, ytdDeductions: summary.ytdDeductions, ytdRoyalties: summary.ytdRoyalties, generatedAt: new Date().toISOString() },
+          }),
+        ));
+        if (snapshotResults.some((snapshot) => snapshot.status === 'rejected')) {
+          setError('Calculation completed, but one or more audit snapshots could not be saved. Please retry the calculation.');
+        }
       } else {
         setError('Calculation failed. Please check your data and try again.');
       }
@@ -190,10 +216,11 @@ export default function CommissionCalculator() {
         ) : (
           <>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Calculate Commissions
+            Calculate & Save Audit Snapshot
           </>
         )}
       </Button>
+      <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground"><ShieldCheck className="h-3.5 w-3.5 text-primary" /> Each completed calculation records immutable per-agent totals for payout audit.</p>
 
       {/* Results */}
       {result && (

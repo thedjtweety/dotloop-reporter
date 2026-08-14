@@ -29,6 +29,13 @@
       "when": 1786654112017,
       "tag": "0003_chilly_warstar",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1786664910660,
+      "tag": "0004_goofy_sersi",
+      "breakpoints": true
     }
   ]
 }

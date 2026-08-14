@@ -72,10 +72,69 @@ export const agentShareLinks = mysqlTable("agent_share_links", {
 	isRevoked: int().default(0).notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	lastAccessedAt: timestamp({ mode: 'string' }),
+	recipientEmail: varchar({ length: 320 }),
+	reportingPeriodLabel: varchar({ length: 255 }),
 },
 (table) => [
 	index("agent_share_links_dataset_agent_idx").on(table.datasetId, table.agentName),
 	index("agent_share_links_dataset_idx").on(table.datasetId),
+	index("agent_share_links_recipient_idx").on(table.recipientEmail),
+]);
+
+/** Audit events for broker-created, agent-scoped delivery links. */
+export const agentShareAccessLogs = mysqlTable("agent_share_access_logs", {
+	id: int().autoincrement().notNull().primaryKey(),
+	linkId: varchar({ length: 64 }).notNull(),
+	action: mysqlEnum(['created', 'copied', 'accessed', 'revoked', 'dataset_revoked']).notNull(),
+	recipientEmail: varchar({ length: 320 }),
+	reportingPeriodLabel: varchar({ length: 255 }),
+	metadata: text(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+},
+(table) => [
+	index("agent_share_access_logs_link_idx").on(table.linkId),
+	index("agent_share_access_logs_created_idx").on(table.createdAt),
+]);
+
+/** Metadata-only record of a validated CSV import. */
+export const importRuns = mysqlTable("import_runs", {
+	id: varchar({ length: 64 }).notNull().primaryKey(),
+	tenantId: int().notNull(),
+	fileName: varchar({ length: 255 }).notNull(),
+	reportingPeriodLabel: varchar({ length: 255 }).notNull(),
+	periodStart: varchar({ length: 10 }),
+	periodEnd: varchar({ length: 10 }),
+	status: mysqlEnum(['draft', 'ready', 'active', 'archived']).default('ready').notNull(),
+	recordCount: int().notNull(),
+	dataQuality: int().notNull(),
+	fieldCompleteness: text(),
+	warnings: text(),
+	mappingTemplateId: varchar({ length: 64 }),
+	sourceChecksum: varchar({ length: 64 }),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("import_runs_tenant_created_idx").on(table.tenantId, table.createdAt),
+	index("import_runs_tenant_status_idx").on(table.tenantId, table.status),
+	index("import_runs_checksum_idx").on(table.tenantId, table.sourceChecksum),
+]);
+
+/** Reusable header-to-field mappings for recurring brokerage exports. */
+export const importMappingTemplates = mysqlTable("import_mapping_templates", {
+	id: varchar({ length: 64 }).notNull().primaryKey(),
+	tenantId: int().notNull(),
+	name: varchar({ length: 255 }).notNull(),
+	headers: text().notNull(),
+	mappingJson: text().notNull(),
+	useCount: int().default(0).notNull(),
+	isDefault: int().default(0).notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("import_mapping_templates_tenant_idx").on(table.tenantId),
+	index("import_mapping_templates_tenant_default_idx").on(table.tenantId, table.isDefault),
 ]);
 
 export const auditLogs = mysqlTable("audit_logs", {
@@ -210,6 +269,45 @@ export const commissionPlans = mysqlTable("commission_plans", {
 (table) => [
 	index("commission_plans_tenant_idx").on(table.tenantId),
 	index("commission_plans_active_idx").on(table.isActive),
+]);
+
+/** Immutable plan configurations used to explain historical calculations and payouts. */
+export const commissionPlanVersions = mysqlTable("commission_plan_versions", {
+	id: varchar({ length: 64 }).notNull().primaryKey(),
+	tenantId: int().notNull(),
+	planId: varchar({ length: 64 }).notNull(),
+	versionNumber: int().notNull(),
+	lifecycle: mysqlEnum(['draft', 'active', 'archived']).default('active').notNull(),
+	effectiveStartDate: varchar({ length: 10 }),
+	effectiveEndDate: varchar({ length: 10 }),
+	changeNote: text(),
+	planSnapshot: text().notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+},
+(table) => [
+	index("commission_plan_versions_tenant_plan_idx").on(table.tenantId, table.planId),
+	index("commission_plan_versions_effective_idx").on(table.tenantId, table.effectiveStartDate),
+]);
+
+/** Immutable agent commission results tied to a plan version and reporting period. */
+export const commissionCalculationSnapshots = mysqlTable("commission_calculation_snapshots", {
+	id: varchar({ length: 64 }).notNull().primaryKey(),
+	tenantId: int().notNull(),
+	importRunId: varchar({ length: 64 }),
+	planVersionId: varchar({ length: 64 }),
+	agentName: varchar({ length: 255 }).notNull(),
+	reportingPeriodLabel: varchar({ length: 255 }).notNull(),
+	transactionCount: int().notNull(),
+	grossCommission: decimal({ precision: 15, scale: 2 }).notNull(),
+	netCommission: decimal({ precision: 15, scale: 2 }).notNull(),
+	companyDollar: decimal({ precision: 15, scale: 2 }).notNull(),
+	calculationData: text().notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+},
+(table) => [
+	index("commission_calculation_snapshots_tenant_agent_idx").on(table.tenantId, table.agentName),
+	index("commission_calculation_snapshots_import_idx").on(table.importRunId),
+	index("commission_calculation_snapshots_plan_version_idx").on(table.planVersionId),
 ]);
 
 export const oauthTokens = mysqlTable("oauth_tokens", {

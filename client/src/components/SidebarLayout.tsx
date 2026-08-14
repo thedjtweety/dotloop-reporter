@@ -29,6 +29,7 @@ import {
   FlaskConical,
   History,
   Trash2,
+  FileUp,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTransactionData, DateRangeFilter } from '../contexts/TransactionDataContext';
@@ -46,6 +47,7 @@ interface NavItem {
 // ALL NAVIGATION ITEMS - All visible in sidebar
 const navItems: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+  { label: 'Import Center', icon: FileUp, path: '/imports' },
   { label: 'Agents', icon: Users, path: '/agents' },
   { label: 'Commission', icon: DollarSign, path: '/commission' },
   { label: 'Net Report', icon: FileText, path: '/net-commission-report' },

@@ -6,7 +6,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
-import { Copy, Database, ExternalLink, Eye, Link2, RefreshCcw, ShieldCheck, UploadCloud, Users } from 'lucide-react';
+import { Copy, Database, ExternalLink, Eye, Link2, MailCheck, RefreshCcw, ShieldCheck, UploadCloud, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -88,9 +88,13 @@ export default function AgentPreviewPage() {
   const [ownerSession, setOwnerSession] = useState<OwnerSession | null>(() =>
     typeof window === 'undefined' ? null : readOwnerSession(),
   );
-  const [generatedLink, setGeneratedLink] = useState<{ agentName: string; url: string; expiresAt: string } | null>(null);
+  const [generatedLink, setGeneratedLink] = useState<{ linkId: string; agentName: string; url: string; expiresAt: string; recipientEmail: string | null; reportingPeriodLabel: string | null } | null>(null);
   const [expiresInDays, setExpiresInDays] = useState(30);
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [reportingPeriodLabel, setReportingPeriodLabel] = useState('Current reporting period');
+  const [inspectedLinkId, setInspectedLinkId] = useState<string | null>(null);
   const utils = trpc.useUtils();
+  const { data: importRuns = [] } = trpc.brokerOperations.listImportRuns.useQuery();
 
   const fingerprint = useMemo(() => buildFingerprint(allRecords), [allRecords]);
   const currentOwnerSession = ownerSession?.fingerprint === fingerprint ? ownerSession : null;
@@ -109,6 +113,11 @@ export default function AgentPreviewPage() {
       setSelectedAgent(agentNames[0] ?? '');
     }
   }, [agentNames, selectedAgent]);
+
+  useEffect(() => {
+    const activeRun = importRuns.find((run: any) => run.status === 'active');
+    if (activeRun && reportingPeriodLabel === 'Current reporting period') setReportingPeriodLabel(activeRun.reportingPeriodLabel);
+  }, [importRuns, reportingPeriodLabel]);
 
   const publishDataset = trpc.agentSharing.publishDataset.useMutation({
     onSuccess: (result) => {
@@ -134,7 +143,7 @@ export default function AgentPreviewPage() {
   const createLink = trpc.agentSharing.createAgentLink.useMutation({
     onSuccess: async (result) => {
       const url = `${window.location.origin}/agent-portal/${encodeURIComponent(result.token)}`;
-      setGeneratedLink({ agentName: result.agentName, url, expiresAt: result.expiresAt });
+      setGeneratedLink({ linkId: result.linkId, agentName: result.agentName, url, expiresAt: result.expiresAt, recipientEmail: result.recipientEmail, reportingPeriodLabel: result.reportingPeriodLabel });
       await utils.agentSharing.listOwnerLinks.invalidate();
       toast.success(`Private link created for ${result.agentName}.`);
     },
@@ -158,6 +167,13 @@ export default function AgentPreviewPage() {
     },
     onError: (error) => toast.error(error.message || 'Unable to revoke this dataset.'),
   });
+  const recordCopied = trpc.agentSharing.recordLinkCopied.useMutation();
+  const selectedLinkAudit = trpc.agentSharing.listLinkAccessLogs.useQuery(
+    currentOwnerSession && inspectedLinkId
+      ? { datasetId: currentOwnerSession.datasetId, ownerSecret: currentOwnerSession.ownerSecret, linkId: inspectedLinkId }
+      : { datasetId: '00000000-0000-0000-0000-000000000000', ownerSecret: 'x'.repeat(32), linkId: '00000000-0000-0000-0000-000000000000' },
+    { enabled: Boolean(currentOwnerSession && inspectedLinkId) },
+  );
 
   const handlePublish = () => {
     if (!hasData || allRecords.length === 0) {
@@ -176,11 +192,17 @@ export default function AgentPreviewPage() {
       toast.error('Prepare the current dataset and select an agent first.');
       return;
     }
+    if (!recipientEmail.trim()) {
+      toast.error('Enter the intended agent recipient email before creating a delivery link.');
+      return;
+    }
     createLink.mutate({
       datasetId: currentOwnerSession.datasetId,
       ownerSecret: currentOwnerSession.ownerSecret,
       agentName: selectedAgent,
       expiresInDays,
+      recipientEmail: recipientEmail.trim(),
+      reportingPeriodLabel: reportingPeriodLabel.trim() || 'Current reporting period',
     });
   };
 
@@ -305,6 +327,11 @@ export default function AgentPreviewPage() {
                   <option value={90}>90 days</option>
                   <option value={365}>1 year</option>
                 </select>
+                <label className="block text-sm font-medium" htmlFor="agent-recipient-email">Intended recipient email</label>
+                <input id="agent-recipient-email" type="email" value={recipientEmail} onChange={(event) => setRecipientEmail(event.target.value)} placeholder="agent@brokerage.com" className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
+                <p className="-mt-2 text-xs text-muted-foreground"><MailCheck className="mr-1 inline h-3.5 w-3.5 text-primary" /> The address is format-validated and retained in the broker audit log. Delivery remains broker-controlled; email is not sent automatically.</p>
+                <label className="block text-sm font-medium" htmlFor="agent-reporting-period">Reporting period label</label>
+                <input id="agent-reporting-period" value={reportingPeriodLabel} onChange={(event) => setReportingPeriodLabel(event.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
                 <Button className="w-full" onClick={handleCreateLink} disabled={createLink.isPending || !selectedAgent}>
                   <Link2 className="mr-2 h-4 w-4" />
                   {createLink.isPending ? 'Creating private link…' : `Create link for ${selectedAgent || 'agent'}`}
@@ -327,10 +354,10 @@ export default function AgentPreviewPage() {
           {generatedLink && (
             <Card className="border-primary/40 p-5 space-y-3">
               <h2 className="font-semibold">New link for {generatedLink.agentName}</h2>
-              <p className="text-xs text-muted-foreground">Expires {new Date(generatedLink.expiresAt).toLocaleDateString()}.</p>
+              <p className="text-xs text-muted-foreground">For {generatedLink.recipientEmail || 'the selected recipient'} · {generatedLink.reportingPeriodLabel || 'Current reporting period'} · expires {new Date(generatedLink.expiresAt).toLocaleDateString()}.</p>
               <div className="flex gap-2">
                 <input readOnly value={generatedLink.url} className="min-w-0 flex-1 rounded-md border border-input bg-muted/40 px-2 text-xs" />
-                <Button size="icon" variant="outline" title="Copy private link" onClick={async () => { await copyText(generatedLink.url); toast.success('Private link copied.'); }}>
+                <Button size="icon" variant="outline" title="Copy private link" onClick={async () => { await copyText(generatedLink.url); if (currentOwnerSession) await recordCopied.mutateAsync({ datasetId: currentOwnerSession.datasetId, ownerSecret: currentOwnerSession.ownerSecret, linkId: generatedLink.linkId }); toast.success('Private link copied and logged.'); }}>
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
@@ -355,7 +382,9 @@ export default function AgentPreviewPage() {
                           {link.isRevoked ? 'Revoked' : 'Active'}
                         </span>
                       </div>
-                      <p className="mt-1 text-muted-foreground">Expires {link.expiresAt ? new Date(link.expiresAt).toLocaleDateString() : '—'}</p>
+                      <p className="mt-1 text-muted-foreground">{link.recipientEmail || 'No recipient recorded'} · {link.reportingPeriodLabel || 'Current period'}</p>
+                      <p className="mt-1 text-muted-foreground">Expires {link.expiresAt ? new Date(link.expiresAt).toLocaleDateString() : '—'} · last viewed {link.lastAccessedAt ? new Date(link.lastAccessedAt).toLocaleString() : 'not yet'}</p>
+                      <Button variant="ghost" size="sm" className="mt-1 h-7 px-0" onClick={() => setInspectedLinkId(link.id)}>View audit trail</Button>
                       {!link.isRevoked && (
                         <Button
                           variant="ghost"
@@ -375,6 +404,13 @@ export default function AgentPreviewPage() {
                   ))}
                 </div>
               )}
+            </Card>
+          )}
+
+          {currentOwnerSession && inspectedLinkId && (
+            <Card className="p-5 space-y-3">
+              <div className="flex items-center justify-between gap-3"><h2 className="font-semibold">Delivery audit trail</h2><Button variant="ghost" size="sm" onClick={() => setInspectedLinkId(null)}>Close</Button></div>
+              {selectedLinkAudit.isLoading ? <p className="text-sm text-muted-foreground">Loading events…</p> : <div className="space-y-2">{(selectedLinkAudit.data || []).map((entry) => <div key={entry.id} className="rounded-md border border-border p-3 text-xs"><span className="font-medium capitalize">{entry.action.replace('_', ' ')}</span><span className="ml-2 text-muted-foreground">{new Date(entry.createdAt).toLocaleString()}</span>{entry.recipientEmail && <p className="mt-1 text-muted-foreground">{entry.recipientEmail} · {entry.reportingPeriodLabel || 'Current period'}</p>}</div>)}</div>}
             </Card>
           )}
         </aside>

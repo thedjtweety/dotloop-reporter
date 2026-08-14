@@ -72,6 +72,12 @@ describe('agent sharing privacy helpers', () => {
     expect(toSqlTimestamp(new Date('2026-01-02T03:04:05.999Z'))).toBe('2026-01-02 03:04:05');
   });
 
+  it('keeps recipient identity out of transaction-scoping helpers', () => {
+    const record = { agents: 'Sarah Miller', recipientEmail: 'sarah@example.com' };
+    expect(isRecordForAgent(record, 'Sarah Miller')).toBe(true);
+    expect(isRecordForAgent(record, 'sarah@example.com')).toBe(false);
+  });
+
   it('normalizes a shared record for the broker-approved commission calculator', () => {
     expect(getSharedTransactionCalculationInput({
       loopId: 'loop-22',

@@ -13,6 +13,7 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import {
   agentShareDatasets,
+  agentShareAccessLogs,
   agentShareLinks,
   agentShareRecords,
   agentAssignments,
@@ -184,6 +185,8 @@ export const agentSharingRouter = router({
           isRevoked: agentShareLinks.isRevoked,
           createdAt: agentShareLinks.createdAt,
           lastAccessedAt: agentShareLinks.lastAccessedAt,
+          recipientEmail: agentShareLinks.recipientEmail,
+          reportingPeriodLabel: agentShareLinks.reportingPeriodLabel,
         })
         .from(agentShareLinks)
         .where(eq(agentShareLinks.datasetId, dataset.id));
@@ -201,6 +204,8 @@ export const agentSharingRouter = router({
       ownerSecret: z.string().min(32),
       agentName: z.string().trim().min(1).max(255),
       expiresInDays: z.number().int().min(1).max(365).optional(),
+      recipientEmail: z.string().trim().email().max(320).optional().nullable(),
+      reportingPeriodLabel: z.string().trim().min(1).max(255).optional().nullable(),
     }))
     .mutation(async ({ input }) => {
       const { db } = await requireOwnerDataset(input.datasetId, input.ownerSecret);
@@ -222,20 +227,53 @@ export const agentSharingRouter = router({
       const expiryDays = input.expiresInDays ?? DEFAULT_LINK_EXPIRY_DAYS;
       const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
 
+      const linkId = randomUUID();
       await db.insert(agentShareLinks).values({
-        id: randomUUID(),
+        id: linkId,
         tokenHash: hashSecret(token),
         datasetId: input.datasetId,
         agentName: input.agentName,
         expiresAt: toSqlTimestamp(expiresAt),
         isRevoked: 0,
+        recipientEmail: input.recipientEmail || null,
+        reportingPeriodLabel: input.reportingPeriodLabel || null,
+      });
+      await db.insert(agentShareAccessLogs).values({
+        linkId,
+        action: 'created',
+        recipientEmail: input.recipientEmail || null,
+        reportingPeriodLabel: input.reportingPeriodLabel || null,
+        metadata: JSON.stringify({ expiresAt: expiresAt.toISOString() }),
       });
 
       return {
+        linkId,
         token,
         agentName: input.agentName,
         expiresAt: expiresAt.toISOString(),
+        recipientEmail: input.recipientEmail || null,
+        reportingPeriodLabel: input.reportingPeriodLabel || null,
       };
+    }),
+
+  recordLinkCopied: publicProcedure
+    .input(z.object({ datasetId: z.string().uuid(), ownerSecret: z.string().min(32), linkId: z.string().uuid() }))
+    .mutation(async ({ input }) => {
+      const { db } = await requireOwnerDataset(input.datasetId, input.ownerSecret);
+      const [link] = await db.select().from(agentShareLinks).where(and(eq(agentShareLinks.id, input.linkId), eq(agentShareLinks.datasetId, input.datasetId))).limit(1);
+      if (!link) throw new TRPCError({ code: 'NOT_FOUND', message: 'Agent link not found.' });
+      await db.insert(agentShareAccessLogs).values({ linkId: link.id, action: 'copied', recipientEmail: link.recipientEmail, reportingPeriodLabel: link.reportingPeriodLabel });
+      return { success: true };
+    }),
+
+  listLinkAccessLogs: publicProcedure
+    .input(z.object({ datasetId: z.string().uuid(), ownerSecret: z.string().min(32), linkId: z.string().uuid() }))
+    .query(async ({ input }) => {
+      const { db } = await requireOwnerDataset(input.datasetId, input.ownerSecret);
+      const [link] = await db.select().from(agentShareLinks).where(and(eq(agentShareLinks.id, input.linkId), eq(agentShareLinks.datasetId, input.datasetId))).limit(1);
+      if (!link) throw new TRPCError({ code: 'NOT_FOUND', message: 'Agent link not found.' });
+      const logs = await db.select().from(agentShareAccessLogs).where(eq(agentShareAccessLogs.linkId, input.linkId)).orderBy(agentShareAccessLogs.createdAt);
+      return logs.reverse();
     }),
 
   /** Immediately revokes one agent's shared link without affecting other agents. */
@@ -254,6 +292,7 @@ export const agentSharingRouter = router({
           eq(agentShareLinks.id, input.linkId),
           eq(agentShareLinks.datasetId, input.datasetId),
         ));
+      await db.insert(agentShareAccessLogs).values({ linkId: input.linkId, action: 'revoked' });
       return { success: true };
     }),
 
@@ -262,10 +301,12 @@ export const agentSharingRouter = router({
     .input(z.object({ datasetId: z.string().uuid(), ownerSecret: z.string().min(32) }))
     .mutation(async ({ input }) => {
       const { db } = await requireOwnerDataset(input.datasetId, input.ownerSecret);
+      const links = await db.select({ id: agentShareLinks.id }).from(agentShareLinks).where(eq(agentShareLinks.datasetId, input.datasetId));
       await db
         .update(agentShareDatasets)
         .set({ isActive: 0 })
         .where(eq(agentShareDatasets.id, input.datasetId));
+      if (links.length) await db.insert(agentShareAccessLogs).values(links.map((link) => ({ linkId: link.id, action: 'dataset_revoked' as const })));
       return { success: true };
     }),
 
@@ -383,11 +424,18 @@ export const agentSharingRouter = router({
         .update(agentShareLinks)
         .set({ lastAccessedAt: toSqlTimestamp(new Date()) })
         .where(eq(agentShareLinks.id, link.id));
+      await db.insert(agentShareAccessLogs).values({
+        linkId: link.id,
+        action: 'accessed',
+        recipientEmail: link.recipientEmail,
+        reportingPeriodLabel: link.reportingPeriodLabel,
+      });
 
       return {
         agentName: link.agentName,
         datasetName: dataset.fileName,
         expiresAt: link.expiresAt,
+        reportingPeriodLabel: link.reportingPeriodLabel,
         records,
         commissionSummary,
       };

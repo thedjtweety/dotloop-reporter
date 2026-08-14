@@ -73,7 +73,7 @@ export default function AgentPortalPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><BarChart3 className="h-5 w-5" /></div>
             <div>
               <p className="font-semibold">My Real Estate Analytics</p>
-              <p className="text-xs text-muted-foreground">Shared by your brokerage · {sharedData.data.datasetName}</p>
+              <p className="text-xs text-muted-foreground">Shared by your brokerage · {sharedData.data.reportingPeriodLabel || sharedData.data.datasetName}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -91,6 +91,7 @@ export default function AgentPortalPage() {
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                 This portal contains only the transactions your broker assigned to you. It does not display brokerage-wide or other-agent data.
               </p>
+              {sharedData.data.reportingPeriodLabel && <p className="mt-3 inline-flex rounded-full bg-background px-3 py-1 text-xs font-medium text-primary">Reporting period: {sharedData.data.reportingPeriodLabel}</p>}
             </div>
             {sharedData.data.expiresAt && <div className="flex items-center gap-2 rounded-full bg-background px-3 py-1.5 text-xs text-muted-foreground"><CalendarDays className="h-3.5 w-3.5" /> Link expires {new Date(sharedData.data.expiresAt).toLocaleDateString()}</div>}
           </div>

@@ -34,6 +34,7 @@ import {
 import { getDb } from "./db";
 import { eq, and, inArray } from "drizzle-orm";
 import { PUBLIC_TENANT_ID } from "./lib/public-tenant";
+import { createCommissionPlanVersion } from "./routers/brokerOperations";
 
 // Zod schemas for input validation
 const TransactionInputSchema = z.object({
@@ -72,6 +73,10 @@ const CommissionPlanSchema = z.object({
     splitPercentage: z.number(),
     description: z.string(),
   })).optional(),
+  lifecycle: z.enum(['draft', 'active', 'archived']).optional(),
+  effectiveStartDate: z.string().max(10).optional().nullable(),
+  effectiveEndDate: z.string().max(10).optional().nullable(),
+  changeNote: z.string().max(2_000).optional().nullable(),
 });
 
 const TeamSchema = z.object({
@@ -451,7 +456,26 @@ export const commissionRouter = router({
           } as any);
         }
 
-        return { success: true, id: input.id };
+        const version = await createCommissionPlanVersion(db, {
+          planId: input.id,
+          planSnapshot: {
+            id: input.id,
+            name: input.name,
+            splitPercentage: input.splitPercentage,
+            capAmount: input.capAmount,
+            postCapSplit: input.postCapSplit,
+            royaltyPercentage: input.royaltyPercentage ?? 0,
+            royaltyCap: input.royaltyCap ?? 0,
+            deductions: input.deductions,
+            useSliding: input.useSliding,
+            tiers: input.tiers ?? [],
+          },
+          lifecycle: input.lifecycle,
+          effectiveStartDate: input.effectiveStartDate,
+          effectiveEndDate: input.effectiveEndDate,
+          changeNote: input.changeNote,
+        });
+        return { success: true, id: input.id, versionId: version.id, versionNumber: version.versionNumber };
       } catch (error) {
         console.error("Save plan error:", error);
         throw new Error(

@@ -4677,3 +4677,17 @@
 - [x] Display the current assigned-agent count on every active commission plan card
 - [x] Refresh plan-card counts after individual and bulk assignment changes
 - [x] Test the count display with persisted commission assignments
+
+## Phase N+9: Public Product Readiness Roadmap
+- [ ] Define a brokerage-scoped workspace and access-control model before broad public launch
+- [ ] Improve the guided CSV import and saved mapping workflow for repeat broker uploads
+- [ ] Define the DotView handoff and data-ingestion approach, beginning with CSV export
+- [ ] Evaluate an approved Dotloop integration or broker-installed browser companion as a future import option
+
+## Phase N+10: Broker Operations Upgrade
+- [x] Build an Import Center with named import runs, reporting periods, data-quality results, and import history
+- [x] Add brokerage-level saved CSV mapping templates and reusable import settings
+- [x] Add commission plan lifecycle states, version history, effective dates, and projected change impact
+- [x] Save immutable commission calculation snapshots for audit and payout reporting
+- [x] Add verified agent-delivery controls with reporting-period context and access audit history
+- [x] Test the combined import, commission, and agent-sharing workflow end to end
