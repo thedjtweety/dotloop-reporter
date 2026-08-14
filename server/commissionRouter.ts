@@ -28,6 +28,7 @@ import {
 } from "./lib/pdf-generator";
 import {
   commissionPlans,
+  commissionPlanVersions,
   teams,
   agentAssignments,
 } from "../drizzle/schema";
@@ -35,6 +36,7 @@ import { getDb } from "./db";
 import { eq, and, inArray } from "drizzle-orm";
 import { PUBLIC_TENANT_ID } from "./lib/public-tenant";
 import { createCommissionPlanVersion } from "./routers/brokerOperations";
+import { isPlanVersionEligible, latestPlanVersions, parsePlanSnapshot } from "./lib/plan-lifecycle";
 
 // Zod schemas for input validation
 const TransactionInputSchema = z.object({
@@ -103,6 +105,24 @@ const AgentAssignmentSchemaProcessed = AgentAssignmentSchema.transform((data) =>
   anniversaryDate: data.anniversaryDate ?? undefined,
 }));
 
+async function assertPlanEligibleForAssignment(db: any, planId: string) {
+  const [plan] = await db
+    .select({ id: commissionPlans.id })
+    .from(commissionPlans)
+    .where(and(eq(commissionPlans.id, planId), eq(commissionPlans.tenantId, PUBLIC_TENANT_ID)))
+    .limit(1);
+  if (!plan) throw new Error('The selected commission plan no longer exists. Refresh plans and try again.');
+
+  const versions = await db
+    .select()
+    .from(commissionPlanVersions)
+    .where(and(eq(commissionPlanVersions.tenantId, PUBLIC_TENANT_ID), eq(commissionPlanVersions.planId, planId)));
+  const latest = latestPlanVersions(versions).get(planId);
+  if (latest && !isPlanVersionEligible(latest)) {
+    throw new Error('Only active commission plans within their effective-date window can be assigned to an agent.');
+  }
+}
+
 export const commissionRouter = router({
   /**
    * Calculate commissions for a set of transactions
@@ -134,27 +154,51 @@ export const commissionRouter = router({
           throw new Error("Database connection not available");
         }
         
-        // Fetch commission plans from database (no tenant filtering - single user tool)
+        // Resolve each requested plan to its newest broker-approved version. Draft,
+        // archived, future, and expired plans cannot enter a live payout calculation.
         let plans: CommissionPlan[] = [];
         if (input.planIds && input.planIds.length > 0) {
           const dbPlans = await db
             .select()
-            .from(commissionPlans);
-          
+            .from(commissionPlans)
+            .where(and(
+              eq(commissionPlans.tenantId, PUBLIC_TENANT_ID),
+              inArray(commissionPlans.id, input.planIds),
+            ));
+          const versionRows = await db
+            .select()
+            .from(commissionPlanVersions)
+            .where(and(
+              eq(commissionPlanVersions.tenantId, PUBLIC_TENANT_ID),
+              inArray(commissionPlanVersions.planId, input.planIds),
+            ));
+          const latestVersions = latestPlanVersions(versionRows);
+          const ineligiblePlanIds = dbPlans
+            .filter((plan) => {
+              const latest = latestVersions.get(plan.id);
+              return Boolean(latest) && !isPlanVersionEligible(latest);
+            })
+            .map((plan) => plan.id);
+          if (ineligiblePlanIds.length) {
+            throw new Error('Only active commission plans within their effective-date window can be calculated. Update the plan lifecycle or effective dates before continuing.');
+          }
           plans = dbPlans
-            .filter((p: any) => input.planIds!.includes(p.id))
-            .map((p: any) => ({
-              id: p.id,
-              name: p.name,
-              splitPercentage: p.splitPercentage,
-              capAmount: p.capAmount,
-              postCapSplit: p.postCapSplit,
-              deductions: p.deductions ? JSON.parse(p.deductions as string) : undefined,
-              royaltyPercentage: p.royaltyPercentage,
-              royaltyCap: p.royaltyCap,
-              useSliding: p.useSliding === 1,
-              tiers: p.tiers ? JSON.parse(p.tiers as string) : undefined,
-            } as CommissionPlan));
+            .map((p: any) => {
+              const snapshot = latestVersions.get(p.id);
+              const source = snapshot ? { ...p, ...parsePlanSnapshot(snapshot.planSnapshot) } : p;
+              return {
+                id: source.id,
+                name: source.name,
+                splitPercentage: source.splitPercentage,
+                capAmount: source.capAmount,
+                postCapSplit: source.postCapSplit,
+                deductions: typeof source.deductions === 'string' ? JSON.parse(source.deductions) : source.deductions || undefined,
+                royaltyPercentage: source.royaltyPercentage,
+                royaltyCap: source.royaltyCap,
+                useSliding: source.useSliding === 1 || source.useSliding === true,
+                tiers: typeof source.tiers === 'string' ? JSON.parse(source.tiers) : source.tiers || undefined,
+              } as CommissionPlan;
+            });
         }
 
         // Fetch teams from database (no tenant filtering - single user tool)
@@ -527,14 +571,7 @@ export const commissionRouter = router({
           throw new Error("Database connection not available");
         }
         
-        const selectedPlan = await db
-          .select({ id: commissionPlans.id })
-          .from(commissionPlans)
-          .where(and(eq(commissionPlans.id, input.planId), eq(commissionPlans.tenantId, PUBLIC_TENANT_ID)))
-          .limit(1);
-        if (!selectedPlan.length) {
-          throw new Error("The selected commission plan no longer exists. Refresh plans and try again.");
-        }
+        await assertPlanEligibleForAssignment(db, input.planId);
 
         // One agent has one active plan in the public broker workspace. Upsert
         // by tenant + agent name rather than a transient client-generated id.
@@ -624,6 +661,9 @@ export const commissionRouter = router({
         
         const results: any[] = [];
         const assignments = input;
+        for (const planId of new Set(assignments.map((assignment) => assignment.planId))) {
+          await assertPlanEligibleForAssignment(db, planId);
+        }
         
         // Get all agent names from the assignments
         const agentNames = assignments.map(a => a.agentName);

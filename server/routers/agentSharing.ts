@@ -18,11 +18,13 @@ import {
   agentShareRecords,
   agentAssignments,
   commissionPlans,
+  commissionPlanVersions,
 } from '../../drizzle/schema';
 import { getDb } from '../db';
 import { publicProcedure, router } from '../_core/trpc';
 import { PUBLIC_TENANT_ID } from '../lib/public-tenant';
 import { calculateTransactionCommission, type CommissionPlan } from '../lib/commission-calculator';
+import { isPlanVersionEligible, latestPlanVersions, parsePlanSnapshot } from '../lib/plan-lifecycle';
 
 const MAX_RECORDS_PER_DATASET = 5_000;
 const MAX_RECORD_BYTES = 32_000;
@@ -374,6 +376,7 @@ export const agentSharingRouter = router({
         companyDollar: number;
         grossCommission: number;
       } | null = null;
+      let commissionPlanStatus = 'No active broker-approved commission plan is assigned.';
 
       if (assignment) {
         const [dbPlan] = await db
@@ -386,17 +389,27 @@ export const agentSharingRouter = router({
           .limit(1);
 
         if (dbPlan) {
+          const versionRows = await db
+            .select()
+            .from(commissionPlanVersions)
+            .where(and(
+              eq(commissionPlanVersions.tenantId, PUBLIC_TENANT_ID),
+              eq(commissionPlanVersions.planId, dbPlan.id),
+            ));
+          const latestVersion = latestPlanVersions(versionRows).get(dbPlan.id);
+          if (!latestVersion || isPlanVersionEligible(latestVersion)) {
+            const source = latestVersion ? { ...dbPlan, ...parsePlanSnapshot(latestVersion.planSnapshot) } : dbPlan;
           const plan: CommissionPlan = {
-            id: dbPlan.id,
-            name: dbPlan.name,
-            splitPercentage: dbPlan.splitPercentage,
-            capAmount: dbPlan.capAmount || 0,
-            postCapSplit: dbPlan.postCapSplit || 100,
-            royaltyPercentage: dbPlan.royaltyPercentage || undefined,
-            royaltyCap: dbPlan.royaltyCap || undefined,
-            useSliding: Boolean(dbPlan.useSliding),
-            tiers: dbPlan.tiers ? JSON.parse(dbPlan.tiers) : undefined,
-            deductions: dbPlan.deductions ? JSON.parse(dbPlan.deductions) : undefined,
+            id: String(source.id),
+            name: String(source.name),
+            splitPercentage: Number(source.splitPercentage),
+            capAmount: Number(source.capAmount) || 0,
+            postCapSplit: Number(source.postCapSplit) || 100,
+            royaltyPercentage: Number(source.royaltyPercentage) || undefined,
+            royaltyCap: Number(source.royaltyCap) || undefined,
+            useSliding: Boolean(source.useSliding),
+            tiers: typeof source.tiers === 'string' ? JSON.parse(source.tiers) : source.tiers as any,
+            deductions: typeof source.deductions === 'string' ? JSON.parse(source.deductions) : source.deductions as any,
           };
           let ytdCompanyDollar = 0;
           let netCommission = 0;
@@ -417,6 +430,10 @@ export const agentSharingRouter = router({
             grossCommission += breakdown.grossCommissionIncome;
           });
           commissionSummary = { planName: plan.name, planId: plan.id, netCommission, companyDollar, grossCommission };
+          commissionPlanStatus = latestVersion ? `Calculated using broker-approved plan version ${latestVersion.versionNumber}.` : 'Calculated using the broker’s current legacy plan.';
+          } else {
+            commissionPlanStatus = 'The broker has not activated the assigned commission plan for this effective period. Commission values are intentionally withheld.';
+          }
         }
       }
 
@@ -438,6 +455,7 @@ export const agentSharingRouter = router({
         reportingPeriodLabel: link.reportingPeriodLabel,
         records,
         commissionSummary,
+        commissionPlanStatus,
       };
     }),
 });

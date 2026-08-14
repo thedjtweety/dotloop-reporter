@@ -80,6 +80,14 @@ export const brokerOperationsRouter = router({
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Data storage is temporarily unavailable.' });
+      if (input.sourceChecksum) {
+        const existingRuns = await db.select().from(importRuns).where(and(
+          eq(importRuns.tenantId, PUBLIC_TENANT_ID),
+          eq(importRuns.sourceChecksum, input.sourceChecksum),
+        ));
+        const duplicate = existingRuns.find((existing) => existing.status !== 'archived');
+        if (duplicate) return { ...duplicate, duplicate: true };
+      }
       const run = {
         id: randomUUID(),
         tenantId: PUBLIC_TENANT_ID,
@@ -105,7 +113,7 @@ export const brokerOperationsRouter = router({
           await db.update(importMappingTemplates).set({ useCount: templates[0].useCount + 1 }).where(eq(importMappingTemplates.id, input.mappingTemplateId));
         }
       }
-      return run;
+      return { ...run, duplicate: false };
     }),
 
   listImportRuns: publicProcedure.query(async () => {
@@ -130,6 +138,17 @@ export const brokerOperationsRouter = router({
         await tx.update(importRuns).set({ status: 'archived' }).where(and(eq(importRuns.tenantId, PUBLIC_TENANT_ID), eq(importRuns.status, 'active')));
         await tx.update(importRuns).set({ status: 'active' }).where(eq(importRuns.id, input.importRunId));
       });
+      return { success: true };
+    }),
+
+  archiveImportRun: publicProcedure
+    .input(z.object({ importRunId: z.string().uuid() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Data storage is temporarily unavailable.' });
+      const [run] = await db.select().from(importRuns).where(and(eq(importRuns.id, input.importRunId), eq(importRuns.tenantId, PUBLIC_TENANT_ID))).limit(1);
+      if (!run) throw new TRPCError({ code: 'NOT_FOUND', message: 'Import run not found.' });
+      await db.update(importRuns).set({ status: 'archived' }).where(eq(importRuns.id, input.importRunId));
       return { success: true };
     }),
 
@@ -182,6 +201,20 @@ export const brokerOperationsRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Data storage is temporarily unavailable.' });
       await db.delete(importMappingTemplates).where(and(eq(importMappingTemplates.id, input.id), eq(importMappingTemplates.tenantId, PUBLIC_TENANT_ID)));
+      return { success: true };
+    }),
+
+  setDefaultMappingTemplate: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Data storage is temporarily unavailable.' });
+      const [template] = await db.select().from(importMappingTemplates).where(and(eq(importMappingTemplates.id, input.id), eq(importMappingTemplates.tenantId, PUBLIC_TENANT_ID))).limit(1);
+      if (!template) throw new TRPCError({ code: 'NOT_FOUND', message: 'Mapping template not found.' });
+      await db.transaction(async (tx) => {
+        await tx.update(importMappingTemplates).set({ isDefault: 0 }).where(eq(importMappingTemplates.tenantId, PUBLIC_TENANT_ID));
+        await tx.update(importMappingTemplates).set({ isDefault: 1 }).where(eq(importMappingTemplates.id, input.id));
+      });
       return { success: true };
     }),
 

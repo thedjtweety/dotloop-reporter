@@ -121,6 +121,13 @@ export default function AgentPortalPage() {
           </Card>
         )}
 
+        {!commissionSummary && sharedData.data.commissionPlanStatus && (
+          <Card className="border-amber-500/30 bg-amber-500/10 p-5">
+            <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">Commission calculation unavailable</p>
+            <p className="mt-1 text-sm text-muted-foreground">{sharedData.data.commissionPlanStatus}</p>
+          </Card>
+        )}
+
         <Card className="p-5">
           <div className="mb-4 flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />

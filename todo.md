@@ -4695,3 +4695,10 @@
 ## Phase N+11: Homepage Nested Link Fix
 - [x] Locate and remove the nested-anchor composition causing React DOM validation errors
 - [x] Verify the corrected navigation remains keyboard accessible and the homepage renders cleanly
+
+## Phase N+12: Broker Operations Continuation
+- [x] Add import-run activation, archival, duplicate-detection, and saved-mapping selection controls
+- [x] Enforce active plan lifecycle and effective-date eligibility in broker and agent commission calculations
+- [x] Surface plan-version attribution on calculation snapshots and agent portals
+- [x] Add a broker delivery roster with recipient status, last access, expiry, and revocation actions
+- [x] Test the extended import, commission governance, and delivery workflows end to end

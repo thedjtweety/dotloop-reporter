@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
-import { CalendarDays, CheckCircle2, ClipboardCopy, FileClock, FileUp, Layers3, Loader2, RefreshCw, Save, Sparkles, Trash2 } from 'lucide-react';
+import { Archive, CalendarDays, CheckCircle2, ClipboardCopy, FileClock, FileUp, Layers3, Loader2, RefreshCw, Save, Sparkles, Star, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useTransactionData } from '@/contexts/TransactionDataContext';
 import { trpc } from '@/lib/trpc';
 import { analyzeFieldCompleteness } from '@/lib/fieldCompletenessAnalysis';
-import { fieldCompletenessMap, inferReportingPeriod } from '@/lib/importRunHelpers';
+import { fieldCompletenessMap, importFingerprint, inferReportingPeriod } from '@/lib/importRunHelpers';
 import toast from 'react-hot-toast';
 
 export default function ImportCenterPage() {
@@ -18,8 +18,10 @@ export default function ImportCenterPage() {
   const { data: mappingTemplates = [] } = trpc.brokerOperations.listMappingTemplates.useQuery();
   const createRun = trpc.brokerOperations.createImportRun.useMutation();
   const activateRun = trpc.brokerOperations.activateImportRun.useMutation();
+  const archiveRun = trpc.brokerOperations.archiveImportRun.useMutation();
   const saveTemplate = trpc.brokerOperations.saveMappingTemplate.useMutation();
   const deleteTemplate = trpc.brokerOperations.deleteMappingTemplate.useMutation();
+  const setDefaultTemplate = trpc.brokerOperations.setDefaultMappingTemplate.useMutation();
 
   const quality = useMemo(() => analyzeFieldCompleteness(allRecords), [allRecords]);
   const inferredPeriod = useMemo(() => inferReportingPeriod(allRecords), [allRecords]);
@@ -43,10 +45,11 @@ export default function ImportCenterPage() {
         warnings: quality.fields
           .filter((field) => field.completenessPercentage < 70)
           .map((field) => `${field.displayName}: ${field.completenessPercentage}% complete`),
+        sourceChecksum: importFingerprint(allRecords),
       });
       localStorage.setItem('dotloop_active_import_run_id', run.id);
       await utils.brokerOperations.listImportRuns.invalidate();
-      toast.success('Import run saved. It is ready to activate or reference in commission audits.');
+      toast.success(run.duplicate ? 'Matching import run already exists; its record was reused.' : 'Import run saved. It is ready to activate or reference in commission audits.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Could not save the import run.');
     }
@@ -60,6 +63,17 @@ export default function ImportCenterPage() {
       toast.success('This reporting period is now active.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Could not activate the import run.');
+    }
+  };
+
+  const archive = async (id: string) => {
+    try {
+      await archiveRun.mutateAsync({ importRunId: id });
+      if (localStorage.getItem('dotloop_active_import_run_id') === id) localStorage.removeItem('dotloop_active_import_run_id');
+      await utils.brokerOperations.listImportRuns.invalidate();
+      toast.success('Import run archived. Historical audit snapshots remain intact.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not archive the import run.');
     }
   };
 
@@ -127,7 +141,7 @@ export default function ImportCenterPage() {
               {runsLoading ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading import runs…</div> : importRuns.length === 0 ? <div className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">No import runs saved yet. Register the CSV currently loaded above.</div> : importRuns.map((run) => (
                 <div key={run.id} className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div><div className="flex items-center gap-2 font-medium">{run.status === 'active' && <CheckCircle2 className="h-4 w-4 text-primary" />}{run.reportingPeriodLabel}</div><p className="mt-1 text-xs text-muted-foreground">{run.fileName} · {run.recordCount.toLocaleString()} records · {run.dataQuality}% quality · {new Date(run.createdAt).toLocaleString()}</p>{run.warnings.length > 0 && <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">{run.warnings.length} data-quality warning{run.warnings.length === 1 ? '' : 's'}</p>}</div>
-                  <Button size="sm" variant={run.status === 'active' ? 'secondary' : 'outline'} onClick={() => activate(run.id)} disabled={run.status === 'active' || activateRun.isPending}>{run.status === 'active' ? 'Active period' : 'Set active'}</Button>
+                  <div className="flex gap-2"><Button size="sm" variant={run.status === 'active' ? 'secondary' : 'outline'} onClick={() => activate(run.id)} disabled={run.status === 'active' || run.status === 'archived' || activateRun.isPending}>{run.status === 'active' ? 'Active period' : run.status === 'archived' ? 'Archived' : 'Set active'}</Button><Button size="icon" variant="ghost" title="Archive import run" onClick={() => archive(run.id)} disabled={run.status === 'archived' || archiveRun.isPending}><Archive className="h-4 w-4" /></Button></div>
                 </div>
               ))}
             </CardContent>
@@ -135,7 +149,7 @@ export default function ImportCenterPage() {
 
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-2"><Layers3 className="h-5 w-5 text-primary" /> Mapping library</CardTitle><CardDescription>Save your current Field Mapper choices so later uploads need less setup.</CardDescription></CardHeader>
-            <CardContent className="space-y-4"><div className="space-y-2"><label className="text-sm font-medium" htmlFor="mapping-name">Template name</label><Input id="mapping-name" value={templateName} onChange={(event) => setTemplateName(event.target.value)} /><Button className="w-full gap-2" variant="outline" onClick={saveCurrentMapping} disabled={saveTemplate.isPending}><Save className="h-4 w-4" /> Save current mapping</Button></div><div className="space-y-2 border-t pt-4">{mappingTemplates.length === 0 ? <p className="text-sm text-muted-foreground">No saved mappings yet.</p> : mappingTemplates.map((template) => <div key={template.id} className="rounded-md border p-3"><div className="flex items-start justify-between gap-2"><div><p className="text-sm font-medium">{template.name}</p><p className="text-xs text-muted-foreground">Used {template.useCount} time{template.useCount === 1 ? '' : 's'} · {template.headers.length} mapped headers</p></div><div className="flex gap-1"><Button size="icon" variant="ghost" title="Use this mapping" onClick={() => applyMapping(template.mapping)}><ClipboardCopy className="h-4 w-4" /></Button><Button size="icon" variant="ghost" className="text-destructive" title="Delete mapping" onClick={async () => { await deleteTemplate.mutateAsync({ id: template.id }); await utils.brokerOperations.listMappingTemplates.invalidate(); }}><Trash2 className="h-4 w-4" /></Button></div></div></div>)}</div><div className="rounded-md bg-muted/60 p-3 text-xs text-muted-foreground"><Sparkles className="mr-1 inline h-3.5 w-3.5 text-primary" /> Applying a template saves it for the next upload; you can still adjust individual fields in the mapper.</div></CardContent>
+            <CardContent className="space-y-4"><div className="space-y-2"><label className="text-sm font-medium" htmlFor="mapping-name">Template name</label><Input id="mapping-name" value={templateName} onChange={(event) => setTemplateName(event.target.value)} /><Button className="w-full gap-2" variant="outline" onClick={saveCurrentMapping} disabled={saveTemplate.isPending}><Save className="h-4 w-4" /> Save current mapping</Button></div><div className="space-y-2 border-t pt-4">{mappingTemplates.length === 0 ? <p className="text-sm text-muted-foreground">No saved mappings yet.</p> : mappingTemplates.map((template) => <div key={template.id} className="rounded-md border p-3"><div className="flex items-start justify-between gap-2"><div><p className="text-sm font-medium">{template.name}{template.isDefault === 1 && <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">Default</span>}</p><p className="text-xs text-muted-foreground">Used {template.useCount} time{template.useCount === 1 ? '' : 's'} · {template.headers.length} mapped headers</p></div><div className="flex gap-1"><Button size="icon" variant="ghost" title="Use this mapping" onClick={() => applyMapping(template.mapping)}><ClipboardCopy className="h-4 w-4" /></Button><Button size="icon" variant="ghost" title="Set as default mapping" disabled={template.isDefault === 1 || setDefaultTemplate.isPending} onClick={async () => { await setDefaultTemplate.mutateAsync({ id: template.id }); await utils.brokerOperations.listMappingTemplates.invalidate(); toast.success('Default mapping updated.'); }}><Star className="h-4 w-4" /></Button><Button size="icon" variant="ghost" className="text-destructive" title="Delete mapping" onClick={async () => { await deleteTemplate.mutateAsync({ id: template.id }); await utils.brokerOperations.listMappingTemplates.invalidate(); }}><Trash2 className="h-4 w-4" /></Button></div></div></div>)}</div><div className="rounded-md bg-muted/60 p-3 text-xs text-muted-foreground"><Sparkles className="mr-1 inline h-3.5 w-3.5 text-primary" /> Applying a template saves it for the next upload; you can still adjust individual fields in the mapper.</div></CardContent>
           </Card>
         </div>
 

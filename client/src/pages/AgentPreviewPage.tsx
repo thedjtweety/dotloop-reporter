@@ -93,6 +93,7 @@ export default function AgentPreviewPage() {
   const [recipientEmail, setRecipientEmail] = useState('');
   const [reportingPeriodLabel, setReportingPeriodLabel] = useState('Current reporting period');
   const [inspectedLinkId, setInspectedLinkId] = useState<string | null>(null);
+  const [deliveryFilter, setDeliveryFilter] = useState<'all' | 'awaiting' | 'viewed' | 'revoked' | 'expired'>('all');
   const utils = trpc.useUtils();
   const { data: importRuns = [] } = trpc.brokerOperations.listImportRuns.useQuery();
 
@@ -107,7 +108,6 @@ export default function AgentPreviewPage() {
       ?? calculateAgentMetrics(selectedTransactions).find((metric) => metric.agentName === selectedAgent),
     [agentMetrics, selectedAgent, selectedTransactions],
   );
-
   useEffect(() => {
     if (!selectedAgent || !agentNames.includes(selectedAgent)) {
       setSelectedAgent(agentNames[0] ?? '');
@@ -139,6 +139,17 @@ export default function AgentPreviewPage() {
       : { datasetId: '00000000-0000-0000-0000-000000000000', ownerSecret: 'x'.repeat(32) },
     { enabled: Boolean(ownerSession) },
   );
+  const deliveryLinks = useMemo(() => {
+    const links = ownerLinks.data?.links ?? [];
+    const now = Date.now();
+    return links.filter((link) => {
+      const status = link.isRevoked ? 'revoked'
+        : link.expiresAt && new Date(link.expiresAt).getTime() < now ? 'expired'
+        : link.lastAccessedAt ? 'viewed'
+        : 'awaiting';
+      return deliveryFilter === 'all' || status === deliveryFilter;
+    });
+  }, [ownerLinks.data?.links, deliveryFilter]);
 
   const createLink = trpc.agentSharing.createAgentLink.useMutation({
     onSuccess: async (result) => {
@@ -369,17 +380,19 @@ export default function AgentPreviewPage() {
 
           {currentOwnerSession && ownerLinks.data && (
             <Card className="p-5 space-y-3">
-              <h2 className="font-semibold">Issued links</h2>
+              <div className="flex items-center justify-between gap-3"><div><h2 className="font-semibold">Delivery roster</h2><p className="mt-1 text-xs text-muted-foreground">Follow up on access without exposing the private link again.</p></div><select aria-label="Filter delivery status" value={deliveryFilter} onChange={(event) => setDeliveryFilter(event.target.value as typeof deliveryFilter)} className="h-8 rounded-md border border-input bg-background px-2 text-xs"><option value="all">All</option><option value="awaiting">Awaiting access</option><option value="viewed">Viewed</option><option value="expired">Expired</option><option value="revoked">Revoked</option></select></div>
               {ownerLinks.data.links.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No links have been issued for this upload yet.</p>
+              ) : deliveryLinks.length === 0 ? (
+                <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">No links match this delivery status.</p>
               ) : (
                 <div className="space-y-2">
-                  {ownerLinks.data.links.map((link) => (
+                  {deliveryLinks.map((link) => (
                     <div key={link.id} className="rounded-md border border-border p-3 text-xs">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium">{link.agentName}</span>
-                        <span className={link.isRevoked ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-400'}>
-                          {link.isRevoked ? 'Revoked' : 'Active'}
+                        <span className={link.isRevoked ? 'text-destructive' : link.expiresAt && new Date(link.expiresAt).getTime() < Date.now() ? 'text-amber-600 dark:text-amber-400' : link.lastAccessedAt ? 'text-emerald-600 dark:text-emerald-400' : 'text-primary'}>
+                          {link.isRevoked ? 'Revoked' : link.expiresAt && new Date(link.expiresAt).getTime() < Date.now() ? 'Expired' : link.lastAccessedAt ? 'Viewed' : 'Awaiting access'}
                         </span>
                       </div>
                       <p className="mt-1 text-muted-foreground">{link.recipientEmail || 'No recipient recorded'} · {link.reportingPeriodLabel || 'Current period'}</p>
