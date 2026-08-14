@@ -4651,3 +4651,8 @@
 - [x] Add back navigation from transaction detail page to agent modal
 - [x] Register /transaction/:id route in App.tsx
 - [x] Test full navigation flow: Agents tab → agent modal → transaction detail page
+
+## Phase N+20: Commission Route Runtime Fix
+- [x] Restore missing component imports causing the Commission page runtime crash
+- [x] Check Commission Management for additional undefined rendered components
+- [x] Verify the `/commission` route in the browser and save the fix
