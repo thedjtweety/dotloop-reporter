@@ -4745,3 +4745,8 @@
 - [x] Add row-level exception handling, reconciled-file counts, and completion safeguards
 - [x] Add broker-facing migration manifest/audit export and closeout controls
 - [x] Test the migration-run workflow with a broker-provided manifest structure
+
+## Phase N+16: Plain-Language SkySlope Guidance
+- [x] Rewrite SkySlope Transition Center headings, step descriptions, and safeguards in broker-friendly language
+- [x] Preserve necessary record-retention and validation guidance without technical jargon
+- [x] Verify the revised walkthrough renders cleanly and remains actionable
