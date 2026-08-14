@@ -22,6 +22,27 @@
       "when": 1782921522354,
       "tag": "0002_stiff_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1786654112017,
+      "tag": "0003_chilly_warstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1786664910660,
+      "tag": "0004_goofy_sersi",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1786722527508,
+      "tag": "0005_rapid_wilson_fisk",
+      "breakpoints": true
     }
   ]
 }

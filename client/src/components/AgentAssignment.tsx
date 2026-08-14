@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import { 
   CommissionPlan, 
   Team,
@@ -8,7 +9,7 @@ import {
 import { DotloopRecord } from '@/lib/csvParser';
 import { trpc } from '@/lib/trpc';
 import toast from 'react-hot-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Share2 } from 'lucide-react';
 import BulkPlanAssignment from './BulkPlanAssignment';
 import {
   Table,
@@ -29,6 +30,7 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useTransactionData } from '@/contexts/TransactionDataContext';
+import { getAgentSharingPath } from '@/lib/agentSharingNavigation';
 
 interface AgentAssignmentProps {
   records: DotloopRecord[]; // Used to extract unique agent names
@@ -37,6 +39,7 @@ interface AgentAssignmentProps {
 }
 
 export default function AgentAssignment({ records, highlightAgent, onAssignmentChange }: AgentAssignmentProps) {
+  const [, setLocation] = useLocation();
   const { setCommissionData, commissionPlans: contextPlans, agentAssignments: contextAssignments } = useTransactionData();
 
   const [plans, setPlans] = useState<CommissionPlan[]>([]);
@@ -49,6 +52,7 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
   // tRPC mutations
   const recalculateMutation = trpc.commissionRecalculation.recalculateForAgent.useMutation();
   const saveAssignmentMutation = trpc.commission.saveAssignment.useMutation();
+  const deleteAssignmentMutation = trpc.commission.deleteAssignment.useMutation();
   
   // Fetch plans, teams, and assignments from database
   const { data: dbPlans, isLoading: plansLoading, error: plansError } = trpc.commission.getPlans.useQuery(undefined, {
@@ -141,45 +145,50 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
 
   const handleAssignPlan = async (agentName: string, planId: string) => {
     const existing = assignments.find(a => a.agentName === agentName);
-    const newAssignments = assignments.filter(a => a.agentName !== agentName);
-    
     const assignmentId = existing?.id || Math.random().toString(36).substr(2, 9);
 
-    if (planId !== 'none') {
-      newAssignments.push({
+    try {
+      if (planId === 'none') {
+        if (existing?.id) {
+          await deleteAssignmentMutation.mutateAsync(existing.id);
+        }
+        const remainingAssignments = assignments.filter(a => a.agentName !== agentName);
+        setAssignments(remainingAssignments);
+        syncToContext(remainingAssignments);
+        await refetchAssignments();
+        window.dispatchEvent(new CustomEvent('commission-assignment-updated'));
+        onAssignmentChange?.();
+        toast.success(`Removed commission plan for ${agentName}`);
+        return;
+      }
+
+      const persisted = await saveAssignmentMutation.mutateAsync({
         id: assignmentId,
         agentName,
         planId,
-        teamId: existing?.teamId,
-        startDate: existing?.startDate || new Date().toISOString().split('T')[0],
-        anniversaryDate: existing?.anniversaryDate,
-      });
-    } else if (existing?.teamId) {
-      newAssignments.push({
-        id: assignmentId,
-        agentName,
-        planId: 'none',
-        teamId: existing.teamId,
-        anniversaryDate: existing?.anniversaryDate,
-      });
-    }
-
-    // Optimistically update local state and global context
-    setAssignments(newAssignments);
-    syncToContext(newAssignments);
-
-    // Persist to DB via tRPC (replaces the deprecated saveAgentAssignments no-op)
-    try {
-      await saveAssignmentMutation.mutateAsync({
-        id: assignmentId,
-        agentName,
-        planId: planId === 'none' ? '' : planId,
         teamId: existing?.teamId || null,
+        startDate: existing?.startDate || new Date().toISOString().split('T')[0],
         anniversaryDate: existing?.anniversaryDate || null,
       });
+
+      const newAssignments = [
+        ...assignments.filter(a => a.agentName !== agentName),
+        {
+          id: persisted.id,
+          agentName,
+          planId,
+          teamId: existing?.teamId,
+          startDate: existing?.startDate || new Date().toISOString().split('T')[0],
+          anniversaryDate: existing?.anniversaryDate,
+        },
+      ];
+      setAssignments(newAssignments);
+      syncToContext(newAssignments);
+      await refetchAssignments();
     } catch (err) {
       console.error('[AgentAssignment] Failed to persist assignment:', err);
-      toast.error('Failed to save assignment to database');
+      toast.error(err instanceof Error ? err.message : 'Failed to save assignment to database');
+      return;
     }
     
     // Trigger real-time commission recalculation
@@ -429,6 +438,15 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
                         {!currentPlan && !currentTeam && (
                           <span className="text-sm text-foreground italic">--</span>
                         )}
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-7 gap-1 text-xs"
+                          onClick={() => setLocation(getAgentSharingPath(agent))}
+                        >
+                          <Share2 className="h-3.5 w-3.5" /> Share with Agent
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>

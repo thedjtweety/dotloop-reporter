@@ -5,8 +5,9 @@
 
 import React, { useMemo } from 'react';
 import { DotloopRecord } from '@/lib/csvParser';
-import { CommissionPlan, getAgentAssignments, getPlanForAgent } from '@/lib/commission';
+import { CommissionPlan } from '@/lib/commission';
 import { calculatePlanBasedCommission } from '@/lib/commissionRecalculator';
+import { trpc } from '@/lib/trpc';
 import {
   Table,
   TableBody,
@@ -34,8 +35,18 @@ interface ComparisonRow {
   transactionCount: number;
 }
 
+export function resolveComparisonPlan<TPlan extends { id: string }, TAssignment extends { agentName: string; planId: string }>(
+  agentName: string,
+  plans: TPlan[],
+  assignments: TAssignment[],
+) {
+  const assignment = assignments.find((item) => item.agentName === agentName);
+  return plans.find((item) => item.id === assignment?.planId);
+}
+
 export default function CommissionComparisonReport({ records }: CommissionComparisonReportProps) {
-  const assignments = useMemo(() => getAgentAssignments(), []);
+  const { data: plans = [] } = trpc.commission.getPlans.useQuery();
+  const { data: assignments = [] } = trpc.commission.getAssignments.useQuery();
 
   const comparisonData = useMemo(() => {
     const agentMap = new Map<string, DotloopRecord[]>();
@@ -57,7 +68,7 @@ export default function CommissionComparisonReport({ records }: CommissionCompar
     const comparisons: ComparisonRow[] = [];
 
     agentMap.forEach((transactions, agentName) => {
-      const plan = getPlanForAgent(agentName);
+      const plan = resolveComparisonPlan(agentName, plans, assignments);
       
       // Original commission (from CSV)
       const originalCommission = transactions.reduce((sum, t) => sum + (t.commissionTotal || 0), 0);
@@ -81,7 +92,7 @@ export default function CommissionComparisonReport({ records }: CommissionCompar
     });
 
     return comparisons.sort((a, b) => Math.abs(b.difference) - Math.abs(a.difference));
-  }, [records, assignments]);
+  }, [records, assignments, plans]);
 
   const totalOriginal = useMemo(
     () => comparisonData.reduce((sum, row) => sum + row.originalCommission, 0),

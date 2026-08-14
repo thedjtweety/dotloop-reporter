@@ -1,0 +1,49 @@
+/** Minimal browser storage shim for client utility tests that run in Vitest's node environment. */
+class MemoryStorage implements Storage {
+  private values = new Map<string, string>();
+
+  get length() {
+    return this.values.size;
+  }
+
+  clear() {
+    this.values.clear();
+  }
+
+  getItem(key: string) {
+    return this.values.get(key) ?? null;
+  }
+
+  key(index: number) {
+    return Array.from(this.values.keys())[index] ?? null;
+  }
+
+  removeItem(key: string) {
+    this.values.delete(key);
+  }
+
+  setItem(key: string, value: string) {
+    this.values.set(String(key), String(value));
+  }
+}
+
+if (!globalThis.Storage) {
+  Object.defineProperty(globalThis, 'Storage', {
+    value: MemoryStorage,
+    configurable: true,
+  });
+}
+
+if (!globalThis.localStorage) {
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: new MemoryStorage(),
+    configurable: true,
+  });
+}
+
+if (!globalThis.window) {
+  Object.defineProperty(globalThis, 'window', {
+    value: { open: () => null },
+    configurable: true,
+  });
+}

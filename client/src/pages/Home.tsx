@@ -27,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { formatCurrency, formatPercentage, formatNumber } from '@/lib/formatUtils';
+import { formatCompactCurrency, formatCurrency, formatPercentage, formatNumber } from '@/lib/formatUtils';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DateRange } from 'react-day-picker';
@@ -134,6 +134,7 @@ function HomeContent() {
   let { user, loading, error, isAuthenticated, logout } = useAuth();
   const { filters, addFilter } = useFilters();
   const { setTransactionData, clearTransactionData, setComparisonDataSet, comparisonMode, toggleComparisonMode, metrics: contextMetrics, allRecords: contextAllRecords } = useTransactionData();
+  const createImportRunMutation = trpc.brokerOperations.createImportRun.useMutation();
 
   const [location, setLocation] = useLocation();
   const { metricsOrder, isEditMode, isLoaded, reorderMetrics, resetToDefault, toggleEditMode } = useMetricsOrder();
@@ -284,6 +285,20 @@ function HomeContent() {
       }
     };
     loadRecentFiles();
+  }, []);
+
+  useEffect(() => {
+    const refreshMapping = () => {
+      const saved = localStorage.getItem('dotloop_field_mapping');
+      if (!saved) return;
+      try {
+        setCustomMapping(JSON.parse(saved));
+      } catch {
+        console.warn('[Import Center] Saved mapping could not be read.');
+      }
+    };
+    window.addEventListener('import-mapping-template-selected', refreshMapping);
+    return () => window.removeEventListener('import-mapping-template-selected', refreshMapping);
   }, []);
 
   // Check for extension data on mount
@@ -732,6 +747,32 @@ function HomeContent() {
         // Delay slightly so the dashboard renders first
         setTimeout(() => setShowValidationReport(true), 1500);
       }
+
+      const periodDates = records
+        .map((record) => record.closingDate || record.createdDate || record.listingDate)
+        .filter((date): date is string => Boolean(date))
+        .map((date) => new Date(date))
+        .filter((date) => !Number.isNaN(date.getTime()))
+        .map((date) => date.toISOString().slice(0, 10))
+        .sort();
+      const periodStart = periodDates[0] || null;
+      const periodEnd = periodDates[periodDates.length - 1] || null;
+      void createImportRunMutation.mutateAsync({
+        fileName: file.name,
+        reportingPeriodLabel: periodStart && periodEnd
+          ? (periodStart === periodEnd ? `Data for ${periodEnd}` : `${periodStart} to ${periodEnd}`)
+          : 'Current CSV import',
+        periodStart,
+        periodEnd,
+        recordCount: records.length,
+        dataQuality: report.overallQuality,
+        fieldCompleteness: Object.fromEntries(report.fieldCompleteness.map((field) => [field.field, field.percentage])),
+        warnings: report.issues.map((issue) => `${issue.field}: ${issue.suggestion}`),
+      }).then((run) => {
+        localStorage.setItem('dotloop_active_import_run_id', run.id);
+      }).catch((error) => {
+        console.warn('[Import Center] Could not record import run:', error);
+      });
       
       // Process the records for immediate display
       const calculatedMetrics = calculateMetrics(records);
@@ -1147,7 +1188,8 @@ function HomeContent() {
               <MetricCardModern
                 icon={<DollarSign className="w-5 h-5 text-accent" />}
                 title="Total Sales Volume"
-                value={formatCurrency(contextMetrics.totalSalesVolume)}
+                value={formatCompactCurrency(contextMetrics.totalSalesVolume)}
+                valueLabel={formatCurrency(contextMetrics.totalSalesVolume)}
                 trend={{
                   value: contextMetrics.trends?.totalVolume?.value || 0,
                   isPositive: (contextMetrics.trends?.totalVolume?.direction === 'up') || false,

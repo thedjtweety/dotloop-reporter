@@ -6,6 +6,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { AgentPlanAssignment } from '@/lib/commission';
+import { buildBulkPlanReplacements } from '@/lib/bulkPlanAssignments';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -79,28 +80,25 @@ export default function BulkPlanAssignment({
     setIsLoading(true);
 
     try {
-      // Create new assignments - remove old assignments for selected agents
-      const newAssignments = dbAssignments.filter(
-        a => !selectedAgents.has(a.agentName)
+      // Persist only selected agents. The server atomically replaces their
+      // assignments, leaving every unselected agent untouched.
+      const replacements = buildBulkPlanReplacements(
+        selectedAgents,
+        selectedPlanId,
+        assignments,
+        new Date().toISOString().split('T')[0],
       );
 
-      // Add new assignments for selected agents
-      selectedAgents.forEach(agentName => {
-        newAssignments.push({
-          id: `${agentName}-${selectedPlanId}-${Date.now()}`,
-          agentName,
-          planId: selectedPlanId,
-          startDate: new Date().toISOString().split('T')[0],
-        });
-      });
-
       // Save assignments to database using tRPC
-      await saveAssignmentsMutation.mutateAsync(newAssignments);
+      await saveAssignmentsMutation.mutateAsync(replacements);
 
       console.log('[BulkPlanAssignment] Assignments saved successfully');
 
       // Update parent component state (which also syncs to global context via AgentAssignment)
-      onAssignmentComplete(newAssignments);
+      onAssignmentComplete([
+        ...assignments.filter((assignment) => !selectedAgents.has(assignment.agentName)),
+        ...replacements,
+      ]);
 
       // Notify other components (leaderboard, etc.) of the change
       window.dispatchEvent(new CustomEvent('commission-assignment-updated'));
@@ -218,7 +216,7 @@ export default function BulkPlanAssignment({
                   {/* Agent list */}
                   {agents.map((agent) => {
                     const assignment = dbAssignments.find(a => a.agentName === agent);
-                    const currentPlan = assignment ? plans.find(p => p.id === parseInt(assignment.planId)) : null;
+                    const currentPlan = assignment ? plans.find(p => p.id === assignment.planId) : null;
                     
                     return (
                       <div key={agent} className="flex items-center gap-3">

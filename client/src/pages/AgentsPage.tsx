@@ -13,8 +13,11 @@ import { useTransactionData } from '@/contexts/TransactionDataContext';
 import { useCDAPanel } from '@/contexts/CDAContext';
 import { AgentMetrics } from '@/lib/csvParser';
 import { formatCurrency } from '@/lib/formatUtils';
+import { getAgentPlanProgress } from '@/lib/agentPlanProgress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { trpc } from '@/lib/trpc';
+import { toast } from 'sonner';
 
 const AGENT_COLORS = [
   '#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6',
@@ -23,6 +26,25 @@ const AGENT_COLORS = [
 
 type SortField = 'agentName'|'closedDeals'|'totalSalesVolume'|'totalCommission'|'averageSalesPrice'|'closingRate'|'companyDollar';
 type SortDir = 'asc'|'desc';
+
+type LivePlan = {
+  id: string;
+  name: string;
+  splitPercentage: number;
+  capAmount?: number | null;
+  postCapSplit?: number | null;
+};
+
+function isPlanEligible(planId: string, versions: any[]) {
+  const latest = versions
+    .filter((version) => version.planId === planId)
+    .sort((left, right) => right.versionNumber - left.versionNumber)[0];
+  if (!latest) return true;
+  const today = new Date().toISOString().slice(0, 10);
+  return latest.lifecycle === 'active'
+    && (!latest.effectiveStartDate || latest.effectiveStartDate <= today)
+    && (!latest.effectiveEndDate || latest.effectiveEndDate >= today);
+}
 
 function getInitials(name: string) {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -135,7 +157,7 @@ function AgentDrillDown({ agent, onClose, records }: { agent: EnrichedAgent; onC
 }
 
 export default function AgentsPage() {
-  const { agentMetrics, filteredRecords, hasData, activateDemoMode } = useTransactionData();
+  const { agentMetrics, filteredRecords, hasData, activateDemoMode, setCommissionData } = useTransactionData();
   const { openCDA, openCDAWithData } = useCDAPanel();
   const [sortField, setSortField] = useState<SortField>('totalCommission');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -143,6 +165,40 @@ export default function AgentsPage() {
   const [selectedAgents, setSelectedAgents] = useState<Set<string>>(new Set());
   const [drillDown, setDrillDown] = useState<EnrichedAgent | null>(null);
   const [chartMetric, setChartMetric] = useState<'totalCommission'|'closedDeals'|'totalSalesVolume'>('totalCommission');
+  const [savingAgent, setSavingAgent] = useState<string | null>(null);
+  const utils = trpc.useUtils();
+  const { data: livePlans = [] } = trpc.commission.getPlans.useQuery();
+  const { data: liveAssignments = [], refetch: refetchAssignments } = trpc.commission.getAssignments.useQuery();
+  const { data: planVersions = [] } = trpc.brokerOperations.listPlanVersions.useQuery();
+  const commissionInputs = useMemo(() => filteredRecords.map((record, index) => ({
+    id: record.loopId || `agent-row-${index}`,
+    loopName: record.loopName || 'Transaction',
+    closingDate: record.closingDate || new Date(0).toISOString(),
+    agents: record.agents || '',
+    salePrice: Number(record.salePrice || record.price) || 0,
+    commissionRate: Number(record.commissionRate) || 0,
+    buySidePercent: Number(record.buySidePercent) || 50,
+    sellSidePercent: Number(record.sellSidePercent) || 50,
+  })), [filteredRecords]);
+  const { data: planSummaries = [], refetch: refetchPlanSummaries } = trpc.commission.getAgentCommissionsSummary.useQuery(
+    { transactions: commissionInputs },
+    { enabled: hasData && commissionInputs.length > 0 },
+  );
+  const saveAssignment = trpc.commission.saveAssignment.useMutation();
+  const deleteAssignment = trpc.commission.deleteAssignment.useMutation();
+  const eligiblePlans = useMemo(
+    () => (livePlans as LivePlan[]).filter((plan) => isPlanEligible(plan.id, planVersions as any[])),
+    [livePlans, planVersions],
+  );
+  const assignmentByAgent = useMemo(
+    () => new Map(liveAssignments.map((assignment) => [assignment.agentName, assignment])),
+    [liveAssignments],
+  );
+  const summaryByAgent = useMemo(
+    () => new Map(planSummaries.map((summary) => [summary.agentName, summary])),
+    [planSummaries],
+  );
+  const planById = useMemo(() => new Map(eligiblePlans.map((plan) => [plan.id, plan])), [eligiblePlans]);
 
   const enriched: EnrichedAgent[] = useMemo(() =>
     agentMetrics.map((a, i) => ({
@@ -185,6 +241,46 @@ export default function AgentsPage() {
       if (next.has(name)) next.delete(name); else next.add(name);
       return next;
     });
+  };
+
+  const handlePlanChange = async (agentName: string, planId: string) => {
+    const currentAssignment = assignmentByAgent.get(agentName);
+    setSavingAgent(agentName);
+    try {
+      let savedAssignmentId = currentAssignment?.id;
+      if (!planId) {
+        if (currentAssignment) await deleteAssignment.mutateAsync(currentAssignment.id);
+        toast.success(`${agentName}'s commission plan was removed.`);
+      } else {
+        const response = await saveAssignment.mutateAsync({
+          id: currentAssignment?.id || `agent-${agentName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${planId}`,
+          agentName,
+          planId,
+          teamId: null,
+          startDate: null,
+          anniversaryDate: null,
+        });
+        savedAssignmentId = response.id;
+        toast.success(`Commission plan updated for ${agentName}.`);
+      }
+      const nextAssignments = planId
+        ? [
+            ...liveAssignments.filter((assignment) => assignment.agentName !== agentName),
+            { id: savedAssignmentId || `${agentName}-${planId}`, agentName, planId, planName: planById.get(planId)?.name },
+          ]
+        : liveAssignments.filter((assignment) => assignment.agentName !== agentName);
+      utils.commission.getAssignments.setData(undefined, nextAssignments as any);
+      setCommissionData({ plans: livePlans as any, assignments: nextAssignments as any });
+      void refetchAssignments();
+      void Promise.all([
+        utils.commission.getAssignments.invalidate(),
+        utils.commission.getAgentCommissionsSummary.invalidate(),
+      ]).then(() => refetchPlanSummaries());
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to update the commission plan.');
+    } finally {
+      setSavingAgent(null);
+    }
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
@@ -294,6 +390,8 @@ export default function AgentsPage() {
                 <th className="px-3 py-3 text-left cursor-pointer hover:text-white" onClick={() => handleSort('agentName')}>
                   <span className="flex items-center gap-1">Agent <SortIcon field="agentName" /></span>
                 </th>
+                <th className="px-3 py-3 text-left">Commission Plan</th>
+                <th className="px-3 py-3 text-left">Plan Progress</th>
                 <th className="px-3 py-3 text-right cursor-pointer hover:text-white" onClick={() => handleSort('closedDeals')}>
                   <span className="flex items-center justify-end gap-1">Deals <SortIcon field="closedDeals" /></span>
                 </th>
@@ -316,7 +414,12 @@ export default function AgentsPage() {
               </tr>
             </thead>
             <tbody>
-              {sorted.map((agent, idx) => (
+              {sorted.map((agent, idx) => {
+                const assignment = assignmentByAgent.get(agent.agentName);
+                const plan = assignment ? planById.get(assignment.planId) : undefined;
+                const summary = summaryByAgent.get(agent.agentName) as any;
+                const progress = getAgentPlanProgress(plan, Number(summary?.totalCompanyDollar ?? agent.companyDollar));
+                return (
                 <tr key={agent.agentName} className="border-b border-[#1a2332] hover:bg-[#1a2332]/50 transition-colors">
                   <td className="px-4 py-3">
                     <input type="checkbox" checked={selectedAgents.has(agent.agentName)} onChange={() => toggleSelect(agent.agentName)} className="rounded" />
@@ -333,6 +436,25 @@ export default function AgentsPage() {
                       </div>
                       <span className="text-white font-medium hover:underline">{agent.agentName}</span>
                     </button>
+                  </td>
+                  <td className="px-3 py-3 min-w-[170px]">
+                    <select
+                      aria-label={`Commission plan for ${agent.agentName}`}
+                      value={assignment?.planId || ''}
+                      disabled={savingAgent === agent.agentName}
+                      onChange={(event) => handlePlanChange(agent.agentName, event.target.value)}
+                      className="h-8 w-full rounded border border-[#294056] bg-[#0d1117] px-2 text-xs text-gray-200 focus:border-emerald-500 focus:outline-none disabled:cursor-wait disabled:opacity-60"
+                    >
+                      <option value="">{savingAgent === agent.agentName ? 'Saving…' : 'Unassigned'}</option>
+                      {eligiblePlans.map((availablePlan) => <option key={availablePlan.id} value={availablePlan.id}>{availablePlan.name}</option>)}
+                    </select>
+                  </td>
+                  <td className="px-3 py-3 min-w-[170px]">
+                    <div className="space-y-1">
+                      <div className={`text-xs font-medium ${progress.capped ? 'text-emerald-400' : plan ? 'text-gray-200' : 'text-gray-500'}`}>{progress.primary}</div>
+                      {plan && Number(plan.capAmount) > 0 && <div className="h-1.5 overflow-hidden rounded-full bg-[#233245]"><div className={`h-full rounded-full ${progress.capped ? 'bg-emerald-400' : 'bg-blue-400'}`} style={{ width: `${progress.percent}%` }} /></div>}
+                      <div className="text-[10px] text-gray-500">{progress.detail}</div>
+                    </div>
                   </td>
                   <td className="px-3 py-3 text-right text-gray-200">{agent.closedDeals}</td>
                   <td className="px-3 py-3 text-right">
@@ -391,7 +513,8 @@ export default function AgentsPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -4121,8 +4121,8 @@
 - [x] Replace getCommissionPlans() with tRPC calls in AgentAssignment.tsx
 - [x] Replace getCommissionPlans() with tRPC calls in CommissionCalculator.tsx
 - [x] Replace getCommissionPlans() with tRPC calls in CommissionPlansManager.tsx
-- [ ] Replace getPlanForAgent() with tRPC calls in AgentCommissionBreakdown.tsx
-- [ ] Replace getPlanForAgent() with tRPC calls in CommissionComparisonReport.tsx
+- [x] Replace getPlanForAgent() with tRPC calls in AgentCommissionBreakdown.tsx
+- [x] Replace getPlanForAgent() with tRPC calls in CommissionComparisonReport.tsx
 - [x] Test Commission components after tRPC migration
 - [x] Verify no console warnings appear
 
@@ -4656,3 +4656,97 @@
 - [x] Restore missing component imports causing the Commission page runtime crash
 - [x] Check Commission Management for additional undefined rendered components
 - [x] Verify the `/commission` route in the browser and save the fix
+## Phase N+5: Broker-to-Agent Sharing & Agent Portal
+- [x] Repair the missing `/preview-agent` route invoked by the sidebar control
+- [x] Build a broker-facing agent selector for safely previewing one agent's scoped analytics
+- [x] Create an agent analytics portal that filters all transaction and performance data to the selected agent
+- [x] Add copyable agent-specific share links with clear privacy limitations and no-data states
+- [x] Test demo and uploaded-data preview flows, agent isolation, and invalid share-link handling
+- [x] Remove CDA, Dotloop, co-agent, and expanded-row external actions from token-scoped agent portals
+
+## Phase N+6: Critical Commission Workflow Repair
+- [x] Diagnose and fix the 500 error when saving agent assignments to the database
+- [x] Verify New, Edit, Copy, and Delete plan controls persist correctly and surface user-facing errors
+- [x] Ensure plan assignment can be applied individually and in bulk to uploaded CSV agents
+- [x] Recalculate agent commission metrics globally after each plan or assignment change
+- [x] Ensure private agent-sharing portals use the broker-approved plan-based commission data only
+- [x] Test the complete broker workflow with demo and CSV-derived transaction data
+
+## Phase N+7: Production Plans Tab Repair
+- [x] Replace Commission Management’s local non-persistent plan cards with the live database-backed plan manager
+- [x] Make the page-level New Plan action open the live plan editor
+- [x] Verify live plan cards and New, Edit, and Copy actions render and open in the browser
+
+## Phase N+8: Plan Card Assignment Counts
+- [x] Display the current assigned-agent count on every active commission plan card
+- [x] Refresh plan-card counts after individual and bulk assignment changes
+- [x] Test the count display with persisted commission assignments
+
+## Phase N+9: Public Product Readiness Roadmap
+- [ ] Define a brokerage-scoped workspace and access-control model before broad public launch
+- [ ] Improve the guided CSV import and saved mapping workflow for repeat broker uploads
+- [ ] Define the DotView handoff and data-ingestion approach, beginning with CSV export
+- [ ] Evaluate an approved Dotloop integration or broker-installed browser companion as a future import option
+
+## Phase N+10: Broker Operations Upgrade
+- [x] Build an Import Center with named import runs, reporting periods, data-quality results, and import history
+- [x] Add brokerage-level saved CSV mapping templates and reusable import settings
+- [x] Add commission plan lifecycle states, version history, effective dates, and projected change impact
+- [x] Save immutable commission calculation snapshots for audit and payout reporting
+- [x] Add verified agent-delivery controls with reporting-period context and access audit history
+- [x] Test the combined import, commission, and agent-sharing workflow end to end
+
+## Phase N+11: Homepage Nested Link Fix
+- [x] Locate and remove the nested-anchor composition causing React DOM validation errors
+- [x] Verify the corrected navigation remains keyboard accessible and the homepage renders cleanly
+
+## Phase N+12: Broker Operations Continuation
+- [x] Add import-run activation, archival, duplicate-detection, and saved-mapping selection controls
+- [x] Enforce active plan lifecycle and effective-date eligibility in broker and agent commission calculations
+- [x] Surface plan-version attribution on calculation snapshots and agent portals
+- [x] Add a broker delivery roster with recipient status, last access, expiry, and revocation actions
+- [x] Test the extended import, commission governance, and delivery workflows end to end
+
+## Phase N+13: Agent Panel Plan Controls and Progress
+- [x] Add a lifecycle-eligible commission plan dropdown to each agent row
+- [x] Persist direct agent assignments and refresh global commission data from the Agents panel
+- [x] Display current plan, company-dollar progress toward cap, and post-cap split stage for each assigned agent
+- [x] Test direct agent assignment and plan-progress metrics with current transaction data
+
+## Phase N+14: SkySlope-to-Dotloop Transition Discovery
+- [x] Confirm the desired migration scope, document classes, data retention rules, brokerage volume, and rollout model
+- [x] Research approved SkySlope export mechanisms and Dotloop import or API capabilities
+- [x] Define a secure staged migration workflow with validation, exception handling, and audit records
+- [x] Decide whether the reporting tool should facilitate migration directly or provide transition readiness analytics only
+- [x] Design an in-product Drive/Dropbox transition walkthrough for broker-admin-led one-time exports
+- [x] Define archive validation rules for complete, searchable, and compliance-ready migrated transactions
+
+## Phase N+15: SkySlope Transition Center
+- [x] Create durable migration-run, manifest-row, reconciliation, and audit data models
+- [x] Add migration manifest CSV template download and deterministic validation rules
+- [x] Build the six-step credential-free broker-admin migration walkthrough
+- [x] Add row-level exception handling, reconciled-file counts, and completion safeguards
+- [x] Add broker-facing migration manifest/audit export and closeout controls
+- [x] Test the migration-run workflow with a broker-provided manifest structure
+
+## Phase N+16: Plain-Language SkySlope Guidance
+- [x] Rewrite SkySlope Transition Center headings, step descriptions, and safeguards in broker-friendly language
+- [x] Preserve necessary record-retention and validation guidance without technical jargon
+- [x] Verify the revised walkthrough renders cleanly and remains actionable
+
+## Phase N+17: Hide SkySlope Transition Center
+- [x] Remove the SkySlope Transition Center from visible navigation and public discovery paths
+- [x] Preserve the route and implementation for a future controlled rollout
+- [x] Verify the primary sidebar no longer surfaces SkySlope migration guidance
+
+## Phase N+18: Commission-to-Agent Sharing
+- [x] Add a per-row Share with Agent action in Commission Management → Agents
+- [x] Preselect the matching agent when launching the sharing workspace
+- [x] Verify the shared portal shows all agent-scoped transaction metrics and the active commission plan
+- [x] Test agent data isolation, share-link creation, and plan visibility end to end
+
+## Phase N+19: Home Dashboard Rendering Polish
+- [x] Audit metric cards and projected-revenue tiles for value, label, and trend overflow at responsive widths
+- [x] Add compact currency formatting and responsive type scales for large dashboard values
+- [x] Rebalance projected-revenue and pipeline card layouts to prevent clipping
+- [x] Test the dashboard at desktop and narrow viewports with representative high-value data
