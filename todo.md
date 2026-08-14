@@ -4651,3 +4651,9 @@
 - [x] Add back navigation from transaction detail page to agent modal
 - [x] Register /transaction/:id route in App.tsx
 - [x] Test full navigation flow: Agents tab → agent modal → transaction detail page
+
+## Phase N+13: Agent Panel Plan Controls and Progress
+- [x] Add a lifecycle-eligible commission plan dropdown to each agent row
+- [x] Persist direct agent assignments and refresh global commission data from the Agents panel
+- [x] Display current plan, company-dollar progress toward cap, and post-cap split stage for each assigned agent
+- [x] Test direct agent assignment and plan-progress metrics with current transaction data
