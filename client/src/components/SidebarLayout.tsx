@@ -30,6 +30,7 @@ import {
   History,
   Trash2,
   FileUp,
+  FolderArchive,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTransactionData, DateRangeFilter } from '../contexts/TransactionDataContext';
@@ -48,6 +49,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
   { label: 'Import Center', icon: FileUp, path: '/imports' },
+  { label: 'SkySlope Transition', icon: FolderArchive, path: '/skyslope-transition' },
   { label: 'Agents', icon: Users, path: '/agents' },
   { label: 'Commission', icon: DollarSign, path: '/commission' },
   { label: 'Net Report', icon: FileText, path: '/net-commission-report' },

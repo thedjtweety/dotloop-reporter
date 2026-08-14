@@ -4665,6 +4665,14 @@
 - [x] Decide whether the reporting tool should facilitate migration directly or provide transition readiness analytics only
 - [x] Design an in-product Drive/Dropbox transition walkthrough for broker-admin-led one-time exports
 - [x] Define archive validation rules for complete, searchable, and compliance-ready migrated transactions
+
+## Phase N+15: SkySlope Transition Center
+- [ ] Create durable migration-run, manifest-row, reconciliation, and audit data models
+- [ ] Add migration manifest CSV template download and deterministic validation rules
+- [ ] Build the six-step credential-free broker-admin migration walkthrough
+- [ ] Add row-level exception handling, reconciled-file counts, and completion safeguards
+- [ ] Add broker-facing migration manifest/audit export and closeout controls
+- [ ] Test the migration-run workflow with a broker-provided manifest structure
 ## Phase N+5: Broker-to-Agent Sharing & Agent Portal
 - [x] Repair the missing `/preview-agent` route invoked by the sidebar control
 - [x] Build a broker-facing agent selector for safely previewing one agent's scoped analytics
@@ -4715,3 +4723,25 @@
 - [x] Surface plan-version attribution on calculation snapshots and agent portals
 - [x] Add a broker delivery roster with recipient status, last access, expiry, and revocation actions
 - [x] Test the extended import, commission governance, and delivery workflows end to end
+
+## Phase N+13: Agent Panel Plan Controls and Progress
+- [x] Add a lifecycle-eligible commission plan dropdown to each agent row
+- [x] Persist direct agent assignments and refresh global commission data from the Agents panel
+- [x] Display current plan, company-dollar progress toward cap, and post-cap split stage for each assigned agent
+- [x] Test direct agent assignment and plan-progress metrics with current transaction data
+
+## Phase N+14: SkySlope-to-Dotloop Transition Discovery
+- [x] Confirm the desired migration scope, document classes, data retention rules, brokerage volume, and rollout model
+- [x] Research approved SkySlope export mechanisms and Dotloop import or API capabilities
+- [x] Define a secure staged migration workflow with validation, exception handling, and audit records
+- [x] Decide whether the reporting tool should facilitate migration directly or provide transition readiness analytics only
+- [x] Design an in-product Drive/Dropbox transition walkthrough for broker-admin-led one-time exports
+- [x] Define archive validation rules for complete, searchable, and compliance-ready migrated transactions
+
+## Phase N+15: SkySlope Transition Center
+- [x] Create durable migration-run, manifest-row, reconciliation, and audit data models
+- [x] Add migration manifest CSV template download and deterministic validation rules
+- [x] Build the six-step credential-free broker-admin migration walkthrough
+- [x] Add row-level exception handling, reconciled-file counts, and completion safeguards
+- [x] Add broker-facing migration manifest/audit export and closeout controls
+- [x] Test the migration-run workflow with a broker-provided manifest structure

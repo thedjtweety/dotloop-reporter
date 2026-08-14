@@ -36,6 +36,13 @@
       "when": 1786664910660,
       "tag": "0004_goofy_sersi",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1786722527508,
+      "tag": "0005_rapid_wilson_fisk",
+      "breakpoints": true
     }
   ]
 }

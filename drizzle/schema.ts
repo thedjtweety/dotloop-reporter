@@ -135,7 +135,98 @@ export const importMappingTemplates = mysqlTable("import_mapping_templates", {
 (table) => [
 	index("import_mapping_templates_tenant_idx").on(table.tenantId),
 	index("import_mapping_templates_tenant_default_idx").on(table.tenantId, table.isDefault),
-]);
+	]);
+
+/**
+ * Broker-admin-led, credential-free SkySlope archive transitions. A migration run
+ * stores only operational metadata and references; source document bytes remain in
+ * the brokerage-controlled storage provider until they are intentionally uploaded
+ * into the target Dotloop archive workflow.
+ */
+export const migrationRuns = mysqlTable("migration_runs", {
+	id: varchar({ length: 64 }).notNull().primaryKey(),
+	tenantId: int().notNull(),
+	name: varchar({ length: 255 }).notNull(),
+	sourceSystem: mysqlEnum(['skyslope']).default('skyslope').notNull(),
+	storageProvider: mysqlEnum(['google_drive', 'dropbox', 'local', 'other']).default('local').notNull(),
+	storageReference: text(),
+	status: mysqlEnum(['planning', 'staging', 'manifest_ready', 'reconciling', 'completed', 'archived']).default('planning').notNull(),
+	recordsExpected: int().default(0).notNull(),
+	recordsImported: int().default(0).notNull(),
+	recordsReconciled: int().default(0).notNull(),
+	openExceptionCount: int().default(0).notNull(),
+	manifestChecksum: varchar({ length: 64 }),
+	startedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	completedAt: timestamp({ mode: 'string' }),
+	archivedAt: timestamp({ mode: 'string' }),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+	(table) => [
+		index("migration_runs_tenant_status_idx").on(table.tenantId, table.status),
+		index("migration_runs_tenant_created_idx").on(table.tenantId, table.createdAt),
+		index("migration_runs_tenant_checksum_idx").on(table.tenantId, table.manifestChecksum),
+	]);
+
+/** One broker-supplied SkySlope transaction manifest row and its Dotloop reconciliation state. */
+export const migrationManifestItems = mysqlTable("migration_manifest_items", {
+	id: varchar({ length: 64 }).notNull().primaryKey(),
+	runId: varchar({ length: 64 }).notNull(),
+	sourceTransactionId: varchar({ length: 255 }),
+	transactionName: varchar({ length: 500 }).notNull(),
+	propertyAddress: text(),
+	primaryAgent: varchar({ length: 255 }),
+	closingDate: varchar({ length: 10 }),
+	sourceFolderReference: text(),
+	expectedFileCount: int().default(0).notNull(),
+	reconciledFileCount: int().default(0).notNull(),
+	destinationLoopId: varchar({ length: 255 }),
+	destinationLoopName: varchar({ length: 500 }),
+	status: mysqlEnum(['pending', 'ready', 'in_progress', 'reconciled', 'exception', 'excluded']).default('pending').notNull(),
+	validationJson: text(),
+	notes: text(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+	(table) => [
+		index("migration_manifest_items_run_status_idx").on(table.runId, table.status),
+		index("migration_manifest_items_run_source_idx").on(table.runId, table.sourceTransactionId),
+		index("migration_manifest_items_destination_loop_idx").on(table.destinationLoopId),
+	]);
+
+/** Explicit, broker-resolvable migration blockers—never silently ignored. */
+export const migrationExceptions = mysqlTable("migration_exceptions", {
+	id: varchar({ length: 64 }).notNull().primaryKey(),
+	runId: varchar({ length: 64 }).notNull(),
+	manifestItemId: varchar({ length: 64 }),
+	category: mysqlEnum(['missing_source_reference', 'missing_required_metadata', 'duplicate_transaction', 'missing_destination_loop', 'file_count_mismatch', 'invalid_manifest_row', 'manual_review']).notNull(),
+	severity: mysqlEnum(['warning', 'blocking']).default('blocking').notNull(),
+	status: mysqlEnum(['open', 'resolved', 'waived']).default('open').notNull(),
+	details: text().notNull(),
+	resolutionNote: text(),
+	resolvedAt: timestamp({ mode: 'string' }),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+	(table) => [
+		index("migration_exceptions_run_status_idx").on(table.runId, table.status),
+		index("migration_exceptions_item_idx").on(table.manifestItemId),
+		index("migration_exceptions_category_idx").on(table.category),
+	]);
+
+/** Append-only operational history supporting defensible migration closeout exports. */
+export const migrationAuditEvents = mysqlTable("migration_audit_events", {
+	id: varchar({ length: 64 }).notNull().primaryKey(),
+	runId: varchar({ length: 64 }).notNull(),
+	manifestItemId: varchar({ length: 64 }),
+	action: mysqlEnum(['run_created', 'manifest_imported', 'row_validated', 'row_updated', 'exception_created', 'exception_resolved', 'row_reconciled', 'run_completed', 'run_archived', 'audit_exported']).notNull(),
+	details: text(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+},
+	(table) => [
+		index("migration_audit_events_run_created_idx").on(table.runId, table.createdAt),
+		index("migration_audit_events_item_idx").on(table.manifestItemId),
+	]);
 
 export const auditLogs = mysqlTable("audit_logs", {
 	id: int().autoincrement().notNull(),

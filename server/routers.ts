@@ -50,6 +50,7 @@ import { reportingProceduresRouter } from './routers/reportingProcedures';
 import { recruitingRouter } from './routers/recruiting';
 import { agentSharingRouter } from './routers/agentSharing';
 import { brokerOperationsRouter } from './routers/brokerOperations';
+import { migrationCenterRouter } from './routers/migrationCenter';
 import {
   createUpload,
   getUserUploads,
@@ -66,6 +67,7 @@ export const appRouter = router({
   system: systemRouter,
   agentSharing: agentSharingRouter,
   brokerOperations: brokerOperationsRouter,
+  migrationCenter: migrationCenterRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
