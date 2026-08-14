@@ -4750,3 +4750,8 @@
 - [x] Rewrite SkySlope Transition Center headings, step descriptions, and safeguards in broker-friendly language
 - [x] Preserve necessary record-retention and validation guidance without technical jargon
 - [x] Verify the revised walkthrough renders cleanly and remains actionable
+
+## Phase N+17: Hide SkySlope Transition Center
+- [x] Remove the SkySlope Transition Center from visible navigation and public discovery paths
+- [x] Preserve the route and implementation for a future controlled rollout
+- [x] Verify the primary sidebar no longer surfaces SkySlope migration guidance
