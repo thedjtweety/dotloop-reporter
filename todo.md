@@ -4755,3 +4755,9 @@
 - [x] Remove the SkySlope Transition Center from visible navigation and public discovery paths
 - [x] Preserve the route and implementation for a future controlled rollout
 - [x] Verify the primary sidebar no longer surfaces SkySlope migration guidance
+
+## Phase N+18: Commission-to-Agent Sharing
+- [x] Add a per-row Share with Agent action in Commission Management → Agents
+- [x] Preselect the matching agent when launching the sharing workspace
+- [x] Verify the shared portal shows all agent-scoped transaction metrics and the active commission plan
+- [x] Test agent data isolation, share-link creation, and plan visibility end to end

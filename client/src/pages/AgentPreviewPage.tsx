@@ -14,6 +14,7 @@ import AgentDetailsPanel from '@/components/AgentDetailsPanel';
 import { useTransactionData } from '@/contexts/TransactionDataContext';
 import { calculateAgentMetrics, DotloopRecord } from '@/lib/csvParser';
 import { trpc } from '@/lib/trpc';
+import { getPreselectedAgent } from '@/lib/agentSharingNavigation';
 
 const OWNER_SESSION_KEY = 'dotloop_agent_sharing_owner_session_v1';
 
@@ -84,7 +85,10 @@ export default function AgentPreviewPage() {
   const [, setLocation] = useLocation();
   const { allRecords, agentMetrics, activeDataSetName, hasData, activateDemoMode } = useTransactionData();
   const agentNames = useMemo(() => getAgentNames(allRecords), [allRecords]);
-  const [selectedAgent, setSelectedAgent] = useState('');
+  const [selectedAgent, setSelectedAgent] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    return new URLSearchParams(window.location.search).get('agent')?.trim() ?? '';
+  });
   const [ownerSession, setOwnerSession] = useState<OwnerSession | null>(() =>
     typeof window === 'undefined' ? null : readOwnerSession(),
   );
@@ -109,7 +113,10 @@ export default function AgentPreviewPage() {
     [agentMetrics, selectedAgent, selectedTransactions],
   );
   useEffect(() => {
-    if (!selectedAgent || !agentNames.includes(selectedAgent)) {
+    const requestedAgent = typeof window === 'undefined' ? '' : getPreselectedAgent(window.location.search, agentNames);
+    if (requestedAgent) {
+      setSelectedAgent(requestedAgent);
+    } else if (!selectedAgent || !agentNames.includes(selectedAgent)) {
       setSelectedAgent(agentNames[0] ?? '');
     }
   }, [agentNames, selectedAgent]);

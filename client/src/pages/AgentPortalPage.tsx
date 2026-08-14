@@ -31,6 +31,11 @@ export default function AgentPortalPage() {
     return calculateAgentMetrics(records).find((metric) => metric.agentName === sharedData.data?.agentName) ?? null;
   }, [records, sharedData.data?.agentName]);
   const closedCount = useMemo(() => records.filter((record) => isClosed(record.loopStatus || '')).length, [records]);
+  const activeCount = useMemo(() => records.filter((record) => (record.loopStatus || '').toLocaleLowerCase().includes('active')).length, [records]);
+  const pendingCount = useMemo(() => records.filter((record) => {
+    const status = (record.loopStatus || '').toLocaleLowerCase();
+    return status.includes('pending') || status.includes('contract');
+  }).length, [records]);
 
   if (!token) {
     return <PortalIssue title="Invalid link" detail="This agent analytics link is incomplete." onExit={() => setLocation('/')} />;
@@ -57,12 +62,17 @@ export default function AgentPortalPage() {
   const cards = [
     { label: 'My Transactions', value: records.length.toLocaleString(), color: 'text-foreground' },
     { label: 'Closed Deals', value: closedCount.toLocaleString(), color: 'text-emerald-500' },
+    { label: 'Active Deals', value: activeCount.toLocaleString(), color: 'text-blue-500' },
+    { label: 'Under Contract', value: pendingCount.toLocaleString(), color: 'text-amber-500' },
     {
       label: commissionSummary ? 'My Net Commission' : 'My GCI',
       value: formatCurrency(commissionSummary?.netCommission ?? metrics?.totalCommission ?? 0),
       color: 'text-primary',
     },
+    { label: 'My GCI', value: formatCurrency(metrics?.totalCommission ?? 0), color: 'text-emerald-500' },
     { label: 'Sales Volume', value: formatCurrency(metrics?.totalSalesVolume ?? 0), color: 'text-blue-500' },
+    { label: 'Average Sale Price', value: formatCurrency(metrics?.averageSalesPrice ?? 0), color: 'text-foreground' },
+    { label: 'Closing Rate', value: `${(metrics?.closingRate ?? 0).toFixed(1)}%`, color: 'text-primary' },
   ];
 
   return (
@@ -97,7 +107,7 @@ export default function AgentPortalPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
           {cards.map((card) => (
             <Card key={card.label} className="p-5">
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{card.label}</p>
@@ -111,12 +121,18 @@ export default function AgentPortalPage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-emerald-500">Broker-approved commission plan: {commissionSummary.planName}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Your net commission is recalculated from this plan whenever your broker updates your assignment or plan structure.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Your commission uses the plan your broker currently assigned to you{commissionSummary.planVersionNumber ? ` · Plan version ${commissionSummary.planVersionNumber}` : ''}.</p>
               </div>
               <div className="grid grid-cols-2 gap-4 text-right text-sm">
                 <div><p className="text-xs text-muted-foreground">Gross GCI</p><p className="font-semibold">{formatCurrency(commissionSummary.grossCommission)}</p></div>
                 <div><p className="text-xs text-muted-foreground">Brokerage share</p><p className="font-semibold">{formatCurrency(commissionSummary.companyDollar)}</p></div>
               </div>
+            </div>
+            <div className="mt-5 grid gap-3 border-t border-emerald-500/20 pt-4 sm:grid-cols-2 lg:grid-cols-4">
+              <PlanMetric label="Your current split" value={`${commissionSummary.agentSplitPercentage}%`} detail={`Brokerage ${commissionSummary.brokerageSplitPercentage}%`} />
+              <PlanMetric label="Company dollar toward cap" value={commissionSummary.capAmount ? formatCurrency(commissionSummary.ytdCompanyDollar) : 'No cap'} detail={commissionSummary.capAmount ? `Cap ${formatCurrency(commissionSummary.capAmount)}` : 'Your plan does not use a cap'} />
+              <PlanMetric label={commissionSummary.isCapped ? 'Cap status' : 'Remaining before cap'} value={commissionSummary.isCapped ? 'Cap reached' : commissionSummary.capRemaining === null ? '—' : formatCurrency(commissionSummary.capRemaining)} detail={commissionSummary.isCapped ? `Your post-cap split is ${commissionSummary.postCapAgentSplitPercentage}%` : 'Based on the shared reporting period'} />
+              <PlanMetric label="Net commission" value={formatCurrency(commissionSummary.netCommission)} detail="From your assigned transactions" />
             </div>
           </Card>
         )}
@@ -138,6 +154,16 @@ export default function AgentPortalPage() {
 
         <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground"><ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> This view is restricted to the agent named in the broker-issued link.</p>
       </main>
+    </div>
+  );
+}
+
+function PlanMetric({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return (
+    <div className="rounded-lg bg-background/70 p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 font-semibold">{value}</p>
+      <p className="mt-1 text-[11px] text-muted-foreground">{detail}</p>
     </div>
   );
 }

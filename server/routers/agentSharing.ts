@@ -375,6 +375,14 @@ export const agentSharingRouter = router({
         netCommission: number;
         companyDollar: number;
         grossCommission: number;
+        agentSplitPercentage: number;
+        brokerageSplitPercentage: number;
+        postCapAgentSplitPercentage: number;
+        capAmount: number;
+        ytdCompanyDollar: number;
+        capRemaining: number | null;
+        isCapped: boolean;
+        planVersionNumber: number | null;
       } | null = null;
       let commissionPlanStatus = 'No active broker-approved commission plan is assigned.';
 
@@ -429,7 +437,23 @@ export const agentSharingRouter = router({
             companyDollar += breakdown.brokerageSplitAmount;
             grossCommission += breakdown.grossCommissionIncome;
           });
-          commissionSummary = { planName: plan.name, planId: plan.id, netCommission, companyDollar, grossCommission };
+          const capAmount = plan.capAmount || 0;
+          const isCapped = capAmount > 0 && ytdCompanyDollar >= capAmount;
+          commissionSummary = {
+            planName: plan.name,
+            planId: plan.id,
+            netCommission,
+            companyDollar,
+            grossCommission,
+            agentSplitPercentage: plan.splitPercentage,
+            brokerageSplitPercentage: Math.max(0, 100 - plan.splitPercentage),
+            postCapAgentSplitPercentage: plan.postCapSplit,
+            capAmount,
+            ytdCompanyDollar,
+            capRemaining: capAmount > 0 ? Math.max(0, capAmount - ytdCompanyDollar) : null,
+            isCapped,
+            planVersionNumber: latestVersion?.versionNumber ?? null,
+          };
           commissionPlanStatus = latestVersion ? `Calculated using broker-approved plan version ${latestVersion.versionNumber}.` : 'Calculated using the broker’s current legacy plan.';
           } else {
             commissionPlanStatus = 'The broker has not activated the assigned commission plan for this effective period. Commission values are intentionally withheld.';
