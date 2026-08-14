@@ -4657,6 +4657,14 @@
 - [x] Persist direct agent assignments and refresh global commission data from the Agents panel
 - [x] Display current plan, company-dollar progress toward cap, and post-cap split stage for each assigned agent
 - [x] Test direct agent assignment and plan-progress metrics with current transaction data
+
+## Phase N+14: SkySlope-to-Dotloop Transition Discovery
+- [x] Confirm the desired migration scope, document classes, data retention rules, brokerage volume, and rollout model
+- [x] Research approved SkySlope export mechanisms and Dotloop import or API capabilities
+- [x] Define a secure staged migration workflow with validation, exception handling, and audit records
+- [x] Decide whether the reporting tool should facilitate migration directly or provide transition readiness analytics only
+- [x] Design an in-product Drive/Dropbox transition walkthrough for broker-admin-led one-time exports
+- [x] Define archive validation rules for complete, searchable, and compliance-ready migrated transactions
 ## Phase N+5: Broker-to-Agent Sharing & Agent Portal
 - [x] Repair the missing `/preview-agent` route invoked by the sidebar control
 - [x] Build a broker-facing agent selector for safely previewing one agent's scoped analytics
