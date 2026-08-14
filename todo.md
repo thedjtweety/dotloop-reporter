@@ -4691,3 +4691,7 @@
 - [x] Save immutable commission calculation snapshots for audit and payout reporting
 - [x] Add verified agent-delivery controls with reporting-period context and access audit history
 - [x] Test the combined import, commission, and agent-sharing workflow end to end
+
+## Phase N+11: Homepage Nested Link Fix
+- [x] Locate and remove the nested-anchor composition causing React DOM validation errors
+- [x] Verify the corrected navigation remains keyboard accessible and the homepage renders cleanly
