@@ -169,6 +169,7 @@ export default function AgentsPage() {
   const utils = trpc.useUtils();
   const { data: livePlans = [] } = trpc.commission.getPlans.useQuery();
   const { data: liveAssignments = [], refetch: refetchAssignments } = trpc.commission.getAssignments.useQuery();
+  const { data: planVersions = [] } = trpc.brokerOperations.listPlanVersions.useQuery();
   const commissionInputs = useMemo(() => filteredRecords.map((record, index) => ({
     id: record.loopId || `agent-row-${index}`,
     loopName: record.loopName || 'Transaction',
@@ -185,7 +186,10 @@ export default function AgentsPage() {
   );
   const saveAssignment = trpc.commission.saveAssignment.useMutation();
   const deleteAssignment = trpc.commission.deleteAssignment.useMutation();
-  const eligiblePlans = useMemo(() => livePlans as LivePlan[], [livePlans]);
+  const eligiblePlans = useMemo(
+    () => (livePlans as LivePlan[]).filter((plan) => isPlanEligible(plan.id, planVersions as any[])),
+    [livePlans, planVersions],
+  );
   const assignmentByAgent = useMemo(
     () => new Map(liveAssignments.map((assignment) => [assignment.agentName, assignment])),
     [liveAssignments],
