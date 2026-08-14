@@ -41,6 +41,9 @@ import SettingsComplete from "./pages/SettingsComplete";
 import ReportingComplete from "./pages/ReportingComplete";
 import DotloopOAuthCallback from "./pages/DotloopOAuthCallback";
 import TransactionDetailPage from "./pages/TransactionDetailPage";
+import AgentPreviewPage from "./pages/AgentPreviewPage";
+import AgentPortalPage from "./pages/AgentPortalPage";
+import ImportCenterPage from "./pages/ImportCenterPage";
 import { CDAProvider } from "./contexts/CDAContext";
 import { useTransactionData } from "./contexts/TransactionDataContext";
 
@@ -67,6 +70,7 @@ const SIDEBAR_ROUTES = [
   { path: "/audit-log", component: AuditLog },
   { path: "/settings", component: SettingsComplete },
   { path: "/reporting", component: ReportingComplete },
+  { path: "/imports", component: ImportCenterPage },
 ];
 
 function Router() {
@@ -74,6 +78,11 @@ function Router() {
 
   return (
     <Switch>
+
+      {/* Dedicated sharing views intentionally never show broker navigation. */}
+      <Route path="/agent-portal/:token" component={AgentPortalPage} />
+      <Route path="/preview-agent" component={AgentPreviewPage} />
+
       {/* Routes with sidebar */}
       {SIDEBAR_ROUTES.map(({ path, component: Component }) => {
         // Home page doesn't show sidebar until data is loaded

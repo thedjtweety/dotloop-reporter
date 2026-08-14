@@ -11,6 +11,8 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo, ReactNode } from 'react';
 import { DotloopRecord, DashboardMetrics, AgentMetrics, calculateMetrics, calculateAgentMetrics } from '@/lib/csvParser';
 import { generateSampleData } from '@/lib/sampleData';
+import { calculatePlanBasedCommission, getAssignedPlan } from '@/lib/commissionRecalculator';
+import type { CommissionPlan as CalculationPlan } from '@/lib/commission';
 
 export interface CommissionPlan {
   id: string;
@@ -168,9 +170,24 @@ export function TransactionDataProvider({ children }: { children: ReactNode }) {
       externalMetricsRef.current = false;
       return;
     }
+    const baseAgentMetrics = calculateAgentMetrics(filteredRecords);
+    const calculationPlans = commissionPlans as CalculationPlan[];
+    const recalculatedAgentMetrics = baseAgentMetrics.map((agent) => {
+      const plan = getAssignedPlan(agent.agentName, calculationPlans, agentAssignments);
+      if (!plan) return agent;
+      const agentRecords = filteredRecords.filter((record) =>
+        (record.agents || '').split(',').map((name) => name.trim()).includes(agent.agentName),
+      );
+      const calculated = calculatePlanBasedCommission(agentRecords, plan);
+      return {
+        ...agent,
+        totalCommission: calculated.agentCommission,
+        companyDollar: calculated.companyDollar,
+      };
+    });
     setMetrics(calculateMetrics(filteredRecords));
-    setAgentMetrics(calculateAgentMetrics(filteredRecords));
-  }, [filteredRecords]); // eslint-disable-line react-hooks/exhaustive-deps
+    setAgentMetrics(recalculatedAgentMetrics);
+  }, [filteredRecords, commissionPlans, agentAssignments]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const teams = useMemo(() => {
     const names = new Set<string>();

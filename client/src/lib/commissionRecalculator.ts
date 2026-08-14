@@ -4,7 +4,7 @@
  * Integrates with the existing commission.ts module
  */
 
-import { CommissionPlan, getPlanForAgent, getAgentAssignments } from './commission';
+import { CommissionPlan, AgentPlanAssignment } from './commission';
 import { AgentMetrics, DotloopRecord } from './csvParser';
 
 export interface RecalculatedAgentMetrics extends AgentMetrics {
@@ -84,6 +84,15 @@ export function calculatePlanBasedCommission(
   };
 }
 
+export function getAssignedPlan(
+  agentName: string,
+  plans: CommissionPlan[],
+  assignments: Pick<AgentPlanAssignment, 'agentName' | 'planId'>[],
+) {
+  const assignment = assignments.find((item) => item.agentName === agentName);
+  return plans.find((plan) => plan.id === assignment?.planId);
+}
+
 /**
  * Recalculate metrics for all agents based on their commission plans
  * @param agents - Original agent metrics
@@ -92,11 +101,12 @@ export function calculatePlanBasedCommission(
  */
 export function recalculateAgentMetricsWithPlans(
   agents: AgentMetrics[],
-  records: DotloopRecord[]
+  records: DotloopRecord[],
+  plans: CommissionPlan[],
+  assignments: Pick<AgentPlanAssignment, 'agentName' | 'planId'>[],
 ): RecalculatedAgentMetrics[] {
   return agents.map(agent => {
-    // Get agent's assigned plan
-    const plan = getPlanForAgent(agent.agentName);
+    const plan = getAssignedPlan(agent.agentName, plans, assignments);
 
     // Get transactions for this agent
     const agentTransactions = records.filter(t => {
@@ -129,9 +139,13 @@ export function recalculateAgentMetricsWithPlans(
  * @param agents - Agent metrics
  * @returns List of agent names without plans
  */
-export function getAgentsWithoutPlans(agents: AgentMetrics[]): string[] {
+export function getAgentsWithoutPlans(
+  agents: AgentMetrics[],
+  plans: CommissionPlan[],
+  assignments: Pick<AgentPlanAssignment, 'agentName' | 'planId'>[],
+): string[] {
   return agents
-    .filter(agent => !getPlanForAgent(agent.agentName))
+    .filter(agent => !getAssignedPlan(agent.agentName, plans, assignments))
     .map(agent => agent.agentName);
 }
 

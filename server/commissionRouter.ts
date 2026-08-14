@@ -28,12 +28,15 @@ import {
 } from "./lib/pdf-generator";
 import {
   commissionPlans,
+  commissionPlanVersions,
   teams,
   agentAssignments,
 } from "../drizzle/schema";
 import { getDb } from "./db";
 import { eq, and, inArray } from "drizzle-orm";
 import { PUBLIC_TENANT_ID } from "./lib/public-tenant";
+import { createCommissionPlanVersion } from "./routers/brokerOperations";
+import { isPlanVersionEligible, latestPlanVersions, parsePlanSnapshot } from "./lib/plan-lifecycle";
 
 // Zod schemas for input validation
 const TransactionInputSchema = z.object({
@@ -72,6 +75,10 @@ const CommissionPlanSchema = z.object({
     splitPercentage: z.number(),
     description: z.string(),
   })).optional(),
+  lifecycle: z.enum(['draft', 'active', 'archived']).optional(),
+  effectiveStartDate: z.string().max(10).optional().nullable(),
+  effectiveEndDate: z.string().max(10).optional().nullable(),
+  changeNote: z.string().max(2_000).optional().nullable(),
 });
 
 const TeamSchema = z.object({
@@ -83,8 +90,8 @@ const TeamSchema = z.object({
 
 const AgentAssignmentSchema = z.object({
   id: z.string(), // Required for database insert
-  agentName: z.string(),
-  planId: z.string(),
+  agentName: z.string().trim().min(1, "Agent name is required"),
+  planId: z.string().trim().min(1, "Select a commission plan before saving an assignment"),
   teamId: z.string().nullable().optional(),
   startDate: z.string().nullable().optional(),
   anniversaryDate: z.string().nullable().optional(),
@@ -97,6 +104,24 @@ const AgentAssignmentSchemaProcessed = AgentAssignmentSchema.transform((data) =>
   startDate: data.startDate ?? undefined,
   anniversaryDate: data.anniversaryDate ?? undefined,
 }));
+
+async function assertPlanEligibleForAssignment(db: any, planId: string) {
+  const [plan] = await db
+    .select({ id: commissionPlans.id })
+    .from(commissionPlans)
+    .where(and(eq(commissionPlans.id, planId), eq(commissionPlans.tenantId, PUBLIC_TENANT_ID)))
+    .limit(1);
+  if (!plan) throw new Error('The selected commission plan no longer exists. Refresh plans and try again.');
+
+  const versions = await db
+    .select()
+    .from(commissionPlanVersions)
+    .where(and(eq(commissionPlanVersions.tenantId, PUBLIC_TENANT_ID), eq(commissionPlanVersions.planId, planId)));
+  const latest = latestPlanVersions(versions).get(planId);
+  if (latest && !isPlanVersionEligible(latest)) {
+    throw new Error('Only active commission plans within their effective-date window can be assigned to an agent.');
+  }
+}
 
 export const commissionRouter = router({
   /**
@@ -129,27 +154,51 @@ export const commissionRouter = router({
           throw new Error("Database connection not available");
         }
         
-        // Fetch commission plans from database (no tenant filtering - single user tool)
+        // Resolve each requested plan to its newest broker-approved version. Draft,
+        // archived, future, and expired plans cannot enter a live payout calculation.
         let plans: CommissionPlan[] = [];
         if (input.planIds && input.planIds.length > 0) {
           const dbPlans = await db
             .select()
-            .from(commissionPlans);
-          
+            .from(commissionPlans)
+            .where(and(
+              eq(commissionPlans.tenantId, PUBLIC_TENANT_ID),
+              inArray(commissionPlans.id, input.planIds),
+            ));
+          const versionRows = await db
+            .select()
+            .from(commissionPlanVersions)
+            .where(and(
+              eq(commissionPlanVersions.tenantId, PUBLIC_TENANT_ID),
+              inArray(commissionPlanVersions.planId, input.planIds),
+            ));
+          const latestVersions = latestPlanVersions(versionRows);
+          const ineligiblePlanIds = dbPlans
+            .filter((plan) => {
+              const latest = latestVersions.get(plan.id);
+              return Boolean(latest) && !isPlanVersionEligible(latest);
+            })
+            .map((plan) => plan.id);
+          if (ineligiblePlanIds.length) {
+            throw new Error('Only active commission plans within their effective-date window can be calculated. Update the plan lifecycle or effective dates before continuing.');
+          }
           plans = dbPlans
-            .filter((p: any) => input.planIds!.includes(p.id))
-            .map((p: any) => ({
-              id: p.id,
-              name: p.name,
-              splitPercentage: p.splitPercentage,
-              capAmount: p.capAmount,
-              postCapSplit: p.postCapSplit,
-              deductions: p.deductions ? JSON.parse(p.deductions as string) : undefined,
-              royaltyPercentage: p.royaltyPercentage,
-              royaltyCap: p.royaltyCap,
-              useSliding: p.useSliding === 1,
-              tiers: p.tiers ? JSON.parse(p.tiers as string) : undefined,
-            } as CommissionPlan));
+            .map((p: any) => {
+              const snapshot = latestVersions.get(p.id);
+              const source = snapshot ? { ...p, ...parsePlanSnapshot(snapshot.planSnapshot) } : p;
+              return {
+                id: source.id,
+                name: source.name,
+                splitPercentage: source.splitPercentage,
+                capAmount: source.capAmount,
+                postCapSplit: source.postCapSplit,
+                deductions: typeof source.deductions === 'string' ? JSON.parse(source.deductions) : source.deductions || undefined,
+                royaltyPercentage: source.royaltyPercentage,
+                royaltyCap: source.royaltyCap,
+                useSliding: source.useSliding === 1 || source.useSliding === true,
+                tiers: typeof source.tiers === 'string' ? JSON.parse(source.tiers) : source.tiers || undefined,
+              } as CommissionPlan;
+            });
         }
 
         // Fetch teams from database (no tenant filtering - single user tool)
@@ -204,7 +253,8 @@ export const commissionRouter = router({
       
       const plansData = await db
         .select()
-        .from(commissionPlans);
+        .from(commissionPlans)
+        .where(eq(commissionPlans.tenantId, PUBLIC_TENANT_ID));
 
       return plansData.map((p: any) => ({
         id: p.id,
@@ -412,7 +462,7 @@ export const commissionRouter = router({
         const existing = await db
           .select()
           .from(commissionPlans)
-          .where(eq(commissionPlans.id, input.id))
+          .where(and(eq(commissionPlans.id, input.id), eq(commissionPlans.tenantId, PUBLIC_TENANT_ID)))
           .limit(1);
 
         if (existing.length > 0) {
@@ -431,12 +481,12 @@ export const commissionRouter = router({
               useSliding: input.useSliding ? 1 : 0,
               tiers: input.tiers ? JSON.stringify(input.tiers) : null,
             })
-            .where(eq(commissionPlans.id, input.id));
+            .where(and(eq(commissionPlans.id, input.id), eq(commissionPlans.tenantId, PUBLIC_TENANT_ID)));
         } else {
           // Insert new plan
           await db.insert(commissionPlans).values({
             id: input.id,
-            tenantId: null,
+            tenantId: PUBLIC_TENANT_ID,
             name: input.name,
             splitPercentage: input.splitPercentage,
             capAmount: input.capAmount,
@@ -450,7 +500,26 @@ export const commissionRouter = router({
           } as any);
         }
 
-        return { success: true, id: input.id };
+        const version = await createCommissionPlanVersion(db, {
+          planId: input.id,
+          planSnapshot: {
+            id: input.id,
+            name: input.name,
+            splitPercentage: input.splitPercentage,
+            capAmount: input.capAmount,
+            postCapSplit: input.postCapSplit,
+            royaltyPercentage: input.royaltyPercentage ?? 0,
+            royaltyCap: input.royaltyCap ?? 0,
+            deductions: input.deductions,
+            useSliding: input.useSliding,
+            tiers: input.tiers ?? [],
+          },
+          lifecycle: input.lifecycle,
+          effectiveStartDate: input.effectiveStartDate,
+          effectiveEndDate: input.effectiveEndDate,
+          changeNote: input.changeNote,
+        });
+        return { success: true, id: input.id, versionId: version.id, versionNumber: version.versionNumber };
       } catch (error) {
         console.error("Save plan error:", error);
         throw new Error(
@@ -471,10 +540,15 @@ export const commissionRouter = router({
           throw new Error("Database connection not available");
         }
 
-        // Delete the plan
+        // Clear dependent assignments before deleting a plan. This prevents
+        // stale agent-plan links from surviving a broker plan deletion.
+        await db
+          .delete(agentAssignments)
+          .where(and(eq(agentAssignments.tenantId, PUBLIC_TENANT_ID), eq(agentAssignments.planId, planId)));
+
         await db
           .delete(commissionPlans)
-          .where(eq(commissionPlans.id, planId));
+          .where(and(eq(commissionPlans.id, planId), eq(commissionPlans.tenantId, PUBLIC_TENANT_ID)));
 
         return { success: true };
       } catch (error) {
@@ -498,7 +572,10 @@ export const commissionRouter = router({
         }
         
         // An agent can have one active assignment in the public brokerage
-        // workspace. Resolve by stable tenant + agent identity, not a transient UI id.
+        await assertPlanEligibleForAssignment(db, input.planId);
+
+        // One agent has one active plan in the public broker workspace. Upsert
+        // by tenant + agent name rather than a transient client-generated id.
         const existing = await db
           .select()
           .from(agentAssignments)
@@ -507,7 +584,7 @@ export const commissionRouter = router({
             eq(agentAssignments.agentName, input.agentName),
           ))
           .limit(1);
-        const assignmentId = existing[0]?.id || input.id || nanoid();
+        const assignmentId = existing[0]?.id ?? input.id ?? nanoid();
 
         if (existing.length > 0) {
           // Update existing assignment
@@ -516,8 +593,9 @@ export const commissionRouter = router({
             .set({
               agentName: input.agentName,
               planId: input.planId,
-              teamId: input.teamId,
-              anniversaryDate: input.anniversaryDate,
+              teamId: input.teamId ?? null,
+              startDate: input.startDate ?? null,
+              anniversaryDate: input.anniversaryDate ?? null,
             })
             .where(and(eq(agentAssignments.id, assignmentId), eq(agentAssignments.tenantId, PUBLIC_TENANT_ID)));
         } else {
@@ -527,8 +605,9 @@ export const commissionRouter = router({
             tenantId: PUBLIC_TENANT_ID,
             agentName: input.agentName,
             planId: input.planId,
-            teamId: input.teamId,
-            anniversaryDate: input.anniversaryDate,
+            teamId: input.teamId ?? null,
+            startDate: input.startDate ?? null,
+            anniversaryDate: input.anniversaryDate ?? null,
           } as any);
         }
 
@@ -553,10 +632,10 @@ export const commissionRouter = router({
           throw new Error("Database connection not available");
         }
 
-        // Delete the assignment
-          await db
-            .delete(agentAssignments)
-            .where(and(eq(agentAssignments.id, assignmentId), eq(agentAssignments.tenantId, PUBLIC_TENANT_ID)));
+        // Delete the assignment in the public broker workspace.
+        await db
+          .delete(agentAssignments)
+          .where(and(eq(agentAssignments.id, assignmentId), eq(agentAssignments.tenantId, PUBLIC_TENANT_ID)));
 
         return { success: true };
       } catch (error) {
@@ -579,11 +658,13 @@ export const commissionRouter = router({
           throw new Error("Database connection not available");
         }
         
-        // Get tenantId from authenticated user, or use default for demo
-        const tenantId = ctx.user?.tenantId || 1; // Default to tenant 1 for demo/unauthenticated users
+        const tenantId = PUBLIC_TENANT_ID;
         
         const results: any[] = [];
         const assignments = input;
+        for (const planId of new Set(assignments.map((assignment) => assignment.planId))) {
+          await assertPlanEligibleForAssignment(db, planId);
+        }
         
         // Get all agent names from the assignments
         const agentNames = assignments.map(a => a.agentName);

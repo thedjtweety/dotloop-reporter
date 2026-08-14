@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import CommissionPlanWarning from './CommissionPlanWarning';
 import { calculatePlanBasedCommission } from '@/lib/commissionRecalculator';
-import { getPlanForAgent } from '@/lib/commission';
+import { trpc } from '@/lib/trpc';
 import {
   PieChart,
   Pie,
@@ -37,6 +37,15 @@ interface AgentCommissionBreakdownProps {
   showRecalculated?: boolean;
 }
 
+export function resolveAgentPlan<TPlan extends { id: string }, TAssignment extends { agentName: string; planId: string }>(
+  agentName: string,
+  plans: TPlan[],
+  assignments: TAssignment[],
+) {
+  const assignment = assignments.find((item) => item.agentName === agentName);
+  return plans.find((item) => item.id === assignment?.planId);
+}
+
 export default function AgentCommissionBreakdown({
   agent,
   transactions,
@@ -44,6 +53,8 @@ export default function AgentCommissionBreakdown({
   showRecalculated = false,
 }: AgentCommissionBreakdownProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const { data: plans = [] } = trpc.commission.getPlans.useQuery();
+  const { data: assignments = [] } = trpc.commission.getAssignments.useQuery();
   // Filter transactions for this agent
   const agentTransactions = useMemo(() => {
     return transactions.filter(t => {
@@ -53,7 +64,10 @@ export default function AgentCommissionBreakdown({
   }, [agent.agentName, transactions]);
 
   // Get plan and calculate recalculated commission
-  const plan = useMemo(() => getPlanForAgent(agent.agentName), [agent.agentName]);
+  const plan = useMemo(
+    () => resolveAgentPlan(agent.agentName, plans, assignments),
+    [agent.agentName, assignments, plans],
+  );
   const recalculatedMetrics = useMemo(() => {
     if (!plan || !showRecalculated) return null;
     return calculatePlanBasedCommission(agentTransactions, plan);

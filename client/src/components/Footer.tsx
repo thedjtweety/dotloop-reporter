@@ -21,19 +21,15 @@ export default function Footer() {
             <h3 className="font-semibold text-foreground mb-3">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/privacy-policy">
-                  <a className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    Privacy Policy
-                  </a>
+                <Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms">
-                  <a className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Terms of Service
-                  </a>
+                <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Terms of Service
                 </Link>
               </li>
             </ul>
@@ -72,16 +68,12 @@ export default function Footer() {
               © {currentYear} Dotloop Reporter. All rights reserved.
             </p>
             <div className="flex items-center gap-4">
-              <Link href="/privacy-policy">
-                <a className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                  Privacy
-                </a>
+              <Link href="/privacy-policy" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                Privacy
               </Link>
               <span className="text-muted-foreground">•</span>
-              <Link href="/terms">
-                <a className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                  Terms
-                </a>
+              <Link href="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                Terms
               </Link>
               <span className="text-muted-foreground">•</span>
               <a 

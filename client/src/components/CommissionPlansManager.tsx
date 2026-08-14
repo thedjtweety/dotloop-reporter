@@ -1,32 +1,38 @@
 // @ts-nocheck
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { CommissionPlan } from '@/lib/commission';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Save, Edit2, X, Settings, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Save, Edit2, X, Copy, Loader2, Users, History, CalendarDays, GitCompareArrows } from 'lucide-react';
 import { Deduction } from '@/lib/commission';
 import { SlidingScaleTierManager } from '@/components/SlidingScaleTierManager';
 import { trpc } from '@/lib/trpc';
 import { useTransactionData } from '@/contexts/TransactionDataContext';
 import toast from 'react-hot-toast';
 import FullScreenModal from '@/components/FullScreenModal';
+import { countAssignedAgentsByPlan } from '@/lib/planAssignmentCounts';
 
-export default function CommissionPlansManager() {
-  const { setCommissionData, agentAssignments } = useTransactionData();
+export default function CommissionPlansManager({ createRequest = 0 }: { createRequest?: number }) {
+  const { setCommissionData, agentAssignments, allRecords } = useTransactionData();
   const [plans, setPlans] = useState<CommissionPlan[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<Partial<CommissionPlan>>({});
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [historyPlanId, setHistoryPlanId] = useState<string | null>(null);
 
   // Fetch plans from database
   const { data: dbPlans, refetch, error: plansError } = trpc.commission.getPlans.useQuery(undefined, {
     retry: false,
   });
+  const { data: dbAssignments = [], refetch: refetchAssignments } = trpc.commission.getAssignments.useQuery(undefined, {
+    retry: false,
+  });
   const savePlanMutation = trpc.commission.savePlan.useMutation();
   const deletePlanMutation = trpc.commission.deletePlan.useMutation();
+  const { data: planVersions = [] } = trpc.brokerOperations.listPlanVersions.useQuery();
 
   useEffect(() => {
     // Use database plans
@@ -99,8 +105,26 @@ export default function CommissionPlansManager() {
   };
 
   const openEditDialog = (plan: CommissionPlan) => {
-    setCurrentPlan(plan);
+    setCurrentPlan({ ...plan, deductions: [...(plan.deductions || [])], tiers: [...(plan.tiers || [])] });
     setIsEditing(true);
+    setIsDialogOpen(true);
+  };
+
+  const openCopyDialog = (plan: CommissionPlan) => {
+    setCurrentPlan({
+      ...plan,
+      id: undefined,
+      name: `${plan.name} Copy`,
+      deductions: (plan.deductions || []).map((deduction) => ({
+        ...deduction,
+        id: Math.random().toString(36).slice(2, 11),
+      })),
+      tiers: (plan.tiers || []).map((tier) => ({
+        ...tier,
+        id: Math.random().toString(36).slice(2, 11),
+      })),
+    });
+    setIsEditing(false);
     setIsDialogOpen(true);
   };
 
@@ -143,6 +167,47 @@ export default function CommissionPlansManager() {
     setIsDialogOpen(true);
   };
 
+  useEffect(() => {
+    if (createRequest > 0) openNewDialog();
+  }, [createRequest]);
+
+  useEffect(() => {
+    const refreshCounts = () => void refetchAssignments();
+    window.addEventListener('commission-assignment-updated', refreshCounts);
+    return () => window.removeEventListener('commission-assignment-updated', refreshCounts);
+  }, [refetchAssignments]);
+
+  const currentDataSetAgents = useMemo(() => {
+    const names = new Set<string>();
+    allRecords.forEach((record) => {
+      record.agents?.split(',').forEach((name) => {
+        const trimmedName = name.trim();
+        if (trimmedName) names.add(trimmedName);
+      });
+    });
+    return names;
+  }, [allRecords]);
+
+  const assignedAgentCounts = useMemo(
+    () => countAssignedAgentsByPlan(dbAssignments, currentDataSetAgents),
+    [dbAssignments, currentDataSetAgents],
+  );
+
+  const latestVersionByPlan = useMemo(() => {
+    const latest: Record<string, any> = {};
+    planVersions.forEach((version: any) => {
+      if (!latest[version.planId] || version.versionNumber > latest[version.planId].versionNumber) latest[version.planId] = version;
+    });
+    return latest;
+  }, [planVersions]);
+  const historyPlan = plans.find((plan) => plan.id === historyPlanId);
+  const historyVersions = planVersions.filter((version: any) => version.planId === historyPlanId);
+  const priorPlan = currentPlan.id ? plans.find((plan) => plan.id === currentPlan.id) : undefined;
+  const impactedAgents = currentPlan.id ? assignedAgentCounts[currentPlan.id] ?? 0 : 0;
+  const splitDelta = priorPlan && currentPlan.splitPercentage !== undefined
+    ? Number(currentPlan.splitPercentage) - priorPlan.splitPercentage
+    : 0;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -154,7 +219,7 @@ export default function CommissionPlansManager() {
           onClick={openNewDialog} 
           className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 font-bold px-6 py-2 border-2 border-primary-foreground/20"
         >
-          <Settings className="h-4 w-4" /> Commission Plan Settings
+          <Plus className="h-4 w-4" /> New Plan
         </Button>
       </div>
 
@@ -193,6 +258,24 @@ export default function CommissionPlansManager() {
                 onChange={(e) => setCurrentPlan({ ...currentPlan, name: e.target.value })}
                 placeholder="e.g. Standard 80/20"
               />
+            </div>
+            <div className="rounded-lg border border-primary/25 bg-primary/5 p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold"><GitCompareArrows className="h-4 w-4 text-primary" /> Change impact preview</div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {currentPlan.id
+                  ? `${impactedAgents} assigned agent${impactedAgents === 1 ? '' : 's'} will use the next immutable version after this plan is saved.`
+                  : 'Saving this new plan creates version 1. It does not affect agents until you assign the plan.'}
+              </p>
+              {priorPlan && splitDelta !== 0 && <p className="mt-2 text-xs font-medium text-primary">Agent split will change {splitDelta > 0 ? '+' : ''}{splitDelta.toFixed(1)} percentage points from version {latestVersionByPlan[priorPlan.id]?.versionNumber ?? 0}.</p>}
+            </div>
+            <div className="border-t pt-4">
+              <h4 className="mb-3 text-sm font-medium">Version & effective period</h4>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-2"><Label htmlFor="lifecycle">Lifecycle</Label><select id="lifecycle" className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={(currentPlan as any).lifecycle || 'active'} onChange={(event) => setCurrentPlan({ ...currentPlan, lifecycle: event.target.value } as any)}><option value="draft">Draft</option><option value="active">Active</option><option value="archived">Archived</option></select></div>
+                <div className="grid gap-2"><Label htmlFor="effective-start">Effective start</Label><Input id="effective-start" type="date" value={(currentPlan as any).effectiveStartDate || ''} onChange={(event) => setCurrentPlan({ ...currentPlan, effectiveStartDate: event.target.value } as any)} /></div>
+                <div className="grid gap-2"><Label htmlFor="effective-end">Effective end</Label><Input id="effective-end" type="date" value={(currentPlan as any).effectiveEndDate || ''} onChange={(event) => setCurrentPlan({ ...currentPlan, effectiveEndDate: event.target.value } as any)} /></div>
+              </div>
+              <div className="mt-4 grid gap-2"><Label htmlFor="change-note">Change note</Label><textarea id="change-note" className="min-h-20 rounded-md border border-input bg-background px-3 py-2 text-sm" value={(currentPlan as any).changeNote || ''} onChange={(event) => setCurrentPlan({ ...currentPlan, changeNote: event.target.value } as any)} placeholder="Why is this plan version changing? This note appears in the audit history." /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
@@ -320,15 +403,21 @@ export default function CommissionPlansManager() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {plans.map((plan) => (
-          <Card key={plan.id} className="relative group hover:border-primary/50 transition-colors">
+          <Card key={plan.id} className="relative hover:border-primary/50 transition-colors">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex justify-between items-start">
                 {plan.name}
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(plan)}>
+                <div className="relative z-10 flex shrink-0 gap-1" aria-label={`${plan.name} actions`}>
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={(event) => { event.stopPropagation(); openEditDialog(plan); }} disabled={isSaving} title={`Edit ${plan.name}`} aria-label={`Edit ${plan.name}`}>
                     <Edit2 className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDeletePlan(plan.id)}>
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={(event) => { event.stopPropagation(); openCopyDialog(plan); }} disabled={isSaving} title={`Copy ${plan.name}`} aria-label={`Copy ${plan.name}`}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={(event) => { event.stopPropagation(); setHistoryPlanId(plan.id); }} title={`View ${plan.name} version history`} aria-label={`View ${plan.name} version history`}>
+                    <History className="h-4 w-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(event) => { event.stopPropagation(); handleDeletePlan(plan.id); }} disabled={isSaving} title={`Delete ${plan.name}`} aria-label={`Delete ${plan.name}`}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -349,6 +438,16 @@ export default function CommissionPlansManager() {
                   <span className="text-foreground">Post-Cap Split:</span>
                   <span className="font-medium">{plan.postCapSplit}%</span>
                 </div>
+                <div className="flex items-center justify-between rounded-md bg-primary/10 px-2.5 py-2 text-xs font-medium text-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5 text-primary" />
+                    Assigned agents
+                  </span>
+                  <span aria-label={`${assignedAgentCounts[plan.id] ?? 0} agents assigned to ${plan.name}`}>
+                    {assignedAgentCounts[plan.id] ?? 0}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><CalendarDays className="h-3.5 w-3.5" /> Version {latestVersionByPlan[plan.id]?.versionNumber ?? 0}{latestVersionByPlan[plan.id]?.effectiveStartDate ? ` · effective ${latestVersionByPlan[plan.id].effectiveStartDate}` : ' · current rules'}</div>
                 {plan.royaltyPercentage ? (
                   <div className="flex justify-between text-xs text-foreground pt-2 border-t">
                     <span>Royalty: {plan.royaltyPercentage}%</span>
@@ -373,6 +472,15 @@ export default function CommissionPlansManager() {
           </Card>
         ))}
       </div>
+      <FullScreenModal isOpen={Boolean(historyPlan)} onClose={() => setHistoryPlanId(null)} title={`${historyPlan?.name || 'Plan'} history`} subtitle="Each record is an immutable plan configuration used for audit and payout explanation.">
+        <div className="mx-auto max-w-3xl space-y-4 py-8">
+          {historyVersions.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">No version history exists yet. The next save of this plan will create its first immutable version.</div>
+          ) : historyVersions.map((version: any) => (
+            <Card key={version.id}><CardContent className="p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="font-semibold">Version {version.versionNumber} · {version.lifecycle}</p><p className="mt-1 text-sm text-muted-foreground">{version.effectiveStartDate || 'Immediately'}{version.effectiveEndDate ? ` through ${version.effectiveEndDate}` : ''} · saved {new Date(version.createdAt).toLocaleString()}</p>{version.changeNote && <p className="mt-3 text-sm">{version.changeNote}</p>}</div><div className="rounded-md bg-muted px-3 py-2 text-right text-xs"><div>{version.planSnapshot.splitPercentage}% agent split</div><div>${Number(version.planSnapshot.capAmount || 0).toLocaleString()} cap</div></div></div></CardContent></Card>
+          ))}
+        </div>
+      </FullScreenModal>
     </div>
   );
 }

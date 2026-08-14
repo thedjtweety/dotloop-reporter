@@ -1,0 +1,31 @@
+import { describe, expect, it } from 'vitest';
+import { fieldCompletenessMap, importFingerprint, inferReportingPeriod } from './importRunHelpers';
+
+describe('import run helpers', () => {
+  it('infers a stable reporting window from valid CSV record dates', () => {
+    expect(inferReportingPeriod([
+      { closingDate: '2026-03-18' },
+      { createdDate: '2026-01-03' },
+      { listingDate: '2026-02-11' },
+    ] as any)).toEqual({
+      label: '2026-01-03 to 2026-03-18', periodStart: '2026-01-03', periodEnd: '2026-03-18',
+    });
+  });
+
+  it('retains only data-quality fields and percentages for an import run', () => {
+    expect(fieldCompletenessMap([
+      { fieldName: 'agents', completenessPercentage: 94 },
+      { fieldName: 'closingDate', completenessPercentage: 71 },
+    ])).toEqual({ agents: 94, closingDate: 71 });
+  });
+
+  it('creates a deterministic upload fingerprint from count and stable transaction anchors', () => {
+    const records = [
+      { loopId: 'one', loopName: 'One', closingDate: '2026-01-01', salePrice: 100, agents: 'Alex' },
+      { loopId: 'two', loopName: 'Two', closingDate: '2026-01-02', salePrice: 200, agents: 'Blair' },
+      { loopId: 'three', loopName: 'Three', closingDate: '2026-01-03', salePrice: 300, agents: 'Casey' },
+    ] as any;
+    expect(importFingerprint(records)).toBe(importFingerprint(records));
+    expect(importFingerprint(records)).not.toBe(importFingerprint([...records, { loopId: 'four' }] as any));
+  });
+});

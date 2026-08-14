@@ -4121,8 +4121,8 @@
 - [x] Replace getCommissionPlans() with tRPC calls in AgentAssignment.tsx
 - [x] Replace getCommissionPlans() with tRPC calls in CommissionCalculator.tsx
 - [x] Replace getCommissionPlans() with tRPC calls in CommissionPlansManager.tsx
-- [ ] Replace getPlanForAgent() with tRPC calls in AgentCommissionBreakdown.tsx
-- [ ] Replace getPlanForAgent() with tRPC calls in CommissionComparisonReport.tsx
+- [x] Replace getPlanForAgent() with tRPC calls in AgentCommissionBreakdown.tsx
+- [x] Replace getPlanForAgent() with tRPC calls in CommissionComparisonReport.tsx
 - [x] Test Commission components after tRPC migration
 - [x] Verify no console warnings appear
 
@@ -4657,3 +4657,53 @@
 - [x] Persist direct agent assignments and refresh global commission data from the Agents panel
 - [x] Display current plan, company-dollar progress toward cap, and post-cap split stage for each assigned agent
 - [x] Test direct agent assignment and plan-progress metrics with current transaction data
+## Phase N+5: Broker-to-Agent Sharing & Agent Portal
+- [x] Repair the missing `/preview-agent` route invoked by the sidebar control
+- [x] Build a broker-facing agent selector for safely previewing one agent's scoped analytics
+- [x] Create an agent analytics portal that filters all transaction and performance data to the selected agent
+- [x] Add copyable agent-specific share links with clear privacy limitations and no-data states
+- [x] Test demo and uploaded-data preview flows, agent isolation, and invalid share-link handling
+- [x] Remove CDA, Dotloop, co-agent, and expanded-row external actions from token-scoped agent portals
+
+## Phase N+6: Critical Commission Workflow Repair
+- [x] Diagnose and fix the 500 error when saving agent assignments to the database
+- [x] Verify New, Edit, Copy, and Delete plan controls persist correctly and surface user-facing errors
+- [x] Ensure plan assignment can be applied individually and in bulk to uploaded CSV agents
+- [x] Recalculate agent commission metrics globally after each plan or assignment change
+- [x] Ensure private agent-sharing portals use the broker-approved plan-based commission data only
+- [x] Test the complete broker workflow with demo and CSV-derived transaction data
+
+## Phase N+7: Production Plans Tab Repair
+- [x] Replace Commission Management’s local non-persistent plan cards with the live database-backed plan manager
+- [x] Make the page-level New Plan action open the live plan editor
+- [x] Verify live plan cards and New, Edit, and Copy actions render and open in the browser
+
+## Phase N+8: Plan Card Assignment Counts
+- [x] Display the current assigned-agent count on every active commission plan card
+- [x] Refresh plan-card counts after individual and bulk assignment changes
+- [x] Test the count display with persisted commission assignments
+
+## Phase N+9: Public Product Readiness Roadmap
+- [ ] Define a brokerage-scoped workspace and access-control model before broad public launch
+- [ ] Improve the guided CSV import and saved mapping workflow for repeat broker uploads
+- [ ] Define the DotView handoff and data-ingestion approach, beginning with CSV export
+- [ ] Evaluate an approved Dotloop integration or broker-installed browser companion as a future import option
+
+## Phase N+10: Broker Operations Upgrade
+- [x] Build an Import Center with named import runs, reporting periods, data-quality results, and import history
+- [x] Add brokerage-level saved CSV mapping templates and reusable import settings
+- [x] Add commission plan lifecycle states, version history, effective dates, and projected change impact
+- [x] Save immutable commission calculation snapshots for audit and payout reporting
+- [x] Add verified agent-delivery controls with reporting-period context and access audit history
+- [x] Test the combined import, commission, and agent-sharing workflow end to end
+
+## Phase N+11: Homepage Nested Link Fix
+- [x] Locate and remove the nested-anchor composition causing React DOM validation errors
+- [x] Verify the corrected navigation remains keyboard accessible and the homepage renders cleanly
+
+## Phase N+12: Broker Operations Continuation
+- [x] Add import-run activation, archival, duplicate-detection, and saved-mapping selection controls
+- [x] Enforce active plan lifecycle and effective-date eligibility in broker and agent commission calculations
+- [x] Surface plan-version attribution on calculation snapshots and agent portals
+- [x] Add a broker delivery roster with recipient status, last access, expiry, and revocation actions
+- [x] Test the extended import, commission governance, and delivery workflows end to end
