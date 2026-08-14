@@ -15,7 +15,7 @@ import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Target, DollarSign, Download, FileText, Info, ChevronRight, AlertTriangle } from 'lucide-react';
-import { formatCurrency, formatNumber } from '@/lib/formatUtils';
+import { formatCompactCurrency, formatCurrency, formatNumber } from '@/lib/formatUtils';
 import {
   calculateProjectedToClose,
   calculateHistoricalCloseRate,
@@ -166,13 +166,13 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
       <Card className="w-full p-8 bg-card border border-border">
         <div className="space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-border pb-4">
-            <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center justify-between border-b border-border pb-4">
+            <div className="flex min-w-0 items-center gap-3">
               <div className="w-12 h-12 rounded-lg bg-blue-500/20 dark:bg-blue-500/30 flex items-center justify-center">
                 <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h2 className="text-2xl font-display font-bold text-foreground">
+                <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground">
                   Projected to Close
                 </h2>
                 <p className="text-sm text-muted-foreground">
@@ -183,12 +183,12 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
           </div>
 
           {/* Timeframe Selector */}
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2">
             {[30, 60, 90].map(days => (
               <button
                 key={days}
                 onClick={() => setSelectedTimeframe(days as 30 | 60 | 90)}
-                className={`px-6 py-2 rounded-lg font-medium transition-all ${
+                className={`px-4 sm:px-6 py-2 rounded-lg font-medium transition-all ${
                   selectedTimeframe === days
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-foreground hover:bg-muted/80'
@@ -200,17 +200,17 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
           </div>
 
           {/* Main Metrics Grid - Full Width */}
-          <div className="grid grid-cols-3 gap-4 min-w-0">
+          <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.3fr)_minmax(0,0.85fr)] gap-3 sm:gap-4 min-w-0">
             {/* Projected Deals */}
             <button
               onClick={() => handleMetricClick('deals')}
-              className="p-6 rounded-lg bg-muted/50 dark:bg-muted/30 hover:bg-muted/70 dark:hover:bg-muted/50 transition-all text-left group border border-border hover:border-primary/50 min-w-0 overflow-hidden"
+              className="p-4 sm:p-5 rounded-lg bg-muted/50 dark:bg-muted/30 hover:bg-muted/70 dark:hover:bg-muted/50 transition-all text-left group border border-border hover:border-primary/50 min-w-0 overflow-hidden"
             >
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs text-foreground font-medium">PROJECTED DEALS</p>
                 <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
-              <p className="text-3xl font-display font-bold text-foreground mb-2">
+              <p className="text-[clamp(1.75rem,2.6vw,2.25rem)] leading-none font-display font-bold text-foreground mb-2 tabular-nums">
                 {formatNumber(current?.projectedClosedDeals || 0)}
               </p>
               <p className="text-xs text-muted-foreground">
@@ -224,7 +224,7 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
             {/* Projected Revenue */}
             <button
               onClick={() => handleMetricClick('revenue')}
-              className="p-6 rounded-lg bg-green-500/10 dark:bg-green-500/20 hover:bg-green-500/20 dark:hover:bg-green-500/30 transition-all text-left group border border-green-500/30 hover:border-green-500/50 min-w-0 overflow-hidden"
+              className="p-4 sm:p-5 rounded-lg bg-green-500/10 dark:bg-green-500/20 hover:bg-green-500/20 dark:hover:bg-green-500/30 transition-all text-left group border border-green-500/30 hover:border-green-500/50 min-w-0 overflow-hidden"
             >
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs text-foreground font-medium flex items-center gap-1">
@@ -233,15 +233,15 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
                 </p>
                 <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors" />
               </div>
-              <p className="font-display font-bold text-green-600 dark:text-green-400 mb-2 line-clamp-2" style={{
-                fontSize: formatCurrency(current.projectedRevenue).length > 15 ? '1.5rem' : 
-                         formatCurrency(current.projectedRevenue).length > 12 ? '2rem' : '1.875rem',
-                lineHeight: '1.2'
-              }}>
-                {formatCurrency(current.projectedRevenue)}
+              <p
+                className="text-[clamp(1.5rem,2.2vw,2.1rem)] leading-none font-display font-bold text-green-600 dark:text-green-400 mb-2 tabular-nums whitespace-nowrap"
+                title={formatCurrency(current.projectedRevenue)}
+                aria-label={formatCurrency(current.projectedRevenue)}
+              >
+                {formatCompactCurrency(current.projectedRevenue)}
               </p>
               <p className="text-xs text-muted-foreground">
-                Avg: {formatCurrency(current.projectedRevenue / Math.max(1, current.projectedClosedDeals))} per deal
+                Avg: {formatCompactCurrency(current.projectedRevenue / Math.max(1, current.projectedClosedDeals))} per deal
               </p>
               <p className="text-xs text-green-600 dark:text-green-400 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
                 View revenue breakdown →
@@ -251,13 +251,13 @@ export default function ProjectedToCloseCard({ records }: ProjectedToCloseCardPr
             {/* Close Rate */}
             <button
               onClick={() => handleMetricClick('rate')}
-              className="p-6 rounded-lg bg-purple-500/10 dark:bg-purple-500/20 hover:bg-purple-500/20 dark:hover:bg-purple-500/30 transition-all text-left group border border-purple-500/30 hover:border-purple-500/50 min-w-0 overflow-hidden"
+              className="p-4 sm:p-5 rounded-lg bg-purple-500/10 dark:bg-purple-500/20 hover:bg-purple-500/20 dark:hover:bg-purple-500/30 transition-all text-left group border border-purple-500/30 hover:border-purple-500/50 min-w-0 overflow-hidden"
             >
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs text-foreground font-medium">CLOSE RATE</p>
                 <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
               </div>
-              <p className="text-3xl font-display font-bold text-purple-600 dark:text-purple-400 mb-2">
+              <p className="text-[clamp(1.75rem,2.6vw,2.25rem)] leading-none font-display font-bold text-purple-600 dark:text-purple-400 mb-2 tabular-nums">
                 {historicalCloseRate}%
               </p>
               <p className="text-xs text-muted-foreground">

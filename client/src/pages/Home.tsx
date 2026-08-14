@@ -27,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { formatCurrency, formatPercentage, formatNumber } from '@/lib/formatUtils';
+import { formatCompactCurrency, formatCurrency, formatPercentage, formatNumber } from '@/lib/formatUtils';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DateRange } from 'react-day-picker';
@@ -1188,7 +1188,8 @@ function HomeContent() {
               <MetricCardModern
                 icon={<DollarSign className="w-5 h-5 text-accent" />}
                 title="Total Sales Volume"
-                value={formatCurrency(contextMetrics.totalSalesVolume)}
+                value={formatCompactCurrency(contextMetrics.totalSalesVolume)}
+                valueLabel={formatCurrency(contextMetrics.totalSalesVolume)}
                 trend={{
                   value: contextMetrics.trends?.totalVolume?.value || 0,
                   isPositive: (contextMetrics.trends?.totalVolume?.direction === 'up') || false,

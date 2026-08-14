@@ -202,7 +202,7 @@
 
   /* Modern Metric Card Styling */
   .metric-card {
-    @apply bg-card border border-border/50 rounded-xl p-6 shadow-sm hover:shadow-lg hover:border-accent/30 transition-all duration-300;
+    @apply bg-card border border-border/50 rounded-xl p-5 sm:p-6 shadow-sm hover:shadow-lg hover:border-accent/30 transition-all duration-300;
   }
 
   .metric-card-header {
@@ -210,11 +210,11 @@
   }
 
   .metric-card-title {
-    @apply text-sm font-medium text-foreground/70 uppercase tracking-wide;
+    @apply text-xs sm:text-sm font-medium text-foreground/70 uppercase tracking-wide;
   }
 
   .metric-card-value {
-    @apply text-4xl font-bold text-foreground mt-2;
+    @apply mt-2 font-bold text-foreground text-[clamp(1.75rem,3vw,2.5rem)] leading-none tracking-[-0.04em];
   }
 
   .metric-card-trend {

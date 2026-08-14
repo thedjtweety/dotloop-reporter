@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 interface MetricCardModernProps {
   title: string;
   value: string | number;
+  /** Full, unabridged value exposed through an accessible label and native tooltip. */
+  valueLabel?: string;
   icon?: ReactNode;
   trend?: {
     value: number;
@@ -22,6 +24,7 @@ interface MetricCardModernProps {
 export default function MetricCardModern({
   title,
   value,
+  valueLabel,
   icon,
   trend,
   status,
@@ -48,27 +51,27 @@ export default function MetricCardModern({
     <div
       onClick={onClick}
       className={cn(
-        'metric-card group',
+        'metric-card group relative min-w-0 overflow-hidden',
         variant === 'highlight' && 'ring-2 ring-accent/50 bg-card/80',
         onClick && 'cursor-pointer',
         className
       )}
     >
       {/* Header with Icon and Status */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-start justify-between gap-3 mb-4">
+        <div className="flex min-w-0 items-center gap-3">
           {icon && (
             <div className="property-icon">
               {icon}
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="metric-card-title">{title}</p>
+            <p className="metric-card-title leading-tight">{title}</p>
           </div>
         </div>
         {status && (
           <div className={cn(
-            'status-badge text-xs px-2 py-1 rounded-full border',
+            'status-badge shrink-0 text-xs px-2 py-1 rounded-full border',
             statusStyles[status],
             statusTextStyles[status]
           )}>
@@ -79,13 +82,19 @@ export default function MetricCardModern({
 
       {/* Main Value */}
       <div className="mb-4">
-        <p className="metric-card-value">{value}</p>
+        <p
+          className="metric-card-value min-w-0 truncate tabular-nums"
+          title={valueLabel ?? String(value)}
+          aria-label={valueLabel ?? String(value)}
+        >
+          {value}
+        </p>
       </div>
 
       {/* Trend Indicator */}
       {trend && (
         <div className={cn(
-          'metric-card-trend',
+          'metric-card-trend min-w-0',
           trend.isPositive ? 'positive' : 'negative'
         )}>
           {trend.isPositive ? (
@@ -95,11 +104,11 @@ export default function MetricCardModern({
           ) : (
             <Minus className="w-4 h-4" />
           )}
-          <span className="font-semibold">
-            {trend.value > 0 ? '+' : ''}{trend.value}%
+          <span className="font-semibold whitespace-nowrap">
+            {trend.value > 0 ? '+' : ''}{Number.isFinite(trend.value) ? Number(trend.value.toFixed(1)) : 0}%
           </span>
           {trend.label && (
-            <span className="text-foreground/60 ml-1">{trend.label}</span>
+            <span className="text-foreground/60 ml-1 truncate">{trend.label}</span>
           )}
         </div>
       )}

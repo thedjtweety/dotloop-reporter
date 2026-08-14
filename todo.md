@@ -4761,3 +4761,9 @@
 - [x] Preselect the matching agent when launching the sharing workspace
 - [x] Verify the shared portal shows all agent-scoped transaction metrics and the active commission plan
 - [x] Test agent data isolation, share-link creation, and plan visibility end to end
+
+## Phase N+19: Home Dashboard Rendering Polish
+- [x] Audit metric cards and projected-revenue tiles for value, label, and trend overflow at responsive widths
+- [x] Add compact currency formatting and responsive type scales for large dashboard values
+- [x] Rebalance projected-revenue and pipeline card layouts to prevent clipping
+- [x] Test the dashboard at desktop and narrow viewports with representative high-value data
