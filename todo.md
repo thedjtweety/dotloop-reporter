@@ -4750,3 +4750,8 @@
 - [x] Add compact currency formatting and responsive type scales for large dashboard values
 - [x] Rebalance projected-revenue and pipeline card layouts to prevent clipping
 - [x] Test the dashboard at desktop and narrow viewports with representative high-value data
+
+## Phase N+21: Accurate Import Source Status
+- [x] Track the active data source for demo, uploaded CSV, recent upload, and cleared states
+- [x] Replace the stale demo-mode badge with the current uploaded file source and name
+- [x] Test source status changes across upload, demo load, recent-file selection, and data clearing

@@ -9,13 +9,15 @@
   "env_vars": {
     "DATABASE_URL": "mysql://24ruGQuiASWpGv5.root:a4Pzfooxk5oPsX9W97i4@gateway03.us-east-1.prod.aws.tidbcloud.com:4000/gtMbYvvduSqhsHRvj39YWw?ssl={\"rejectUnauthorized\":true}"
   },
-  "experiments": null,
+  "experiments": [
+    "no_db_push"
+  ],
   "git_remote": {
     "repo_url": "s3://vida-prod-gitrepo/webdev-git/310519663283621115/gtMbYvvduSqhsHRvj39YWw",
-    "access_key_id": "ASIAZV3A2ECZDLWR6ER7",
-    "secret_access_key": "v9XQlNmfJ2nBaX3YoT8y+v/PQhENiEMf3HVZzep0",
-    "session_token": "IQoJb3JpZ2luX2VjEHUaCXVzLWVhc3QtMSJIMEYCIQDaVf9WnmdtGvZd+rnqRT69RFl+r+8//qx9KgFHFXCjxAIhANf2eFMVhYYSR7w4Sz15pTaKiKQWIwHat5AqgXsUn1wJKvYDCD4QBBoMNjY1Mzg2MDk4ODY2IgwDGb5i1PIgo2TBH3Mq0wN18NK3455dXFKRAIKEJg+SY9F/c2thTkEaJBbpzz92SxytB4vyPkxGsrY7HqPQMRYLshaeT+abAH4e5efsj3mneUg0SDcVRfDmc8560RnrGpVgnCjwNgG5YfAbpakiEfuEMwnS/Mw/CL+AlPPBwNONFMlByxZGKDNjiEJzpbbXoj/gY0gApOFLUSiyXYslfVuJ8hGnSoW7CViUsFKsutoupFhaz3ma/SzcRhHeS2MFAr1gK1dMGBcsfHdbyg/P4dFUPfGqVQENvMGMJzvIahENVwtmP9i/YJ+17s/Veg1nsiAODyj3x6QmFU5VnDnM113CLKVSGUlHW1uZQiwVJY/AoOIdORAZTfRc7H0+5qemeiNs5iGR7+1qhXoPZC63pONmVrnoLCn1M7PR7P8ApTQ/Pfw3BbqtVreqw4onWZKqp7TqjgD8vBPgWVjkvLA43Gy2t4i90k77zo5a1W4ZyDDjKw08L+SpKQTbPakeNjDGypX/g4gqLQ/ZnQLVDNUWsI6JfPwc14b6es2OyCHg/PhQ0kzyJeProVolaS03kxVcm6GQ86KhXcV1vzXix3lFOdfovqXf+uPqkyNzM5/oOsm+/8SrbLKLiyV4vXv+virplgZN0TD53pnTBjqcATsqpu9zy/6aG/TH4jswDGYYs3++l6CqrFiGZwFykFrG9L0i1OSITHZJiJXzDZXUlyfbNuqbx07Vh3ZaR/V9XJxaTf0oYMhzxsf2qH65hv3edxWw6m1TMGqhYghlPm/o7ntqSUhNGmkPep6sf+OwCxHhquiX4nr0DpP83R3z/tytMNQhPg6yyDiPqQD0xPkNw4vtuBz7GZlT8PzHkg==",
-    "expiration": "2026-07-27T08:35:05.000Z",
+    "access_key_id": "ASIAZV3A2ECZBISGCTKU",
+    "secret_access_key": "9QtwaQ+wKBa0CB6+qjOhxkwIQEDHDQXwn2cjWWHe",
+    "session_token": "IQoJb3JpZ2luX2VjEEsaCXVzLWVhc3QtMSJIMEYCIQC4wF21d2m1dkoAYDyhH9V/RzWQOxv9RGSrS/LMkOtSnAIhAOADX4M/vtPsr5nw5839m6KWcugYrCLW1i5HOy0v5i1vKvYDCBQQBBoMNjY1Mzg2MDk4ODY2IgyjWPpVYl4PH2Ks6/8q0wM6SLqSUdc6n3b+/F2Xcyrj5fzq9U3l7XDNU60pQEZngN5eor6xHjog8HYDoigObHACGfSqsu4XAi8czN1FBKtRmdPu+uFW7QqkL2tm4H+Rnr3qn4tUzkUOFGIa9MINdbgi7zwAzz+N1XIGXloqq94mu0LfDGrDO8jgKll1nhwMcmuycFTBfWoKCgzPbEQk7NunxcecT9oihVjtefa3L2HAtA/OL7QmyT7UKQDFBvvcinz+jNnSEEsvRXWlLMKkXpPhHR1GVkG2CKb51eM89Sh5vc5VPHCWj/zTMfedIxqWFu/2luDf5TWRtP6h7x2QqYyP51GdoPNZYsmg09gmNf7iQ9kK7MedQeazSruAy4pCMpl6SiLy2EaHLwUEqKsf7uEKIc+Bt9+litErpD6/PC2DpH0HJoOa090VF52MzFDdoIQ2wZnDIdHzqubSneoFOmKWBAepylg3VbDw0H6FLIweBcfmo0ZjGfXI3T5vSkzaNXCrJSvMkQeehJmACZMWuUhcn4Npa6nAgnAKqF/DKDXblha82Iy1gj0WCGUqN2hxBupmxvnWlwjLcKqn3EfjLDnWFHdbGc+BYRXo/bp0cJ7wkJqI4RaZb6PR0JXCzcPvHVi0ezCuiIHUBjqcARPQED4rb0e+Ft6km9jh4bRnuT2Ga2W9Q+m4r2AhFohltv1GsgzJ1skts1TdaAOzauUfHQ5ap4e6SSxz/Gqg+kok6QlZu24ht5NKWKvukJF30SvLQn+4jsFFkQnM85K7GcOWh0XCUGJU1lPuKQQ76oa4lr5kzEiJJz1MM36iG+sZ+Jm5hLjv+gxJfv2cgeXuifYLpO7YRuYH6fVl5g==",
+    "expiration": "2026-08-15T22:49:18.000Z",
     "backend": "GIT_BACKEND_S3"
   },
   "name": "dotloop-reporter",

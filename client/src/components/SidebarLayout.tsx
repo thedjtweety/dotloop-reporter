@@ -34,6 +34,7 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { useTransactionData, DateRangeFilter } from '../contexts/TransactionDataContext';
 import { useCDAPanel } from '../contexts/CDAContext';
+import { getDataSourceStatus } from '../lib/dataSourceStatus';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 
@@ -125,13 +126,22 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
   const datePickerRef = useRef<HTMLDivElement>(null);
   const teamDropdownRef = useRef<HTMLDivElement>(null);
 
-  const { dateFilter, setDateFilter, teamFilter, setTeamFilter } = useTransactionData();
-  const { transactionData, dataStatistics, clearTransactionData } = useTransactionData();
+  const {
+    dateFilter,
+    setDateFilter,
+    teamFilter,
+    setTeamFilter,
+    allRecords,
+    activeDataSetName,
+    isDemoMode,
+    dataStatistics,
+    clearTransactionData,
+  } = useTransactionData();
   const { openCDAHistory } = useCDAPanel();
   const { theme, toggleTheme } = useTheme();
 
-  const hasData = transactionData && transactionData.length > 0;
-  const activeDataSetName = transactionData?.[0]?.loopName || '';
+  const hasData = allRecords.length > 0;
+  const dataSourceStatus = getDataSourceStatus({ hasData, isDemoMode, activeDataSetName });
   const teams = ['All Teams', 'Team A', 'Team B', 'Team C'];
 
   // Close dropdowns when clicking outside
@@ -410,10 +420,17 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
             </button>
           )}
 
-          {/* Demo mode button */}
-          {!collapsed && (
-            <div className="px-2 py-1.5 rounded bg-purple-500/10 border border-purple-500/20 text-[10px] text-purple-400 text-center">
-              Demo mode active
+          {/* Active data source */}
+          {dataSourceStatus && !collapsed && (
+            <div
+              className={`px-2 py-1.5 rounded border text-[10px] text-center truncate ${
+                dataSourceStatus.tone === 'demo'
+                  ? 'bg-purple-500/10 border-purple-500/20 text-purple-400'
+                  : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+              }`}
+              title={dataSourceStatus.title}
+            >
+              {dataSourceStatus.label}
             </div>
           )}
 

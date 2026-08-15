@@ -401,12 +401,13 @@ function HomeContent() {
     const metrics1 = calculateAgentMetrics(file.data);
     const agentMetricsWithPlans = applyPlansToAllAgents(metrics1, file.data);
     setAgentMetrics(agentMetricsWithPlans);
-    setTransactionData({
-      allRecords: file.data,
-      filteredRecords: file.data,
-      metrics: calculatedMetrics,
-      agentMetrics: agentMetricsWithPlans,
-      fileName: uploadFileName || 'Uploaded CSV',
+      setTransactionData({
+        allRecords: file.data,
+        filteredRecords: file.data,
+        metrics: calculatedMetrics,
+        agentMetrics: agentMetricsWithPlans,
+        isDemoMode: false,
+        fileName: file.name,
     });
   };
 
@@ -790,6 +791,7 @@ function HomeContent() {
         filteredRecords: records,
         metrics: calculatedMetrics,
         agentMetrics: agentMetricsWithPlans,
+        isDemoMode: false,
         fileName: file.name,
       });
       
