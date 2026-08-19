@@ -21,6 +21,7 @@ import FullScreenModal from '@/components/FullScreenModal';
 import { Button } from '@/components/ui/button';
 import CommissionStatement from './CommissionStatement';
 import ExpenseSummaryReport from './ExpenseSummaryReport';
+import CommissionPlanProgressDrilldown from './CommissionPlanProgressDrilldown';
 
 interface CommissionAuditReportProps {
   records: DotloopRecord[];
@@ -30,6 +31,7 @@ export default function CommissionAuditReport({ records }: CommissionAuditReport
   const [ytdStats, setYtdStats] = useState<AgentYTD[]>([]);
   const [auditResults, setAuditResults] = useState<AuditResult[]>([]);
   const [selectedAudit, setSelectedAudit] = useState<AuditResult | null>(null);
+  const [selectedCapStat, setSelectedCapStat] = useState<AgentYTD | null>(null);
   
   // Adjustment State
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
@@ -114,6 +116,7 @@ export default function CommissionAuditReport({ records }: CommissionAuditReport
                         <span>Cap: {formatCurrency(stat.capAmount)}</span>
                       </div>
                     </div>
+                    <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => setSelectedCapStat(stat)}>View plan progress</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -242,6 +245,18 @@ export default function CommissionAuditReport({ records }: CommissionAuditReport
           </div>
         </div>
       </FullScreenModal>
+      {selectedCapStat && (
+        <CommissionPlanProgressDrilldown
+          open={Boolean(selectedCapStat)}
+          onOpenChange={(open) => !open && setSelectedCapStat(null)}
+          agentName={selectedCapStat.agentName}
+          planName={selectedCapStat.planName}
+          capAmount={selectedCapStat.capAmount}
+          companyDollar={selectedCapStat.ytdCompanyDollar}
+          transactionCount={records.filter((record) => (record.agentName || record.agents || '').toLowerCase().includes(selectedCapStat.agentName.toLowerCase())).length}
+          records={records.filter((record) => (record.agentName || record.agents || '').toLowerCase().includes(selectedCapStat.agentName.toLowerCase()))}
+        />
+      )}
     </div>
   );
 }

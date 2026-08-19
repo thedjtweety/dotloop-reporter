@@ -1,6 +1,6 @@
 /** Public, token-scoped portal used by a broker-issued agent link. */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocation, useRoute } from 'wouter';
 import { AlertTriangle, BarChart3, CalendarDays, LockKeyhole, LogOut, ShieldCheck, Users } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import TransactionTable from '@/components/TransactionTable';
 import { calculateAgentMetrics, DotloopRecord } from '@/lib/csvParser';
 import { formatCurrency } from '@/lib/formatUtils';
 import { trpc } from '@/lib/trpc';
+import CommissionPlanProgressDrilldown from '@/components/CommissionPlanProgressDrilldown';
 
 function isClosed(status: string) {
   const normalized = status.toLocaleLowerCase();
@@ -26,6 +27,7 @@ export default function AgentPortalPage() {
 
   const records = (sharedData.data?.records ?? []) as DotloopRecord[];
   const commissionSummary = sharedData.data?.commissionSummary;
+  const [planProgressOpen, setPlanProgressOpen] = useState(false);
   const metrics = useMemo(() => {
     if (!sharedData.data?.agentName) return null;
     return calculateAgentMetrics(records).find((metric) => metric.agentName === sharedData.data?.agentName) ?? null;
@@ -134,7 +136,25 @@ export default function AgentPortalPage() {
               <PlanMetric label={commissionSummary.isCapped ? 'Cap status' : 'Remaining before cap'} value={commissionSummary.isCapped ? 'Cap reached' : commissionSummary.capRemaining === null ? '—' : formatCurrency(commissionSummary.capRemaining)} detail={commissionSummary.isCapped ? `Your post-cap split is ${commissionSummary.postCapAgentSplitPercentage}%` : 'Based on the shared reporting period'} />
               <PlanMetric label="Net commission" value={formatCurrency(commissionSummary.netCommission)} detail="From your assigned transactions" />
             </div>
+            <Button className="mt-5" variant="outline" onClick={() => setPlanProgressOpen(true)}>View plan progress</Button>
           </Card>
+        )}
+        {commissionSummary && (
+          <CommissionPlanProgressDrilldown
+            open={planProgressOpen}
+            onOpenChange={setPlanProgressOpen}
+            agentName={sharedData.data.agentName}
+            planName={commissionSummary.planName}
+            capAmount={commissionSummary.capAmount}
+            companyDollar={commissionSummary.ytdCompanyDollar}
+            currentSplit={commissionSummary.agentSplitPercentage}
+            postCapSplit={commissionSummary.postCapAgentSplitPercentage}
+            grossCommission={commissionSummary.grossCommission}
+            netCommission={commissionSummary.netCommission}
+            transactionCount={records.length}
+            records={records}
+            agentScoped
+          />
         )}
 
         {!commissionSummary && sharedData.data.commissionPlanStatus && (

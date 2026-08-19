@@ -4755,3 +4755,10 @@
 - [x] Track the active data source for demo, uploaded CSV, recent upload, and cleared states
 - [x] Replace the stale demo-mode badge with the current uploaded file source and name
 - [x] Test source status changes across upload, demo load, recent-file selection, and data clearing
+
+## Phase N+22: Global Commission Plan Progress Drilldown
+- [x] Inventory every broker and agent portal commission-cap progress display
+- [x] Build a reusable, scoped commission-plan progress drilldown view
+- [x] Make broker progress indicators clickable and route them to the drilldown
+- [x] Add an agent-safe plan-progress drilldown to shared agent portals
+- [x] Test cap calculations, click paths, and broker/agent data isolation

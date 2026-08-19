@@ -14,6 +14,7 @@ import { useCDAPanel } from '@/contexts/CDAContext';
 import { AgentMetrics } from '@/lib/csvParser';
 import { formatCurrency } from '@/lib/formatUtils';
 import { getAgentPlanProgress } from '@/lib/agentPlanProgress';
+import CommissionPlanProgressDrilldown from '@/components/CommissionPlanProgressDrilldown';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { trpc } from '@/lib/trpc';
@@ -164,6 +165,7 @@ export default function AgentsPage() {
   const [search, setSearch] = useState('');
   const [selectedAgents, setSelectedAgents] = useState<Set<string>>(new Set());
   const [drillDown, setDrillDown] = useState<EnrichedAgent | null>(null);
+  const [progressDrilldownAgent, setProgressDrilldownAgent] = useState<EnrichedAgent | null>(null);
   const [chartMetric, setChartMetric] = useState<'totalCommission'|'closedDeals'|'totalSalesVolume'>('totalCommission');
   const [savingAgent, setSavingAgent] = useState<string | null>(null);
   const utils = trpc.useUtils();
@@ -199,6 +201,12 @@ export default function AgentsPage() {
     [planSummaries],
   );
   const planById = useMemo(() => new Map(eligiblePlans.map((plan) => [plan.id, plan])), [eligiblePlans]);
+  const progressDrilldownAssignment = progressDrilldownAgent ? assignmentByAgent.get(progressDrilldownAgent.agentName) : undefined;
+  const progressDrilldownPlan = progressDrilldownAssignment ? planById.get(progressDrilldownAssignment.planId) : undefined;
+  const progressDrilldownSummary = progressDrilldownAgent ? summaryByAgent.get(progressDrilldownAgent.agentName) as any : undefined;
+  const progressDrilldownRecords = progressDrilldownAgent
+    ? filteredRecords.filter((record) => (record.agents || '').toLowerCase().includes(progressDrilldownAgent.agentName.toLowerCase()))
+    : [];
 
   const enriched: EnrichedAgent[] = useMemo(() =>
     agentMetrics.map((a, i) => ({
@@ -450,11 +458,19 @@ export default function AgentsPage() {
                     </select>
                   </td>
                   <td className="px-3 py-3 min-w-[170px]">
+                    <button
+                      type="button"
+                      className={`w-full rounded-md p-1 text-left transition-colors ${plan ? 'hover:bg-[#1a3348] focus:outline-none focus:ring-2 focus:ring-emerald-500/60' : 'cursor-default'}`}
+                      onClick={() => plan && setProgressDrilldownAgent(agent)}
+                      disabled={!plan}
+                      title={plan ? `View ${agent.agentName}'s commission plan progress` : 'Assign a commission plan to view progress'}
+                    >
                     <div className="space-y-1">
                       <div className={`text-xs font-medium ${progress.capped ? 'text-emerald-400' : plan ? 'text-gray-200' : 'text-gray-500'}`}>{progress.primary}</div>
                       {plan && Number(plan.capAmount) > 0 && <div className="h-1.5 overflow-hidden rounded-full bg-[#233245]"><div className={`h-full rounded-full ${progress.capped ? 'bg-emerald-400' : 'bg-blue-400'}`} style={{ width: `${progress.percent}%` }} /></div>}
                       <div className="text-[10px] text-gray-500">{progress.detail}</div>
                     </div>
+                    </button>
                   </td>
                   <td className="px-3 py-3 text-right text-gray-200">{agent.closedDeals}</td>
                   <td className="px-3 py-3 text-right">
@@ -522,6 +538,22 @@ export default function AgentsPage() {
       </div>
 
       {drillDown && <AgentDrillDown agent={drillDown} onClose={() => setDrillDown(null)} records={filteredRecords} />}
+      {progressDrilldownAgent && progressDrilldownPlan && (
+        <CommissionPlanProgressDrilldown
+          open={Boolean(progressDrilldownAgent)}
+          onOpenChange={(open) => !open && setProgressDrilldownAgent(null)}
+          agentName={progressDrilldownAgent.agentName}
+          planName={progressDrilldownPlan.name}
+          capAmount={progressDrilldownPlan.capAmount}
+          companyDollar={Number(progressDrilldownSummary?.totalCompanyDollar ?? progressDrilldownAgent.companyDollar)}
+          currentSplit={progressDrilldownPlan.splitPercentage}
+          postCapSplit={progressDrilldownPlan.postCapSplit}
+          grossCommission={progressDrilldownSummary?.totalGCI ?? progressDrilldownAgent.totalCommission}
+          netCommission={progressDrilldownSummary?.totalAgentCommission}
+          transactionCount={progressDrilldownSummary?.transactionCount ?? progressDrilldownRecords.length}
+          records={progressDrilldownRecords}
+        />
+      )}
     </div>
   );
 }

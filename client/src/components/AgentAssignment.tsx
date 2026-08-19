@@ -29,8 +29,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useTransactionData } from '@/contexts/TransactionDataContext';
 import { getAgentSharingPath } from '@/lib/agentSharingNavigation';
+import CommissionPlanProgressDrilldown from './CommissionPlanProgressDrilldown';
 
 interface AgentAssignmentProps {
   records: DotloopRecord[]; // Used to extract unique agent names
@@ -48,6 +50,7 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
   const [agents, setAgents] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [recalculatingAgent, setRecalculatingAgent] = useState<string | null>(null);
+  const [progressAgent, setProgressAgent] = useState<string | null>(null);
   
   // tRPC mutations
   const recalculateMutation = trpc.commissionRecalculation.recalculateForAgent.useMutation();
@@ -64,6 +67,20 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
   const { data: dbAssignments, refetch: refetchAssignments } = trpc.commission.getAssignments.useQuery(undefined, {
     retry: 1,
   });
+  const commissionInputs = records.map((record, index) => ({
+    id: record.loopId || `commission-assignment-${index}`,
+    loopName: record.loopName || 'Transaction',
+    closingDate: record.closingDate || new Date(0).toISOString(),
+    agents: record.agents || '',
+    salePrice: Number(record.salePrice || record.price) || 0,
+    commissionRate: Number(record.commissionRate) || 0,
+    buySidePercent: Number(record.buySidePercent) || 50,
+    sellSidePercent: Number(record.sellSidePercent) || 50,
+  }));
+  const { data: planSummaries = [] } = trpc.commission.getAgentCommissionsSummary.useQuery(
+    { transactions: commissionInputs },
+    { enabled: commissionInputs.length > 0 },
+  );
   
   // Log errors for debugging
   useEffect(() => {
@@ -447,6 +464,11 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
                         >
                           <Share2 className="h-3.5 w-3.5" /> Share with Agent
                         </Button>
+                        {currentPlan && (
+                          <Button type="button" size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setProgressAgent(agent)}>
+                            View plan progress
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -456,6 +478,28 @@ export default function AgentAssignment({ records, highlightAgent, onAssignmentC
           </TableBody>
         </Table>
       </div>
+      {progressAgent && (() => {
+        const assignment = assignments.find((item) => item.agentName === progressAgent);
+        const plan = plans.find((item) => item.id === assignment?.planId);
+        const summary = planSummaries.find((item) => item.agentName === progressAgent);
+        const agentRecords = records.filter((record) => (record.agents || '').toLowerCase().includes(progressAgent.toLowerCase()));
+        return plan ? (
+          <CommissionPlanProgressDrilldown
+            open={Boolean(progressAgent)}
+            onOpenChange={(open) => !open && setProgressAgent(null)}
+            agentName={progressAgent}
+            planName={plan.name}
+            capAmount={plan.capAmount}
+            companyDollar={Number(summary?.totalCompanyDollar || 0)}
+            currentSplit={plan.splitPercentage}
+            postCapSplit={plan.postCapSplit}
+            grossCommission={summary?.totalGCI}
+            netCommission={summary?.totalAgentCommission}
+            transactionCount={summary?.transactionCount || agentRecords.length}
+            records={agentRecords}
+          />
+        ) : null;
+      })()}
     </div>
   );
 }
