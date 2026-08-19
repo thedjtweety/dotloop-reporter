@@ -4,7 +4,7 @@
  * Accessed by clicking a transaction row in the Agent Drill-Down modal.
  */
 
-import { useLocation } from 'wouter';
+import { useLocation, useRoute } from 'wouter';
 import { ArrowLeft, ExternalLink, ClipboardList, Home, DollarSign, Users, Calendar, Tag, FileText, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -77,16 +77,17 @@ function Field({ label, value, highlight }: { label: string; value: string; high
 // ─── page ────────────────────────────────────────────────────────────────────
 
 interface TransactionDetailPageProps {
-  params?: { index?: string };
+  params?: { id?: string; index?: string };
 }
 
 export default function TransactionDetailPage({ params }: TransactionDetailPageProps) {
   const [, setLocation] = useLocation();
+  const [, routeParams] = useRoute('/transaction/:index');
   const { allRecords } = useTransactionData();
   const { openCDA } = useCDAPanel();
 
-  // params.index is actually a loopId or composite key (URL-encoded)
-  const rawKey = decodeURIComponent(params?.index ?? '');
+  // Support the current /transaction/:id route plus the legacy index alias.
+  const rawKey = decodeURIComponent(params?.id ?? params?.index ?? routeParams?.index ?? '');
 
   // First try to match by loopId
   let record: DotloopRecord | undefined = allRecords.find(r => r.loopId && r.loopId === rawKey);
@@ -97,7 +98,7 @@ export default function TransactionDetailPage({ params }: TransactionDetailPageP
     record = allRecords.find(r =>
       (r.loopName || '') === loopName &&
       (r.closingDate || '') === closingDate &&
-      String(r.salePrice || '') === salePrice
+      String(r.salePrice ?? r.price ?? '') === salePrice
     );
   }
 

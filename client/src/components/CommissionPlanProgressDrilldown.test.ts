@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getCommissionCapProgress } from './CommissionPlanProgressDrilldown';
+import { getCommissionCapProgress, getTransactionDetailKey } from './CommissionPlanProgressDrilldown';
 
 describe('getCommissionCapProgress', () => {
   it('calculates remaining cap progress before the cap is reached', () => {
@@ -27,5 +27,17 @@ describe('getCommissionCapProgress', () => {
       percent: 0,
       remaining: null,
     });
+  });
+
+  it('uses a loop ID for a direct transaction-detail route when available', () => {
+    expect(getTransactionDetailKey({ loopId: 'loop-123', loopName: '123 Main St' })).toBe('loop-123');
+  });
+
+  it('uses the detail page composite-key fallback when a loop ID is unavailable', () => {
+    expect(getTransactionDetailKey({
+      loopName: '123 Main St',
+      closingDate: '2026-08-19',
+      salePrice: 550000,
+    })).toBe('123 Main St|2026-08-19|550000');
   });
 });

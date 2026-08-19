@@ -4762,3 +4762,9 @@
 - [x] Make broker progress indicators clickable and route them to the drilldown
 - [x] Add an agent-safe plan-progress drilldown to shared agent portals
 - [x] Test cap calculations, click paths, and broker/agent data isolation
+
+## Phase N+23: Full-Screen Commission Progress Drilldown
+- [x] Redesign the commission-plan progress dialog to use the available viewport
+- [x] Eliminate the cramped nested scrolling in the cap summary and transaction details
+- [x] Make each cap-progress transaction open its complete deal details
+- [x] Verify the full-screen drilldown on desktop and narrow layouts
