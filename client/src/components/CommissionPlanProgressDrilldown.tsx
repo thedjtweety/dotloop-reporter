@@ -1,4 +1,4 @@
-import { ArrowLeft, CircleDollarSign, FileText, Flag, Landmark, TrendingUp } from 'lucide-react';
+import { ArrowLeft, CircleDollarSign, FileText, Flag, Landmark, TrendingUp, X } from 'lucide-react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation } from 'wouter';
@@ -83,7 +83,7 @@ export default function CommissionPlanProgressDrilldown({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-hidden rounded-none border-0 p-0 sm:h-[calc(100dvh-2rem)] sm:w-[calc(100dvw-2rem)] sm:max-w-[1600px] sm:rounded-2xl">
+      <DialogContent showCloseButton={false} className="flex h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-hidden rounded-none border-0 p-0 sm:h-[calc(100dvh-2rem)] sm:w-[calc(100dvw-2rem)] sm:max-w-[1600px] sm:rounded-2xl">
         <DialogHeader className="shrink-0 border-b border-border bg-card px-5 py-4 text-left sm:px-7 sm:py-5">
           <div className="flex items-center justify-between gap-3 pr-8">
             <div className="min-w-0">
@@ -99,11 +99,23 @@ export default function CommissionPlanProgressDrilldown({
                 {displayDetailView ? 'Complete information available for this shared transaction.' : planLabel}
               </p>
             </div>
-            {!displayDetailView && progress.cap > 0 && (
-              <Badge className={`shrink-0 ${progress.isCapped ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-primary hover:bg-primary'}`}>
-                {progress.isCapped ? 'Cap reached' : `${progress.percent}% to cap`}
-              </Badge>
-            )}
+            <div className="flex shrink-0 items-center gap-2">
+              {!displayDetailView && progress.cap > 0 && (
+                <Badge className={`hidden sm:inline-flex ${progress.isCapped ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-primary hover:bg-primary'}`}>
+                  {progress.isCapped ? 'Cap reached' : `${progress.percent}% to cap`}
+                </Badge>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleOpenChange(false)}
+                className="border-primary/60 bg-primary/10 font-semibold text-foreground shadow-sm hover:bg-primary hover:text-primary-foreground"
+              >
+                <X className="mr-1.5 h-4 w-4" />
+                <span className="sm:hidden">Close</span>
+                <span className="hidden sm:inline">Close &amp; return</span>
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 

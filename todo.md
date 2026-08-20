@@ -4768,3 +4768,7 @@
 - [x] Eliminate the cramped nested scrolling in the cap summary and transaction details
 - [x] Make each cap-progress transaction open its complete deal details
 - [x] Verify the full-screen drilldown on desktop and narrow layouts
+
+## Phase N+24: Prominent Drilldown Return Control
+- [x] Add a clear close control that returns users to the main view
+- [x] Verify the control remains visible and clear in full-screen drilldown states
