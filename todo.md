@@ -4772,3 +4772,12 @@
 ## Phase N+24: Prominent Drilldown Return Control
 - [x] Add a clear close control that returns users to the main view
 - [x] Verify the control remains visible and clear in full-screen drilldown states
+
+## Phase N+25: Broker Quick-Start Hub
+- [x] Review existing sharing, brokerage health, CDA, and commission-plan workflows for reuse
+- [x] Add three prominent broker task cards to the main dashboard
+- [x] Build first-use guidance for calculating and sharing agent metrics, including share-link delivery
+- [x] Build first-use guidance for reviewing overall brokerage health
+- [x] Build first-use guidance for creating CDAs with commission plans applied
+- [x] Persist completed and skipped tutorial states locally for repeat-use quick access
+- [x] Verify guided and quick-access flows from the dashboard

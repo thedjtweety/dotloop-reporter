@@ -119,6 +119,7 @@ import { validateCSVData, ValidationReport } from '@/lib/csvValidation';
 import CSVValidationReport from '@/components/CSVValidationReport';
 import { analyzeFieldCompleteness, getDegradedFeatures } from '@/lib/fieldCompletenessAnalysis';
 import DataQualityGuide from '@/components/DataQualityGuide';
+import BrokerQuickStart from '@/components/BrokerQuickStart';
 import toast, { Toaster } from 'react-hot-toast';
 // import SectionNav from '@/components/SectionNav'; // Removed floating navigation
 import BackToTop from '@/components/BackToTop';
@@ -133,7 +134,7 @@ function HomeContent() {
   // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
   let { user, loading, error, isAuthenticated, logout } = useAuth();
   const { filters, addFilter } = useFilters();
-  const { setTransactionData, clearTransactionData, setComparisonDataSet, comparisonMode, toggleComparisonMode, metrics: contextMetrics, allRecords: contextAllRecords } = useTransactionData();
+  const { setTransactionData, clearTransactionData, setComparisonDataSet, comparisonMode, toggleComparisonMode, metrics: contextMetrics, allRecords: contextAllRecords, agentMetrics: contextAgentMetrics } = useTransactionData();
   const createImportRunMutation = trpc.brokerOperations.createImportRun.useMutation();
 
   const [location, setLocation] = useLocation();
@@ -577,6 +578,10 @@ function HomeContent() {
     setDrillDownTitle(title);
     setDrillDownTransactions(filtered);
     setDrillDownOpen(true);
+  };
+
+  const openBrokerageHealth = () => {
+    document.getElementById('brokerage-health')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   // Handle chart segment clicks - applies drill-down filters
@@ -1169,10 +1174,25 @@ function HomeContent() {
             </div>
           );
         })()}
+
+        <BrokerQuickStart
+          agentCount={contextAgentMetrics.length}
+          transactionCount={contextAllRecords.length}
+          onNavigate={setLocation}
+          onOpenHealth={openBrokerageHealth}
+        />
         
         {/* Pipeline Pulse Dashboard */}
+        <section id="brokerage-health" className="scroll-mt-6">
         {contextMetrics && contextAllRecords.length > 0 && (
           <div ref={dashboardRef} className="mb-12 space-y-8" data-tour="pipeline-pulse">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Brokerage health snapshot</p>
+                <h2 className="mt-1 text-2xl font-semibold text-foreground">See the whole brokerage before drilling into the details</h2>
+              </div>
+              <p className="max-w-xl text-sm text-muted-foreground">Use these live metrics to assess production, pipeline, closings, and data readiness.</p>
+            </div>
             {/* KPI Cards Row - Modern Design */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
               <MetricCardModern
@@ -1255,6 +1275,7 @@ function HomeContent() {
             </div>
           </div>
         )}
+        </section>
 
         {/* Pipeline Drill-Down Modal */}
         <PipelineDrillDownModal

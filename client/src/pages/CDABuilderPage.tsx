@@ -11,6 +11,7 @@ import { AlertCircle, Download, Plus, Trash2, Info, Eye, CheckCircle } from 'luc
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { getAppliedCdaCommissionPlan, type AppliedCdaCommissionPlan } from '@/lib/cdaCommissionPlan';
 
 interface Agent {
   role: 'listing_agent' | 'listing_broker' | 'buying_agent' | 'buying_broker';
@@ -71,13 +72,14 @@ const LabeledTextarea = ({ label, hint, required = false, ...props }: any) => (
 
 export default function CDABuilderPage() {
   const { user } = useAuth();
-  const { transactionData } = useTransactionData();
+  const { allRecords, commissionPlans, agentAssignments } = useTransactionData();
   const { data: branding } = trpc.branding.getBranding.useQuery();
   const generatePdfMutation = trpc.cdaBuilder.generatePdf.useMutation();
 
   // Mode: 'select' (from CSV) or 'scratch' (manual entry)
   const [mode, setMode] = useState<'select' | 'scratch'>('select');
   const [selectedTransactionId, setSelectedTransactionId] = useState<string>('');
+  const [appliedPlan, setAppliedPlan] = useState<AppliedCdaCommissionPlan | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -138,8 +140,10 @@ export default function CDABuilderPage() {
   // Auto-populate from selected transaction
   const handleTransactionSelect = (transactionId: string) => {
     setSelectedTransactionId(transactionId);
-    const transaction = transactionData?.find(t => t.loopId === transactionId);
+    const transaction = allRecords.find(t => t.loopId === transactionId);
     if (transaction) {
+      const plan = getAppliedCdaCommissionPlan(transaction, commissionPlans, agentAssignments);
+      setAppliedPlan(plan);
       setFormData(prev => ({
         ...prev,
         propertyAddress: transaction.address || '',
@@ -150,7 +154,14 @@ export default function CDABuilderPage() {
         buyerName: transaction.buyerName || '',
         sellerName: transaction.sellerName || '',
         closingDate: transaction.closingDate || '',
+        listingAgentSplit: plan?.splitPercentage ?? prev.listingAgentSplit,
+        buyingAgentSplit: plan?.splitPercentage ?? prev.buyingAgentSplit,
       }));
+      if (plan) {
+        setAgents(prev => prev.map((agent, index) => index === 0 ? { ...agent, name: plan.agentName } : agent));
+      }
+    } else {
+      setAppliedPlan(null);
     }
   };
 
@@ -288,7 +299,7 @@ export default function CDABuilderPage() {
                 </TabsList>
 
                 <TabsContent value="select" className="mt-4">
-                  {transactionData && transactionData.length > 0 ? (
+                  {allRecords.length > 0 ? (
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
                         Select Transaction <span className="text-red-500">*</span>
@@ -300,12 +311,27 @@ export default function CDABuilderPage() {
                         className="w-full px-3 py-2 bg-slate-900/50 border border-border rounded-md text-foreground"
                       >
                         <option value="">-- Choose a transaction --</option>
-                        {transactionData.map(t => (
+                        {allRecords.map(t => (
                           <option key={t.loopId} value={t.loopId}>
                             {t.loopName} - {t.address} ({t.state})
                           </option>
                         ))}
                       </select>
+                      {selectedTransactionId && (
+                        <div className={`mt-3 rounded-lg border px-3 py-3 text-sm ${appliedPlan ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300'}`}>
+                          {appliedPlan ? (
+                            <div className="flex items-start gap-2">
+                              <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                              <p><strong>{appliedPlan.planName}</strong> is applied for {appliedPlan.agentName}. The agent split has been prefilled at <strong>{appliedPlan.splitPercentage}%</strong>{appliedPlan.postCapSplit !== undefined ? ` (post-cap: ${appliedPlan.postCapSplit}%)` : ''}. Review the waterfall before generating the CDA.</p>
+                            </div>
+                          ) : (
+                            <div className="flex items-start gap-2">
+                              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                              <p>No assigned commission plan was found for this transaction’s agent. Enter or confirm the split manually before generating the CDA.</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-md text-yellow-700">
